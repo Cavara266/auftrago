@@ -31,11 +31,15 @@ export default async function DashboardPage() {
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
-          <div className="text-sm font-semibold text-white">Letzte Transaktionen</div>
+          <div className="text-sm font-semibold text-white">
+            Letzte Transaktionen
+          </div>
 
           <div className="mt-4 space-y-2">
             {transactions.length === 0 ? (
-              <div className="text-sm text-white/50">Noch keine Transaktionen.</div>
+              <div className="text-sm text-white/50">
+                Noch keine Transaktionen.
+              </div>
             ) : (
               transactions.map((tx) => (
                 <div
@@ -50,7 +54,7 @@ export default async function DashboardPage() {
                   </div>
 
                   <div className="text-sm font-semibold">
-                    {tx.amountCredits > 0 ? `+${tx.amountCredits}` : tx.amountCredits}
+                    {tx.amount > 0 ? `+${tx.amount}` : tx.amount}
                   </div>
                 </div>
               ))
@@ -59,11 +63,15 @@ export default async function DashboardPage() {
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
-          <div className="text-sm font-semibold text-white">Letzte Freischaltungen</div>
+          <div className="text-sm font-semibold text-white">
+            Letzte Freischaltungen
+          </div>
 
           <div className="mt-4 space-y-2">
             {unlocks.length === 0 ? (
-              <div className="text-sm text-white/50">Noch keine Freischaltungen.</div>
+              <div className="text-sm text-white/50">
+                Noch keine Freischaltungen.
+              </div>
             ) : (
               unlocks.map((u) => (
                 <div
