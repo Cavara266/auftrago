@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET(
   _req: Request,
@@ -39,7 +41,6 @@ export async function GET(
       select: { id: true },
     });
 
-    // Wenn Lead noch nicht freigeschaltet
     if (!unlocked) {
       return NextResponse.json({
         ok: true,
@@ -53,7 +54,6 @@ export async function GET(
       });
     }
 
-    // Wenn freigeschaltet → komplette Daten
     return NextResponse.json({
       ok: true,
       lead: {
@@ -61,7 +61,6 @@ export async function GET(
         locked: false,
       },
     });
-
   } catch (error) {
     console.error("LEAD GET ERROR:", error);
 
