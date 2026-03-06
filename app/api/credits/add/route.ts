@@ -1,48 +1,60 @@
-// app/api/credits/add/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getOrCreateDemoUser } from "@/lib/demoUser";
+import { requireUser } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    const user = await getOrCreateDemoUser();
+    const user = await requireUser();
 
-    const body = await req.json().catch(() => ({}));
-    const amountRaw = body?.amount;
-
-    const amount = Number(amountRaw);
-
-    if (!Number.isFinite(amount) || amount <= 0) {
+    if (!user) {
       return NextResponse.json(
-        { error: "Invalid amount. Use { amount: 10 }" },
+        { ok: false, error: "Nicht eingeloggt." },
+        { status: 401 }
+      );
+    }
+
+    const body = await req.json().catch(() => null);
+    const amount = Number(body?.amount ?? 0);
+
+    if (!Number.isInteger(amount) || amount <= 0) {
+      return NextResponse.json(
+        { ok: false, error: "Ungültiger Credit-Betrag." },
         { status: 400 }
       );
     }
 
-    const updated = await prisma.$transaction(async (tx) => {
-      const u = await tx.user.update({
+    await prisma.$transaction([
+      prisma.user.update({
         where: { id: user.id },
-        data: { credits: { increment: amount } },
-      });
-
-      await tx.creditTransaction.create({
+        data: {
+          credits: {
+            increment: amount,
+          },
+        },
+      }),
+      prisma.transaction.create({
         data: {
           userId: user.id,
+          type: "CREDIT_ADD",
           amount,
-          type: "PURCHASE",
+          meta: {
+            source: "manual",
+          },
         },
-      });
+      }),
+    ]);
 
-      return u;
+    return NextResponse.json({
+      ok: true,
+      addedCredits: amount,
     });
+  } catch (error) {
+    console.error("CREDITS ADD ERROR:", error);
 
-    return NextResponse.json({ ok: true, credits: updated.credits, amount });
-  } catch (e: any) {
-    console.error("CREDITS ADD ERROR:", e);
     return NextResponse.json(
-      { error: e?.message || "Server error" },
+      { ok: false, error: "Serverfehler." },
       { status: 500 }
     );
   }
