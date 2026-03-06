@@ -1,24 +1,28 @@
-// app/api/leads/[id]/unlock/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
-export async function POST(
-  _req: Request,
-  { params }: { params: { id: string } }
-) {
+type RouteContext = {
+  params: {
+    id: string;
+  };
+};
+
+export async function POST(_req: Request, { params }: RouteContext) {
   try {
     const user = await requireUser();
 
-    const leadId = Number(params.id);
-    if (!Number.isFinite(leadId)) {
-      return new NextResponse("Ungültige Lead-ID.", { status: 400 });
+    if (!user) {
+      return NextResponse.json(
+        { ok: false, error: "Nicht eingeloggt." },
+        { status: 401 }
+      );
     }
 
-    // Lead holen (für priceCredits)
+    const leadId = String(params.id);
+
     const lead = await prisma.lead.findUnique({
       where: { id: leadId },
       select: {
@@ -28,65 +32,75 @@ export async function POST(
     });
 
     if (!lead) {
-      return new NextResponse("Lead nicht gefunden.", { status: 404 });
+      return NextResponse.json(
+        { ok: false, error: "Lead nicht gefunden." },
+        { status: 404 }
+      );
     }
 
-    // Atomar: prüfen + credits abziehen + unlock erstellen
-    await prisma.$transaction(async (tx) => {
-      // schon unlocked?
-      const existing = await tx.leadUnlock.findUnique({
-        where: {
-          userId_leadId: {
-            userId: user.id,
-            leadId: lead.id,
+    const existingUnlock = await prisma.unlock.findUnique({
+      where: {
+        userId_leadId: {
+          userId: user.id,
+          leadId: lead.id,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (existingUnlock) {
+      return NextResponse.json({
+        ok: true,
+        alreadyUnlocked: true,
+      });
+    }
+
+    if (user.credits < lead.priceCredits) {
+      return NextResponse.json(
+        { ok: false, error: "Zu wenig Credits." },
+        { status: 400 }
+      );
+    }
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: user.id },
+        data: {
+          credits: {
+            decrement: lead.priceCredits,
           },
         },
-        select: { id: true },
-      });
-
-      if (existing) {
-        // bereits freigeschaltet -> nichts abziehen
-        return;
-      }
-
-      const freshUser = await tx.user.findUnique({
-        where: { id: user.id },
-        select: { id: true, credits: true },
-      });
-
-      if (!freshUser) {
-        throw new Error("USER_NOT_FOUND");
-      }
-
-      if (freshUser.credits < lead.priceCredits) {
-        throw new Error("NOT_ENOUGH_CREDITS");
-      }
-
-      // Credits runter
-      await tx.user.update({
-        where: { id: user.id },
-        data: { credits: { decrement: lead.priceCredits } },
-      });
-
-      // Unlock schreiben (unique schützt doppelt)
-      await tx.leadUnlock.create({
+      }),
+      prisma.unlock.create({
         data: {
           userId: user.id,
           leadId: lead.id,
         },
-      });
+      }),
+      prisma.transaction.create({
+        data: {
+          userId: user.id,
+          type: "LEAD_UNLOCK",
+          amount: -lead.priceCredits,
+          meta: {
+            leadId: lead.id,
+          },
+        },
+      }),
+    ]);
+
+    return NextResponse.json({
+      ok: true,
+      unlocked: true,
     });
+  } catch (error) {
+    console.error("LEAD UNLOCK ERROR:", error);
 
-    return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    if (e?.message === "NOT_ENOUGH_CREDITS") {
-      return new NextResponse("Nicht genug Credits.", { status: 402 });
-    }
-    if (e?.message === "USER_NOT_FOUND") {
-      return new NextResponse("User nicht gefunden.", { status: 401 });
-    }
-
-    console.error("UNLOCK ERROR:", e);
-    return new NextResponse("Serverfehler.", { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: "Serverfehler." },
+      { status: 500 }
+    );
   }
 }
