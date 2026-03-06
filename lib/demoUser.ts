@@ -1,20 +1,35 @@
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 
-export async function getOrCreateDemoUser() {
+export async function ensureDemoUser() {
   const email = "demo@auftrago.local";
+  const password = "demo1234";
 
-  let user = await prisma.user.findUnique({ where: { email } });
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true },
+  });
 
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        email,
-        name: "Demo User",
-        credits: 50,
-        role: "CUSTOMER",
-      },
-    });
+  if (existingUser) {
+    return existingUser;
   }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  const user = await prisma.user.create({
+    data: {
+      email,
+      passwordHash,
+      companyName: "Auftrago Demo GmbH",
+      phone: "079 123 45 67",
+      city: "Zürich",
+      credits: 50,
+    },
+    select: {
+      id: true,
+      email: true,
+    },
+  });
 
   return user;
 }
