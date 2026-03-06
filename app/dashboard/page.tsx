@@ -3,9 +3,15 @@ import AppShell from "@/app/components/app-shell";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function DashboardPage() {
   const user = await requireUser();
-  if (!user) redirect("/login");
+
+  if (!user) {
+    redirect("/login");
+  }
 
   const transactions = await prisma.transaction.findMany({
     where: { userId: user.id },
