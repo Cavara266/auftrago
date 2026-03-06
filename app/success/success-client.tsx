@@ -2,10 +2,15 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
-export default function CreditsSuccessPage() {
-  const searchParams = useSearchParams();
+type CreditsSuccessClientProps = {
+  sessionId: string;
+};
+
+export default function CreditsSuccessClient({
+  sessionId,
+}: CreditsSuccessClientProps) {
   const router = useRouter();
   const hasRun = useRef(false);
 
@@ -17,8 +22,6 @@ export default function CreditsSuccessPage() {
   useEffect(() => {
     if (hasRun.current) return;
     hasRun.current = true;
-
-    const sessionId = searchParams.get("session_id");
 
     if (!sessionId) {
       setStatus("error");
@@ -44,17 +47,21 @@ export default function CreditsSuccessPage() {
 
         if (!res.ok) {
           setStatus("error");
-          setMessage(data?.error || "Die Zahlung konnte nicht verarbeitet werden.");
+          setMessage(
+            data?.error || "Die Zahlung konnte nicht verarbeitet werden."
+          );
           return;
         }
 
         if (data?.alreadyProcessed) {
           setStatus("already");
           setMessage("Die Credits wurden bereits gutgeschrieben.");
+
           setTimeout(() => {
             router.push("/dashboard");
             router.refresh();
           }, 1200);
+
           return;
         }
 
@@ -79,7 +86,7 @@ export default function CreditsSuccessPage() {
     return () => {
       cancelled = true;
     };
-  }, [router, searchParams]);
+  }, [router, sessionId]);
 
   return (
     <main className="min-h-screen bg-[#050816] px-6 py-20 text-white">

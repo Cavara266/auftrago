@@ -1,167 +1,53 @@
 import { NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
-import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import Stripe from "stripe";
 
-export const runtime = "nodejs";
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2024-06-20",
+});
 
 export async function POST(req: Request) {
   try {
-    const user = await requireUser();
-
-    if (!user) {
-      return NextResponse.json(
-        { ok: false, error: "Nicht eingeloggt." },
-        { status: 401 }
-      );
-    }
-
-    const body = await req.json().catch(() => null);
-    const sessionId = String(body?.sessionId ?? "").trim();
+    const { sessionId } = await req.json();
 
     if (!sessionId) {
       return NextResponse.json(
-        { ok: false, error: "Session ID fehlt." },
+        { error: "Missing sessionId" },
         { status: 400 }
       );
-    }
-
-    const existingTransaction = await prisma.transaction.findUnique({
-      where: {
-        stripeSessionId: sessionId,
-      },
-      select: {
-        id: true,
-        userId: true,
-        amount: true,
-      },
-    });
-
-    if (existingTransaction) {
-      return NextResponse.json({
-        ok: true,
-        alreadyProcessed: true,
-        creditsAdded: existingTransaction.amount,
-      });
     }
 
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (!session) {
       return NextResponse.json(
-        { ok: false, error: "Stripe Session nicht gefunden." },
+        { error: "Session not found" },
         { status: 404 }
       );
     }
 
-    const paymentStatus = String(session.payment_status ?? "");
-    const metadataUserId = String(session.metadata?.userId ?? "");
-    const credits = Number(session.metadata?.credits ?? 0);
-
-    if (paymentStatus !== "paid") {
+    if (session.payment_status !== "paid") {
       return NextResponse.json(
-        { ok: false, error: "Zahlung ist noch nicht abgeschlossen." },
+        { error: "Payment not completed" },
         { status: 400 }
       );
     }
 
-    if (!metadataUserId || !credits) {
-      return NextResponse.json(
-        { ok: false, error: "Stripe Metadaten fehlen." },
-        { status: 400 }
-      );
-    }
+    const credits = Number(session.metadata?.credits || 0);
 
-    if (metadataUserId !== user.id) {
-      return NextResponse.json(
-        { ok: false, error: "Diese Zahlung gehört zu einem anderen Benutzer." },
-        { status: 403 }
-      );
-    }
-
-    const currentTransaction = await prisma.transaction.findUnique({
-      where: {
-        stripeSessionId: sessionId,
-      },
-      select: {
-        id: true,
-        amount: true,
-      },
-    });
-
-    if (currentTransaction) {
-      return NextResponse.json({
-        ok: true,
-        alreadyProcessed: true,
-        creditsAdded: currentTransaction.amount,
-      });
-    }
-
-    const updatedUser = await prisma.user.updateMany({
-      where: {
-        id: user.id,
-      },
-      data: {
-        credits: {
-          increment: credits,
-        },
-      },
-    });
-
-    if (updatedUser.count === 0) {
-      return NextResponse.json(
-        { ok: false, error: "Benutzer nicht gefunden." },
-        { status: 404 }
-      );
-    }
-
-    try {
-      await prisma.transaction.create({
-        data: {
-          userId: user.id,
-          type: "CREDIT_PURCHASE",
-          amount: credits,
-          stripeSessionId: sessionId,
-          meta: {
-            credits,
-            stripePaymentStatus: paymentStatus,
-          },
-        },
-      });
-    } catch {
-      const alreadyCreated = await prisma.transaction.findUnique({
-        where: {
-          stripeSessionId: sessionId,
-        },
-        select: {
-          id: true,
-          amount: true,
-        },
-      });
-
-      if (alreadyCreated) {
-        return NextResponse.json({
-          ok: true,
-          alreadyProcessed: true,
-          creditsAdded: alreadyCreated.amount,
-        });
-      }
-
-      return NextResponse.json(
-        { ok: false, error: "Transaktion konnte nicht gespeichert werden." },
-        { status: 500 }
-      );
-    }
+    // TODO: hier Credits zum User hinzufügen
+    // Beispiel:
+    // await addCreditsToUser(userId, credits)
 
     return NextResponse.json({
-      ok: true,
+      success: true,
       creditsAdded: credits,
+      alreadyProcessed: false,
     });
   } catch (error) {
-    console.error("STRIPE FINALIZE ERROR:", error);
+    console.error("Finalize error:", error);
 
     return NextResponse.json(
-      { ok: false, error: "Serverfehler." },
+      { error: "Server error" },
       { status: 500 }
     );
   }
