@@ -1,20 +1,25 @@
-// lib/admin.ts
 import { redirect } from "next/navigation";
-import { requireUser, isAdminEmail } from "@/lib/auth";
-import { prisma } from "@/lib/db";
+import { requireUser } from "@/lib/auth";
+
+const ADMIN_EMAILS = [
+  "demo@auftrago.local",
+  "info@cavara-hauswartung.ch",
+];
+
+export function isAdminEmail(email: string) {
+  return ADMIN_EMAILS.includes(email.toLowerCase());
+}
 
 export async function requireAdmin() {
-  const session = await requireUser();
+  const user = await requireUser();
 
-  // email sicher aus DB holen (falls session nur id hat)
-  const user = await prisma.user.findUnique({
-    where: { id: session.id },
-    select: { email: true, id: true },
-  });
+  if (!user) {
+    redirect("/login");
+  }
 
-  if (!user?.email || !isAdminEmail(user.email)) {
+  if (!isAdminEmail(user.email)) {
     redirect("/dashboard");
   }
 
-  return session;
+  return user;
 }
