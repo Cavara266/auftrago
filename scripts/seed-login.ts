@@ -1,24 +1,36 @@
-// scripts/seed-login.ts
-import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/db";
 
 async function main() {
   const email = "demo@auftrago.local";
-  const plain = "demo1234";
-  const hash = await bcrypt.hash(plain, 10);
+  const password = "demo1234";
+  const hash = await bcrypt.hash(password, 10);
 
   await prisma.user.upsert({
     where: { email },
-    update: { password: hash, credits: 50 },
-    create: { email, password: hash, credits: 50 },
+    update: {
+      passwordHash: hash,
+      credits: 50,
+      companyName: "Auftrago Demo GmbH",
+      phone: "079 123 45 67",
+      city: "Zürich",
+    },
+    create: {
+      email,
+      passwordHash: hash,
+      credits: 50,
+      companyName: "Auftrago Demo GmbH",
+      phone: "079 123 45 67",
+      city: "Zürich",
+    },
   });
 
-  console.log("✅ Seed ok:", email, "/", plain);
+  console.log("Demo login user seeded:", email);
 }
 
 main()
-  .catch((e) => {
-    console.error("❌ Seed failed:", e);
+  .catch((error) => {
+    console.error("SEED LOGIN ERROR:", error);
     process.exit(1);
   })
   .finally(async () => {
