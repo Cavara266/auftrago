@@ -23,9 +23,44 @@ export async function POST(req: Request) {
     const category = String(body.category ?? "").trim();
     const description = String(body.description ?? "").trim();
 
+    const website = String(body.website ?? "").trim();
+    const formStartedAt = Number(body.formStartedAt ?? 0);
+
+    if (website) {
+      return NextResponse.json({ ok: true });
+    }
+
+    const submittedTooFast =
+      Number.isFinite(formStartedAt) &&
+      formStartedAt > 0 &&
+      Date.now() - formStartedAt < 2500;
+
+    if (submittedTooFast) {
+      return NextResponse.json(
+        { ok: false, error: "Anfrage konnte nicht verarbeitet werden." },
+        { status: 400 }
+      );
+    }
+
     if (!name || !phone || !email || !city || !category || !description) {
       return NextResponse.json(
         { ok: false, error: "Bitte alle Felder ausfüllen." },
+        { status: 400 }
+      );
+    }
+
+    const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+    if (!emailIsValid) {
+      return NextResponse.json(
+        { ok: false, error: "Bitte eine gültige E-Mail eingeben." },
+        { status: 400 }
+      );
+    }
+
+    if (description.length < 10) {
+      return NextResponse.json(
+        { ok: false, error: "Bitte die Anfrage etwas genauer beschreiben." },
         { status: 400 }
       );
     }
@@ -42,6 +77,7 @@ export async function POST(req: Request) {
         contactPhone: phone,
         contactEmail: email,
         priceCredits: 4,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       },
       select: {
         id: true,
@@ -53,7 +89,7 @@ export async function POST(req: Request) {
       leadId: lead.id,
     });
   } catch (error) {
-    console.error("ANFRAGE ERROR FULL:", error);
+    console.error("ANFRAGE ERROR:", error);
 
     return NextResponse.json(
       {
