@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  passwordHash String
+  companyName  String?
+  phone        String?
+  city         String?
+  credits      Int           @default(0)
+  createdAt    DateTime      @default(now())
+
+  unlocks      Unlock[]
+  transactions Transaction[]
+}
+
+model Lead {
+  id           String    @id @default(cuid())
+  title        String
+  category     String
+  city         String
+  description  String
+
+  contactName  String
+  contactPhone String
+  contactEmail String
+
+  priceCredits Int       @default(5)
+
+  createdAt    DateTime  @default(now())
+  expiresAt    DateTime?
+
+  unlocks      Unlock[]
+}
+
+model Unlock {
+  id        String   @id @default(cuid())
+  userId    String
+  leadId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, leadId])
+  @@index([userId])
+  @@index([leadId])
+}
+
+model Transaction {
+  id              String   @id @default(cuid())
+  userId          String
+  type            String
+  amount          Int
+  stripeSessionId String?  @unique
+  meta            Json?
+  createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}

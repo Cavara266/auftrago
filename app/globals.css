@@ -1,26 +1,46 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold bg-white/5 text-white/80 ring-1 ring-white/10 transition hover:bg-white/10 hover:text-white;
+}
+
+.btn-primary {
+  @apply bg-indigo-500/90 text-white ring-indigo-400/30 hover:bg-indigo-500;
+}
+
+.card {
+  border-radius: 1.5rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.bg-app {
+  background:
+    radial-gradient(900px 500px at 10% 10%, rgba(99, 102, 241, 0.25), transparent 60%),
+    radial-gradient(900px 500px at 90% 20%, rgba(16, 185, 129, 0.18), transparent 65%),
+    radial-gradient(700px 500px at 70% 90%, rgba(59, 130, 246, 0.18), transparent 60%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.9));
+}
+
+.shadow-soft {
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.35),
+    0 2px 0 rgba(255, 255, 255, 0.06) inset;
 }
