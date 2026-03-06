@@ -30,15 +30,6 @@ export async function POST(req: Request) {
       );
     }
 
-    const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-    if (!emailIsValid) {
-      return NextResponse.json(
-        { ok: false, error: "Bitte eine gültige E-Mail eingeben." },
-        { status: 400 }
-      );
-    }
-
     const title = `${category} in ${city}`;
 
     const lead = await prisma.lead.create({
@@ -62,15 +53,12 @@ export async function POST(req: Request) {
       leadId: lead.id,
     });
   } catch (error) {
-    console.error("ANFRAGE ERROR:", error);
+    console.error("ANFRAGE ERROR FULL:", error);
 
     return NextResponse.json(
       {
         ok: false,
-        error:
-          process.env.NODE_ENV === "development" && error instanceof Error
-            ? error.message
-            : "Serverfehler.",
+        error: error instanceof Error ? error.message : "Serverfehler.",
       },
       { status: 500 }
     );
