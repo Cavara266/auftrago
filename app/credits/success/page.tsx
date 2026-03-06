@@ -1,60 +1,29 @@
-"use client";
+import { Suspense } from "react";
+import CreditsSuccessClient from "./success-client";
 
-import { useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+type CreditsSuccessPageProps = {
+  searchParams: {
+    session_id?: string;
+  };
+};
 
-export default function SuccessPage() {
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    const sessionId = searchParams.get("session_id");
-
-    if (!sessionId) {
-      console.error("Keine Stripe Session ID gefunden");
-      return;
-    }
-
-    async function finalize() {
-      try {
-        const res = await fetch("/api/stripe/finalize", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            sessionId,
-          }),
-        });
-
-        const data = await res.json();
-
-        console.log("Finalize response:", data);
-
-        // Dashboard neu laden
-        window.location.href = "/dashboard";
-      } catch (error) {
-        console.error("Finalize error:", error);
-      }
-    }
-
-    finalize();
-  }, [searchParams]);
+export default function CreditsSuccessPage({
+  searchParams,
+}: CreditsSuccessPageProps) {
+  const sessionId = searchParams.session_id ?? "";
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#050816] text-white">
-
-      <div className="text-center">
-
-        <h1 className="text-4xl font-semibold mb-4">
-          Zahlung erfolgreich 🎉
-        </h1>
-
-        <p className="text-white/60">
-          Credits werden deinem Konto gutgeschrieben...
-        </p>
-
-      </div>
-
-    </main>
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-[#050816] px-6 py-20 text-white">
+          <div className="mx-auto max-w-2xl rounded-3xl border border-white/10 bg-white/5 p-10 text-center backdrop-blur">
+            <h1 className="text-4xl font-semibold">Zahlung wird verarbeitet</h1>
+            <p className="mt-4 text-lg text-white/65">Bitte kurz warten ...</p>
+          </div>
+        </main>
+      }
+    >
+      <CreditsSuccessClient sessionId={sessionId} />
+    </Suspense>
   );
 }
