@@ -7,7 +7,14 @@ export async function ensureDemoUser() {
 
   const existingUser = await prisma.user.findUnique({
     where: { email },
-    select: { id: true },
+    select: {
+      id: true,
+      email: true,
+      credits: true,
+      companyName: true,
+      phone: true,
+      city: true,
+    },
   });
 
   if (existingUser) {
@@ -28,6 +35,10 @@ export async function ensureDemoUser() {
     select: {
       id: true,
       email: true,
+      credits: true,
+      companyName: true,
+      phone: true,
+      city: true,
     },
   });
 
