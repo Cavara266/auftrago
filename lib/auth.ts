@@ -11,7 +11,7 @@ export async function setSessionUser(userId: string) {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 7 Tage
+    maxAge: 60 * 60 * 24 * 7,
   });
 }
 
@@ -42,6 +42,9 @@ export async function requireUser() {
     select: {
       id: true,
       email: true,
+      companyName: true,
+      phone: true,
+      city: true,
       credits: true,
     },
   });

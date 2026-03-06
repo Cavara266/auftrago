@@ -10,50 +10,58 @@ export async function POST(req: Request) {
 
     if (!user) {
       return NextResponse.json(
-        { error: "Nicht eingeloggt." },
+        { ok: false, error: "Nicht eingeloggt." },
         { status: 401 }
       );
     }
 
-    const body = await req.json();
-    const leadId = body.leadId;
+    const body = await req.json().catch(() => null);
+    const leadId = String(body?.leadId ?? "").trim();
 
     if (!leadId) {
       return NextResponse.json(
-        { error: "Lead ID fehlt." },
+        { ok: false, error: "Lead ID fehlt." },
         { status: 400 }
       );
     }
 
     const lead = await prisma.lead.findUnique({
       where: { id: leadId },
+      select: {
+        id: true,
+        priceCredits: true,
+      },
     });
 
     if (!lead) {
       return NextResponse.json(
-        { error: "Lead nicht gefunden." },
+        { ok: false, error: "Lead nicht gefunden." },
         { status: 404 }
       );
     }
 
-    const alreadyUnlocked = await prisma.unlock.findUnique({
+    const existingUnlock = await prisma.unlock.findUnique({
       where: {
         userId_leadId: {
           userId: user.id,
-          leadId: lead.id,
+          leadId,
         },
+      },
+      select: {
+        id: true,
       },
     });
 
-    if (alreadyUnlocked) {
-      return NextResponse.json({ ok: true });
+    if (existingUnlock) {
+      return NextResponse.json({
+        ok: true,
+        alreadyUnlocked: true,
+      });
     }
 
-    const cost = lead.priceCredits;
-
-    if (user.credits < cost) {
+    if (user.credits < lead.priceCredits) {
       return NextResponse.json(
-        { error: "Nicht genug Credits." },
+        { ok: false, error: "Zu wenig Credits." },
         { status: 400 }
       );
     }
@@ -63,37 +71,36 @@ export async function POST(req: Request) {
         where: { id: user.id },
         data: {
           credits: {
-            decrement: cost,
+            decrement: lead.priceCredits,
           },
         },
       }),
-
       prisma.unlock.create({
         data: {
           userId: user.id,
-          leadId: lead.id,
+          leadId,
         },
       }),
-
       prisma.transaction.create({
         data: {
           userId: user.id,
           type: "LEAD_UNLOCK",
-          amount: -cost,
+          amount: -lead.priceCredits,
           meta: {
-            leadId: lead.id,
+            leadId,
           },
         },
       }),
     ]);
 
-    return NextResponse.json({ ok: true });
-
+    return NextResponse.json({
+      ok: true,
+    });
   } catch (error) {
     console.error("UNLOCK ERROR:", error);
 
     return NextResponse.json(
-      { error: "Serverfehler." },
+      { ok: false, error: "Serverfehler." },
       { status: 500 }
     );
   }
