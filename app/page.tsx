@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function HomePage() {
@@ -14,10 +14,16 @@ export default function HomePage() {
     city: "",
     category: "Hauswartung",
     description: "",
+    website: "",
   });
 
+  const [formStartedAt, setFormStartedAt] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    setFormStartedAt(Date.now());
+  }, []);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -30,7 +36,10 @@ export default function HomePage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          formStartedAt,
+        }),
       });
 
       const data = await res.json();
@@ -51,57 +60,84 @@ export default function HomePage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#030816] text-white">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-[-10%] top-[-10%] h-[420px] w-[420px] rounded-full bg-cyan-400/12 blur-3xl" />
-        <div className="absolute right-[-10%] top-[10%] h-[460px] w-[460px] rounded-full bg-sky-400/10 blur-3xl" />
-        <div className="absolute bottom-[-10%] left-[20%] h-[380px] w-[380px] rounded-full bg-blue-500/10 blur-3xl" />
+        <div className="absolute left-[-20%] top-[-10%] h-[280px] w-[280px] rounded-full bg-cyan-400/12 blur-3xl sm:left-[-10%] sm:h-[420px] sm:w-[420px]" />
+        <div className="absolute right-[-20%] top-[8%] h-[300px] w-[300px] rounded-full bg-sky-400/10 blur-3xl sm:right-[-10%] sm:h-[460px] sm:w-[460px]" />
+        <div className="absolute bottom-[-10%] left-[10%] h-[260px] w-[260px] rounded-full bg-blue-500/10 blur-3xl sm:left-[20%] sm:h-[380px] sm:w-[380px]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(126,200,255,0.08),transparent_35%),linear-gradient(to_bottom,rgba(255,255,255,0.02),transparent)]" />
       </div>
 
       <section className="relative border-b border-white/10">
-        <div className="mx-auto max-w-7xl px-6 pb-12 pt-8">
-          <div className="mb-8 flex items-center justify-between">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-5 py-3 backdrop-blur"
-            >
-              <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#7EC8FF]" />
-              <span className="text-sm font-semibold uppercase tracking-[0.28em] text-white/80">
-                AUFTRAGO
-              </span>
-            </Link>
-
-            <div className="hidden items-center gap-3 md:flex">
+        <div className="mx-auto max-w-7xl px-4 pb-10 pt-5 sm:px-6 sm:pb-12 sm:pt-8 lg:px-8">
+          <div className="mb-6 sm:mb-10">
+            <div className="flex items-center justify-between gap-3">
               <Link
-                href="/leistungen"
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white/80 transition hover:bg-white/10"
+                href="/"
+                className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 backdrop-blur sm:px-5 sm:py-3"
               >
-                Leistungen
+                <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#7EC8FF]" />
+                <span className="text-xs font-semibold uppercase tracking-[0.22em] text-white/80 sm:text-sm sm:tracking-[0.28em]">
+                  AUFTRAGO
+                </span>
               </Link>
+
+              <div className="hidden items-center gap-3 md:flex">
+                <Link
+                  href="/leistungen"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white/80 transition hover:bg-white/10"
+                >
+                  Leistungen
+                </Link>
+                <Link
+                  href="/partner"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white/80 transition hover:bg-white/10"
+                >
+                  Anbieter werden
+                </Link>
+                <Link
+                  href="/anfrage"
+                  className="rounded-2xl border border-[#7EC8FF]/30 bg-[#7EC8FF]/15 px-4 py-3 text-sm font-semibold text-[#bfe7ff] transition hover:bg-[#7EC8FF]/20"
+                >
+                  Anfrage senden
+                </Link>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-3 md:hidden">
               <Link
                 href="/anfrage"
-                className="rounded-2xl border border-[#7EC8FF]/30 bg-[#7EC8FF]/15 px-4 py-3 text-sm font-semibold text-[#bfe7ff] transition hover:bg-[#7EC8FF]/20"
+                className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-[#7EC8FF]/30 bg-[#7EC8FF]/15 px-4 py-3 text-center text-sm font-semibold text-[#d8f3ff] transition hover:bg-[#7EC8FF]/20"
               >
                 Anfrage senden
+              </Link>
+
+              <Link
+                href="/partner"
+                className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center text-sm font-semibold text-white/90 transition hover:bg-white/10"
+              >
+                Anbieter werden
               </Link>
             </div>
           </div>
 
-          <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+          <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-10">
             <div>
-              <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white/60 backdrop-blur">
-                <span className="inline-block h-2 w-2 rounded-full bg-[#7EC8FF]" />
-                Premium Vermittlung für Reinigung, Umzug, Transport & Services
+              <div className="inline-flex max-w-full items-start gap-3 rounded-[24px] border border-white/10 bg-white/5 px-4 py-3 text-left backdrop-blur sm:items-center sm:gap-2 sm:rounded-full sm:px-4 sm:py-2.5">
+                <span className="mt-1 inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-[#7EC8FF] sm:mt-0 sm:h-2 sm:w-2" />
+                <span className="text-[11px] uppercase leading-relaxed tracking-[0.16em] text-white/60 sm:text-xs sm:tracking-[0.22em]">
+                  Premium Vermittlung für Reinigung, Umzug, Transport & Services
+                </span>
               </div>
 
-              <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[1.02] md:text-6xl xl:text-7xl">
+              <h1 className="mt-5 max-w-4xl text-3xl font-semibold leading-[1.02] sm:mt-6 sm:text-4xl md:text-6xl xl:text-7xl">
                 Die schönste Art,{" "}
                 <span className="bg-gradient-to-r from-white via-[#d7f0ff] to-[#7EC8FF] bg-clip-text text-transparent">
-                  Offerten für Reinigung, Hauswartung, Umzug, Transport und Entsorgung
+                  Offerten für Reinigung, Hauswartung, Umzug, Transport und
+                  Entsorgung
                 </span>{" "}
                 in der Schweiz anzufragen.
               </h1>
 
-              <p className="mt-6 max-w-3xl text-lg leading-8 text-white/72 md:text-xl">
+              <p className="mt-5 max-w-3xl text-base leading-7 text-white/72 sm:mt-6 sm:text-lg sm:leading-8 md:text-xl">
                 Mit <strong className="font-semibold text-white">Auftrago</strong>{" "}
                 senden Privatpersonen, Verwaltungen und Unternehmen ihre Anfrage
                 in wenigen Sekunden. Passende Anbieter sehen qualifizierte Leads,
@@ -109,53 +145,66 @@ export default function HomePage() {
                 modern und auf Conversion gebaut.
               </p>
 
-              <p className="mt-4 max-w-3xl text-base leading-8 text-white/55 md:text-lg">
+              <p className="mt-4 max-w-3xl text-sm leading-7 text-white/55 sm:text-base sm:leading-8 md:text-lg">
                 Egal ob Büroreinigung in Zürich, Hauswartung in Aargau, Umzug in
                 Basel, Transport in Bern oder Entsorgung in Zug – Auftrago
                 verbindet Nachfrage und Angebot in einem klaren, professionellen
                 System.
               </p>
 
-              <div className="mt-8 flex flex-wrap gap-4">
+              <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:gap-4">
                 <a
                   href="#anfrage-formular"
-                  className="rounded-2xl bg-[#7EC8FF] px-7 py-4 text-base font-semibold text-[#04101d] shadow-[0_20px_80px_rgba(126,200,255,0.28)] transition hover:scale-[1.01] hover:bg-[#91d2ff]"
+                  className="inline-flex min-h-[54px] w-full items-center justify-center rounded-2xl bg-[#7EC8FF] px-6 py-4 text-center text-base font-semibold text-[#04101d] shadow-[0_20px_80px_rgba(126,200,255,0.28)] transition hover:scale-[1.01] hover:bg-[#91d2ff] sm:w-auto sm:px-7"
                 >
                   Jetzt kostenlos Offerte anfragen
                 </a>
 
                 <Link
-                  href="/anfrage"
-                  className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-base font-semibold text-white/90 backdrop-blur transition hover:bg-white/10"
+                  href="/partner"
+                  className="inline-flex min-h-[54px] w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-center text-base font-semibold text-white/90 backdrop-blur transition hover:bg-white/10 sm:w-auto sm:px-7"
                 >
-                  Zum Anfrageformular
+                  Anbieter werden
+                </Link>
+
+                <Link
+                  href="/register"
+                  className="inline-flex min-h-[54px] w-full items-center justify-center rounded-2xl border border-[#7EC8FF]/30 bg-[#7EC8FF]/10 px-6 py-4 text-center text-base font-semibold text-[#cbeeff] backdrop-blur transition hover:bg-[#7EC8FF]/15 sm:w-auto sm:px-7"
+                >
+                  Firma registrieren
                 </Link>
               </div>
 
-              <div className="mt-10 grid gap-4 sm:grid-cols-3">
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur">
-                  <div className="text-3xl font-semibold text-white">24h</div>
+              <div className="mt-8 grid gap-4 sm:mt-10 sm:grid-cols-3">
+                <div className="rounded-[26px] border border-white/10 bg-white/5 p-5 backdrop-blur">
+                  <div className="text-2xl font-semibold text-white sm:text-3xl">
+                    24h
+                  </div>
                   <div className="mt-2 text-sm leading-6 text-white/60">
                     Schnell Anfragen senden und passende Anbieter erreichen.
                   </div>
                 </div>
 
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur">
-                  <div className="text-3xl font-semibold text-white">100%</div>
+                <div className="rounded-[26px] border border-white/10 bg-white/5 p-5 backdrop-blur">
+                  <div className="text-2xl font-semibold text-white sm:text-3xl">
+                    100%
+                  </div>
                   <div className="mt-2 text-sm leading-6 text-white/60">
                     Kostenlos für Kunden, einfach und ohne komplizierten Prozess.
                   </div>
                 </div>
 
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur">
-                  <div className="text-3xl font-semibold text-white">CH</div>
+                <div className="rounded-[26px] border border-white/10 bg-white/5 p-5 backdrop-blur">
+                  <div className="text-2xl font-semibold text-white sm:text-3xl">
+                    Firmen
+                  </div>
                   <div className="mt-2 text-sm leading-6 text-white/60">
-                    Fokus auf lokale Anbieter in Zürich, Aargau und der Schweiz.
+                    Anbieter können sich registrieren und neue Leads gewinnen.
                   </div>
                 </div>
               </div>
 
-              <div className="mt-8 flex flex-wrap gap-3 text-sm text-white/55">
+              <div className="mt-7 flex flex-wrap gap-2.5 text-sm text-white/55 sm:mt-8 sm:gap-3">
                 {[
                   "Hauswartung",
                   "Büroreinigung",
@@ -168,7 +217,7 @@ export default function HomePage() {
                 ].map((item) => (
                   <span
                     key={item}
-                    className="rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur"
+                    className="rounded-full border border-white/10 bg-white/5 px-3.5 py-2 backdrop-blur sm:px-4"
                   >
                     {item}
                   </span>
@@ -178,16 +227,16 @@ export default function HomePage() {
 
             <div
               id="anfrage-formular"
-              className="relative rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.10),rgba(255,255,255,0.04))] p-6 shadow-[0_25px_120px_rgba(0,0,0,0.35)] backdrop-blur-2xl md:p-7"
+              className="relative rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.10),rgba(255,255,255,0.04))] p-4 shadow-[0_25px_120px_rgba(0,0,0,0.35)] backdrop-blur-2xl sm:rounded-[32px] sm:p-6 md:p-7"
             >
-              <div className="absolute inset-0 rounded-[32px] bg-[radial-gradient(circle_at_top,rgba(126,200,255,0.12),transparent_45%)]" />
+              <div className="absolute inset-0 rounded-[28px] bg-[radial-gradient(circle_at_top,rgba(126,200,255,0.12),transparent_45%)] sm:rounded-[32px]" />
 
               <div className="relative">
-                <div className="inline-flex rounded-full border border-[#7EC8FF]/25 bg-[#7EC8FF]/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.22em] text-[#c7ebff]">
+                <div className="inline-flex rounded-full border border-[#7EC8FF]/25 bg-[#7EC8FF]/10 px-4 py-2 text-[11px] font-medium uppercase tracking-[0.18em] text-[#c7ebff] sm:text-xs sm:tracking-[0.22em]">
                   Kostenlose Anfrage
                 </div>
 
-                <h2 className="mt-4 text-3xl font-semibold leading-tight">
+                <h2 className="mt-4 text-2xl font-semibold leading-tight sm:text-3xl">
                   In 1 Minute eine professionelle Anfrage senden
                 </h2>
 
@@ -198,6 +247,24 @@ export default function HomePage() {
                 </p>
 
                 <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+                  <div className="hidden" aria-hidden="true">
+                    <label htmlFor="website">Website</label>
+                    <input
+                      id="website"
+                      name="website"
+                      type="text"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      value={form.website}
+                      onChange={(e) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          website: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
                   <div>
                     <label className="mb-2 block text-sm text-white/70">
                       Name
@@ -306,7 +373,7 @@ export default function HomePage() {
                           description: e.target.value,
                         }))
                       }
-                      className="min-h-[140px] w-full rounded-2xl border border-white/10 bg-[#0b1328]/80 px-4 py-3.5 text-white outline-none placeholder:text-white/25 focus:border-[#7EC8FF]/50"
+                      className="min-h-[140px] w-full rounded-2xl border border-white/10 bg-[#0b1328]/80 px-4 py-3.5 text-white outline-none placeholder:text-white/25 focus:border-[#7EC8FF]/50 sm:min-h-[160px]"
                       placeholder="Zum Beispiel: Wir suchen einen zuverlässigen Umzug inkl. Transport von Aarau nach Zürich oder eine schnelle Entsorgung von Möbeln und Sperrgut."
                       required
                     />
@@ -321,7 +388,7 @@ export default function HomePage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full rounded-[22px] bg-[#7EC8FF] px-5 py-4 text-lg font-semibold text-[#04101d] shadow-[0_20px_80px_rgba(126,200,255,0.30)] transition hover:bg-[#91d2ff] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-full rounded-[22px] bg-[#7EC8FF] px-5 py-4 text-base font-semibold text-[#04101d] shadow-[0_20px_80px_rgba(126,200,255,0.30)] transition hover:bg-[#91d2ff] disabled:cursor-not-allowed disabled:opacity-60 sm:text-lg"
                   >
                     {loading ? "Wird gesendet..." : "Kostenlos Anfrage senden"}
                   </button>
@@ -336,15 +403,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="relative mx-auto max-w-7xl px-6 py-20">
+      <section className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
         <div className="max-w-3xl">
-          <div className="text-sm uppercase tracking-[0.24em] text-white/45">
+          <div className="text-xs uppercase tracking-[0.18em] text-white/45 sm:text-sm sm:tracking-[0.24em]">
             Warum Auftrago
           </div>
-          <h2 className="mt-4 text-3xl font-semibold md:text-5xl">
+          <h2 className="mt-4 text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl">
             Ein Lead-Marktplatz, der nicht billig wirkt – sondern stark verkauft.
           </h2>
-          <p className="mt-5 max-w-3xl text-lg leading-8 text-white/68">
+          <p className="mt-5 max-w-3xl text-base leading-7 text-white/68 sm:text-lg sm:leading-8">
             Auftrago ist nicht einfach nur ein Formular. Es ist eine moderne
             Vermittlungsplattform für lokale Dienstleistungen. Kunden stellen
             Anfragen schnell und unkompliziert. Anbieter sehen strukturierte,
@@ -352,7 +419,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-8 grid gap-4 sm:mt-10 md:grid-cols-2 xl:grid-cols-4">
           {[
             {
               title: "Mehr Vertrauen",
@@ -373,7 +440,7 @@ export default function HomePage() {
           ].map((item) => (
             <div
               key={item.title}
-              className="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur"
+              className="rounded-[24px] border border-white/10 bg-white/5 p-5 backdrop-blur sm:rounded-[28px] sm:p-6"
             >
               <h3 className="text-xl font-semibold">{item.title}</h3>
               <p className="mt-3 text-sm leading-7 text-white/62">{item.text}</p>
@@ -383,22 +450,90 @@ export default function HomePage() {
       </section>
 
       <section className="border-y border-white/10 bg-white/[0.03]">
-        <div className="mx-auto max-w-7xl px-6 py-20">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
           <div className="max-w-3xl">
-            <div className="text-sm uppercase tracking-[0.24em] text-white/45">
+            <div className="text-xs uppercase tracking-[0.18em] text-white/45 sm:text-sm sm:tracking-[0.24em]">
+              Für Anbieter
+            </div>
+            <h2 className="mt-4 text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl">
+              Firmen können sich registrieren und neue Leads gewinnen
+            </h2>
+            <p className="mt-5 text-base leading-7 text-white/66 sm:text-lg sm:leading-8">
+              Auftrago ist nicht nur für Kunden gedacht. Dienstleister und
+              Unternehmen können sich als Anbieter registrieren, Credits kaufen,
+              Leads einsehen und passende Kontakte direkt freischalten.
+            </p>
+          </div>
+
+          <div className="mt-8 grid gap-4 sm:mt-10 md:grid-cols-3">
+            {[
+              {
+                title: "Registrieren",
+                text: "Firmen erstellen ein Konto und richten ihr Profil für ihre Region und Dienstleistungen ein.",
+              },
+              {
+                title: "Credits aufladen",
+                text: "Anbieter laden Credits auf und entscheiden flexibel, welche Leads für sie interessant sind.",
+              },
+              {
+                title: "Aufträge gewinnen",
+                text: "Nach der Freischaltung sehen Anbieter die Kontaktdaten und können direkt reagieren.",
+              },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="rounded-[24px] border border-white/10 bg-[#081122]/85 p-5 sm:rounded-[28px] sm:p-6"
+              >
+                <h3 className="text-xl font-semibold">{item.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-white/62 sm:text-base sm:leading-8">
+                  {item.text}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <Link
+              href="/partner"
+              className="inline-flex min-h-[54px] items-center justify-center rounded-2xl bg-[#7EC8FF] px-6 py-4 text-base font-semibold text-[#04101d] shadow-[0_20px_80px_rgba(126,200,255,0.28)] transition hover:bg-[#91d2ff]"
+            >
+              Anbieter werden
+            </Link>
+
+            <Link
+              href="/register"
+              className="inline-flex min-h-[54px] items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-base font-semibold text-white/90 transition hover:bg-white/10"
+            >
+              Firma registrieren
+            </Link>
+
+            <Link
+              href="/preise"
+              className="inline-flex min-h-[54px] items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-base font-semibold text-white/90 transition hover:bg-white/10"
+            >
+              Credits & Preise
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-white/10 bg-white/[0.03]">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+          <div className="max-w-3xl">
+            <div className="text-xs uppercase tracking-[0.18em] text-white/45 sm:text-sm sm:tracking-[0.24em]">
               Leistungen
             </div>
-            <h2 className="mt-4 text-3xl font-semibold md:text-5xl">
+            <h2 className="mt-4 text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl">
               Für Reinigung, Hauswartung, Umzug, Transport und Entsorgung gebaut
             </h2>
-            <p className="mt-5 text-lg leading-8 text-white/66">
+            <p className="mt-5 text-base leading-7 text-white/66 sm:text-lg sm:leading-8">
               Auftrago eignet sich perfekt für wiederkehrende Dienstleistungen,
               Objektbetreuung, Umzüge, Transporte und Offerten-Anfragen im
               Immobilien- und Servicebereich.
             </p>
           </div>
 
-          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-8 grid gap-4 sm:mt-10 md:grid-cols-2 xl:grid-cols-3">
             {[
               {
                 title: "Hauswartung",
@@ -439,13 +574,13 @@ export default function HomePage() {
             ].map((item) => (
               <div
                 key={item.title}
-                className="rounded-[28px] border border-white/10 bg-[#081122]/85 p-7"
+                className="rounded-[24px] border border-white/10 bg-[#081122]/85 p-5 sm:rounded-[28px] sm:p-7"
               >
-                <div className="mb-4 inline-flex rounded-full border border-[#7EC8FF]/20 bg-[#7EC8FF]/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.22em] text-[#cdeeff]">
+                <div className="mb-4 inline-flex rounded-full border border-[#7EC8FF]/20 bg-[#7EC8FF]/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-[#cdeeff] sm:text-xs sm:tracking-[0.22em]">
                   Service
                 </div>
-                <h3 className="text-2xl font-semibold">{item.title}</h3>
-                <p className="mt-4 text-base leading-8 text-white/62">
+                <h3 className="text-xl font-semibold sm:text-2xl">{item.title}</h3>
+                <p className="mt-4 text-sm leading-7 text-white/62 sm:text-base sm:leading-8">
                   {item.text}
                 </p>
               </div>
@@ -454,17 +589,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-20">
+      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
         <div className="max-w-3xl">
-          <div className="text-sm uppercase tracking-[0.24em] text-white/45">
+          <div className="text-xs uppercase tracking-[0.18em] text-white/45 sm:text-sm sm:tracking-[0.24em]">
             So funktioniert es
           </div>
-          <h2 className="mt-4 text-3xl font-semibold md:text-5xl">
+          <h2 className="mt-4 text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl">
             In 3 klaren Schritten zur passenden Offerte
           </h2>
         </div>
 
-        <div className="mt-10 grid gap-5 md:grid-cols-3">
+        <div className="mt-8 grid gap-4 sm:mt-10 md:grid-cols-3">
           {[
             {
               step: "01",
@@ -484,13 +619,15 @@ export default function HomePage() {
           ].map((item) => (
             <div
               key={item.step}
-              className="rounded-[30px] border border-white/10 bg-white/5 p-7 backdrop-blur"
+              className="rounded-[24px] border border-white/10 bg-white/5 p-5 backdrop-blur sm:rounded-[30px] sm:p-7"
             >
-              <div className="text-sm font-medium tracking-[0.18em] text-[#9fd8ff]">
+              <div className="text-sm font-medium tracking-[0.16em] text-[#9fd8ff] sm:tracking-[0.18em]">
                 {item.step}
               </div>
-              <h3 className="mt-3 text-2xl font-semibold">{item.title}</h3>
-              <p className="mt-4 text-base leading-8 text-white/62">
+              <h3 className="mt-3 text-xl font-semibold sm:text-2xl">
+                {item.title}
+              </h3>
+              <p className="mt-4 text-sm leading-7 text-white/62 sm:text-base sm:leading-8">
                 {item.text}
               </p>
             </div>
@@ -498,23 +635,23 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-20">
-        <div className="rounded-[34px] border border-white/10 bg-[linear-gradient(135deg,rgba(126,200,255,0.18),rgba(255,255,255,0.04))] p-8 md:p-10">
+      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+        <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(135deg,rgba(126,200,255,0.18),rgba(255,255,255,0.04))] p-5 sm:rounded-[34px] sm:p-8 md:p-10">
           <div className="max-w-3xl">
-            <div className="text-sm uppercase tracking-[0.24em] text-white/50">
+            <div className="text-xs uppercase tracking-[0.18em] text-white/50 sm:text-sm sm:tracking-[0.24em]">
               Regionen
             </div>
-            <h2 className="mt-4 text-3xl font-semibold md:text-5xl">
+            <h2 className="mt-4 text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl">
               Stark für Zürich, Aargau und die ganze Schweiz
             </h2>
-            <p className="mt-5 text-lg leading-8 text-white/68">
+            <p className="mt-5 text-base leading-7 text-white/68 sm:text-lg sm:leading-8">
               Auftrago ist ideal für lokale Lead-Generierung in Regionen mit
               hoher Nachfrage. Das System eignet sich hervorragend für
               SEO-Landingpages, Städte-Kombinationen und regionale Kampagnen.
             </p>
           </div>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-7 flex flex-wrap gap-2.5 sm:mt-8 sm:gap-3">
             {[
               "Zürich",
               "Aargau",
@@ -529,7 +666,7 @@ export default function HomePage() {
             ].map((city) => (
               <span
                 key={city}
-                className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm text-white/85"
+                className="rounded-full border border-white/10 bg-white/10 px-3.5 py-2 text-sm text-white/85 sm:px-4"
               >
                 {city}
               </span>
@@ -538,34 +675,40 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 pb-24">
-        <div className="rounded-[34px] border border-white/10 bg-white/5 p-8 text-center backdrop-blur md:p-12">
-          <div className="text-sm uppercase tracking-[0.24em] text-white/45">
+      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 sm:pb-24 lg:px-8">
+        <div className="rounded-[28px] border border-white/10 bg-white/5 p-5 text-center backdrop-blur sm:rounded-[34px] sm:p-8 md:p-12">
+          <div className="text-xs uppercase tracking-[0.18em] text-white/45 sm:text-sm sm:tracking-[0.24em]">
             Jetzt starten
           </div>
-          <h2 className="mt-4 text-3xl font-semibold md:text-5xl">
-            Kostenlos Anfrage senden und passende Anbieter finden
+          <h2 className="mt-4 text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl">
+            Kostenlos Anfrage senden oder als Firma neue Leads erhalten
           </h2>
-          <p className="mx-auto mt-5 max-w-3xl text-lg leading-8 text-white/66">
-            Schnell, elegant und professionell. Genau so sollte ein moderner
-            Offerten-Marktplatz wirken. Mit Auftrago baust du nicht nur eine
-            Website – du baust ein System, das Nachfrage erzeugt und Leads sauber
-            vermittelt.
+          <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-white/66 sm:text-lg sm:leading-8">
+            Kunden können kostenlos eine Anfrage senden. Firmen können sich
+            registrieren, Credits nutzen und neue Aufträge direkt über die
+            Plattform gewinnen.
           </p>
 
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+          <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:gap-4">
             <a
               href="#anfrage-formular"
-              className="rounded-2xl bg-[#7EC8FF] px-7 py-4 text-base font-semibold text-[#04101d] shadow-[0_20px_80px_rgba(126,200,255,0.28)] transition hover:bg-[#91d2ff]"
+              className="inline-flex min-h-[54px] w-full items-center justify-center rounded-2xl bg-[#7EC8FF] px-6 py-4 text-base font-semibold text-[#04101d] shadow-[0_20px_80px_rgba(126,200,255,0.28)] transition hover:bg-[#91d2ff] sm:w-auto sm:px-7"
             >
               Anfrage jetzt starten
             </a>
 
             <Link
-              href="/anfrage"
-              className="rounded-2xl border border-white/10 bg-white/5 px-7 py-4 text-base font-semibold text-white/90 transition hover:bg-white/10"
+              href="/partner"
+              className="inline-flex min-h-[54px] w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-base font-semibold text-white/90 transition hover:bg-white/10 sm:w-auto sm:px-7"
             >
-              Zur Anfrage-Seite
+              Anbieter werden
+            </Link>
+
+            <Link
+              href="/register"
+              className="inline-flex min-h-[54px] w-full items-center justify-center rounded-2xl border border-[#7EC8FF]/30 bg-[#7EC8FF]/10 px-6 py-4 text-base font-semibold text-[#cbeeff] transition hover:bg-[#7EC8FF]/15 sm:w-auto sm:px-7"
+            >
+              Firma registrieren
             </Link>
           </div>
         </div>

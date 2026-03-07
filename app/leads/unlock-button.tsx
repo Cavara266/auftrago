@@ -21,21 +21,25 @@ export default function UnlockButton({
     try {
       const res = await fetch("/api/leads/unlock", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leadId }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          leadId,
+        }),
       });
 
       if (!res.ok) {
         const msg = await res.text();
-        setError(msg || "Unlock fehlgeschlagen.");
+        setError(msg || "Freischaltung fehlgeschlagen.");
         setLoading(false);
         return;
       }
 
-      // Hard refresh so server components re-fetch credits + unlock state
+      // Refresh server components
       window.location.reload();
     } catch {
-      setError("Unlock fehlgeschlagen.");
+      setError("Freischaltung fehlgeschlagen.");
       setLoading(false);
     }
   }
@@ -44,7 +48,7 @@ export default function UnlockButton({
     return (
       <button
         disabled
-        className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70"
+        className="w-full rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-200 sm:w-auto sm:px-5 sm:py-2.5"
       >
         Freigeschaltet
       </button>
@@ -52,15 +56,20 @@ export default function UnlockButton({
   }
 
   return (
-    <div className="text-right">
+    <div className="w-full space-y-2 text-right sm:w-auto">
       <button
         onClick={onUnlock}
         disabled={loading}
-        className="rounded-2xl bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-lg hover:bg-indigo-400 disabled:opacity-60"
+        className="w-full rounded-2xl bg-indigo-500 px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-5 sm:py-2.5"
       >
-        {loading ? "..." : `Freischalten (${priceCredits} Credits)`}
+        {loading ? "Freischalten..." : `Freischalten (${priceCredits} Credits)`}
       </button>
-      {error && <div className="mt-2 text-xs text-red-300">{error}</div>}
+
+      {error && (
+        <div className="text-xs text-red-300 sm:text-right">
+          {error}
+        </div>
+      )}
     </div>
   );
 }

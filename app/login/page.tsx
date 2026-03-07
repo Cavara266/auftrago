@@ -1,40 +1,161 @@
+import Link from "next/link";
 import LoginForm from "./login-form";
 
 export default function Page() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
-
-      <div className="grid grid-cols-2 gap-10 max-w-5xl w-full p-10">
-
-        {/* Left */}
-        <div className="space-y-6">
-          <div className="text-xs uppercase text-white/50 tracking-widest">
-            Premium Vermittlung
-          </div>
-
-          <h1 className="text-4xl font-bold">
-            Leads, die sich lohnen.
-          </h1>
-
-          <p className="text-white/60">
-            Demo-Flow: Leads ansehen → Kontakt freischalten → Credits &
-            Transaktionen prüfen.
-          </p>
-        </div>
-
-        {/* Login Card */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-xl">
-
-          <h2 className="text-xl font-semibold mb-6">Login</h2>
-
-          <LoginForm />
-
-          <div className="text-xs text-white/50 mt-6">
-            Demo Zugang: demo@auftrago.local / demo1234
-          </div>
-
-        </div>
+    <main className="relative min-h-screen overflow-hidden bg-[#030816] text-white">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-[-20%] top-[-10%] h-[260px] w-[260px] rounded-full bg-cyan-400/12 blur-3xl sm:left-[-10%] sm:h-[380px] sm:w-[380px]" />
+        <div className="absolute right-[-20%] top-[10%] h-[280px] w-[280px] rounded-full bg-sky-400/10 blur-3xl sm:right-[-10%] sm:h-[420px] sm:w-[420px]" />
+        <div className="absolute bottom-[-10%] left-[10%] h-[240px] w-[240px] rounded-full bg-blue-500/10 blur-3xl sm:left-[20%] sm:h-[340px] sm:w-[340px]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(126,200,255,0.08),transparent_35%),linear-gradient(to_bottom,rgba(255,255,255,0.02),transparent)]" />
       </div>
-    </div>
+
+      <section className="relative">
+        <div className="mx-auto max-w-7xl px-4 pb-12 pt-5 sm:px-6 sm:pb-16 sm:pt-8 lg:px-8">
+          <div className="mb-8 flex items-center justify-between gap-3 sm:mb-10">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 backdrop-blur sm:px-5 sm:py-3"
+            >
+              <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#7EC8FF]" />
+              <span className="text-xs font-semibold uppercase tracking-[0.22em] text-white/80 sm:text-sm sm:tracking-[0.28em]">
+                AUFTRAGO
+              </span>
+            </Link>
+
+            <div className="hidden items-center gap-3 md:flex">
+              <Link
+                href="/partner"
+                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white/80 transition hover:bg-white/10"
+              >
+                Partner
+              </Link>
+              <Link
+                href="/register"
+                className="rounded-2xl border border-[#7EC8FF]/30 bg-[#7EC8FF]/15 px-4 py-3 text-sm font-semibold text-[#bfe7ff] transition hover:bg-[#7EC8FF]/20"
+              >
+                Registrieren
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid gap-8 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:gap-10">
+            <div>
+              <div className="inline-flex max-w-full items-start gap-3 rounded-[24px] border border-white/10 bg-white/5 px-4 py-3 text-left backdrop-blur sm:items-center sm:gap-2 sm:rounded-full sm:px-4 sm:py-2.5">
+                <span className="mt-1 inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-[#7EC8FF] sm:mt-0 sm:h-2 sm:w-2" />
+                <span className="text-[11px] uppercase leading-relaxed tracking-[0.16em] text-white/60 sm:text-xs sm:tracking-[0.22em]">
+                  Premium Vermittlung für lokale Dienstleistungen
+                </span>
+              </div>
+
+              <h1 className="mt-5 max-w-4xl text-3xl font-semibold leading-[1.04] sm:mt-6 sm:text-4xl md:text-6xl">
+                Leads, die sich{" "}
+                <span className="bg-gradient-to-r from-white via-[#d7f0ff] to-[#7EC8FF] bg-clip-text text-transparent">
+                  lohnen
+                </span>
+                .
+              </h1>
+
+              <p className="mt-5 max-w-3xl text-base leading-7 text-white/72 sm:mt-6 sm:text-lg sm:leading-8">
+                Logge dich ein, um Leads anzusehen, Kontakte freizuschalten,
+                Credits zu prüfen und neue Aufträge gezielt in deiner Region zu
+                gewinnen.
+              </p>
+
+              <p className="mt-4 max-w-3xl text-sm leading-7 text-white/55 sm:text-base sm:leading-8 md:text-lg">
+                Der Anbieter-Flow ist klar aufgebaut: Leads ansehen →
+                Kontaktdaten freischalten → Credits & Transaktionen im Dashboard
+                verwalten.
+              </p>
+
+              <div className="mt-7 grid gap-4 sm:mt-8 sm:grid-cols-3">
+                <div className="rounded-[26px] border border-white/10 bg-white/5 p-5 backdrop-blur">
+                  <div className="text-2xl font-semibold text-white sm:text-3xl">
+                    Leads
+                  </div>
+                  <div className="mt-2 text-sm leading-6 text-white/60">
+                    Neue Anfragen in deinen passenden Kategorien und Regionen.
+                  </div>
+                </div>
+
+                <div className="rounded-[26px] border border-white/10 bg-white/5 p-5 backdrop-blur">
+                  <div className="text-2xl font-semibold text-white sm:text-3xl">
+                    Credits
+                  </div>
+                  <div className="mt-2 text-sm leading-6 text-white/60">
+                    Freischaltung nur dann, wenn ein Lead wirklich interessant
+                    ist.
+                  </div>
+                </div>
+
+                <div className="rounded-[26px] border border-white/10 bg-white/5 p-5 backdrop-blur">
+                  <div className="text-2xl font-semibold text-white sm:text-3xl">
+                    CRM
+                  </div>
+                  <div className="mt-2 text-sm leading-6 text-white/60">
+                    Alles zentral im Dashboard prüfen und verwalten.
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-7 flex flex-wrap gap-2.5 text-sm text-white/55 sm:mt-8 sm:gap-3">
+                {[
+                  "Leads ansehen",
+                  "Kontakte freischalten",
+                  "Credits prüfen",
+                  "Transaktionen",
+                ].map((item) => (
+                  <span
+                    key={item}
+                    className="rounded-full border border-white/10 bg-white/5 px-3.5 py-2 backdrop-blur sm:px-4"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.10),rgba(255,255,255,0.04))] p-4 shadow-[0_25px_120px_rgba(0,0,0,0.35)] backdrop-blur-2xl sm:rounded-[32px] sm:p-6 md:p-7">
+              <div className="absolute inset-0 rounded-[28px] bg-[radial-gradient(circle_at_top,rgba(126,200,255,0.12),transparent_45%)] sm:rounded-[32px]" />
+
+              <div className="relative">
+                <div className="inline-flex rounded-full border border-[#7EC8FF]/25 bg-[#7EC8FF]/10 px-4 py-2 text-[11px] font-medium uppercase tracking-[0.18em] text-[#c7ebff] sm:text-xs sm:tracking-[0.22em]">
+                  Anbieter Login
+                </div>
+
+                <h2 className="mt-4 text-2xl font-semibold leading-tight sm:text-3xl">
+                  In dein Konto einloggen
+                </h2>
+
+                <p className="mt-3 text-sm leading-7 text-white/62 md:text-base">
+                  Melde dich an, um dein Dashboard, Leads und Credits zu
+                  verwalten.
+                </p>
+
+                <div className="mt-6">
+                  <LoginForm />
+                </div>
+
+                <div className="mt-6 rounded-2xl border border-white/10 bg-[#0b1328]/70 px-4 py-3 text-sm text-white/60">
+                  <span className="font-medium text-white/80">Demo Zugang:</span>{" "}
+                  demo@auftrago.local / demo1234
+                </div>
+
+                <p className="mt-5 text-center text-sm leading-7 text-white/55">
+                  Noch kein Konto?{" "}
+                  <Link
+                    href="/register"
+                    className="font-medium text-[#9fd8ff] hover:text-[#bfe7ff]"
+                  >
+                    Jetzt registrieren
+                  </Link>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }

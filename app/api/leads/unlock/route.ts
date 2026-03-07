@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function POST(req: Request) {
   try {
@@ -30,6 +32,7 @@ export async function POST(req: Request) {
       select: {
         id: true,
         priceCredits: true,
+        expiresAt: true,
       },
     });
 
@@ -37,6 +40,13 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { ok: false, error: "Lead nicht gefunden." },
         { status: 404 }
+      );
+    }
+
+    if (lead.expiresAt && new Date(lead.expiresAt) < new Date()) {
+      return NextResponse.json(
+        { ok: false, error: "Dieser Lead ist abgelaufen." },
+        { status: 400 }
       );
     }
 
@@ -66,22 +76,24 @@ export async function POST(req: Request) {
       );
     }
 
-    await prisma.$transaction([
-      prisma.user.update({
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({
         where: { id: user.id },
         data: {
           credits: {
             decrement: lead.priceCredits,
           },
         },
-      }),
-      prisma.unlock.create({
+      });
+
+      await tx.unlock.create({
         data: {
           userId: user.id,
           leadId,
         },
-      }),
-      prisma.transaction.create({
+      });
+
+      await tx.transaction.create({
         data: {
           userId: user.id,
           type: "LEAD_UNLOCK",
@@ -90,11 +102,12 @@ export async function POST(req: Request) {
             leadId,
           },
         },
-      }),
-    ]);
+      });
+    });
 
     return NextResponse.json({
       ok: true,
+      unlocked: true,
     });
   } catch (error) {
     console.error("UNLOCK ERROR:", error);

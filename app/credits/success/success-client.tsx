@@ -30,6 +30,7 @@ export default function CreditsSuccessClient({
     }
 
     let cancelled = false;
+    let redirectTimer: ReturnType<typeof setTimeout> | null = null;
 
     async function finalize() {
       try {
@@ -41,13 +42,15 @@ export default function CreditsSuccessClient({
           body: JSON.stringify({ sessionId }),
         });
 
-        const data = await res.json();
+        const data = await res.json().catch(() => null);
 
         if (cancelled) return;
 
         if (!res.ok) {
           setStatus("error");
-          setMessage(data?.error || "Die Zahlung konnte nicht verarbeitet werden.");
+          setMessage(
+            data?.error || "Die Zahlung konnte nicht verarbeitet werden."
+          );
           return;
         }
 
@@ -55,23 +58,23 @@ export default function CreditsSuccessClient({
           setStatus("already");
           setMessage("Die Credits wurden bereits gutgeschrieben.");
 
-          setTimeout(() => {
+          redirectTimer = setTimeout(() => {
             router.push("/dashboard");
             router.refresh();
-          }, 1200);
+          }, 1400);
 
           return;
         }
 
         setStatus("success");
         setMessage(
-          `${data?.creditsAdded ?? ""} Credits wurden erfolgreich gutgeschrieben.`
+          `${data?.creditsAdded ?? 0} Credits wurden erfolgreich gutgeschrieben.`
         );
 
-        setTimeout(() => {
+        redirectTimer = setTimeout(() => {
           router.push("/dashboard");
           router.refresh();
-        }, 1200);
+        }, 1400);
       } catch {
         if (cancelled) return;
         setStatus("error");
@@ -83,30 +86,44 @@ export default function CreditsSuccessClient({
 
     return () => {
       cancelled = true;
+      if (redirectTimer) clearTimeout(redirectTimer);
     };
   }, [router, sessionId]);
 
   return (
-    <main className="min-h-screen bg-[#050816] px-6 py-20 text-white">
-      <div className="mx-auto max-w-2xl rounded-3xl border border-white/10 bg-white/5 p-10 text-center backdrop-blur">
-        <h1 className="text-4xl font-semibold">
-          {status === "loading" && "Zahlung wird verarbeitet"}
-          {status === "success" && "Zahlung erfolgreich"}
-          {status === "already" && "Bereits verarbeitet"}
-          {status === "error" && "Fehler bei der Zahlung"}
-        </h1>
+    <div className="w-full rounded-[28px] border border-white/10 bg-white/5 p-6 text-center backdrop-blur sm:rounded-[34px] sm:p-8 md:p-10">
+      <h1 className="text-3xl font-semibold leading-tight sm:text-4xl">
+        {status === "loading" && "Zahlung wird verarbeitet"}
+        {status === "success" && "Zahlung erfolgreich"}
+        {status === "already" && "Bereits verarbeitet"}
+        {status === "error" && "Fehler bei der Zahlung"}
+      </h1>
 
-        <p className="mt-4 text-lg text-white/65">{message}</p>
+      <p className="mt-4 text-base leading-7 text-white/65 sm:text-lg sm:leading-8">
+        {message}
+      </p>
 
-        <div className="mt-8">
-          <Link
-            href="/dashboard"
-            className="inline-flex rounded-2xl bg-[#7EC8FF] px-6 py-4 text-base font-semibold text-black hover:bg-[#6BBEFF]"
-          >
-            Zum Dashboard
-          </Link>
+      {status === "loading" ? (
+        <div className="mt-8 flex justify-center">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-white/30 border-t-[#7EC8FF]" />
         </div>
+      ) : null}
+
+      <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+        <Link
+          href="/dashboard"
+          className="inline-flex min-h-[52px] w-full items-center justify-center rounded-2xl bg-[#7EC8FF] px-6 py-4 text-base font-semibold text-black transition hover:bg-[#6BBEFF] sm:w-auto"
+        >
+          Zum Dashboard
+        </Link>
+
+        <Link
+          href="/credits"
+          className="inline-flex min-h-[52px] w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-base font-semibold text-white transition hover:bg-white/10 sm:w-auto"
+        >
+          Zurück zu Credits
+        </Link>
       </div>
-    </main>
+    </div>
   );
 }
