@@ -4,25 +4,25 @@ const pricingPoints = [
   {
     title: "Pay-per-Contact",
     description:
-      "Du zahlst nur für freigeschaltete Kontakte. Keine unnötigen Fixkosten und kein kompliziertes Abo-Modell.",
+      "Du zahlst nur für freigeschaltete Kontakte. Keine unnötigen Fixkosten, keine unklaren Reichweiten-Versprechen und keine laufenden Gebühren für Sichtbarkeit ohne Ergebnis.",
   },
   {
     title: "Credits",
     description:
-      "Jeder Lead hat einen Credit-Preis, zum Beispiel 5 bis 12 Credits – je nach Kategorie, Region und Auftragsgrösse.",
+      "Jeder Lead hat einen klaren Credit-Preis. Je nach Kategorie, Region und Auftragsgrösse können Leads günstiger oder wertiger eingestuft werden – so bleibt das Modell fair und nachvollziehbar.",
   },
   {
-    title: "Aufladen",
+    title: "Flexible Nutzung",
     description:
-      "Credits können per Stripe gekauft werden und sind sofort im Dashboard verfügbar, sobald die Zahlung erfolgreich ist.",
+      "Du lädst Credits nur dann auf, wenn du sie brauchst. Damit eignet sich Auftrago sowohl für kleine lokale Anbieter als auch für Firmen, die regelmässig neue Aufträge gewinnen möchten.",
   },
 ];
 
 const nextSteps = [
-  "Auth (Login) für Auftragnehmer & Auftraggeber",
-  "Stripe Webhook → Credits automatisch gutschreiben",
-  "Admin/CRM: Leads prüfen, Kategorien, Preislogik 1–50 Credits",
-  "Lead-Verkauf an Endkunden: Rechnungen, Abos und Anbieterprofile",
+  "Als Anbieter registrieren und Unternehmensdaten hinterlegen",
+  "Credits aufladen und erste Leads prüfen",
+  "Passende Kontakte freischalten und direkt reagieren",
+  "Dashboard, Transaktionen und Freischaltungen zentral verwalten",
 ];
 
 const packages = [
@@ -30,20 +30,23 @@ const packages = [
     name: "Starter",
     credits: "10 Credits",
     price: "CHF 29",
-    description: "Ideal zum Testen der Plattform und für erste Leads.",
+    description:
+      "Ideal für den Einstieg, erste Tests und Anbieter, die das System in ihrer Region ausprobieren möchten.",
   },
   {
     name: "Growth",
     credits: "25 Credits",
     price: "CHF 59",
-    description: "Für Anbieter, die regelmässig neue Anfragen freischalten.",
+    description:
+      "Stark für Firmen, die regelmässig passende Anfragen freischalten und konstant neue Aufträge gewinnen wollen.",
     featured: true,
   },
   {
     name: "Pro",
     credits: "60 Credits",
     price: "CHF 119",
-    description: "Für Unternehmen, die konstant Leads einkaufen möchten.",
+    description:
+      "Für Unternehmen mit klarer Wachstumsstrategie, mehreren Regionen oder dauerhaftem Bedarf an neuen Leads.",
   },
 ];
 
@@ -99,22 +102,21 @@ export default function PreisePage() {
               <span className="bg-gradient-to-r from-white via-[#d7f0ff] to-[#7EC8FF] bg-clip-text text-transparent">
                 Preise
               </span>{" "}
-              für Anbieter.
+              für Anbieter
             </h1>
 
             <p className="mt-5 max-w-3xl text-base leading-7 text-white/72 sm:mt-6 sm:text-lg sm:leading-8">
-              Du kannst dich gratis bewerben – bezahlt wird erst, wenn du die
-              Kontaktdaten eines Leads freischaltest. So bleibt das Modell
-              fair, flexibel und performance-orientiert.
+              Du kannst dich gratis registrieren und dein Profil aufbauen –
+              bezahlt wird erst dann, wenn du einen Lead wirklich freischalten
+              möchtest. Genau dadurch bleibt das Modell fair, flexibel und
+              deutlich transparenter als klassische Werbe- oder Abo-Modelle.
             </p>
 
             <p className="mt-4 max-w-3xl text-sm leading-7 text-white/55 sm:text-base sm:leading-8">
-              Typisch sind 1–50 Credits pro Lead, was ungefähr CHF 3–150
-              entsprechen kann – abhängig von Auftragsgrösse, Region und
-              Kategorie.{" "}
-              <span className="text-white/45">
-                Referenz: Lead-Marktplatz / Ofri-ähnliches Modell
-              </span>
+              Statt pauschal für Sichtbarkeit zu zahlen, investierst du gezielt
+              in Kontakte, die für dein Unternehmen relevant sind. Das macht
+              Auftrago besonders interessant für lokale Anbieter, die sauber,
+              planbar und performance-orientiert wachsen möchten.
             </p>
           </div>
         </div>
@@ -126,12 +128,13 @@ export default function PreisePage() {
             Modell
           </div>
           <h2 className="mt-4 text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl">
-            Einfach, fair und auf Leads aufgebaut
+            Einfach, nachvollziehbar und auf Ergebnisse gebaut
           </h2>
           <p className="mt-5 text-base leading-7 text-white/68 sm:text-lg sm:leading-8">
-            Anbieter zahlen nicht blind im Voraus für Sichtbarkeit, sondern
-            gezielt für interessante Kontakte. Das macht das System besser
-            kalkulierbar und attraktiver für lokale Dienstleister.
+            Auftrago ist kein unübersichtliches Inserate-System. Es ist ein
+            klarer Lead-Marktplatz: Kunden senden Anfragen, Anbieter sehen
+            strukturierte Leads und zahlen nur dann, wenn sie den Kontakt
+            wirklich freischalten möchten.
           </p>
         </div>
 
@@ -148,21 +151,38 @@ export default function PreisePage() {
             </div>
           ))}
         </div>
+
+        <div className="mt-8 rounded-[28px] border border-white/10 bg-[#081122]/85 p-5 sm:p-6 md:p-8">
+          <h3 className="text-2xl font-semibold">Warum das für Firmen interessant ist</h3>
+          <div className="mt-4 space-y-3 text-sm leading-7 text-white/65 sm:text-base sm:leading-8">
+            <p>
+              Viele Plattformen verlangen laufende Gebühren, ohne dass klar ist,
+              ob daraus wirklich gute Anfragen entstehen. Auftrago dreht dieses
+              Modell um: Du bezahlst nicht für Hoffnung, sondern für konkrete
+              Leads.
+            </p>
+            <p>
+              Das ist besonders stark für Anbieter, die regional arbeiten, ihre
+              Marge im Blick behalten und lieber gezielt auf konkrete Aufträge
+              reagieren, statt blind Reichweite einzukaufen.
+            </p>
+          </div>
+        </div>
       </section>
 
       <section className="border-y border-white/10 bg-white/[0.03]">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
           <div className="max-w-3xl">
             <div className="text-xs uppercase tracking-[0.18em] text-white/45 sm:text-sm sm:tracking-[0.24em]">
-              Credit-Pakete
+              Beispielpakete
             </div>
             <h2 className="mt-4 text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl">
-              Beispielhafte Pakete für den Start
+              Klare Pakete für den Einstieg und Wachstum
             </h2>
             <p className="mt-5 text-base leading-7 text-white/66 sm:text-lg sm:leading-8">
-              Diese Pakete sind ein starker Ausgangspunkt für deine Plattform.
-              Du kannst sie später jederzeit anpassen, testen und nach Region
-              oder Kategorie optimieren.
+              Diese Pakete sind ein sinnvoller Start für deine Plattform. Sie
+              geben Anbietern Orientierung, sind einfach zu verstehen und machen
+              die Preisstruktur deutlich greifbarer.
             </p>
           </div>
 
@@ -220,14 +240,15 @@ export default function PreisePage() {
         <div className="rounded-[28px] border border-white/10 bg-white/5 p-5 backdrop-blur sm:rounded-[34px] sm:p-8 md:p-10">
           <div className="max-w-3xl">
             <div className="text-xs uppercase tracking-[0.18em] text-white/45 sm:text-sm sm:tracking-[0.24em]">
-              Roadmap
+              Nächste Schritte
             </div>
             <h2 className="mt-4 text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl">
-              Nächste Schritte für das System
+              So startest du als Anbieter
             </h2>
             <p className="mt-5 text-base leading-7 text-white/66 sm:text-lg sm:leading-8">
-              Technisch steht bereits viel. Mit diesen Punkten wird die Plattform
-              vollständig als Lead-Marktplatz nutzbar.
+              Der Einstieg ist bewusst einfach gehalten, damit neue Anbieter
+              schnell loslegen können und sofort verstehen, wie das System
+              genutzt wird.
             </p>
           </div>
 
@@ -255,8 +276,9 @@ export default function PreisePage() {
 
           <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-white/66 sm:text-lg sm:leading-8">
             Das Modell ist einfach: Du kaufst Credits, prüfst interessante
-            Anfragen und zahlst nur dann, wenn du Kontaktdaten wirklich
-            freischalten möchtest.
+            Anfragen und investierst nur dann, wenn du einen Lead wirklich
+            freischalten möchtest. So bleibt dein Einsatz transparent und
+            nachvollziehbar.
           </p>
 
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:gap-4">

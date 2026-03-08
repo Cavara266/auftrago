@@ -3,19 +3,19 @@ import Link from "next/link";
 const benefits = [
   {
     title: "Qualifizierte Leads",
-    text: "Erhalte strukturierte Anfragen von Kunden, die aktiv nach Reinigung, Hauswartung, Umzug, Transport oder Entsorgung suchen.",
+    text: "Erhalte strukturierte Anfragen von Kunden, die aktiv nach Reinigung, Hauswartung, Umzug, Transport, Entsorgung oder verwandten Services suchen. Statt unklarer Kontakte bekommst du einen sauber aufgebauten Lead mit klaren Informationen.",
   },
   {
     title: "Nur bezahlen bei Interesse",
-    text: "Du zahlst nicht für Klicks oder Sichtbarkeit, sondern nur dann, wenn du einen Lead wirklich freischalten möchtest.",
+    text: "Du zahlst nicht für Klicks, Impressionen oder unklare Werbung, sondern nur dann, wenn du einen Lead wirklich freischalten möchtest. Das macht das Modell kalkulierbar und deutlich fairer für lokale Anbieter.",
   },
   {
-    title: "Schnell & lokal",
-    text: "Finde passende Aufträge in deiner Region und reagiere direkt auf neue Anfragen – schnell, fokussiert und effizient.",
+    title: "Regional und relevant",
+    text: "Konzentriere dich auf Anfragen aus deiner Region und auf Leistungen, die zu deinem Unternehmen passen. So nutzt du deine Zeit besser und erreichst genau die Kunden, die für dich interessant sind.",
   },
   {
     title: "Modernes System",
-    text: "Auftrago verbindet klare Lead-Struktur, Credits, Dashboard und regionale Nachfrage in einer sauberen Plattform.",
+    text: "Auftrago verbindet Anfrageformular, Lead-System, Credits, Dashboard und direkte Freischaltung in einer klaren Plattform. Das wirkt professioneller als klassische Verzeichnisse oder unübersichtliche Inserate-Portale.",
   },
 ];
 
@@ -23,17 +23,17 @@ const steps = [
   {
     step: "01",
     title: "Als Anbieter registrieren",
-    text: "Erstelle dein Konto und richte dein Profil für deine Dienstleistungen und Regionen ein.",
+    text: "Erstelle dein Konto und hinterlege deine Firmendaten. So ist sofort ersichtlich, wer du bist und für welche Region und Leistungen du aktiv sein möchtest.",
   },
   {
     step: "02",
     title: "Credits aufladen",
-    text: "Lade Credits auf und entscheide flexibel, welche Leads für dich interessant sind.",
+    text: "Lade Credits auf und entscheide flexibel, welche Leads für dich relevant sind. Du musst nicht blind laufende Kosten tragen, sondern steuerst deinen Einsatz selbst.",
   },
   {
     step: "03",
     title: "Kontakte freischalten",
-    text: "Sobald ein Lead zu deinem Angebot passt, kannst du die Kontaktdaten freischalten und direkt reagieren.",
+    text: "Wenn ein Lead zu deinem Angebot passt, kannst du die Kontaktdaten freischalten und den Kunden direkt kontaktieren. So entsteht aus einer Anfrage eine echte Auftragschance.",
   },
 ];
 
@@ -122,14 +122,22 @@ export default function PartnerPage() {
               <p className="mt-5 max-w-3xl text-base leading-7 text-white/72 sm:mt-6 sm:text-lg sm:leading-8 md:text-xl">
                 Auftrago bringt qualifizierte Kundenanfragen direkt zu passenden
                 Anbietern. Du entscheidest selbst, welche Leads für dich
-                interessant sind, und zahlst nur dann, wenn du Kontaktdaten
-                freischalten möchtest.
+                interessant sind, und zahlst nur dann, wenn du die Kontaktdaten
+                wirklich freischalten möchtest.
               </p>
 
               <p className="mt-4 max-w-3xl text-sm leading-7 text-white/55 sm:text-base sm:leading-8 md:text-lg">
-                Ideal für Firmen aus Zürich, Aargau, Basel, Bern und der ganzen
-                Schweiz, die neue Aufträge für Reinigung, Umzug, Hauswartung,
-                Transport oder Entsorgung gewinnen möchten.
+                Das macht Auftrago besonders attraktiv für lokale Dienstleister,
+                Reinigungsfirmen, Hauswartungen, Transport- und Umzugsfirmen,
+                Gartenpflege-Betriebe und weitere Service-Unternehmen, die neue
+                Aufträge gewinnen wollen, ohne blind Werbebudget zu verbrennen.
+              </p>
+
+              <p className="mt-4 max-w-3xl text-sm leading-7 text-white/55 sm:text-base sm:leading-8">
+                Statt allgemeiner Sichtbarkeit kaufst du hier gezielt Zugriff auf
+                echte Anfragen. Dadurch wird aus einer Plattform kein bloßes
+                Verzeichnis, sondern ein funktionierendes System für regionale
+                Lead-Vermittlung und planbare Neukunden-Gewinnung.
               </p>
 
               <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:gap-4">
@@ -174,6 +182,29 @@ export default function PartnerPage() {
                   <div className="mt-2 text-sm leading-6 text-white/60">
                     Nach Freischaltung kannst du Kunden sofort kontaktieren.
                   </div>
+                </div>
+              </div>
+
+              <div className="mt-8 rounded-[26px] border border-white/10 bg-[#081122]/80 p-5 sm:p-6">
+                <h2 className="text-xl font-semibold sm:text-2xl">
+                  Warum dieses Modell für Firmen interessant ist
+                </h2>
+
+                <div className="mt-4 space-y-3 text-sm leading-7 text-white/65 sm:text-base sm:leading-8">
+                  <p>
+                    Viele Anbieter investieren heute in Werbung, Inserate,
+                    Plattformen oder allgemeine Sichtbarkeit, ohne genau zu
+                    wissen, ob daraus wirklich qualifizierte Kontakte entstehen.
+                    Auftrago dreht dieses Modell um: Statt für diffuse Reichweite
+                    zahlst du gezielt für echte Leads.
+                  </p>
+                  <p>
+                    Dadurch ist dein Aufwand besser kalkulierbar. Du siehst die
+                    Anfrage zuerst, bewertest sie und entscheidest dann, ob du
+                    investieren möchtest. Das ist besonders wertvoll für
+                    regionale Firmen, die effizient wachsen und ihre Zeit auf
+                    echte Chancen konzentrieren wollen.
+                  </p>
                 </div>
               </div>
 
@@ -223,6 +254,24 @@ export default function PartnerPage() {
                   ))}
                 </div>
 
+                <div className="mt-6 rounded-[22px] border border-white/10 bg-[#081122]/80 p-4 sm:p-5">
+                  <div className="text-sm font-semibold text-white">
+                    Für wen eignet sich Auftrago besonders?
+                  </div>
+                  <div className="mt-3 space-y-2 text-sm leading-7 text-white/62 sm:text-base sm:leading-8">
+                    <p>
+                      Besonders spannend ist die Plattform für regionale
+                      Dienstleister, die konstant neue Aufträge suchen, aber
+                      nicht auf klassische Massenwerbung angewiesen sein wollen.
+                    </p>
+                    <p>
+                      Wenn du lieber gezielt auf konkrete Anfragen reagierst,
+                      statt nur auf Sichtbarkeit zu hoffen, ist dieses Modell
+                      deutlich näher an einem echten Performance-System.
+                    </p>
+                  </div>
+                </div>
+
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                   <Link
                     href="/register"
@@ -255,7 +304,14 @@ export default function PartnerPage() {
           <p className="mt-5 max-w-3xl text-base leading-7 text-white/68 sm:text-lg sm:leading-8">
             Du musst nicht auf gut Glück Werbung schalten. Stattdessen bekommst
             du strukturierte Anfragen von Kunden, die bereits ein konkretes
-            Bedürfnis haben.
+            Bedürfnis haben und aktiv nach einer passenden Lösung suchen.
+          </p>
+
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-white/55 sm:text-base sm:leading-8">
+            Genau das ist der große Unterschied: Nicht Reichweite um jeden
+            Preis, sondern qualifizierte Nachfrage, die zu deinem Angebot passt.
+            Das ist effizienter, klarer und besonders attraktiv für Unternehmen,
+            die regional wachsen wollen.
           </p>
         </div>
 
@@ -298,6 +354,10 @@ export default function PartnerPage() {
             <h2 className="mt-4 text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl">
               In 3 Schritten zu neuen Aufträgen
             </h2>
+            <p className="mt-5 text-base leading-7 text-white/66 sm:text-lg sm:leading-8">
+              Der Ablauf ist bewusst einfach aufgebaut, damit du schnell loslegen
+              kannst und sofort verstehst, wie das System funktioniert.
+            </p>
           </div>
 
           <div className="mt-8 grid gap-4 sm:mt-10 md:grid-cols-3">
@@ -334,6 +394,13 @@ export default function PartnerPage() {
               Auftrago ist ideal für regionale Lead-Generierung. Starte in einer
               Stadt oder decke gleich mehrere Gebiete in der Schweiz ab.
             </p>
+
+            <p className="mt-4 text-sm leading-7 text-white/55 sm:text-base sm:leading-8">
+              Gerade für lokale Firmen ist regionale Sichtbarkeit entscheidend.
+              Deshalb eignet sich die Plattform besonders gut für Anbieter in
+              Zürich, Aargau, Basel, Bern, Luzern, Zug und weiteren stark
+              nachgefragten Regionen.
+            </p>
           </div>
 
           <div className="mt-7 flex flex-wrap gap-2.5 sm:mt-8 sm:gap-3">
@@ -361,6 +428,12 @@ export default function PartnerPage() {
             Registriere dich, lade Credits auf und entscheide selbst, welche
             Leads du freischalten willst. Einfach, modern und auf echte
             Auftragschancen ausgerichtet.
+          </p>
+
+          <p className="mx-auto mt-4 max-w-3xl text-sm leading-7 text-white/55 sm:text-base sm:leading-8">
+            Wenn du als Firma neue Aufträge suchst und lieber gezielt auf echte
+            Anfragen reagierst, statt nur auf Sichtbarkeit zu hoffen, dann ist
+            Auftrago genau die richtige Grundlage für dein Wachstum.
           </p>
 
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:gap-4">

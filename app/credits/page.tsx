@@ -11,11 +11,12 @@ const plans = [
     credits: 20,
     price: 28,
     discount: null,
-    description: "Ideal für den Einstieg und erste Freischaltungen.",
+    description:
+      "Ideal für den Einstieg und erste Freischaltungen. Perfekt, wenn du das System testen und erste regionale Leads prüfen möchtest.",
     features: [
       "20 Credits sofort verfügbar",
-      "Perfekt für erste Leads",
-      "Keine laufenden Fixkosten",
+      "Perfekt für erste Lead-Freischaltungen",
+      "Kein Abo, keine laufenden Fixkosten",
     ],
     featured: false,
   },
@@ -25,7 +26,8 @@ const plans = [
     credits: 50,
     price: 63,
     discount: "10% Rabatt",
-    description: "Das beste Paket für regelmässige Lead-Freischaltungen.",
+    description:
+      "Das beste Paket für Anbieter, die regelmässig neue Kontakte freischalten und aktiv mit der Plattform arbeiten möchten.",
     features: [
       "50 Credits für mehr Reichweite",
       "Besserer Preis pro Lead",
@@ -39,7 +41,8 @@ const plans = [
     credits: 100,
     price: 112,
     discount: "20% Rabatt",
-    description: "Für Unternehmen, die konstant neue Aufträge gewinnen möchten.",
+    description:
+      "Für Unternehmen, die konstant neue Aufträge generieren, mehrere Regionen bedienen oder einen klaren Wachstumsfokus haben.",
     features: [
       "100 Credits mit starkem Preis",
       "Ideal für laufende Kampagnen",
@@ -141,7 +144,14 @@ export default function CreditsPage() {
             <p className="mt-5 max-w-3xl text-base leading-7 text-white/68 sm:text-lg sm:leading-8">
               Kaufe Credits, schalte passende Leads frei und kontaktiere Kunden
               direkt. Du zahlst nur dann, wenn du einen Lead wirklich nutzen
-              möchtest.
+              möchtest – nicht für allgemeine Sichtbarkeit oder unklare Werbung.
+            </p>
+
+            <p className="mt-4 max-w-3xl text-sm leading-7 text-white/55 sm:text-base sm:leading-8">
+              Das macht das Modell besonders attraktiv für Anbieter, die
+              Performance, Transparenz und planbare Neukunden-Gewinnung suchen.
+              Statt pauschaler Fixkosten setzt du dein Budget genau dort ein, wo
+              sich echte Auftragschancen ergeben.
             </p>
           </div>
         </div>
@@ -157,7 +167,7 @@ export default function CreditsPage() {
               Ohne Abo
             </div>
             <div className="mt-1 text-sm text-white/55">
-              Nur Credits kaufen, wenn du sie brauchst.
+              Nur Credits kaufen, wenn du sie wirklich brauchst.
             </div>
           </div>
 
@@ -169,7 +179,7 @@ export default function CreditsPage() {
               Sofort aktiv
             </div>
             <div className="mt-1 text-sm text-white/55">
-              Nach erfolgreicher Zahlung direkt verfügbar.
+              Nach erfolgreicher Zahlung direkt im Konto verfügbar.
             </div>
           </div>
 
@@ -181,8 +191,26 @@ export default function CreditsPage() {
               Pay-per-Lead
             </div>
             <div className="mt-1 text-sm text-white/55">
-              Nur zahlen, wenn ein Kontakt interessant ist.
+              Du zahlst nur, wenn ein Kontakt für dich interessant ist.
             </div>
+          </div>
+        </div>
+
+        <div className="mb-8 rounded-[28px] border border-white/10 bg-[#081122]/85 p-5 sm:p-6 md:p-8">
+          <h2 className="text-2xl font-semibold sm:text-3xl">
+            Warum Credits sinnvoll sind
+          </h2>
+          <div className="mt-4 space-y-3 text-sm leading-7 text-white/65 sm:text-base sm:leading-8">
+            <p>
+              Credits geben dir als Anbieter maximale Kontrolle. Du musst nicht
+              laufend für Reichweite bezahlen, sondern setzt dein Budget gezielt
+              dort ein, wo ein Auftrag wirklich Potenzial hat.
+            </p>
+            <p>
+              Das ist besonders wertvoll für lokale Firmen, die ihre Ressourcen
+              effizient einsetzen wollen. Du prüfst den Lead zuerst – und
+              entscheidest dann, ob du investieren möchtest.
+            </p>
           </div>
         </div>
 
@@ -284,6 +312,12 @@ export default function CreditsPage() {
             Je nach Lead kostet die Freischaltung unterschiedlich viele Credits.
             So bleibt das Modell fair, flexibel und direkt an den tatsächlichen
             Anfragen orientiert.
+          </p>
+
+          <p className="mx-auto mt-4 max-w-3xl text-sm leading-7 text-white/55 sm:text-base sm:leading-8">
+            Gute Leads sind wertvoller als reine Sichtbarkeit. Genau deshalb
+            eignet sich dieses Modell besonders gut für Anbieter, die auf
+            Qualität, Relevanz und echte Auftragschancen setzen.
           </p>
 
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:gap-4">

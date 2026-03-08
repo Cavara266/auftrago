@@ -1,14 +1,11 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/db";
+import { stripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
-});
 
 export async function POST(req: Request) {
   try {
@@ -22,6 +19,25 @@ export async function POST(req: Request) {
       );
     }
 
+    const existingTransaction = await prisma.transaction.findUnique({
+      where: {
+        stripeSessionId: sessionId,
+      },
+      select: {
+        id: true,
+        amount: true,
+      },
+    });
+
+    if (existingTransaction) {
+      return NextResponse.json({
+        ok: true,
+        success: true,
+        creditsAdded: existingTransaction.amount,
+        alreadyProcessed: true,
+      });
+    }
+
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (!session) {
@@ -33,7 +49,7 @@ export async function POST(req: Request) {
 
     if (session.payment_status !== "paid") {
       return NextResponse.json(
-        { ok: false, error: "Payment not completed" },
+        { ok: false, error: "Payment not completed yet." },
         { status: 400 }
       );
     }
@@ -57,30 +73,10 @@ export async function POST(req: Request) {
       );
     }
 
-    const existingTransaction = await prisma.transaction.findUnique({
-      where: {
-        stripeSessionId: session.id,
-      },
-      select: {
-        id: true,
-        amount: true,
-      },
-    });
-
-    if (existingTransaction) {
-      return NextResponse.json({
-        ok: true,
-        success: true,
-        creditsAdded: existingTransaction.amount,
-        alreadyProcessed: true,
-      });
-    }
-
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
-        credits: true,
       },
     });
 
@@ -114,6 +110,7 @@ export async function POST(req: Request) {
             credits,
             paymentStatus: session.payment_status,
             customerEmail: session.customer_details?.email ?? null,
+            source: "finalize_route",
           },
         },
       });

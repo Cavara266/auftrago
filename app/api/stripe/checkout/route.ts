@@ -3,31 +3,24 @@ import { stripe } from "@/lib/stripe";
 import { requireUser } from "@/lib/auth";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 const PLANS = {
   starter: {
-    id: "starter",
+    name: "Starter",
     credits: 20,
     price: 28,
-    name: "Starter",
   },
   pro: {
-    id: "pro",
+    name: "Pro",
     credits: 50,
     price: 63,
-    name: "Pro",
   },
   business: {
-    id: "business",
+    name: "Business",
     credits: 100,
     price: 112,
-    name: "Business",
   },
-} as const;
-
-type PlanId = keyof typeof PLANS;
+};
 
 function getBaseUrl() {
   const raw = process.env.NEXT_PUBLIC_APP_URL?.trim();
@@ -50,38 +43,34 @@ function getBaseUrl() {
   return normalized;
 }
 
-function isPlanId(value: string): value is PlanId {
-  return value in PLANS;
-}
-
 export async function POST(req: Request) {
   try {
     const user = await requireUser();
 
     if (!user) {
       return NextResponse.json(
-        { ok: false, error: "Nicht eingeloggt." },
+        { error: "Nicht eingeloggt." },
         { status: 401 }
       );
     }
 
     const body = await req.json().catch(() => null);
-    const planId = String(body?.planId ?? "").trim();
+    const planId = String(body?.planId ?? "");
 
-    if (!isPlanId(planId)) {
+    const plan = PLANS[planId as keyof typeof PLANS];
+
+    if (!plan) {
       return NextResponse.json(
-        { ok: false, error: "Ungültiges Paket." },
+        { error: "Ungültiges Paket." },
         { status: 400 }
       );
     }
 
-    const plan = PLANS[planId];
     const baseUrl = getBaseUrl();
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
-      customer_email: user.email,
       line_items: [
         {
           price_data: {
@@ -99,32 +88,23 @@ export async function POST(req: Request) {
       cancel_url: `${baseUrl}/credits`,
       metadata: {
         userId: String(user.id),
-        userEmail: String(user.email),
         credits: String(plan.credits),
-        planId: plan.id,
+        planId,
         planName: plan.name,
       },
     });
 
-    if (!session.url) {
-      return NextResponse.json(
-        { ok: false, error: "Keine Stripe URL erhalten." },
-        { status: 500 }
-      );
-    }
-
     return NextResponse.json({
-      ok: true,
       url: session.url,
     });
   } catch (error) {
     console.error("STRIPE CHECKOUT ERROR:", error);
 
+    const message =
+      error instanceof Error ? error.message : "Serverfehler.";
+
     return NextResponse.json(
-      {
-        ok: false,
-        error: error instanceof Error ? error.message : "Serverfehler.",
-      },
+      { error: message },
       { status: 500 }
     );
   }

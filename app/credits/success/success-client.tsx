@@ -8,15 +8,15 @@ type CreditsSuccessClientProps = {
   sessionId: string;
 };
 
+type Status = "loading" | "success" | "already" | "timeout" | "error";
+
 export default function CreditsSuccessClient({
   sessionId,
 }: CreditsSuccessClientProps) {
   const router = useRouter();
   const hasRun = useRef(false);
 
-  const [status, setStatus] = useState<
-    "loading" | "success" | "already" | "error"
-  >("loading");
+  const [status, setStatus] = useState<Status>("loading");
   const [message, setMessage] = useState("Zahlung wird geprüft ...");
 
   useEffect(() => {
@@ -31,8 +31,43 @@ export default function CreditsSuccessClient({
 
     let cancelled = false;
     let redirectTimer: ReturnType<typeof setTimeout> | null = null;
+    let pollingTimer: ReturnType<typeof setTimeout> | null = null;
 
-    async function finalize() {
+    async function checkStatus() {
+      const res = await fetch("/api/stripe/status", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ sessionId }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (cancelled) return false;
+
+      if (!res.ok) {
+        return false;
+      }
+
+      if (data?.processed) {
+        setStatus("success");
+        setMessage(
+          `${data?.creditsAdded ?? 0} Credits wurden erfolgreich gutgeschrieben.`
+        );
+
+        redirectTimer = setTimeout(() => {
+          router.push("/dashboard");
+          router.refresh();
+        }, 1000);
+
+        return true;
+      }
+
+      return false;
+    }
+
+    async function fallbackFinalize() {
       try {
         const res = await fetch("/api/stripe/finalize", {
           method: "POST",
@@ -47,9 +82,10 @@ export default function CreditsSuccessClient({
         if (cancelled) return;
 
         if (!res.ok) {
-          setStatus("error");
+          setStatus("timeout");
           setMessage(
-            data?.error || "Die Zahlung konnte nicht verarbeitet werden."
+            data?.error ||
+              "Die Zahlung dauert länger als erwartet. Bitte öffne das Dashboard und prüfe deine Credits."
           );
           return;
         }
@@ -57,36 +93,65 @@ export default function CreditsSuccessClient({
         if (data?.alreadyProcessed) {
           setStatus("already");
           setMessage("Die Credits wurden bereits gutgeschrieben.");
-
-          redirectTimer = setTimeout(() => {
-            router.push("/dashboard");
-            router.refresh();
-          }, 1400);
-
-          return;
+        } else {
+          setStatus("success");
+          setMessage(
+            `${data?.creditsAdded ?? 0} Credits wurden erfolgreich gutgeschrieben.`
+          );
         }
-
-        setStatus("success");
-        setMessage(
-          `${data?.creditsAdded ?? 0} Credits wurden erfolgreich gutgeschrieben.`
-        );
 
         redirectTimer = setTimeout(() => {
           router.push("/dashboard");
           router.refresh();
-        }, 1400);
+        }, 1000);
       } catch {
         if (cancelled) return;
-        setStatus("error");
-        setMessage("Serverfehler bei der Zahlungsbestätigung.");
+
+        setStatus("timeout");
+        setMessage(
+          "Die Zahlung dauert länger als erwartet. Bitte öffne das Dashboard und prüfe deine Credits."
+        );
       }
     }
 
-    finalize();
+    async function startFlow() {
+      try {
+        const immediate = await checkStatus();
+        if (immediate || cancelled) return;
+
+        let attempts = 0;
+        const maxAttempts = 3;
+
+        const poll = async () => {
+          attempts += 1;
+
+          try {
+            const done = await checkStatus();
+            if (done || cancelled) return;
+
+            if (attempts >= maxAttempts) {
+              await fallbackFinalize();
+              return;
+            }
+
+            pollingTimer = setTimeout(poll, 700);
+          } catch {
+            await fallbackFinalize();
+          }
+        };
+
+        pollingTimer = setTimeout(poll, 700);
+      } catch {
+        await fallbackFinalize();
+      }
+    }
+
+    startFlow();
 
     return () => {
       cancelled = true;
       if (redirectTimer) clearTimeout(redirectTimer);
+      if (pollingTimer) clearTimeout(pollingTimer);
     };
   }, [router, sessionId]);
 
@@ -96,6 +161,7 @@ export default function CreditsSuccessClient({
         {status === "loading" && "Zahlung wird verarbeitet"}
         {status === "success" && "Zahlung erfolgreich"}
         {status === "already" && "Bereits verarbeitet"}
+        {status === "timeout" && "Bestätigung dauert länger"}
         {status === "error" && "Fehler bei der Zahlung"}
       </h1>
 

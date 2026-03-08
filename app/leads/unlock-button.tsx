@@ -29,14 +29,14 @@ export default function UnlockButton({
         }),
       });
 
+      const data = await res.json().catch(() => null);
+
       if (!res.ok) {
-        const msg = await res.text();
-        setError(msg || "Freischaltung fehlgeschlagen.");
+        setError(data?.error || "Freischaltung fehlgeschlagen.");
         setLoading(false);
         return;
       }
 
-      // Refresh server components
       window.location.reload();
     } catch {
       setError("Freischaltung fehlgeschlagen.");
@@ -46,30 +46,40 @@ export default function UnlockButton({
 
   if (isUnlocked) {
     return (
-      <button
-        disabled
-        className="w-full rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-200 sm:w-auto sm:px-5 sm:py-2.5"
-      >
-        Freigeschaltet
-      </button>
+      <div className="w-full">
+        <button
+          disabled
+          className="w-full rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-200 sm:px-5 sm:py-3"
+        >
+          Bereits freigeschaltet
+        </button>
+
+        <p className="mt-2 text-center text-xs leading-5 text-white/45">
+          Kontakt ist bereits geöffnet
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="w-full space-y-2 text-right sm:w-auto">
+    <div className="w-full">
       <button
         onClick={onUnlock}
         disabled={loading}
-        className="w-full rounded-2xl bg-indigo-500 px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-5 sm:py-2.5"
+        className="w-full rounded-2xl bg-[#7EC8FF] px-4 py-3 text-sm font-semibold text-[#04101d] shadow-[0_14px_40px_rgba(126,200,255,0.18)] transition hover:bg-[#91d2ff] disabled:cursor-not-allowed disabled:opacity-60 sm:px-5 sm:py-3"
       >
-        {loading ? "Freischalten..." : `Freischalten (${priceCredits} Credits)`}
+        {loading ? "Wird freigeschaltet..." : `Freischalten (${priceCredits} Credits)`}
       </button>
 
-      {error && (
-        <div className="text-xs text-red-300 sm:text-right">
+      <p className="mt-2 text-center text-xs leading-5 text-white/45">
+        Nur freischalten, wenn der Lead zu deinem Angebot passt
+      </p>
+
+      {error ? (
+        <div className="mt-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-300 sm:text-sm">
           {error}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

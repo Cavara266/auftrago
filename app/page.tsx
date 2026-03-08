@@ -124,15 +124,14 @@ export default function HomePage() {
               <div className="inline-flex max-w-full items-start gap-3 rounded-[24px] border border-white/10 bg-white/5 px-4 py-3 text-left backdrop-blur sm:items-center sm:gap-2 sm:rounded-full sm:px-4 sm:py-2.5">
                 <span className="mt-1 inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-[#7EC8FF] sm:mt-0 sm:h-2 sm:w-2" />
                 <span className="text-[11px] uppercase leading-relaxed tracking-[0.16em] text-white/60 sm:text-xs sm:tracking-[0.22em]">
-                  Premium Vermittlung für Reinigung, Umzug, Transport & Services
+                  Premium Vermittlung für Reinigung, Hauswartung, Umzug, Transport & Services
                 </span>
               </div>
 
-              <h1 className="mt-5 max-w-4xl text-3xl font-semibold leading-[1.02] sm:mt-6 sm:text-4xl md:text-6xl xl:text-7xl">
+              <h1 className="mt-5 max-w-5xl text-3xl font-semibold leading-[1.02] sm:mt-6 sm:text-4xl md:text-6xl xl:text-7xl">
                 Die schönste Art,{" "}
                 <span className="bg-gradient-to-r from-white via-[#d7f0ff] to-[#7EC8FF] bg-clip-text text-transparent">
-                  Offerten für Reinigung, Hauswartung, Umzug, Transport und
-                  Entsorgung
+                  Offerten für Reinigung, Hauswartung, Umzug, Transport und Entsorgung
                 </span>{" "}
                 in der Schweiz anzufragen.
               </h1>
@@ -140,16 +139,25 @@ export default function HomePage() {
               <p className="mt-5 max-w-3xl text-base leading-7 text-white/72 sm:mt-6 sm:text-lg sm:leading-8 md:text-xl">
                 Mit <strong className="font-semibold text-white">Auftrago</strong>{" "}
                 senden Privatpersonen, Verwaltungen und Unternehmen ihre Anfrage
-                in wenigen Sekunden. Passende Anbieter sehen qualifizierte Leads,
-                schalten Kontakte frei und übernehmen den Auftrag direkt. Schnell,
-                modern und auf Conversion gebaut.
+                in wenigen Sekunden. Passende Anbieter aus der Region können
+                qualifizierte Leads sehen, Kontakte freischalten und direkt ein
+                Angebot abgeben. So entsteht ein moderner Offerten-Prozess, der
+                einfacher, klarer und professioneller ist als klassische
+                Kontaktformulare oder unübersichtliche Verzeichnisse.
               </p>
 
               <p className="mt-4 max-w-3xl text-sm leading-7 text-white/55 sm:text-base sm:leading-8 md:text-lg">
                 Egal ob Büroreinigung in Zürich, Hauswartung in Aargau, Umzug in
-                Basel, Transport in Bern oder Entsorgung in Zug – Auftrago
-                verbindet Nachfrage und Angebot in einem klaren, professionellen
-                System.
+                Basel, Transport in Bern, Entrümpelung in Luzern oder Entsorgung
+                in Zug – Auftrago verbindet Nachfrage und Angebot in einem
+                sauberen, schnellen und vertrauenswürdigen System.
+              </p>
+
+              <p className="mt-4 max-w-3xl text-sm leading-7 text-white/55 sm:text-base sm:leading-8">
+                Für Kunden bedeutet das: eine einfache, kostenlose und
+                unverbindliche Anfrage. Für Anbieter bedeutet das: hochwertige
+                regionale Leads, klare Informationen und direkte
+                Auftragschancen.
               </p>
 
               <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:gap-4">
@@ -178,19 +186,21 @@ export default function HomePage() {
               <div className="mt-8 grid gap-4 sm:mt-10 sm:grid-cols-3">
                 <div className="rounded-[26px] border border-white/10 bg-white/5 p-5 backdrop-blur">
                   <div className="text-2xl font-semibold text-white sm:text-3xl">
-                    24h
+                    Schnell
                   </div>
                   <div className="mt-2 text-sm leading-6 text-white/60">
-                    Schnell Anfragen senden und passende Anbieter erreichen.
+                    In kurzer Zeit eine professionelle Anfrage erstellen und
+                    relevante Anbieter erreichen.
                   </div>
                 </div>
 
                 <div className="rounded-[26px] border border-white/10 bg-white/5 p-5 backdrop-blur">
                   <div className="text-2xl font-semibold text-white sm:text-3xl">
-                    100%
+                    Kostenlos
                   </div>
                   <div className="mt-2 text-sm leading-6 text-white/60">
-                    Kostenlos für Kunden, einfach und ohne komplizierten Prozess.
+                    Für Kunden kostenlos und unverbindlich – ohne komplizierten
+                    Prozess.
                   </div>
                 </div>
 
@@ -199,8 +209,31 @@ export default function HomePage() {
                     Firmen
                   </div>
                   <div className="mt-2 text-sm leading-6 text-white/60">
-                    Anbieter können sich registrieren und neue Leads gewinnen.
+                    Anbieter können sich registrieren, Credits nutzen und neue
+                    Leads in ihrer Region gewinnen.
                   </div>
+                </div>
+              </div>
+
+              <div className="mt-8 rounded-[26px] border border-white/10 bg-[#081122]/80 p-5 sm:p-6">
+                <h2 className="text-xl font-semibold sm:text-2xl">
+                  Für Kunden und Anbieter gleichzeitig gebaut
+                </h2>
+
+                <div className="mt-4 space-y-3 text-sm leading-7 text-white/65 sm:text-base sm:leading-8">
+                  <p>
+                    Auftrago ist als Plattform für beide Seiten gedacht:
+                    Kunden erhalten einen klaren Weg zur Anfrage, während Firmen
+                    und Dienstleister einen strukturierten Zugang zu neuen
+                    Aufträgen bekommen. Dadurch entsteht nicht einfach nur eine
+                    Website, sondern ein funktionierender Lead-Marktplatz.
+                  </p>
+                  <p>
+                    Genau diese doppelte Klarheit macht den Unterschied: Kunden
+                    verstehen sofort, wie sie eine Anfrage senden können. Firmen
+                    sehen sofort, dass sie sich registrieren, Credits kaufen und
+                    passende Leads freischalten können.
+                  </p>
                 </div>
               </div>
 
@@ -397,6 +430,24 @@ export default function HomePage() {
                     Kostenlos für Kunden. Unverbindlich. Schnell. Lokal.
                   </p>
                 </form>
+
+                <div className="mt-6 rounded-[22px] border border-white/10 bg-[#081122]/80 p-4 sm:p-5">
+                  <div className="text-sm font-semibold text-white">
+                    Warum dieses Formular besser funktioniert
+                  </div>
+                  <div className="mt-3 space-y-2 text-sm leading-7 text-white/62 sm:text-base sm:leading-8">
+                    <p>
+                      Du musst nicht lange suchen oder verschiedene Firmen
+                      einzeln anschreiben. Stattdessen startest du mit einer
+                      zentralen Anfrage, die relevante Anbieter sehen können.
+                    </p>
+                    <p>
+                      Je klarer die Informationen sind, desto besser können
+                      Anbieter reagieren – das erhöht die Qualität der
+                      Rückmeldungen und spart Zeit auf beiden Seiten.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -462,6 +513,13 @@ export default function HomePage() {
               Auftrago ist nicht nur für Kunden gedacht. Dienstleister und
               Unternehmen können sich als Anbieter registrieren, Credits kaufen,
               Leads einsehen und passende Kontakte direkt freischalten.
+            </p>
+
+            <p className="mt-4 text-sm leading-7 text-white/55 sm:text-base sm:leading-8">
+              Damit wird die Plattform nicht nur zu einer Anfrage-Seite, sondern
+              zu einem funktionierenden System für regionale Lead-Vermittlung.
+              Firmen erhalten die Chance auf neue Aufträge, während Kunden
+              schneller passende Rückmeldungen bekommen.
             </p>
           </div>
 
@@ -530,6 +588,13 @@ export default function HomePage() {
               Auftrago eignet sich perfekt für wiederkehrende Dienstleistungen,
               Objektbetreuung, Umzüge, Transporte und Offerten-Anfragen im
               Immobilien- und Servicebereich.
+            </p>
+
+            <p className="mt-4 text-sm leading-7 text-white/55 sm:text-base sm:leading-8">
+              Die Plattform ist bewusst so aufgebaut, dass sowohl private als
+              auch gewerbliche Anfragen professionell vermittelt werden können.
+              Das macht sie ideal für regionale Kampagnen, spezialisierte
+              Landingpages und klar strukturierte Services.
             </p>
           </div>
 
@@ -649,6 +714,13 @@ export default function HomePage() {
               hoher Nachfrage. Das System eignet sich hervorragend für
               SEO-Landingpages, Städte-Kombinationen und regionale Kampagnen.
             </p>
+
+            <p className="mt-4 text-sm leading-7 text-white/55 sm:text-base sm:leading-8">
+              Gerade in stark nachgefragten Regionen wie Zürich, Aargau, Basel,
+              Bern, Luzern und Zug ist eine klare, schnelle und vertrauenswürdige
+              Vermittlung besonders wertvoll – für Kunden ebenso wie für
+              Anbieter.
+            </p>
           </div>
 
           <div className="mt-7 flex flex-wrap gap-2.5 sm:mt-8 sm:gap-3">
@@ -687,6 +759,12 @@ export default function HomePage() {
             Kunden können kostenlos eine Anfrage senden. Firmen können sich
             registrieren, Credits nutzen und neue Aufträge direkt über die
             Plattform gewinnen.
+          </p>
+
+          <p className="mx-auto mt-4 max-w-3xl text-sm leading-7 text-white/55 sm:text-base sm:leading-8">
+            So wird aus einer einfachen Website ein funktionierendes System:
+            Nachfrage wird strukturiert erfasst, Qualität sichtbar gemacht und
+            passende Anbieter gezielt mit echten Aufträgen verbunden.
           </p>
 
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:gap-4">

@@ -45,7 +45,7 @@ export default function Page() {
               <div className="inline-flex max-w-full items-start gap-3 rounded-[24px] border border-white/10 bg-white/5 px-4 py-3 text-left backdrop-blur sm:items-center sm:gap-2 sm:rounded-full sm:px-4 sm:py-2.5">
                 <span className="mt-1 inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-[#7EC8FF] sm:mt-0 sm:h-2 sm:w-2" />
                 <span className="text-[11px] uppercase leading-relaxed tracking-[0.16em] text-white/60 sm:text-xs sm:tracking-[0.22em]">
-                  Premium Vermittlung für lokale Dienstleistungen
+                  Anbieter Login für Leads, Credits und Auftragschancen
                 </span>
               </div>
 
@@ -64,9 +64,18 @@ export default function Page() {
               </p>
 
               <p className="mt-4 max-w-3xl text-sm leading-7 text-white/55 sm:text-base sm:leading-8 md:text-lg">
-                Der Anbieter-Flow ist klar aufgebaut: Leads ansehen →
-                Kontaktdaten freischalten → Credits & Transaktionen im Dashboard
-                verwalten.
+                Auftrago ist für Anbieter gemacht, die nicht einfach nur
+                Sichtbarkeit kaufen möchten, sondern gezielt auf echte Anfragen
+                reagieren wollen. Nach dem Login siehst du verfügbare Leads,
+                deinen Credit-Stand und alle wichtigen Aktivitäten zentral an
+                einem Ort.
+              </p>
+
+              <p className="mt-4 max-w-3xl text-sm leading-7 text-white/55 sm:text-base sm:leading-8">
+                So entsteht ein klarer Workflow: einloggen, interessante Leads
+                prüfen, Kontakte freischalten und direkt reagieren. Das spart
+                Zeit, schafft Übersicht und macht die Plattform deutlich
+                effizienter als klassische Verzeichnisse oder Inserate-Modelle.
               </p>
 
               <div className="mt-7 grid gap-4 sm:mt-8 sm:grid-cols-3">
@@ -91,11 +100,32 @@ export default function Page() {
 
                 <div className="rounded-[26px] border border-white/10 bg-white/5 p-5 backdrop-blur">
                   <div className="text-2xl font-semibold text-white sm:text-3xl">
-                    CRM
+                    Übersicht
                   </div>
                   <div className="mt-2 text-sm leading-6 text-white/60">
                     Alles zentral im Dashboard prüfen und verwalten.
                   </div>
+                </div>
+              </div>
+
+              <div className="mt-8 rounded-[26px] border border-white/10 bg-[#081122]/80 p-5 sm:p-6">
+                <h2 className="text-xl font-semibold sm:text-2xl">
+                  Was dich nach dem Login erwartet
+                </h2>
+
+                <div className="mt-4 space-y-3 text-sm leading-7 text-white/65 sm:text-base sm:leading-8">
+                  <p>
+                    Nach dem Login erhältst du Zugriff auf deinen Anbieterbereich.
+                    Dort kannst du aktive Leads ansehen, bereits freigeschaltete
+                    Kontakte prüfen, Credits verwalten und deine Transaktionen
+                    nachvollziehen.
+                  </p>
+                  <p>
+                    Dadurch wird aus dem Login nicht einfach nur ein Zugang, sondern
+                    der Einstieg in dein operatives Lead-System. Genau das ist für
+                    den Livebetrieb wichtig: klare Struktur, schnelle Orientierung
+                    und direkte Handlungsoptionen.
+                  </p>
                 </div>
               </div>
 
@@ -129,8 +159,8 @@ export default function Page() {
                 </h2>
 
                 <p className="mt-3 text-sm leading-7 text-white/62 md:text-base">
-                  Melde dich an, um dein Dashboard, Leads und Credits zu
-                  verwalten.
+                  Melde dich an, um Leads, Credits und deine Aktivitäten zentral
+                  zu verwalten.
                 </p>
 
                 <div className="mt-6">
@@ -140,6 +170,23 @@ export default function Page() {
                 <div className="mt-6 rounded-2xl border border-white/10 bg-[#0b1328]/70 px-4 py-3 text-sm text-white/60">
                   <span className="font-medium text-white/80">Demo Zugang:</span>{" "}
                   demo@auftrago.local / demo1234
+                </div>
+
+                <div className="mt-6 rounded-[22px] border border-white/10 bg-[#081122]/80 p-4 sm:p-5">
+                  <div className="text-sm font-semibold text-white">
+                    Noch kein Konto?
+                  </div>
+                  <div className="mt-3 space-y-2 text-sm leading-7 text-white/62 sm:text-base sm:leading-8">
+                    <p>
+                      Wenn du als Anbieter neu auf Auftrago bist, kannst du dich
+                      in wenigen Minuten registrieren und dein Firmenkonto
+                      aufbauen.
+                    </p>
+                    <p>
+                      Danach kannst du Credits kaufen, Leads prüfen und gezielt
+                      auf passende Anfragen reagieren.
+                    </p>
+                  </div>
                 </div>
 
                 <p className="mt-5 text-center text-sm leading-7 text-white/55">

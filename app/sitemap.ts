@@ -1,18 +1,32 @@
-import type { MetadataRoute } from "next";
-import { services } from "@/lib/services";
+export default function sitemap() {
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const services = [
+    "reinigung",
+    "umzug",
+    "transport",
+    "hauswartung",
+    "entsorgung"
+  ]
 
-  const staticRoutes = ["", "/anfrage", "/danke", "/leistungen"].map((p) => ({
-    url: `${baseUrl}${p}`,
-    lastModified: new Date(),
-  }));
+  const cities = [
+    "zuerich",
+    "bern",
+    "basel",
+    "luzern",
+    "winterthur",
+    "stgallen"
+  ]
 
-  const serviceRoutes = services.map((s) => ({
-    url: `${baseUrl}/leistungen/${s.slug}`,
-    lastModified: new Date(),
-  }));
+  const urls = []
 
-  return [...staticRoutes, ...serviceRoutes];
+  for (const service of services) {
+    for (const city of cities) {
+      urls.push({
+        url: `https://auftrago.ch/${service}-${city}`,
+        lastModified: new Date()
+      })
+    }
+  }
+
+  return urls
 }

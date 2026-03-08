@@ -38,9 +38,18 @@ export default async function LeadsPage() {
         <h1 className="text-3xl font-semibold leading-tight sm:text-4xl">
           Leads
         </h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-white/60 sm:text-base sm:leading-7">
-          Kontakte freischalten, Credits gezielt einsetzen und interessante
-          Aufträge direkt übernehmen.
+
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-white/60 sm:text-base sm:leading-7">
+          Hier findest du aktive Kundenanfragen, die zu deinem Unternehmen
+          passen können. Du entscheidest selbst, welche Leads für dich
+          interessant sind und welche Kontakte du freischalten möchtest.
+        </p>
+
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-white/45 sm:text-base sm:leading-7">
+          Genau das ist der Kern von Auftrago: kein blindes Werbemodell, sondern
+          ein klarer Lead-Marktplatz. Du prüfst Anfragen zuerst, investierst nur
+          bei echtem Interesse und reagierst dann direkt auf konkrete
+          Auftragschancen.
         </p>
       </div>
 
@@ -65,20 +74,41 @@ export default async function LeadsPage() {
             {unlockedCount}
           </div>
           <div className="mt-1 text-sm text-white/55">
-            Bereits für dein Konto freigegeben
+            Bereits für dein Konto geöffnet
           </div>
         </div>
 
         <div className="rounded-[24px] border border-white/10 bg-black/20 p-4 sm:p-5">
           <div className="text-xs uppercase tracking-[0.16em] text-white/45">
-            Gesperrt
+            Noch gesperrt
           </div>
           <div className="mt-2 text-2xl font-semibold text-amber-200 sm:text-3xl">
             {lockedCount}
           </div>
           <div className="mt-1 text-sm text-white/55">
-            Noch nicht freigeschaltet
+            Noch nicht freigeschaltete Kontakte
           </div>
+        </div>
+      </div>
+
+      <div className="mt-6 rounded-[24px] border border-white/10 bg-[#081122]/85 p-5 sm:p-6">
+        <h2 className="text-xl font-semibold text-white sm:text-2xl">
+          So arbeitest du effizient mit Leads
+        </h2>
+
+        <div className="mt-4 space-y-3 text-sm leading-7 text-white/62 sm:text-base sm:leading-8">
+          <p>
+            Prüfe zuerst, ob Kategorie, Region und Beschreibung wirklich zu
+            deinem Angebot passen. Gute Leads erkennst du daran, dass der Bedarf
+            klar beschrieben ist und du fachlich sowie regional sauber liefern
+            kannst.
+          </p>
+          <p>
+            Freischaltungen solltest du gezielt einsetzen. Genau das macht das
+            Credits-Modell wertvoll: Du musst nicht auf gut Glück investieren,
+            sondern kannst jede Anfrage kurz bewerten und dann bewusst
+            entscheiden.
+          </p>
         </div>
       </div>
 
@@ -90,7 +120,9 @@ export default async function LeadsPage() {
             </div>
             <p className="mt-2 max-w-2xl text-sm leading-7 text-white/60 sm:text-base">
               Sobald neue Kundenanfragen eingehen, erscheinen sie hier in deiner
-              Übersicht.
+              Übersicht. Dann kannst du prüfen, welche Kontakte für dein
+              Unternehmen spannend sind und welche Leads du freischalten
+              möchtest.
             </p>
           </div>
         ) : (
@@ -163,36 +195,52 @@ export default async function LeadsPage() {
                           {lead.priceCredits} Credits
                         </span>
                         . Nach der Freischaltung siehst du Name, Telefon und
-                        E-Mail des Kunden.
+                        E-Mail des Kunden und kannst direkt Kontakt aufnehmen.
+                      </div>
+
+                      <div className="mt-2 text-sm leading-7 text-white/45">
+                        Tipp: Nutze Credits besonders gezielt bei Leads, die
+                        fachlich und regional gut zu deinem Unternehmen passen.
                       </div>
                     </div>
                   ) : (
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                      <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                        <div className="text-xs uppercase tracking-[0.12em] text-white/45">
-                          Name
+                    <div>
+                      <div className="mb-4 text-lg font-semibold text-white">
+                        Kontakt freigeschaltet
+                      </div>
+
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                          <div className="text-xs uppercase tracking-[0.12em] text-white/45">
+                            Name
+                          </div>
+                          <div className="mt-2 break-words text-sm font-medium text-white sm:text-base">
+                            {lead.contactName}
+                          </div>
                         </div>
-                        <div className="mt-2 break-words text-sm font-medium text-white sm:text-base">
-                          {lead.contactName}
+
+                        <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                          <div className="text-xs uppercase tracking-[0.12em] text-white/45">
+                            Telefon
+                          </div>
+                          <div className="mt-2 break-words text-sm font-medium text-white sm:text-base">
+                            {lead.contactPhone}
+                          </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-white/10 bg-black/20 p-4 sm:col-span-2 lg:col-span-1">
+                          <div className="text-xs uppercase tracking-[0.12em] text-white/45">
+                            E-Mail
+                          </div>
+                          <div className="mt-2 break-words text-sm font-medium text-white sm:text-base">
+                            {lead.contactEmail}
+                          </div>
                         </div>
                       </div>
 
-                      <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                        <div className="text-xs uppercase tracking-[0.12em] text-white/45">
-                          Telefon
-                        </div>
-                        <div className="mt-2 break-words text-sm font-medium text-white sm:text-base">
-                          {lead.contactPhone}
-                        </div>
-                      </div>
-
-                      <div className="rounded-2xl border border-white/10 bg-black/20 p-4 sm:col-span-2 lg:col-span-1">
-                        <div className="text-xs uppercase tracking-[0.12em] text-white/45">
-                          E-Mail
-                        </div>
-                        <div className="mt-2 break-words text-sm font-medium text-white sm:text-base">
-                          {lead.contactEmail}
-                        </div>
+                      <div className="mt-4 text-sm leading-7 text-white/45">
+                        Jetzt kannst du den Kunden direkt kontaktieren und dein
+                        Angebot abgeben oder offene Fragen klären.
                       </div>
                     </div>
                   )}
@@ -201,6 +249,27 @@ export default async function LeadsPage() {
             );
           })
         )}
+      </div>
+
+      <div className="mt-6 rounded-[24px] border border-white/10 bg-white/5 p-5 sm:p-6">
+        <h2 className="text-xl font-semibold text-white sm:text-2xl">
+          Warum diese Leads-Seite so wichtig ist
+        </h2>
+
+        <div className="mt-4 space-y-3 text-sm leading-7 text-white/62 sm:text-base sm:leading-8">
+          <p>
+            Die Leads-Seite ist der operative Kern für Anbieter. Genau hier
+            entscheidet sich, welche Anfragen interessant sind, welche Kontakte
+            freigeschaltet werden und wie effizient du mit deinem Budget
+            arbeitest.
+          </p>
+          <p>
+            Ein guter Lead-Bereich muss deshalb drei Dinge leisten: klare
+            Übersicht, schnelle Bewertung und direkte Handlungsoptionen. Genau
+            darauf ist diese Seite aufgebaut – damit Auftrago nicht nur gut
+            aussieht, sondern im Alltag wirklich funktioniert.
+          </p>
+        </div>
       </div>
     </AppShell>
   );
