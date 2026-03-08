@@ -1,32 +1,37 @@
-export default function sitemap() {
+import { MetadataRoute } from "next";
+import { getAllSeoSlugs } from "@/lib/seo-data";
 
-  const services = [
-    "reinigung",
-    "umzug",
-    "transport",
-    "hauswartung",
-    "entsorgung"
-  ]
+function getBaseUrl() {
+  return process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") || "https://auftrago.ch";
+}
 
-  const cities = [
-    "zuerich",
-    "bern",
-    "basel",
-    "luzern",
-    "winterthur",
-    "stgallen"
-  ]
+export default function sitemap(): MetadataRoute.Sitemap {
+  const baseUrl = getBaseUrl();
 
-  const urls = []
+  const staticPages = [
+    "",
+    "/anfrage",
+    "/partner",
+    "/register",
+    "/login",
+    "/preise",
+    "/credits",
+    "/leistungen",
+  ];
 
-  for (const service of services) {
-    for (const city of cities) {
-      urls.push({
-        url: `https://auftrago.ch/${service}-${city}`,
-        lastModified: new Date()
-      })
-    }
-  }
+  const staticEntries: MetadataRoute.Sitemap = staticPages.map((path) => ({
+    url: `${baseUrl}${path}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly",
+    priority: path === "" ? 1 : 0.8,
+  }));
 
-  return urls
+  const seoEntries: MetadataRoute.Sitemap = getAllSeoSlugs().map((slug) => ({
+    url: `${baseUrl}/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly",
+    priority: 0.85,
+  }));
+
+  return [...staticEntries, ...seoEntries];
 }
