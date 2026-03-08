@@ -34,7 +34,9 @@ export async function requireAdmin() {
 export async function isAdmin() {
   const user = await requireUser();
 
-  if (!user) return false;
+  if (!user) {
+    return false;
+  }
 
   const adminEmails = getAdminEmails();
   const userEmail = normalizeEmail(user.email ?? "");

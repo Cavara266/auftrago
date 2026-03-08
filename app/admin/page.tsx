@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/admin";
 import AppShell from "@/app/components/app-shell";
+import { requireAdmin } from "@/lib/admin";
+import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -25,8 +25,8 @@ export default async function AdminPage() {
           priceCredits: true,
           createdAt: true,
           contactName: true,
-          contactEmail: true,
           contactPhone: true,
+          contactEmail: true,
         },
       }),
     ]);
