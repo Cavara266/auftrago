@@ -2,7 +2,10 @@ import { MetadataRoute } from "next";
 import { getAllSeoSlugs } from "@/lib/seo-data";
 
 function getBaseUrl() {
-  return process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") || "https://auftrago.ch";
+  return (
+    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") ||
+    "https://auftrago.ch"
+  );
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -17,6 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/preise",
     "/credits",
     "/leistungen",
+    "/admin",
   ];
 
   const staticEntries: MetadataRoute.Sitemap = staticPages.map((path) => ({

@@ -16,7 +16,10 @@ type PageProps = {
 };
 
 function getBaseUrl() {
-  return process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") || "https://auftrago.ch";
+  return (
+    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") ||
+    "https://auftrago.ch"
+  );
 }
 
 function parseSlug(slug: string) {
@@ -125,9 +128,7 @@ export default function SeoLandingPage({ params }: PageProps) {
     ],
   };
 
-  const relatedCities = cities
-    .filter((item) => item.key !== city.key)
-    .slice(0, 6);
+  const relatedCities = cities.filter((item) => item.key !== city.key).slice(0, 6);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#030816] text-white">

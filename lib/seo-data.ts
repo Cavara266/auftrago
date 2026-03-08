@@ -17,8 +17,7 @@ export type CityKey =
   | "zug"
   | "thun"
   | "schaffhausen"
-  | "solothurn"
-  | "bietigheim";
+  | "solothurn";
 
 export type ServiceItem = {
   key: ServiceKey;
@@ -239,12 +238,6 @@ export const cities: CityItem[] = [
     name: "Solothurn",
     canton: "Solothurn",
     regionLabel: "Solothurn und Umgebung",
-  },
-  {
-    key: "bietigheim",
-    name: "Bietigheim",
-    canton: "Aargau",
-    regionLabel: "Bietigheim und Umgebung",
   },
 ];
 
