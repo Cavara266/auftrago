@@ -1,33 +1,52 @@
-export const providers = [
+export type Provider = {
+  id: string;
+  name: string;
+  city: string;
+  region: string;
+  categories: string[];
+  description: string;
+  rating: number;
+};
 
-{
-slug:"cleanpro-zuerich",
-name:"CleanPro Zürich",
-city:"Zürich",
-rating:4.9,
-reviews:124,
-description:"Professionelle Reinigungen für Wohnungen und Büros.",
-services:["Reinigung","Umzugsreinigung"]
-},
+export const providers: Provider[] = [
+  {
+    id: "demo-hauswartung-aargau",
+    name: "Auftrago Partnerbetrieb",
+    city: "Aargau",
+    region: "Aargau",
+    categories: ["Hauswartung", "Reinigung", "Gartenpflege"],
+    description:
+      "Regionaler Dienstleister für Hauswartung, Reinigung und Umgebungspflege.",
+    rating: 4.8,
+  },
+  {
+    id: "demo-reinigung-zuerich",
+    name: "Premium Reinigungsservice",
+    city: "Zürich",
+    region: "Zürich",
+    categories: ["Reinigung", "Büroreinigung", "Treppenhausreinigung"],
+    description:
+      "Spezialisiert auf regelmässige Reinigung für Privatkunden, Firmen und Verwaltungen.",
+    rating: 4.9,
+  },
+  {
+    id: "demo-umzug-schweiz",
+    name: "Schweiz Umzug & Transport",
+    city: "Baden",
+    region: "Aargau",
+    categories: ["Umzug", "Transport", "Entsorgung"],
+    description:
+      "Unterstützung für Umzug, Transport, Räumung und fachgerechte Entsorgung.",
+    rating: 4.7,
+  },
+];
 
-{
-slug:"top-umzuege-ag",
-name:"Top Umzüge AG",
-city:"Zürich",
-rating:4.8,
-reviews:98,
-description:"Professionelle Umzüge für Privat und Firmen.",
-services:["Umzug","Transport"]
-},
+export function getProvidersByService(service: string) {
+  const normalizedService = service.toLowerCase();
 
-{
-slug:"hauswartung-meier",
-name:"Hauswartung Meier",
-city:"Winterthur",
-rating:4.7,
-reviews:76,
-description:"Hauswartung und Liegenschaftsbetreuung.",
-services:["Hauswartung","Reinigung"]
+  return providers.filter((provider) =>
+    provider.categories.some((category) =>
+      category.toLowerCase().includes(normalizedService)
+    )
+  );
 }
-
-]

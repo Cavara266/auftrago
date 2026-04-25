@@ -1,31 +1,26 @@
-import Container from "./container"
-import ProviderCard from "./provider-card"
-import {providers} from "@/lib/providers"
+import Link from "next/link";
+import { getProvidersByService } from "@/lib/providers";
 
-export default function ProviderGrid(){
+export default function ProviderGrid({ service }: { service: string }) {
+  const providers = getProvidersByService(service);
 
-return(
+  return (
+    <div className="service-grid">
+      {providers.map((provider) => (
+        <article className="service-card" key={provider.id}>
+          <h3>{provider.name}</h3>
 
-<section className="py-20">
+          <p>
+            {provider.city} · Bewertung {provider.rating}
+          </p>
 
-<Container>
+          <p>{provider.description}</p>
 
-<h2 className="text-3xl font-bold text-white mb-10">
-Top Anbieter
-</h2>
-
-<div className="grid md:grid-cols-3 gap-6">
-
-{providers.map((p,i)=>(
-<ProviderCard key={i} provider={p}/>
-))}
-
-</div>
-
-</Container>
-
-</section>
-
-)
-
+          <Link href="/auftrag-erstellen" className="btn btn-secondary">
+            Offerte anfragen
+          </Link>
+        </article>
+      ))}
+    </div>
+  );
 }
