@@ -1,15 +1,24 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import SiteHeader from "@/components/site-header";
 
 export const metadata: Metadata = {
-  title: "Auftrago",
-  description: "Leads Portal",
+  title: "Auftrago – Premium Offertenplattform Schweiz",
+  description:
+    "Offerten für Reinigung, Hauswartung, Umzug, Gartenpflege und Entsorgung.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="de">
-      <body className="bg-app text-white">{children}</body>
+      <body>
+        <SiteHeader />
+        {children}
+      </body>
     </html>
   );
 }

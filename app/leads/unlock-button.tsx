@@ -2,19 +2,24 @@
 
 import { useState } from "react";
 
+type UnlockButtonProps = {
+  leadId: string;
+  priceCredits: number;
+  isUnlocked: boolean;
+};
+
 export default function UnlockButton({
   leadId,
   priceCredits,
   isUnlocked,
-}: {
-  leadId: string;
-  priceCredits: number;
-  isUnlocked: boolean;
-}) {
+}: UnlockButtonProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   async function onUnlock() {
+    if (loading || isUnlocked) return;
+
     setLoading(true);
     setError(null);
 
@@ -46,10 +51,11 @@ export default function UnlockButton({
 
   if (isUnlocked) {
     return (
-      <div className="w-full">
+      <div className="w-full min-w-0">
         <button
+          type="button"
           disabled
-          className="w-full rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-200 sm:px-5 sm:py-3"
+          className="w-full rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-5 py-3 text-sm font-semibold text-emerald-200"
         >
           Bereits freigeschaltet
         </button>
@@ -62,13 +68,21 @@ export default function UnlockButton({
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full min-w-0">
       <button
-        onClick={onUnlock}
+        type="button"
+        onClick={() => {
+          if (!loading) {
+            setError(null);
+            setShowConfirm(true);
+          }
+        }}
         disabled={loading}
-        className="w-full rounded-2xl bg-[#7EC8FF] px-4 py-3 text-sm font-semibold text-[#04101d] shadow-[0_14px_40px_rgba(126,200,255,0.18)] transition hover:bg-[#91d2ff] disabled:cursor-not-allowed disabled:opacity-60 sm:px-5 sm:py-3"
+        className="w-full rounded-2xl bg-[#7EC8FF] px-5 py-3 text-sm font-semibold text-[#04101d] shadow-[0_14px_40px_rgba(126,200,255,0.18)] transition hover:bg-[#91d2ff] disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {loading ? "Wird freigeschaltet..." : `Freischalten (${priceCredits} Credits)`}
+        {loading
+          ? "Wird freigeschaltet..."
+          : `Freischalten (${priceCredits} Credits)`}
       </button>
 
       <p className="mt-2 text-center text-xs leading-5 text-white/45">
@@ -78,6 +92,48 @@ export default function UnlockButton({
       {error ? (
         <div className="mt-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-300 sm:text-sm">
           {error}
+        </div>
+      ) : null}
+
+      {showConfirm ? (
+        <div className="mt-4 rounded-[24px] border border-white/10 bg-black/30 p-4 sm:p-5">
+          <div className="text-base font-semibold text-white sm:text-lg">
+            Lead wirklich freischalten?
+          </div>
+
+          <p className="mt-2 text-sm leading-7 text-white/65 sm:text-base">
+            Diese Freischaltung kostet{" "}
+            <span className="font-semibold text-white">
+              {priceCredits} Credits
+            </span>
+            . Danach wird der Kontakt dauerhaft für dein Konto geöffnet.
+          </p>
+
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={onUnlock}
+              disabled={loading}
+              className="w-full rounded-2xl bg-[#7EC8FF] px-5 py-3 text-sm font-semibold text-[#04101d] shadow-[0_14px_40px_rgba(126,200,255,0.18)] transition hover:bg-[#91d2ff] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading
+                ? "Wird freigeschaltet..."
+                : `Ja, ${priceCredits} Credits einsetzen`}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (!loading) {
+                  setShowConfirm(false);
+                }
+              }}
+              disabled={loading}
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Abbrechen
+            </button>
+          </div>
         </div>
       ) : null}
     </div>

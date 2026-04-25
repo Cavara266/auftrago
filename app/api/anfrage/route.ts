@@ -1,174 +1,120 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import nodemailer from "nodemailer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-type RateEntry = {
-  count: number;
-  firstRequestAt: number;
-};
-
-const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
-const RATE_LIMIT_MAX_REQUESTS = 3;
-
-const globalForRateLimit = globalThis as typeof globalThis & {
-  anfrageRateLimit?: Map<string, RateEntry>;
-};
-
-const rateLimitStore =
-  globalForRateLimit.anfrageRateLimit ?? new Map<string, RateEntry>();
-
-if (!globalForRateLimit.anfrageRateLimit) {
-  globalForRateLimit.anfrageRateLimit = rateLimitStore;
-}
-
-function getClientIp(req: Request) {
-  const forwardedFor = req.headers.get("x-forwarded-for");
-  if (forwardedFor) {
-    return forwardedFor.split(",")[0]?.trim() || "unknown";
-  }
-
-  const realIp = req.headers.get("x-real-ip");
-  if (realIp) {
-    return realIp.trim();
-  }
-
-  return "unknown";
-}
-
-function isRateLimited(ip: string) {
-  const now = Date.now();
-  const existing = rateLimitStore.get(ip);
-
-  if (!existing) {
-    rateLimitStore.set(ip, {
-      count: 1,
-      firstRequestAt: now,
-    });
-    return false;
-  }
-
-  if (now - existing.firstRequestAt > RATE_LIMIT_WINDOW_MS) {
-    rateLimitStore.set(ip, {
-      count: 1,
-      firstRequestAt: now,
-    });
-    return false;
-  }
-
-  existing.count += 1;
-  rateLimitStore.set(ip, existing);
-
-  return existing.count > RATE_LIMIT_MAX_REQUESTS;
-}
-
 export async function POST(req: Request) {
   try {
-    const body = await req.json().catch(() => null);
-
-    if (!body) {
-      return NextResponse.json(
-        { ok: false, error: "Ungültige Anfrage." },
-        { status: 400 }
-      );
-    }
-
-    const ip = getClientIp(req);
-
-    if (isRateLimited(ip)) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            "Zu viele Anfragen in kurzer Zeit. Bitte versuche es in einigen Minuten erneut.",
-        },
-        { status: 429 }
-      );
-    }
+    const body = await req.json();
 
     const name = String(body.name ?? "").trim();
     const phone = String(body.phone ?? "").trim();
     const email = String(body.email ?? "").trim().toLowerCase();
     const city = String(body.city ?? "").trim();
     const category = String(body.category ?? "").trim();
+    const objectType = String(body.objectType ?? "").trim();
+    const startDate = String(body.startDate ?? "").trim();
+    const frequency = String(body.frequency ?? "").trim();
     const description = String(body.description ?? "").trim();
+    const consent = Boolean(body.consent);
 
-    const website = String(body.website ?? "").trim();
-    const formStartedAt = Number(body.formStartedAt ?? 0);
-
-    if (website) {
-      return NextResponse.json({ ok: true });
-    }
-
-    const submittedTooFast =
-      Number.isFinite(formStartedAt) &&
-      formStartedAt > 0 &&
-      Date.now() - formStartedAt < 2500;
-
-    if (submittedTooFast) {
+    if (!name || !phone || !city || !category || !description || !consent) {
       return NextResponse.json(
-        { ok: false, error: "Anfrage konnte nicht verarbeitet werden." },
+        { ok: false, error: "Bitte alle Pflichtfelder ausfüllen." },
         { status: 400 }
       );
     }
 
-    if (!name || !phone || !email || !city || !category || !description) {
+    try {
+      await prisma.lead.create({
+        data: {
+          name,
+          phone,
+          email,
+          city,
+          category,
+          description: [
+            description,
+            "",
+            `Objekt: ${objectType || "-"}`,
+            `Start: ${startDate || "-"}`,
+            `Häufigkeit: ${frequency || "-"}`,
+          ].join("\n"),
+        },
+      });
+    } catch (dbError) {
+      console.error("DB ERROR:", dbError);
+    }
+
+    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
       return NextResponse.json(
-        { ok: false, error: "Bitte alle Felder ausfüllen." },
-        { status: 400 }
+        { ok: false, error: "Mailserver ist nicht konfiguriert." },
+        { status: 500 }
       );
     }
 
-    const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-    if (!emailIsValid) {
-      return NextResponse.json(
-        { ok: false, error: "Bitte eine gültige E-Mail eingeben." },
-        { status: 400 }
-      );
-    }
-
-    if (description.length < 10) {
-      return NextResponse.json(
-        { ok: false, error: "Bitte die Anfrage etwas genauer beschreiben." },
-        { status: 400 }
-      );
-    }
-
-    const title = `${category} in ${city}`;
-
-    const lead = await prisma.lead.create({
-      data: {
-        title,
-        category,
-        city,
-        description,
-        contactName: name,
-        contactPhone: phone,
-        contactEmail: email,
-        priceCredits: 4,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      },
-      select: {
-        id: true,
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT || 587),
+      secure: process.env.SMTP_SECURE === "true",
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
       },
     });
 
-    return NextResponse.json({
-      ok: true,
-      leadId: lead.id,
+    await transporter.sendMail({
+      from: process.env.MAIL_FROM || `"Auftrago" <${process.env.SMTP_USER}>`,
+      to: process.env.MAIL_TO || process.env.SMTP_USER,
+      replyTo: email || undefined,
+      subject: `Neue ${category}-Anfrage aus ${city}`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;padding:24px;background:#f6f8fb;color:#101827">
+          <div style="background:#07111f;color:white;padding:24px;border-radius:18px">
+            <h1 style="margin:0 0 8px;font-size:26px">Neue Anfrage</h1>
+            <p style="margin:0;color:#b8c7d9">Auftrago Lead Formular</p>
+          </div>
+
+          <div style="background:white;margin-top:18px;padding:24px;border-radius:18px">
+            <h2 style="margin-top:0">Kontaktdaten</h2>
+            <p><b>Name:</b> ${escapeHtml(name)}</p>
+            <p><b>Telefon:</b> ${escapeHtml(phone)}</p>
+            <p><b>E-Mail:</b> ${escapeHtml(email || "-")}</p>
+            <p><b>Ort / Region:</b> ${escapeHtml(city)}</p>
+          </div>
+
+          <div style="background:white;margin-top:18px;padding:24px;border-radius:18px">
+            <h2 style="margin-top:0">Auftrag</h2>
+            <p><b>Dienstleistung:</b> ${escapeHtml(category)}</p>
+            <p><b>Objekt:</b> ${escapeHtml(objectType || "-")}</p>
+            <p><b>Gewünschter Start:</b> ${escapeHtml(startDate || "-")}</p>
+            <p><b>Einsatzhäufigkeit:</b> ${escapeHtml(frequency || "-")}</p>
+            <p><b>Beschreibung:</b></p>
+            <p style="white-space:pre-line">${escapeHtml(description)}</p>
+          </div>
+        </div>
+      `,
     });
+
+    return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error("ANFRAGE ERROR:", error);
+    console.error("ANFRAGE API ERROR:", error);
 
     return NextResponse.json(
-      {
-        ok: false,
-        error: error instanceof Error ? error.message : "Serverfehler.",
-      },
+      { ok: false, error: "Anfrage konnte nicht gesendet werden." },
       { status: 500 }
     );
   }
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }

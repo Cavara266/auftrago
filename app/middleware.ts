@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-const SESSION_COOKIE_NAME = "session";
+export function middleware(request: NextRequest) {
+  const isPortalRoute = request.nextUrl.pathname.startsWith("/portal");
+  const session = request.cookies.get("auftrago_session")?.value;
 
-export function middleware(req: NextRequest) {
-  const session = req.cookies.get(SESSION_COOKIE_NAME)?.value;
-
-  if (!session) {
-    const loginUrl = new URL("/login", req.url);
+  if (isPortalRoute && !session) {
+    const loginUrl = new URL("/login", request.url);
     return NextResponse.redirect(loginUrl);
   }
 
@@ -14,5 +14,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/leads/:path*", "/credits/:path*"],
+  matcher: ["/portal/:path*"],
 };

@@ -3,69 +3,56 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-model User {
-  id           String        @id @default(cuid())
-  email        String        @unique
-  passwordHash String
-  companyName  String?
+model Provider {
+  id           String         @id @default(uuid())
+  email        String         @unique
+  password     String
+  companyName  String
+  contactName  String
   phone        String?
-  city         String?
-  credits      Int           @default(0)
-  createdAt    DateTime      @default(now())
+  region       String?
+  category     String?
+  credits      Int            @default(0)
 
-  unlocks      Unlock[]
-  transactions Transaction[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  purchases    LeadPurchase[]
 }
 
 model Lead {
-  id           String    @id @default(cuid())
+  id           String         @id @default(uuid())
   title        String
-  category     String
-  city         String
   description  String
 
-  contactName  String
-  contactPhone String
-  contactEmail String
+  name         String
+  email        String
+  phone        String
 
-  priceCredits Int       @default(5)
+  region       String
+  category     String
+  price        Int
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  purchases    LeadPurchase[]
+}
+
+model LeadPurchase {
+  id           String    @id @default(uuid())
+  providerId   String
+  leadId       String
+  price        Int
 
   createdAt    DateTime  @default(now())
-  expiresAt    DateTime?
 
-  unlocks      Unlock[]
-}
+  provider     Provider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  lead         Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
 
-model Unlock {
-  id        String   @id @default(cuid())
-  userId    String
-  leadId    String
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, leadId])
-  @@index([userId])
-  @@index([leadId])
-}
-
-model Transaction {
-  id              String   @id @default(cuid())
-  userId          String
-  type            String
-  amount          Int
-  stripeSessionId String?  @unique
-  meta            Json?
-  createdAt       DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([createdAt])
+  @@unique([providerId, leadId])
 }

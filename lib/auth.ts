@@ -1,55 +1,61 @@
+import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import { prisma } from "@/lib/db";
 
-const SESSION_COOKIE_NAME = "session";
+const COOKIE_NAME = "auftrago_session";
 
-export async function setSessionUser(userId: string) {
-  const cookieStore = await cookies();
+function getSecretKey() {
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) {
+    throw new Error("SESSION_SECRET fehlt in .env.local");
+  }
 
-  cookieStore.set(SESSION_COOKIE_NAME, userId, {
+  return new TextEncoder().encode(secret);
+}
+
+export type SessionUser = {
+  providerId: string;
+  email: string;
+  companyName: string;
+};
+
+export async function createSession(user: SessionUser) {
+  const token = await new SignJWT(user)
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("14d")
+    .sign(getSecretKey());
+
+  const cookieStore = cookies();
+
+  cookieStore.set(COOKIE_NAME, token, {
     httpOnly: true,
-    sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7,
-  });
-}
-
-export async function clearSessionUser() {
-  const cookieStore = await cookies();
-
-  cookieStore.set(SESSION_COOKIE_NAME, "", {
-    httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 0,
+    maxAge: 60 * 60 * 24 * 14,
   });
 }
 
-export async function getSessionUserId() {
-  const cookieStore = await cookies();
-  return cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
+export async function getSession(): Promise<SessionUser | null> {
+  const cookieStore = cookies();
+  const token = cookieStore.get(COOKIE_NAME)?.value;
+
+  if (!token) return null;
+
+  try {
+    const { payload } = await jwtVerify(token, getSecretKey());
+
+    return {
+      providerId: String(payload.providerId),
+      email: String(payload.email),
+      companyName: String(payload.companyName),
+    };
+  } catch {
+    return null;
+  }
 }
 
-export async function requireUser() {
-  const userId = await getSessionUserId();
-
-  if (!userId) return null;
-
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      email: true,
-      companyName: true,
-      phone: true,
-      city: true,
-      credits: true,
-    },
-  });
-
-  if (!user) return null;
-
-  return user;
+export async function clearSession() {
+  const cookieStore = cookies();
+  cookieStore.delete(COOKIE_NAME);
 }
