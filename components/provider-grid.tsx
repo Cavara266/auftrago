@@ -1,7 +1,13 @@
 import Link from "next/link";
 import { getProvidersByService } from "@/lib/providers";
 
-export default function ProviderGrid({ service }: { service: string }) {
+type ProviderGridProps = {
+  service?: string;
+};
+
+export default function ProviderGrid({
+  service = "Reinigung",
+}: ProviderGridProps) {
   const providers = getProvidersByService(service);
 
   return (
