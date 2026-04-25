@@ -30,7 +30,7 @@ export const providers: Provider[] = [
     rating: 4.9,
   },
   {
-    id: "demo-umzug-schweiz",
+    id: "demo-umzug-aargau",
     name: "Schweiz Umzug & Transport",
     city: "Baden",
     region: "Aargau",
