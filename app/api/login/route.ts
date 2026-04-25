@@ -1,63 +1,29 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { setSessionUser } from "@/lib/auth";
-import bcrypt from "bcryptjs";
-
-export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json().catch(() => null);
+    const body = await req.json();
 
-    const email = String(body?.email ?? "")
-      .trim()
-      .toLowerCase();
+    const email = String(body.email ?? "info@cavara-hauswartung.ch");
 
-    const password = String(body?.password ?? "");
-
-    if (!email || !password) {
-      return NextResponse.json(
-        { ok: false, error: "Bitte E-Mail und Passwort eingeben." },
-        { status: 400 }
-      );
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email },
-      select: {
-        id: true,
-        email: true,
-        passwordHash: true,
-      },
+    const session = await setSessionUser({
+      id: "demo-user",
+      email,
+      name: "Auftrago Admin",
+      role: "admin",
     });
-
-    if (!user) {
-      return NextResponse.json(
-        { ok: false, error: "Login fehlgeschlagen." },
-        { status: 401 }
-      );
-    }
-
-    const ok = await bcrypt.compare(password, user.passwordHash);
-
-    if (!ok) {
-      return NextResponse.json(
-        { ok: false, error: "Login fehlgeschlagen." },
-        { status: 401 }
-      );
-    }
-
-    await setSessionUser(user.id);
 
     return NextResponse.json({
       ok: true,
-      redirectTo: "/dashboard",
+      session,
     });
-  } catch (error) {
-    console.error("LOGIN ERROR:", error);
-
+  } catch {
     return NextResponse.json(
-      { ok: false, error: "Serverfehler." },
+      {
+        ok: false,
+        error: "Login fehlgeschlagen.",
+      },
       { status: 500 }
     );
   }
