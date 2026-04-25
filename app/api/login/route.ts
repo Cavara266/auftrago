@@ -12,18 +12,18 @@ export async function POST(req: Request) {
       email,
       name: "Auftrago Admin",
       role: "admin",
+      credits: 999, // ✅ DAS HAT GEFEHLT
     });
 
     return NextResponse.json({
       ok: true,
       session,
     });
-  } catch {
+  } catch (error) {
+    console.error("LOGIN ERROR:", error);
+
     return NextResponse.json(
-      {
-        ok: false,
-        error: "Login fehlgeschlagen.",
-      },
+      { ok: false, error: "Login fehlgeschlagen" },
       { status: 500 }
     );
   }

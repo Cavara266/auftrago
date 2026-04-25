@@ -8,6 +8,7 @@ export async function loginAction() {
     email: "info@cavara-hauswartung.ch",
     name: "Auftrago Admin",
     role: "admin",
+    credits: 999, // ✅ WICHTIG
   });
 
   return {

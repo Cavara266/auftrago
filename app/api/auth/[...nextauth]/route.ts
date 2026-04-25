@@ -1,56 +1,15 @@
-import NextAuth from "next-auth"
-import CredentialsProvider from "next-auth/providers/credentials"
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import { prisma } from "@/lib/prisma"
-import bcrypt from "bcryptjs"
+import { NextResponse } from "next/server";
 
-const handler = NextAuth({
-  adapter: PrismaAdapter(prisma),
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    message: "Auth disabled for launch",
+  });
+}
 
-  providers: [
-    CredentialsProvider({
-      name: "credentials",
-
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Passwort", type: "password" },
-      },
-
-      async authorize(credentials) {
-
-        if (!credentials?.email || !credentials?.password) {
-          return null
-        }
-
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
-        })
-
-        if (!user || !user.password) {
-          return null
-        }
-
-        const valid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        )
-
-        if (!valid) {
-          return null
-        }
-
-        return user
-      }
-    })
-  ],
-
-  session: {
-    strategy: "jwt"
-  },
-
-  pages: {
-    signIn: "/login"
-  }
-})
-
-export { handler as GET, handler as POST }
+export async function POST() {
+  return NextResponse.json({
+    ok: true,
+    message: "Auth disabled for launch",
+  });
+}

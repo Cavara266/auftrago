@@ -3,6 +3,7 @@ export type AuthUser = {
   email: string;
   name?: string | null;
   role: "admin" | "provider" | "user";
+  credits: number;
 };
 
 export type Session = {
@@ -14,6 +15,7 @@ const demoUser: AuthUser = {
   email: "info@cavara-hauswartung.ch",
   name: "Auftrago Admin",
   role: "admin",
+  credits: 999,
 };
 
 export async function requireUser(): Promise<AuthUser> {
@@ -32,7 +34,10 @@ export async function getSession(): Promise<Session | null> {
 
 export async function createSession(user: AuthUser): Promise<Session> {
   return {
-    user,
+    user: {
+      ...user,
+      credits: user.credits ?? 999,
+    },
   };
 }
 
@@ -40,8 +45,15 @@ export async function clearSession(): Promise<void> {
   return;
 }
 
+export async function clearSessionUser(): Promise<void> {
+  return;
+}
+
 export async function setSessionUser(user: AuthUser): Promise<Session> {
   return {
-    user,
+    user: {
+      ...user,
+      credits: user.credits ?? 999,
+    },
   };
 }

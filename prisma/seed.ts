@@ -1,46 +1,50 @@
-import { PrismaClient } from "@prisma/client"
-
-const prisma = new PrismaClient()
+import { prisma } from "../lib/db";
 
 async function main() {
-
   await prisma.provider.createMany({
     data: [
-
       {
-        name: "CleanPro Zürich",
-        slug: "cleanpro-zuerich",
-        city: "Zürich",
-        description: "Professionelle Reinigungen für Wohnungen und Büros."
+        companyName: "CleanPro Zürich",
+        contactName: "CleanPro Team",
+        email: "cleanpro@example.ch",
+        phone: "+41 44 000 00 00",
+        website: "https://cleanpro-zuerich.ch",
+        region: "Zürich",
+        services: "Reinigung, Büroreinigung, Umzugsreinigung",
+        status: "active",
       },
-
       {
-        name: "Top Umzüge AG",
-        slug: "top-umzuege-ag",
-        city: "Zürich",
-        description: "Professionelle Umzüge für Privatpersonen und Firmen."
+        companyName: "Hauswartung Aargau",
+        contactName: "Aargau Team",
+        email: "aargau@example.ch",
+        phone: "+41 62 000 00 00",
+        website: "https://hauswartung-aargau.ch",
+        region: "Aargau",
+        services: "Hauswartung, Treppenhausreinigung, Gartenpflege",
+        status: "active",
       },
-
       {
-        name: "Hauswartung Meier",
-        slug: "hauswartung-meier",
-        city: "Winterthur",
-        description: "Hauswartung und Liegenschaftsbetreuung."
-      }
+        companyName: "Umzug Express Schweiz",
+        contactName: "Express Team",
+        email: "umzug@example.ch",
+        phone: "+41 79 000 00 00",
+        website: "https://umzug-express.ch",
+        region: "Schweiz",
+        services: "Umzug, Transport, Entsorgung",
+        status: "active",
+      },
+    ] as any,
+    skipDuplicates: true,
+  });
 
-    ],
-
-    skipDuplicates: true
-  })
-
-  console.log("Seed completed")
-
+  console.log("Seed abgeschlossen.");
 }
 
 main()
-  .catch((e) => {
-    console.error(e)
+  .catch((error) => {
+    console.error("Seed Fehler:", error);
+    process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect()
-  })
+    await prisma.$disconnect();
+  });
