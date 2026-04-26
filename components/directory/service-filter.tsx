@@ -1,76 +1,36 @@
-"use client"
-
-import Link from "next/link"
-import { getTopCities, getTopServices } from "@/lib/seo-data"
+import Link from "next/link";
+import { services, cities } from "@/lib/seo-data";
 
 export default function ServiceFilter() {
+  return (
+    <div className="p-6 text-white">
+      <h2 className="text-xl font-bold mb-4">Services</h2>
 
-const topCities = getTopCities(8)
-const topServices = getTopServices(6)
+      <div className="flex flex-wrap gap-3 mb-6">
+        {services.map((service) => (
+          <Link
+            key={service}
+            href={`/${service}-${cities[0]}`}
+            className="bg-gray-800 px-3 py-2 rounded-lg hover:bg-gray-700"
+          >
+            {service}
+          </Link>
+        ))}
+      </div>
 
-return (
+      <h2 className="text-xl font-bold mb-4">Städte</h2>
 
-<div className="space-y-10">
-
-{/* SERVICES */}
-
-<div>
-
-<h3 className="text-sm text-white/50 mb-4 uppercase tracking-wider">
-Beliebte Dienstleistungen
-</h3>
-
-<div className="flex flex-wrap gap-3">
-
-{topServices.map(service => (
-
-<Link
-key={service.slug}
-href={`/leistungen/${service.slug}`}
-className="pill"
->
-
-{service.name}
-
-</Link>
-
-))}
-
-</div>
-
-</div>
-
-
-{/* CITIES */}
-
-<div>
-
-<h3 className="text-sm text-white/50 mb-4 uppercase tracking-wider">
-Beliebte Standorte
-</h3>
-
-<div className="grid grid-cols-2 gap-2">
-
-{topCities.map(city => (
-
-<Link
-key={city.slug}
-href={`/standorte/${city.slug}`}
-className="pill text-center"
->
-
-{city.name}
-
-</Link>
-
-))}
-
-</div>
-
-</div>
-
-</div>
-
-)
-
+      <div className="flex flex-wrap gap-3">
+        {cities.map((city) => (
+          <Link
+            key={city}
+            href={`/${services[0]}-${city}`}
+            className="bg-gray-800 px-3 py-2 rounded-lg hover:bg-gray-700"
+          >
+            {city}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
 }

@@ -1,73 +1,37 @@
-import Link from "next/link"
-import { getTopCities, getTopServices } from "../../lib/seo-data"
+import Link from "next/link";
+import { cities, services } from "@/lib/seo-data";
 
 type Props = {
-  title?: string
-  mode?: "mixed" | "city" | "service"
-  limit?: number
-}
+  title?: string;
+};
 
-export default function SeoClusterLinks({
-  title = "Beliebte Kombinationen",
-  mode = "mixed",
-  limit = 12,
-}: Props) {
-
-  const cities = getTopCities(limit)
-  const services = getTopServices(limit)
-
-  const links: { name: string; href: string }[] = []
-
-  if (mode === "mixed") {
-    cities.slice(0, 6).forEach((city) => {
-      services.slice(0, 2).forEach((service) => {
-        links.push({
-          name: `${service.name} ${city.name}`,
-          href: `/leistungen/${service.slug}/${city.slug}`,
-        })
-      })
-    })
-  }
-
-  if (mode === "city") {
-    cities.forEach((city) => {
-      links.push({
-        name: city.name,
-        href: `/standorte/${city.slug}`,
-      })
-    })
-  }
-
-  if (mode === "service") {
-    services.forEach((service) => {
-      links.push({
-        name: service.name,
-        href: `/leistungen/${service.slug}`,
-      })
-    })
-  }
-
+export default function SeoClusterLinks({ title }: Props) {
   return (
-    <section className="mt-16">
+    <section className="py-16 px-6 text-white border-t border-gray-800">
+      <div className="max-w-6xl mx-auto">
 
-      <h3 className="mb-6 text-xl font-semibold text-white">
-        {title}
-      </h3>
+        <h2 className="text-2xl font-bold mb-6 text-center">
+          {title || "Beliebte Kombinationen"}
+        </h2>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid md:grid-cols-3 gap-4">
 
-        {links.slice(0, limit).map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className="card px-4 py-3 text-sm text-white/80 hover:bg-white/10"
-          >
-            {link.name}
-          </Link>
-        ))}
+          {services.slice(0, 6).map((service) =>
+            cities.slice(0, 6).map((city) => (
+              <Link
+                key={`${service}-${city}`}
+                href={`/${service}-${city}`}
+                className="block bg-gray-900 p-4 rounded-xl border border-gray-800 hover:border-gray-600 transition"
+              >
+                <span className="capitalize">
+                  {service.replace("-", " ")} in {city}
+                </span>
+              </Link>
+            ))
+          )}
 
+        </div>
       </div>
-
     </section>
-  )
+  );
 }
