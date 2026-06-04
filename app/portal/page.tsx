@@ -1,7 +1,7 @@
 const stats = [
   { value: "12", label: "Neue Leads heute" },
   { value: "38", label: "Leads diese Woche" },
-  { value: "CHF 240", label: "Verfügbares Guthaben" },
+  { value: "CHF 240", label: "Guthaben" },
   { value: "21%", label: "Abschlussquote" },
 ];
 
@@ -32,19 +32,19 @@ const recentLeads = [
 const quickActions = [
   {
     title: "Neue Leads ansehen",
-    text: "Öffne direkt die Lead-Liste und filtere nach Region oder Kategorie.",
+    text: "Öffne die Lead-Liste und finde passende Aufträge in deiner Region.",
     href: "/portal/leads",
     cta: "Zu den Leads",
   },
   {
     title: "Guthaben aufladen",
-    text: "Lade Credits auf, damit du neue Leads ohne Unterbruch kaufen kannst.",
+    text: "Lade Credits auf und schalte interessante Kontakte frei.",
     href: "/portal/guthaben",
     cta: "Guthaben verwalten",
   },
   {
     title: "Firmenprofil bearbeiten",
-    text: "Halte Regionen, Dienstleistungen und Firmendaten immer aktuell.",
+    text: "Aktualisiere Regionen, Kategorien und Firmendaten.",
     href: "/portal/profil",
     cta: "Profil öffnen",
   },
@@ -53,42 +53,32 @@ const quickActions = [
 export default function PortalDashboardPage() {
   return (
     <main className="page">
-      <section className="hero" style={{ paddingBottom: "18px" }}>
-        <div className="container">
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "12px",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              marginBottom: "28px",
-            }}
-          >
+      <section className="portal-hero">
+        <div className="container portal-shell">
+          <div className="portal-hero-top">
             <div>
-              <span className="kicker">Firmen-Portal</span>
-              <h1 style={{ maxWidth: "14ch" }}>
-                Leads. Guthaben. Übersicht.
-              </h1>
-              <p className="lead" style={{ maxWidth: "74ch" }}>
-                Willkommen im Anbieter-Portal. Hier verwaltest du neue Anfragen,
-                Käufe, Credits und dein Firmenprofil an einem Ort.
+              <span className="eyebrow">Firmen-Portal</span>
+              <h1>Dein Anbieter-Dashboard.</h1>
+              <p>
+                Verwalte Leads, Guthaben und dein Firmenprofil an einem Ort.
+                Alles übersichtlich, schnell und für den täglichen Einsatz
+                optimiert.
               </p>
             </div>
 
-            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+            <div className="portal-actions">
               <a href="/portal/leads" className="btn btn-primary">
                 Neue Leads
               </a>
-              <a href="/registrieren" className="btn btn-secondary">
-                Neue Firma registrieren
+              <a href="/portal/profil" className="btn btn-secondary">
+                Profil bearbeiten
               </a>
             </div>
           </div>
 
-          <div className="stats-grid">
+          <div className="portal-stats">
             {stats.map((item) => (
-              <div key={item.label} className="stat-card">
+              <div key={item.label} className="portal-stat-card">
                 <strong>{item.value}</strong>
                 <span>{item.label}</span>
               </div>
@@ -97,137 +87,363 @@ export default function PortalDashboardPage() {
         </div>
       </section>
 
-      <section className="section">
-        <div className="container">
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1.2fr 0.8fr",
-              gap: "22px",
-            }}
-            className="portal-grid-main"
-          >
-            <div className="panel pad-lg">
-              <div className="section-head" style={{ marginBottom: "20px" }}>
-                <span className="section-kicker">Lead-Überblick</span>
-                <h2>Neu eingegangene Leads</h2>
-                <p>
-                  Die wichtigsten neuen Anfragen direkt auf einen Blick. Öffne die
-                  Lead-Liste für alle Details.
-                </p>
-              </div>
+      <section className="portal-section">
+        <div className="container portal-layout">
+          <div className="portal-main-card">
+            <div className="portal-card-head">
+              <span>Lead-Überblick</span>
+              <h2>Neue passende Leads</h2>
+              <p>
+                Die neuesten Anfragen aus passenden Regionen und Kategorien.
+              </p>
+            </div>
 
-              <div className="providers">
-                {recentLeads.map((lead) => (
-                  <div key={lead.title} className="panel provider-card" style={{ padding: "22px" }}>
-                    <div className="provider-top">
-                      <span className="badge white">{lead.status}</span>
-                      <span className="badge soft">{lead.category}</span>
-                      <span className="badge soft">{lead.region}</span>
+            <div className="portal-lead-list">
+              {recentLeads.map((lead) => (
+                <article key={lead.title} className="portal-lead-card">
+                  <div className="portal-lead-info">
+                    <div className="portal-badges">
+                      <span>{lead.status}</span>
+                      <span>{lead.category}</span>
+                      <span>{lead.region}</span>
                     </div>
 
-                    <div
-                      style={{
-                        marginTop: "16px",
-                        display: "grid",
-                        gridTemplateColumns: "1fr auto",
-                        gap: "16px",
-                        alignItems: "center",
-                      }}
-                    >
-                      <div>
-                        <h3 style={{ fontSize: "1.45rem" }}>{lead.title}</h3>
-                        <p>Passender regionaler Lead mit vollständigen Basisdaten.</p>
-                      </div>
-
-                      <div
-                        style={{
-                          minWidth: "130px",
-                          textAlign: "right",
-                        }}
-                      >
-                        <div style={{ color: "rgba(245,248,255,0.56)", fontSize: "0.9rem" }}>
-                          Leadpreis
-                        </div>
-                        <div
-                          style={{
-                            marginTop: "6px",
-                            fontSize: "1.6rem",
-                            fontWeight: 800,
-                            letterSpacing: "-0.03em",
-                          }}
-                        >
-                          {lead.price}
-                        </div>
-                      </div>
-                    </div>
+                    <h3>{lead.title}</h3>
+                    <p>Regionaler Lead mit vollständigen Basisdaten.</p>
                   </div>
+
+                  <div className="portal-price">
+                    <span>Leadpreis</span>
+                    <strong>{lead.price}</strong>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <a href="/portal/leads" className="btn btn-primary portal-full-btn">
+              Alle Leads öffnen
+            </a>
+          </div>
+
+          <aside className="portal-sidebar">
+            <div className="portal-side-card">
+              <span className="portal-side-kicker">Schnellzugriff</span>
+              <h2>Aktionen</h2>
+
+              <div className="portal-action-list">
+                {quickActions.map((item) => (
+                  <a key={item.title} href={item.href} className="portal-action-card">
+                    <div>
+                      <h3>{item.title}</h3>
+                      <p>{item.text}</p>
+                    </div>
+                    <span>{item.cta}</span>
+                  </a>
                 ))}
               </div>
-
-              <div style={{ marginTop: "18px" }}>
-                <a href="/portal/leads" className="btn btn-primary">
-                  Alle Leads öffnen
-                </a>
-              </div>
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gap: "22px",
-              }}
-            >
-              <div className="panel pad-lg">
-                <div className="section-head" style={{ marginBottom: "18px" }}>
-                  <span className="section-kicker">Navigation</span>
-                  <h2 style={{ fontSize: "2rem" }}>Schnellzugriff</h2>
-                </div>
+            <div className="portal-side-card">
+              <span className="portal-side-kicker">Konto</span>
+              <h2>Firmenstatus</h2>
 
-                <div className="benefits" style={{ marginTop: 0 }}>
-                  {quickActions.map((item) => (
-                    <div key={item.title} className="panel benefit-card" style={{ padding: "20px" }}>
-                      <h3 style={{ fontSize: "1.3rem" }}>{item.title}</h3>
-                      <p>{item.text}</p>
-                      <div style={{ marginTop: "14px" }}>
-                        <a href={item.href} className="btn btn-secondary">
-                          {item.cta}
-                        </a>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <div className="portal-tags">
+                <span>Profil aktiv</span>
+                <span>Zahlung bereit</span>
+                <span>Region Zürich</span>
+                <span>Reinigung</span>
               </div>
 
-              <div className="panel pad-lg">
-                <div className="section-head" style={{ marginBottom: "12px" }}>
-                  <span className="section-kicker">Konto</span>
-                  <h2 style={{ fontSize: "2rem" }}>Firmenstatus</h2>
-                </div>
-
-                <div className="tag-list" style={{ marginTop: "8px" }}>
-                  <span className="tag">Profil aktiv</span>
-                  <span className="tag">Zahlung freigegeben</span>
-                  <span className="tag">Region Zürich</span>
-                  <span className="tag">Reinigung / Umzug</span>
-                </div>
-
-                <p style={{ marginTop: "18px", color: "rgba(245,248,255,0.76)", lineHeight: 1.8 }}>
-                  Dein Profil ist aktiv. Du kannst neue Leads kaufen, deine
-                  Kategorien bearbeiten und weitere Regionen hinzufügen.
-                </p>
-              </div>
+              <p>
+                Dein Profil ist aktiv. Du kannst Leads prüfen, Kontakte
+                freischalten und dein Guthaben verwalten.
+              </p>
             </div>
-          </div>
+          </aside>
         </div>
       </section>
 
-      <div className="footer-space" />
-
       <style>{`
+        .portal-hero {
+          padding: 72px 0 28px;
+        }
+
+        .portal-shell {
+          display: grid;
+          gap: 32px;
+        }
+
+        .portal-hero-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          gap: 24px;
+        }
+
+        .portal-hero-top h1 {
+          max-width: 760px;
+          margin-top: 16px;
+          font-size: clamp(3.2rem, 8vw, 7rem);
+          line-height: 0.92;
+          letter-spacing: -0.07em;
+          color: white;
+        }
+
+        .portal-hero-top p {
+          max-width: 720px;
+          margin-top: 22px;
+          color: rgba(245, 248, 255, 0.68);
+          font-size: 1.2rem;
+          line-height: 1.65;
+        }
+
+        .portal-actions {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+
+        .portal-stats {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 14px;
+        }
+
+        .portal-stat-card,
+        .portal-main-card,
+        .portal-side-card,
+        .portal-lead-card,
+        .portal-action-card {
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background:
+            linear-gradient(135deg, rgba(45, 88, 125, 0.22), rgba(15, 18, 35, 0.92)),
+            rgba(255, 255, 255, 0.04);
+          box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+        }
+
+        .portal-stat-card {
+          border-radius: 24px;
+          padding: 24px;
+          min-height: 120px;
+        }
+
+        .portal-stat-card strong {
+          display: block;
+          font-size: 2rem;
+          line-height: 1;
+          color: white;
+          letter-spacing: -0.04em;
+        }
+
+        .portal-stat-card span {
+          display: block;
+          margin-top: 12px;
+          color: rgba(245, 248, 255, 0.62);
+          font-weight: 700;
+        }
+
+        .portal-section {
+          padding: 34px 0 90px;
+        }
+
+        .portal-layout {
+          display: grid;
+          grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.65fr);
+          gap: 24px;
+          align-items: start;
+        }
+
+        .portal-main-card,
+        .portal-side-card {
+          border-radius: 34px;
+          padding: 30px;
+        }
+
+        .portal-card-head span,
+        .portal-side-kicker {
+          color: rgba(245, 248, 255, 0.58);
+          font-weight: 800;
+        }
+
+        .portal-card-head h2,
+        .portal-side-card h2 {
+          margin-top: 10px;
+          color: white;
+          font-size: clamp(2.1rem, 4vw, 4.2rem);
+          line-height: 0.98;
+          letter-spacing: -0.06em;
+        }
+
+        .portal-card-head p {
+          margin-top: 14px;
+          color: rgba(245, 248, 255, 0.62);
+          font-size: 1.05rem;
+          line-height: 1.6;
+        }
+
+        .portal-lead-list {
+          display: grid;
+          gap: 14px;
+          margin-top: 24px;
+        }
+
+        .portal-lead-card {
+          border-radius: 26px;
+          padding: 22px;
+          display: grid;
+          grid-template-columns: 1fr auto;
+          gap: 18px;
+          align-items: center;
+        }
+
+        .portal-badges {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          margin-bottom: 14px;
+        }
+
+        .portal-badges span,
+        .portal-tags span {
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: rgba(255, 255, 255, 0.08);
+          color: rgba(245, 248, 255, 0.86);
+          border-radius: 999px;
+          padding: 7px 11px;
+          font-size: 0.82rem;
+          font-weight: 800;
+        }
+
+        .portal-lead-card h3 {
+          color: white;
+          font-size: 1.5rem;
+          letter-spacing: -0.04em;
+        }
+
+        .portal-lead-card p {
+          margin-top: 8px;
+          color: rgba(245, 248, 255, 0.58);
+          line-height: 1.5;
+        }
+
+        .portal-price {
+          text-align: right;
+          min-width: 120px;
+        }
+
+        .portal-price span {
+          color: rgba(245, 248, 255, 0.48);
+          font-weight: 700;
+        }
+
+        .portal-price strong {
+          display: block;
+          margin-top: 6px;
+          color: white;
+          font-size: 2rem;
+          letter-spacing: -0.05em;
+        }
+
+        .portal-full-btn {
+          margin-top: 22px;
+        }
+
+        .portal-sidebar {
+          display: grid;
+          gap: 24px;
+        }
+
+        .portal-side-card h2 {
+          font-size: 2.4rem;
+        }
+
+        .portal-action-list {
+          display: grid;
+          gap: 12px;
+          margin-top: 22px;
+        }
+
+        .portal-action-card {
+          display: grid;
+          gap: 16px;
+          border-radius: 24px;
+          padding: 22px;
+          text-decoration: none;
+          transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .portal-action-card:hover {
+          transform: translateY(-2px);
+          border-color: rgba(91, 144, 255, 0.55);
+        }
+
+        .portal-action-card h3 {
+          color: white;
+          font-size: 1.25rem;
+          letter-spacing: -0.03em;
+        }
+
+        .portal-action-card p {
+          margin-top: 8px;
+          color: rgba(245, 248, 255, 0.58);
+          line-height: 1.5;
+        }
+
+        .portal-action-card > span {
+          width: fit-content;
+          border-radius: 999px;
+          padding: 11px 14px;
+          background: rgba(255, 255, 255, 0.1);
+          color: white;
+          font-weight: 900;
+        }
+
+        .portal-tags {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          margin-top: 18px;
+        }
+
+        .portal-side-card > p {
+          margin-top: 18px;
+          color: rgba(245, 248, 255, 0.66);
+          line-height: 1.7;
+        }
+
         @media (max-width: 1100px) {
-          .portal-grid-main {
-            grid-template-columns: 1fr !important;
+          .portal-hero-top {
+            align-items: flex-start;
+            flex-direction: column;
+          }
+
+          .portal-stats,
+          .portal-layout {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .portal-hero {
+            padding-top: 44px;
+          }
+
+          .portal-stats {
+            grid-template-columns: 1fr 1fr;
+          }
+
+          .portal-main-card,
+          .portal-side-card {
+            padding: 22px;
+            border-radius: 26px;
+          }
+
+          .portal-lead-card {
+            grid-template-columns: 1fr;
+          }
+
+          .portal-price {
+            text-align: left;
           }
         }
       `}</style>
