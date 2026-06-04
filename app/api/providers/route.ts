@@ -5,17 +5,39 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const provider = await prisma.provider.create({
-      data: {
-        companyName: String(body.companyName ?? body.name ?? "").trim(),
-        contactName: String(body.contactName ?? body.name ?? "").trim(),
-        email: String(body.email ?? "").trim().toLowerCase(),
-        phone: String(body.phone ?? "").trim(),
-        website: String(body.website ?? "").trim(),
-        region: String(body.region ?? body.city ?? "").trim(),
-        services: String(body.services ?? body.description ?? "").trim(),
-        status: "pending",
-      } as any,
+    const companyName = String(body.companyName ?? body.company ?? "").trim();
+    const contactName = String(body.contactName ?? body.contact ?? "").trim();
+    const email = String(body.email ?? "").trim().toLowerCase();
+    const phone = String(body.phone ?? body.telefon ?? "").trim();
+    const region = String(body.region ?? body.ort ?? "").trim();
+    const category = String(body.services ?? body.leistungen ?? body.category ?? "").trim();
+
+    if (!companyName || !contactName || !email || !region || !category) {
+      return NextResponse.json(
+        { ok: false, error: "Bitte alle Pflichtfelder ausfüllen." },
+        { status: 400 }
+      );
+    }
+
+    const provider = await prisma.provider.upsert({
+      where: { email },
+      update: {
+        companyName,
+        contactName,
+        phone,
+        region,
+        category,
+      },
+      create: {
+        email,
+        password: "pending",
+        companyName,
+        contactName,
+        phone,
+        region,
+        category,
+        credits: 0,
+      },
     });
 
     return NextResponse.json({
