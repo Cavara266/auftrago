@@ -9,7 +9,8 @@ type PageProps = {
 };
 
 const DEMO_PROVIDER_EMAIL =
-  process.env.DEMO_PROVIDER_EMAIL?.trim().toLowerCase() || "firma@test.ch";
+  process.env.DEMO_PROVIDER_EMAIL?.trim().toLowerCase() ||
+  "info@cavara-hauswartung.ch";
 
 function getErrorMessage(error?: string) {
   switch (error) {
@@ -61,14 +62,20 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
     },
   });
 
-  const purchasedLeadIds = new Set(provider?.purchases.map((p) => p.leadId) || []);
+  const purchasedLeadIds = new Set(
+    provider?.purchases.map((purchase) => purchase.leadId) || []
+  );
 
   return (
     <main className="page">
       <section className="hero" style={{ paddingBottom: "10px" }}>
         <div className="container">
-          <span className="kicker">Lead-Marketplace</span>
-          <h1 style={{ maxWidth: "12ch" }}>Neue Leads einkaufen.</h1>
+          <span className="eyebrow">Lead-Marketplace</span>
+
+          <h1 style={{ maxWidth: "12ch" }}>
+            Neue Leads einkaufen.
+          </h1>
+
           <p className="lead" style={{ maxWidth: "70ch" }}>
             Hier sehen Anbieter neue Anfragen, prüfen Preis und Relevanz und
             schalten nach dem Kauf die vollständigen Kontaktdaten frei.
@@ -78,6 +85,7 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
             <a href="/portal" className="btn btn-secondary">
               Zum Dashboard
             </a>
+
             <a href="/portal/guthaben" className="btn btn-primary">
               Guthaben aufladen
             </a>
@@ -88,21 +96,24 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
               <strong>{provider?.credits ?? 0}</strong>
               <span>Verfügbare Credits</span>
             </div>
+
             <div className="stat-card">
               <strong>{leads.length}</strong>
               <span>Aktive Leads</span>
             </div>
+
             <div className="stat-card">
               <strong>{purchasedLeadIds.size}</strong>
               <span>Bereits gekauft</span>
             </div>
+
             <div className="stat-card">
               <strong>{provider?.region || "—"}</strong>
               <span>Aktive Hauptregion</span>
             </div>
           </div>
 
-          {errorMessage ? (
+          {errorMessage && (
             <div
               style={{
                 marginTop: "18px",
@@ -115,9 +126,9 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
             >
               {errorMessage}
             </div>
-          ) : null}
+          )}
 
-          {infoMessage ? (
+          {infoMessage && (
             <div
               style={{
                 marginTop: "18px",
@@ -130,17 +141,14 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
             >
               {infoMessage}
             </div>
-          ) : null}
+          )}
         </div>
       </section>
 
       <section className="section">
         <div className="container">
-          {provider ? null : (
-            <div
-              className="panel pad-lg"
-              style={{ marginBottom: "22px" }}
-            >
+          {!provider && (
+            <div className="panel pad-lg" style={{ marginBottom: "22px" }}>
               <div className="section-head" style={{ marginBottom: 0 }}>
                 <span className="section-kicker">Wichtig</span>
                 <h2>Anbieter-Profil fehlt</h2>
@@ -153,12 +161,12 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
           )}
 
           <div
+            className="leads-layout-live"
             style={{
               display: "grid",
               gridTemplateColumns: "1.15fr 0.85fr",
               gap: "22px",
             }}
-            className="leads-layout-live"
           >
             <div className="providers">
               {leads.length === 0 ? (
@@ -192,12 +200,20 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
                           <p>{lead.description}</p>
 
                           <div className="tag-list">
-                            <span className="tag">Preis: {lead.price} Credits</span>
                             <span className="tag">
-                              Erstellt: {new Intl.DateTimeFormat("de-CH").format(lead.createdAt)}
+                              Preis: {lead.price} Credits
                             </span>
                             <span className="tag">
-                              Status: {isBought ? "Kontaktdaten sichtbar" : "Kontaktdaten gesperrt"}
+                              Erstellt:{" "}
+                              {new Intl.DateTimeFormat("de-CH").format(
+                                lead.createdAt
+                              )}
+                            </span>
+                            <span className="tag">
+                              Status:{" "}
+                              {isBought
+                                ? "Kontaktdaten sichtbar"
+                                : "Kontaktdaten gesperrt"}
                             </span>
                           </div>
 
@@ -223,13 +239,25 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
 
                             {isBought ? (
                               <div style={{ marginTop: "12px", lineHeight: 1.9 }}>
-                                <div><strong>Name:</strong> {lead.name}</div>
-                                <div><strong>E-Mail:</strong> {lead.email}</div>
-                                <div><strong>Telefon:</strong> {lead.phone}</div>
+                                <div>
+                                  <strong>Name:</strong> {lead.name}
+                                </div>
+                                <div>
+                                  <strong>E-Mail:</strong> {lead.email}
+                                </div>
+                                <div>
+                                  <strong>Telefon:</strong> {lead.phone}
+                                </div>
                               </div>
                             ) : (
-                              <div style={{ marginTop: "12px", color: "rgba(245,248,255,0.7)" }}>
-                                Nach dem Kauf werden Name, E-Mail und Telefonnummer freigeschaltet.
+                              <div
+                                style={{
+                                  marginTop: "12px",
+                                  color: "rgba(245,248,255,0.7)",
+                                }}
+                              >
+                                Nach dem Kauf werden Name, E-Mail und
+                                Telefonnummer freigeschaltet.
                               </div>
                             )}
                           </div>
@@ -242,19 +270,35 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
 
                           <div className="actions">
                             {isBought ? (
-                              <button className="btn btn-secondary btn-block" disabled>
+                              <button
+                                className="btn btn-secondary btn-block"
+                                disabled
+                              >
                                 Bereits gekauft
                               </button>
-                            ) : (
+                            ) : provider ? (
                               <form action={buyLeadAction}>
                                 <input type="hidden" name="leadId" value={lead.id} />
-                                <button type="submit" className="btn btn-primary btn-block">
+                                <button
+                                  type="submit"
+                                  className="btn btn-primary btn-block"
+                                >
                                   Lead kaufen
                                 </button>
                               </form>
+                            ) : (
+                              <button
+                                className="btn btn-secondary btn-block"
+                                disabled
+                              >
+                                Anbieter fehlt
+                              </button>
                             )}
 
-                            <a href="/portal/guthaben" className="btn btn-secondary btn-block">
+                            <a
+                              href="/portal/guthaben"
+                              className="btn btn-secondary btn-block"
+                            >
                               Credits aufladen
                             </a>
                           </div>
@@ -278,6 +322,7 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
                     <strong>{provider?.credits ?? 0}</strong>
                     <span>Aktuelle Credits</span>
                   </div>
+
                   <div className="stat-card">
                     <strong>{provider?.companyName || "Nicht vorhanden"}</strong>
                     <span>Firma</span>
@@ -296,13 +341,20 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
                     <h3 style={{ fontSize: "1.12rem" }}>1. Lead prüfen</h3>
                     <p>Region, Kategorie und Preis vor dem Kauf ansehen.</p>
                   </div>
+
                   <div className="panel benefit-card" style={{ padding: "18px" }}>
                     <h3 style={{ fontSize: "1.12rem" }}>2. Credits einsetzen</h3>
-                    <p>Beim Kauf werden Credits automatisch vom Anbieter-Konto abgezogen.</p>
+                    <p>
+                      Beim Kauf werden Credits automatisch vom Anbieter-Konto
+                      abgezogen.
+                    </p>
                   </div>
+
                   <div className="panel benefit-card" style={{ padding: "18px" }}>
                     <h3 style={{ fontSize: "1.12rem" }}>3. Kontakt erhalten</h3>
-                    <p>Nach erfolgreichem Kauf werden alle Kontaktdaten sichtbar.</p>
+                    <p>
+                      Nach erfolgreichem Kauf werden alle Kontaktdaten sichtbar.
+                    </p>
                   </div>
                 </div>
               </div>
