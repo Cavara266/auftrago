@@ -25,45 +25,44 @@ export default async function MeineLeadsPage() {
 
   return (
     <main className="page">
-      <section className="portal-hero">
-        <div className="container portal-shell">
-          <div className="portal-hero-top">
-            <div>
-              <span className="eyebrow">Meine Leads</span>
-              <h1>Gekaufte Kontakte.</h1>
-              <p>
-                Hier findest du alle Leads, die du freigeschaltet hast –
-                inklusive Name, E-Mail und Telefonnummer.
-              </p>
-            </div>
+      <section className="meine-hero">
+        <div className="container">
+          <span className="eyebrow">Meine Leads</span>
 
-            <div className="portal-actions">
-              <a href="/portal/leads" className="btn btn-primary">
-                Neue Leads kaufen
-              </a>
-              <a href="/portal" className="btn btn-secondary">
-                Dashboard
-              </a>
-            </div>
+          <h1>Gekaufte Kontakte.</h1>
+
+          <p>
+            Hier findest du alle Leads, die du freigeschaltet hast – inklusive
+            Name, E-Mail und Telefonnummer.
+          </p>
+
+          <div className="meine-actions">
+            <a href="/portal/leads" className="btn btn-primary">
+              Neue Leads kaufen
+            </a>
+
+            <a href="/portal" className="btn btn-secondary">
+              Dashboard
+            </a>
           </div>
 
-          <div className="portal-stats">
-            <div className="portal-stat-card">
+          <div className="meine-stats-grid">
+            <div className="meine-stat-card">
               <strong>{provider?.purchases.length ?? 0}</strong>
               <span>Gekaufte Leads</span>
             </div>
 
-            <div className="portal-stat-card">
+            <div className="meine-stat-card">
               <strong>{provider?.credits ?? 0}</strong>
               <span>Verfügbare Credits</span>
             </div>
 
-            <div className="portal-stat-card">
+            <div className="meine-stat-card">
               <strong>{provider?.companyName || "—"}</strong>
               <span>Firma</span>
             </div>
 
-            <div className="portal-stat-card">
+            <div className="meine-stat-card">
               <strong>{provider?.region || "—"}</strong>
               <span>Region</span>
             </div>
@@ -71,7 +70,7 @@ export default async function MeineLeadsPage() {
         </div>
       </section>
 
-      <section className="portal-section">
+      <section className="meine-section">
         <div className="container">
           {!provider ? (
             <div className="meine-empty">
@@ -87,7 +86,8 @@ export default async function MeineLeadsPage() {
               <span>Noch keine Käufe</span>
               <h2>Du hast noch keine Leads freigeschaltet.</h2>
               <p>
-                Kaufe deinen ersten Lead, damit die Kontaktdaten hier erscheinen.
+                Kaufe deinen ersten Lead, damit die Kontaktdaten hier
+                erscheinen.
               </p>
 
               <a href="/portal/leads" className="btn btn-primary">
@@ -154,6 +154,71 @@ export default async function MeineLeadsPage() {
       </section>
 
       <style>{`
+        .meine-hero {
+          padding: 72px 0 32px;
+        }
+
+        .meine-hero h1 {
+          max-width: 900px;
+          margin-top: 18px;
+          color: white;
+          font-size: clamp(3.2rem, 8vw, 7rem);
+          line-height: 0.92;
+          letter-spacing: -0.07em;
+        }
+
+        .meine-hero p {
+          max-width: 760px;
+          margin-top: 22px;
+          color: rgba(245, 248, 255, 0.68);
+          font-size: 1.2rem;
+          line-height: 1.65;
+        }
+
+        .meine-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          margin-top: 24px;
+        }
+
+        .meine-stats-grid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 14px;
+          margin-top: 28px;
+        }
+
+        .meine-stat-card {
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 24px;
+          background:
+            linear-gradient(135deg, rgba(45, 88, 125, 0.22), rgba(15, 18, 35, 0.92)),
+            rgba(255, 255, 255, 0.04);
+          padding: 24px;
+          min-height: 120px;
+        }
+
+        .meine-stat-card strong {
+          display: block;
+          color: white;
+          font-size: 1.8rem;
+          line-height: 1.1;
+          letter-spacing: -0.04em;
+          word-break: break-word;
+        }
+
+        .meine-stat-card span {
+          display: block;
+          margin-top: 10px;
+          color: rgba(245, 248, 255, 0.62);
+          font-weight: 800;
+        }
+
+        .meine-section {
+          padding: 32px 0 90px;
+        }
+
         .meine-grid {
           display: grid;
           gap: 18px;
@@ -171,7 +236,7 @@ export default async function MeineLeadsPage() {
         }
 
         .meine-empty {
-          max-width: 760px;
+          max-width: 900px;
         }
 
         .meine-empty span,
@@ -293,7 +358,11 @@ export default async function MeineLeadsPage() {
           word-break: break-word;
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 1000px) {
+          .meine-stats-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
           .meine-card-top,
           .meine-contact-grid {
             grid-template-columns: 1fr;
@@ -301,6 +370,22 @@ export default async function MeineLeadsPage() {
 
           .meine-price {
             text-align: left;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .meine-hero {
+            padding-top: 46px;
+          }
+
+          .meine-stats-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .meine-card,
+          .meine-empty {
+            padding: 22px;
+            border-radius: 26px;
           }
         }
       `}</style>
