@@ -1,29 +1,56 @@
 import { NextResponse } from "next/server";
-import { setSessionUser } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const email = String(body.email ?? "info@cavara-hauswartung.ch");
+    const email = String(body.email || "").trim().toLowerCase();
+    const password = String(body.password || "").trim();
 
-    const session = await setSessionUser({
-      id: "demo-user",
-      email,
-      name: "Auftrago Admin",
-      role: "admin",
-      credits: 999, // ✅ DAS HAT GEFEHLT
+    if (!email || !password) {
+      return NextResponse.json(
+        { ok: false, error: "E-Mail und Passwort erforderlich." },
+        { status: 400 }
+      );
+    }
+
+    const provider = await prisma.provider.findUnique({
+      where: { email },
     });
 
-    return NextResponse.json({
+    if (!provider || provider.password !== password) {
+      return NextResponse.json(
+        { ok: false, error: "Login fehlgeschlagen." },
+        { status: 401 }
+      );
+    }
+
+    const res = NextResponse.json({
       ok: true,
-      session,
+      provider: {
+        id: provider.id,
+        email: provider.email,
+        companyName: provider.companyName,
+        contactName: provider.contactName,
+        credits: provider.credits,
+      },
     });
+
+    res.cookies.set("auftrago_session", provider.id, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    return res;
   } catch (error) {
     console.error("LOGIN ERROR:", error);
 
     return NextResponse.json(
-      { ok: false, error: "Login fehlgeschlagen" },
+      { ok: false, error: "Serverfehler." },
       { status: 500 }
     );
   }
