@@ -2,39 +2,91 @@ import Link from "next/link";
 import HomeLeadForm from "@/components/home-lead-form";
 
 const services = [
-  ["Hauswartung", "Unterhalt, Reinigung, Kontrollen, Umgebungspflege und Winterdienst für Liegenschaften."],
-  ["Büroreinigung", "Regelmässige Reinigung für Büros, Praxen, Ladenflächen und Gewerbeobjekte."],
-  ["Treppenhausreinigung", "Saubere Eingänge, Treppenhäuser, Kellerbereiche und Gemeinschaftsflächen."],
-  ["Umzugsreinigung", "Endreinigung, Wohnungsabgabe und Reinigung mit klarer Offertenanfrage."],
-  ["Gartenpflege", "Rasen, Hecken, Laub, Saisonarbeiten und gepflegte Aussenbereiche."],
-  ["Entsorgung", "Räumung, Sperrgut, Keller, Estrich, Transport und fachgerechte Entsorgung."],
+  {
+    icon: "🧹",
+    title: "Reinigung",
+    text: "Wohnungsreinigung, Büroreinigung, Baureinigung, Unterhaltsreinigung und Spezialreinigungen für private und gewerbliche Kunden.",
+  },
+  {
+    icon: "📦",
+    title: "Umzug & Transport",
+    text: "Privatumzug, Firmenumzug, Möbeltransport, Entsorgung und Unterstützung rund um den gesamten Umzug.",
+  },
+  {
+    icon: "🏢",
+    title: "Hauswartung",
+    text: "Unterhalt, Kontrolle, Reinigung, Umgebungspflege, Winterdienst und technische Betreuung für Liegenschaften.",
+  },
+  {
+    icon: "🌿",
+    title: "Gartenpflege",
+    text: "Rasenmähen, Heckenschnitt, Laubarbeiten, Saisonpflege und regelmässige Pflege von Aussenbereichen.",
+  },
+  {
+    icon: "🎨",
+    title: "Malerarbeiten",
+    text: "Innenanstriche, Fassaden, Renovationen, Ausbesserungen und saubere Arbeiten für Wohnungen und Häuser.",
+  },
+  {
+    icon: "⚡",
+    title: "Elektriker",
+    text: "Installationen, Reparaturen, Sicherheit, Beleuchtung und kleinere Elektroarbeiten durch passende Fachbetriebe.",
+  },
+  {
+    icon: "🚿",
+    title: "Sanitär",
+    text: "Reparaturen, Installationen, Badarbeiten, Armaturen, Leitungen und schnelle Hilfe bei Sanitärproblemen.",
+  },
+  {
+    icon: "♻️",
+    title: "Entsorgung",
+    text: "Entrümpelung, Sperrgut, Keller, Estrich, Räumungen und fachgerechte Entsorgung inklusive Transport.",
+  },
+  {
+    icon: "🪟",
+    title: "Fensterreinigung",
+    text: "Fenster, Glasfassaden, Wintergärten, Storen und Glasflächen für private und gewerbliche Objekte.",
+  },
 ];
 
-const regions = ["Zürich", "Aargau", "Aarau", "Baden", "Winterthur", "Basel", "Bern", "Luzern", "Zug", "Schweiz"];
+const regions = [
+  "Zürich",
+  "Aargau",
+  "Aarau",
+  "Baden",
+  "Winterthur",
+  "Basel",
+  "Bern",
+  "Luzern",
+  "Zug",
+  "Schweiz",
+];
 
 export default function HomePage() {
   return (
-    <main>
-      <section className="hero">
-        <div className="container hero-grid">
-          <div className="hero-copy">
+    <main className="home-page premium-home">
+      <section className="premium-hero">
+        <div className="container premium-hero-grid">
+          <div className="premium-hero-copy">
             <span className="eyebrow">Premium Offertenplattform Schweiz</span>
 
             <h1>
-              In 60 Sekunden
-              <br />
-              zur passenden
-              <br />
-              Offerte.
+              In 60 Sekunden zur passenden Offerte.
             </h1>
 
             <p>
-              Beschreibe deinen Auftrag einmal. Auftrago verbindet dich mit
-              passenden regionalen Anbietern für Reinigung, Hauswartung, Umzug,
-              Gartenpflege und Entsorgung.
+              Auftrago hilft dir, schnell und unkompliziert passende Anbieter für
+              Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung und weitere
+              Dienstleistungen zu finden.
             </p>
 
-            <div className="hero-actions">
+            <p>
+              Statt viele Firmen einzeln anzurufen, beschreibst du deinen Auftrag
+              einmal. Deine Anfrage wird klar strukturiert, damit regionale Anbieter
+              direkt verstehen, was du brauchst.
+            </p>
+
+            <div className="actions">
               <a href="#anfrage" className="btn btn-primary">
                 Kostenlose Offerte anfragen
               </a>
@@ -42,152 +94,131 @@ export default function HomePage() {
                 Anbieter werden
               </Link>
             </div>
-
-            <div className="trust-row">
-              <span>✓ Kostenlos & unverbindlich</span>
-              <span>✓ Regionale Anbieter</span>
-              <span>✓ Antwort in kurzer Zeit</span>
-            </div>
           </div>
 
-          <div id="anfrage" className="form-panel">
+          <div id="anfrage" className="premium-form-shell">
             <div className="form-badge">Beliebte Anfrage</div>
             <HomeLeadForm />
           </div>
         </div>
       </section>
 
-    <section className="conversion-strip">
-  <div className="container conversion-grid">
-    <div className="conversion-card">
-      <span className="conversion-icon">⚡</span>
-      <div>
-        <strong>60 Sek.</strong>
-        <p>Anfrage starten</p>
-      </div>
-    </div>
-
-    <div className="conversion-card">
-      <span className="conversion-icon">📍</span>
-      <div>
-        <strong>CH</strong>
-        <p>Regionale Anbieter</p>
-      </div>
-    </div>
-
-    <div className="conversion-card">
-      <span className="conversion-icon">🎁</span>
-      <div>
-        <strong>Gratis</strong>
-        <p>Unverbindlich</p>
-      </div>
-    </div>
-
-    <div className="conversion-card">
-      <span className="conversion-icon">🕒</span>
-      <div>
-        <strong>24h</strong>
-        <p>Schnelle Rückmeldung</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-      <section className="section">
-        <div className="container intro-panel">
+      <section className="premium-section">
+        <div className="container premium-intro-card">
           <div>
-            <span className="eyebrow dark">Warum Auftrago</span>
+            <span className="eyebrow">Warum Auftrago?</span>
             <h2>Eine Anfrage reicht.</h2>
           </div>
-          <div>
+
+          <div className="premium-text">
             <p>
-              Wer eine Hauswartung, Reinigung oder Umzugsfirma sucht, will nicht
-              stundenlang Webseiten vergleichen. Auftrago macht den Prozess
-              klar: Auftrag beschreiben, Region angeben und passende Offerten erhalten.
+              Kein stundenlanges Suchen, Vergleichen und Anrufen. Du beschreibst
+              deinen Auftrag, gibst die Region an und erhältst passende Rückmeldungen
+              von regionalen Dienstleistern.
             </p>
+
             <p>
-              Anbieter erhalten strukturierte Leads mit den wichtigsten Angaben.
-              Dadurch entstehen weniger Rückfragen und bessere Entscheidungen.
+              Besonders bei Umzugsreinigung, Treppenhausreinigung, Hauswartung,
+              Gartenpflege oder Räumungen ist es wichtig, dass Anbieter von Anfang
+              an die richtigen Informationen erhalten.
+            </p>
+
+            <p>
+              Auftrago macht genau das: klare Angaben, bessere Offerten, weniger
+              Rückfragen und schnellere Entscheidungen.
             </p>
           </div>
         </div>
       </section>
 
-      <section className="section">
+      <section className="premium-section">
         <div className="container">
           <div className="section-head">
             <span className="eyebrow">Leistungen</span>
-            <h2>Für Services mit echter Nachfrage.</h2>
+            <h2>Für starke lokale Dienstleister.</h2>
+            <p>
+              Auftrago bündelt Anfragen aus Bereichen, in denen Kunden oft schnell
+              eine zuverlässige Firma benötigen. Dadurch entstehen bessere Anfragen,
+              bessere Offerten und bessere Entscheidungen.
+            </p>
           </div>
 
-          <div className="service-grid">
-            {services.map(([title, text]) => (
-              <article className="service-card" key={title}>
-                <h3>{title}</h3>
-                <p>{text}</p>
+          <div className="premium-service-grid">
+            {services.map((service) => (
+              <article className="premium-service-card" key={service.title}>
+                <div className="premium-service-icon">{service.icon}</div>
+                <h3>{service.title}</h3>
+                <p>{service.text}</p>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="section premium-region">
-        <div className="container premium-region-grid">
-          <div className="premium-region-left">
-            <span className="eyebrow">Regionen</span>
-            <h2>
-              Stark in Zürich,
-              <br />
-              Aargau und der
-              <br />
-              ganzen Schweiz.
-            </h2>
-            <p>
-              Lokale Dienstleistungen brauchen Nähe. Deshalb setzt Auftrago auf
-              klare Kategorien, regionale Anfragen und passende Anbieter.
-            </p>
-          </div>
+      <section className="premium-section">
+        <div className="container premium-provider-card">
+          <span className="eyebrow">Für Anbieter</span>
 
-          <div className="premium-region-right">
-            {regions.map((region) => (
-              <div className="region-pill" key={region}>
-                {region}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+          <h2>Mehr relevante Leads. Weniger Streuverlust.</h2>
 
-      <section className="final">
-        <div className="container final-card">
-          <span className="eyebrow dark">Jetzt starten</span>
-          <h2>
-            Jetzt Anfrage senden.
-            <br />
-            Passende Anbieter erhalten.
-          </h2>
           <p>
-            Kostenlos, unverbindlich und regional. Starte deine Anfrage in weniger
-            als einer Minute.
+            Für Anbieter ist Auftrago eine Möglichkeit, Anfragen von Kunden zu
+            erhalten, die bereits konkret nach einer Dienstleistung suchen.
+            Statt teure Werbung ohne klare Absicht zu schalten, bekommen Anbieter
+            strukturierte Anfragen mit Region, Kategorie und Bedarf.
           </p>
 
-          <div className="final-actions">
-            <a href="#anfrage" className="btn final-primary">
-              Kostenlose Offerte anfragen
-            </a>
-            <Link href="/anbieter" className="btn final-secondary">
+          <p>
+            Anbieter werden nicht automatisch freigeschaltet. Jede Anmeldung wird
+            geprüft, damit die Plattform sauber, regional und hochwertig bleibt.
+          </p>
+
+          <div className="actions">
+            <Link href="/anbieter" className="btn btn-primary">
               Anbieter werden
+            </Link>
+            <Link href="/preise" className="btn btn-secondary">
+              Preise ansehen
             </Link>
           </div>
         </div>
       </section>
 
-      <div className="sticky-conversion-bar">
-        <span>✓ Kostenlos</span>
-        <span>✓ Regional</span>
-        <span>✓ 60 Sekunden</span>
-        <a href="#anfrage">Offerte anfragen</a>
-      </div>
+      <section className="premium-section">
+        <div className="container premium-region-card">
+          <div>
+            <span className="eyebrow">Regionen</span>
+            <h2>Stark in Zürich, Aargau und der ganzen Schweiz.</h2>
+            <p>
+              Lokale Dienstleistungen brauchen Nähe. Deshalb setzt Auftrago auf
+              regionale Anfragen und passende Anbieter aus der Umgebung.
+            </p>
+          </div>
+
+          <div className="premium-region-list">
+            {regions.map((region) => (
+              <span key={region}>{region}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="premium-final">
+        <div className="container premium-final-card">
+          <span className="eyebrow">Jetzt starten</span>
+          <h2>Beschreibe deinen Auftrag einmal. Erhalte passende Offerten.</h2>
+          <p>
+            Kostenlos, unverbindlich und regional. Starte deine Anfrage in weniger
+            als einer Minute und finde passende Anbieter ohne unnötigen Aufwand.
+          </p>
+
+          <div className="actions center">
+            <a href="#anfrage" className="btn btn-primary">
+              Kostenlose Offerte anfragen
+            </a>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

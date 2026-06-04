@@ -2,227 +2,100 @@
 
 import { useState } from "react";
 
-const categories = [
-  "Hauswartung",
-  "Büroreinigung",
-  "Treppenhausreinigung",
-  "Umzugsreinigung",
-  "Gartenpflege",
-  "Umzug",
-  "Transport",
-  "Entsorgung",
-];
-
-const objectTypes = [
-  "Mehrfamilienhaus",
-  "Einfamilienhaus",
-  "Wohnung",
-  "Büro / Gewerbe",
-  "Verwaltung / Liegenschaft",
-  "Andere",
-];
-
-const startOptions = [
-  "So bald wie möglich",
-  "Diese Woche",
-  "Nächste Woche",
-  "Diesen Monat",
-  "Nach Vereinbarung",
-];
-
-const frequencyOptions = [
-  "Einmalig",
-  "Wöchentlich",
-  "Alle 2 Wochen",
-  "Monatlich",
-  "Nach Vereinbarung",
-];
-
 export default function HomeLeadForm() {
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
-    "idle"
-  );
+  const [sent, setSent] = useState(false);
 
-  const [description, setDescription] = useState("");
-
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setStatus("loading");
-
-    const form = event.currentTarget;
-    const formData = new FormData(form);
-
-    const payload = {
-      name: String(formData.get("name") || ""),
-      phone: String(formData.get("phone") || ""),
-      email: String(formData.get("email") || ""),
-      city: String(formData.get("city") || ""),
-      category: String(formData.get("category") || ""),
-      objectType: String(formData.get("objectType") || ""),
-      start: String(formData.get("start") || ""),
-      frequency: String(formData.get("frequency") || ""),
-      description: String(formData.get("description") || ""),
-    };
-
-    try {
-      const response = await fetch("/api/anfrage", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error("Request failed");
-      }
-
-      setStatus("success");
-      form.reset();
-      setDescription("");
-    } catch {
-      setStatus("error");
-    }
+  if (sent) {
+    return (
+      <div className="premium-form-success">
+        <div>✓</div>
+        <h3>Anfrage erhalten</h3>
+        <p>Danke. Wir prüfen deine Anfrage und melden uns schnellstmöglich bei dir.</p>
+      </div>
+    );
   }
 
   return (
-    <form className="lead-form" onSubmit={handleSubmit}>
-      <div className="form-kicker">Live Anfrage</div>
+    <form
+      className="premium-lead-form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        setSent(true);
+      }}
+    >
+      <div className="premium-form-head">
+        <span>Live Anfrage</span>
+        <h3>Passende Offerte finden</h3>
+        <p>
+          Beschreibe deinen Auftrag kurz. Wir verbinden dich kostenlos mit passenden regionalen Anbietern.
+        </p>
+      </div>
 
-      <h2>In 60 Sekunden zur passenden Offerte.</h2>
-
-      <p>
-        Beschreibe kurz deinen Auftrag. Wir verbinden dich mit passenden
-        Anbietern aus deiner Region.
-      </p>
-
-      <div className="form-fields">
-        <label className="field full">
-          <span>Vorname / Name</span>
-          <input name="name" type="text" required placeholder="Max Muster" />
+      <div className="premium-form-grid">
+        <label>
+          <span>Name</span>
+          <input placeholder="Max Muster" required />
         </label>
 
-        <div className="form-row">
-          <label className="field">
-            <span>Telefon</span>
-            <input name="phone" type="tel" required placeholder="079 123 45 67" />
-          </label>
-
-          <label className="field">
-            <span>Ort / Region</span>
-            <input name="city" type="text" required placeholder="Zürich" />
-          </label>
-        </div>
-
-        <label className="field full">
-          <span>E-Mail Adresse</span>
-          <input
-            name="email"
-            type="email"
-            required
-            placeholder="name@email.ch"
-          />
+        <label>
+          <span>Telefon</span>
+          <input placeholder="079 123 45 67" required />
         </label>
 
-        <div className="form-row">
-          <label className="field dark">
-            <span>Welche Dienstleistung?</span>
-            <select name="category" required defaultValue="Hauswartung">
-              {categories.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="field dark">
-            <span>Welches Objekt?</span>
-            <select name="objectType" required defaultValue="Mehrfamilienhaus">
-              {objectTypes.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <div className="form-row">
-          <label className="field dark">
-            <span>Gewünschter Start</span>
-            <select name="start" required defaultValue="So bald wie möglich">
-              {startOptions.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="field dark">
-            <span>Einsatzhäufigkeit</span>
-            <select name="frequency" required defaultValue="Nach Vereinbarung">
-              {frequencyOptions.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <label className="field textarea dark full">
-          <span>Beschreibe deinen Auftrag</span>
-          <textarea
-            name="description"
-            required
-            maxLength={500}
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            placeholder="Zum Beispiel: Wir suchen eine regelmässige Treppenhausreinigung für ein 6-Familienhaus inkl. Eingangsbereich und Keller."
-          />
-          <em>{description.length}/500</em>
+        <label>
+          <span>Ort / Region</span>
+          <input placeholder="Zürich" required />
         </label>
 
-        <label className="consent">
-          <input type="checkbox" required />
-          <span>
-            Ich stimme zu, dass meine Angaben zur Bearbeitung der Anfrage
-            verwendet werden.
-          </span>
+        <label>
+          <span>E-Mail</span>
+          <input type="email" placeholder="name@email.ch" required />
         </label>
 
-        <button type="submit" disabled={status === "loading"}>
-          {status === "loading" ? "Wird gesendet..." : "Anfrage starten"}
-        </button>
+        <label>
+          <span>Dienstleistung</span>
+          <select required>
+            <option>Hauswartung</option>
+            <option>Reinigung</option>
+            <option>Umzugsreinigung</option>
+            <option>Gartenpflege</option>
+            <option>Entsorgung</option>
+            <option>Transport</option>
+          </select>
+        </label>
 
-        {status === "success" && (
-          <div className="form-success">Anfrage erfolgreich gesendet.</div>
-        )}
+        <label>
+          <span>Start</span>
+          <select required>
+            <option>So bald wie möglich</option>
+            <option>Diese Woche</option>
+            <option>Diesen Monat</option>
+            <option>Nach Vereinbarung</option>
+          </select>
+        </label>
+      </div>
 
-        {status === "error" && (
-          <div className="form-error">
-            Anfrage konnte nicht gesendet werden.
-          </div>
-        )}
+      <label className="premium-textarea">
+        <span>Auftrag beschreiben</span>
+        <textarea
+          placeholder="z.B. Treppenhausreinigung für ein Mehrfamilienhaus in Zürich. Bitte mit Häufigkeit, Objektgrösse und gewünschtem Start."
+          required
+        />
+      </label>
 
-        <div className="form-benefits">
-          <div>
-            <strong>Schnelle Antworten</strong>
-            <span>Erste Rückmeldungen innerhalb kurzer Zeit</span>
-          </div>
+      <label className="premium-check">
+        <input type="checkbox" required />
+        <span>Ich stimme zu, dass meine Angaben zur Bearbeitung der Anfrage verwendet werden.</span>
+      </label>
 
-          <div>
-            <strong>Unverbindlich</strong>
-            <span>Kostenlos und ohne Verpflichtung</span>
-          </div>
+      <button className="premium-submit" type="submit">
+        Anfrage starten →
+      </button>
 
-          <div>
-            <strong>Sicher</strong>
-            <span>Deine Daten bleiben vertraulich</span>
-          </div>
-        </div>
+      <div className="premium-form-trust">
+        <span>✓ Kostenlos</span>
+        <span>✓ Unverbindlich</span>
+        <span>✓ Regional</span>
       </div>
     </form>
   );

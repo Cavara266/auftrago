@@ -1,74 +1,126 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 
-export default function AnbieterRegisterPage() {
+export default function AnbieterRegistrierenPage() {
+  const [message, setMessage] = useState("");
 
-  const [loading, setLoading] = useState(false)
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
 
-  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    const fd = new FormData(e.currentTarget);
 
-    e.preventDefault()
+    const payload = {
+      typ: "Anbieter-Anfrage",
+      firma: String(fd.get("firma") || ""),
+      kontaktperson: String(fd.get("kontaktperson") || ""),
+      telefon: String(fd.get("telefon") || ""),
+      email: String(fd.get("email") || ""),
+      website: String(fd.get("website") || ""),
+      ort: String(fd.get("ort") || ""),
+      leistungen: String(fd.get("leistungen") || ""),
+      nachricht: String(fd.get("nachricht") || ""),
+    };
 
-    const form = new FormData(e.currentTarget)
+    try {
+      const res = await fetch("/api/anfrage", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-    setLoading(true)
+      const data = await res.json();
 
-    await fetch("/api/providers", {
-      method: "POST",
-      body: JSON.stringify({
-        name: form.get("name"),
-        city: form.get("city"),
-        description: form.get("description")
-      })
-    })
-
-    alert("Registrierung erfolgreich!")
-
-    setLoading(false)
+      if (data.success || data.ok) {
+        setMessage("✅ Anfrage erfolgreich gesendet.");
+        (e.target as HTMLFormElement).reset();
+      } else {
+        setMessage("❌ Anfrage konnte nicht gesendet werden.");
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage("❌ Anfrage konnte nicht gesendet werden.");
+    }
   }
 
   return (
-    <main className="container-app section-space">
+    <main className="page">
+      <section className="hero">
+        <div className="container">
+          <span className="eyebrow">Anbieter-Anfrage</span>
 
-      <h1 className="text-4xl font-bold text-white mb-8">
-        Anbieter registrieren
-      </h1>
+          <h1>Firma eintragen.</h1>
 
-      <form
-        onSubmit={submit}
-        className="glass-card p-8 max-w-xl space-y-4"
-      >
+          <p>
+            Sende uns deine Firmendaten. Wir prüfen deine Anfrage und melden uns
+            persönlich bei dir.
+          </p>
 
-        <input
-          name="name"
-          placeholder="Firmenname"
-          required
-          className="input"
-        />
+          <form className="anbieter-form" onSubmit={handleSubmit}>
+            <div className="form-row">
+              <input
+                name="firma"
+                placeholder="Firmenname *"
+                required
+              />
+              <input
+                name="kontaktperson"
+                placeholder="Kontaktperson *"
+                required
+              />
+            </div>
 
-        <input
-          name="city"
-          placeholder="Stadt"
-          required
-          className="input"
-        />
+            <div className="form-row">
+              <input
+                name="telefon"
+                placeholder="Telefon *"
+                required
+              />
+              <input
+                name="email"
+                type="email"
+                placeholder="E-Mail *"
+                required
+              />
+            </div>
 
-        <textarea
-          name="description"
-          placeholder="Beschreibung"
-          className="input h-32"
-        />
+            <div className="form-row">
+              <input
+                name="website"
+                placeholder="Website"
+              />
+              <input
+                name="ort"
+                placeholder="Ort / Region *"
+                required
+              />
+            </div>
 
-        <button
-          disabled={loading}
-          className="btn btn-primary w-full"
-        >
-          {loading ? "Registriere..." : "Jetzt registrieren"}
-        </button>
+            <textarea
+              name="leistungen"
+              placeholder="Dienstleistungen * z.B. Hauswartung, Reinigung, Gartenpflege"
+              required
+            />
 
-      </form>
+            <textarea
+              name="nachricht"
+              placeholder="Nachricht / zusätzliche Informationen"
+            />
 
+            <button type="submit">
+              Anbieter-Anfrage senden
+            </button>
+          </form>
+
+          {message && (
+            <p style={{ marginTop: "20px" }}>
+              {message}
+            </p>
+          )}
+        </div>
+      </section>
     </main>
-  )
+  );
 }

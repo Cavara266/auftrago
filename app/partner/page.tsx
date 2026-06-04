@@ -1,458 +1,227 @@
-import Link from "next/link";
-
-const benefits = [
-  {
-    title: "Qualifizierte Leads",
-    text: "Erhalte strukturierte Anfragen von Kunden, die aktiv nach Reinigung, Hauswartung, Umzug, Transport, Entsorgung oder verwandten Services suchen. Statt unklarer Kontakte bekommst du einen sauber aufgebauten Lead mit klaren Informationen.",
-  },
-  {
-    title: "Nur bezahlen bei Interesse",
-    text: "Du zahlst nicht für Klicks, Impressionen oder unklare Werbung, sondern nur dann, wenn du einen Lead wirklich freischalten möchtest. Das macht das Modell kalkulierbar und deutlich fairer für lokale Anbieter.",
-  },
-  {
-    title: "Regional und relevant",
-    text: "Konzentriere dich auf Anfragen aus deiner Region und auf Leistungen, die zu deinem Unternehmen passen. So nutzt du deine Zeit besser und erreichst genau die Kunden, die für dich interessant sind.",
-  },
-  {
-    title: "Modernes System",
-    text: "Auftrago verbindet Anfrageformular, Lead-System, Credits, Dashboard und direkte Freischaltung in einer klaren Plattform. Das wirkt professioneller als klassische Verzeichnisse oder unübersichtliche Inserate-Portale.",
-  },
-];
-
-const steps = [
-  {
-    step: "01",
-    title: "Als Anbieter registrieren",
-    text: "Erstelle dein Konto und hinterlege deine Firmendaten. So ist sofort ersichtlich, wer du bist und für welche Region und Leistungen du aktiv sein möchtest.",
-  },
-  {
-    step: "02",
-    title: "Credits aufladen",
-    text: "Lade Credits auf und entscheide flexibel, welche Leads für dich relevant sind. Du musst nicht blind laufende Kosten tragen, sondern steuerst deinen Einsatz selbst.",
-  },
-  {
-    step: "03",
-    title: "Kontakte freischalten",
-    text: "Wenn ein Lead zu deinem Angebot passt, kannst du die Kontaktdaten freischalten und den Kunden direkt kontaktieren. So entsteht aus einer Anfrage eine echte Auftragschance.",
-  },
-];
-
-const categories = [
-  "Hauswartung",
-  "Reinigung",
-  "Büroreinigung",
-  "Treppenhausreinigung",
-  "Umzugsreinigung",
-  "Gartenpflege",
-  "Umzug",
-  "Transport",
-  "Entsorgung",
-];
-
-const regions = [
-  "Zürich",
-  "Aargau",
-  "Basel",
-  "Bern",
-  "Luzern",
-  "Zug",
-  "Winterthur",
-  "Aarau",
-  "Baden",
-  "Schweiz",
-];
-
 export default function PartnerPage() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#030816] text-white">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-[-20%] top-[-10%] h-[260px] w-[260px] rounded-full bg-cyan-400/12 blur-3xl sm:left-[-10%] sm:h-[380px] sm:w-[380px]" />
-        <div className="absolute right-[-20%] top-[10%] h-[280px] w-[280px] rounded-full bg-sky-400/10 blur-3xl sm:right-[-10%] sm:h-[420px] sm:w-[420px]" />
-        <div className="absolute bottom-[-10%] left-[10%] h-[240px] w-[240px] rounded-full bg-blue-500/10 blur-3xl sm:left-[20%] sm:h-[340px] sm:w-[340px]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(126,200,255,0.08),transparent_35%),linear-gradient(to_bottom,rgba(255,255,255,0.02),transparent)]" />
-      </div>
+    <main className="page">
 
-      <section className="relative border-b border-white/10">
-        <div className="mx-auto max-w-7xl px-4 pb-10 pt-5 sm:px-6 sm:pb-12 sm:pt-8 lg:px-8">
-          <div className="mb-8 flex items-center justify-between gap-3 sm:mb-10">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 backdrop-blur sm:px-5 sm:py-3"
-            >
-              <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#7EC8FF]" />
-              <span className="text-xs font-semibold uppercase tracking-[0.22em] text-white/80 sm:text-sm sm:tracking-[0.28em]">
-                AUFTRAGO
-              </span>
-            </Link>
+      {/* HERO */}
+      <section className="section container">
+        <span className="eyebrow">Für Anbieter</span>
 
-            <div className="hidden items-center gap-3 md:flex">
-              <Link
-                href="/preise"
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white/80 transition hover:bg-white/10"
-              >
-                Preise
-              </Link>
-              <Link
-                href="/register"
-                className="rounded-2xl border border-[#7EC8FF]/30 bg-[#7EC8FF]/15 px-4 py-3 text-sm font-semibold text-[#bfe7ff] transition hover:bg-[#7EC8FF]/20"
-              >
-                Jetzt registrieren
-              </Link>
-            </div>
-          </div>
+        <h1>
+          Mehr Kunden.
+          <br />
+          Weniger Aufwand.
+        </h1>
 
-          <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-10">
-            <div>
-              <div className="inline-flex max-w-full items-start gap-3 rounded-[24px] border border-white/10 bg-white/5 px-4 py-3 text-left backdrop-blur sm:items-center sm:gap-2 sm:rounded-full sm:px-4 sm:py-2.5">
-                <span className="mt-1 inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-[#7EC8FF] sm:mt-0 sm:h-2 sm:w-2" />
-                <span className="text-[11px] uppercase leading-relaxed tracking-[0.16em] text-white/60 sm:text-xs sm:tracking-[0.22em]">
-                  Für Anbieter in Reinigung, Hauswartung, Umzug, Transport &
-                  Services
-                </span>
-              </div>
+        <p>
+          Auftrago bringt dir nicht einfach Kontakte – sondern echte, konkrete
+          Kundenanfragen von Menschen, die aktiv nach deiner Dienstleistung suchen.
+          Du verschwendest keine Zeit mehr mit Werbung, Kaltakquise oder unnötigen
+          Gesprächen.
+        </p>
 
-              <h1 className="mt-5 max-w-4xl text-3xl font-semibold leading-[1.02] sm:mt-6 sm:text-4xl md:text-6xl xl:text-7xl">
-                Neue Aufträge für dein{" "}
-                <span className="bg-gradient-to-r from-white via-[#d7f0ff] to-[#7EC8FF] bg-clip-text text-transparent">
-                  Unternehmen
-                </span>{" "}
-                – lokal, schnell und planbar.
-              </h1>
+        <p>
+          Stattdessen bekommst du strukturierte Anfragen, die genau zu deinem
+          Angebot passen. Mehr Effizienz, bessere Kunden und deutlich höhere
+          Abschlusschancen.
+        </p>
 
-              <p className="mt-5 max-w-3xl text-base leading-7 text-white/72 sm:mt-6 sm:text-lg sm:leading-8 md:text-xl">
-                Auftrago bringt qualifizierte Kundenanfragen direkt zu passenden
-                Anbietern. Du entscheidest selbst, welche Leads für dich
-                interessant sind, und zahlst nur dann, wenn du die Kontaktdaten
-                wirklich freischalten möchtest.
-              </p>
+        <div className="actions">
+          <a href="/register" className="btn btn-primary">
+            Anbieter-Anfrage starten
+          </a>
+          <a href="/preise" className="btn btn-secondary">
+            Preise ansehen
+          </a>
+        </div>
 
-              <p className="mt-4 max-w-3xl text-sm leading-7 text-white/55 sm:text-base sm:leading-8 md:text-lg">
-                Das macht Auftrago besonders attraktiv für lokale Dienstleister,
-                Reinigungsfirmen, Hauswartungen, Transport- und Umzugsfirmen,
-                Gartenpflege-Betriebe und weitere Service-Unternehmen, die neue
-                Aufträge gewinnen wollen, ohne blind Werbebudget zu verbrennen.
-              </p>
-
-              <p className="mt-4 max-w-3xl text-sm leading-7 text-white/55 sm:text-base sm:leading-8">
-                Statt allgemeiner Sichtbarkeit kaufst du hier gezielt Zugriff auf
-                echte Anfragen. Dadurch wird aus einer Plattform kein bloßes
-                Verzeichnis, sondern ein funktionierendes System für regionale
-                Lead-Vermittlung und planbare Neukunden-Gewinnung.
-              </p>
-
-              <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:gap-4">
-                <Link
-                  href="/register"
-                  className="inline-flex min-h-[54px] w-full items-center justify-center rounded-2xl bg-[#7EC8FF] px-6 py-4 text-center text-base font-semibold text-[#04101d] shadow-[0_20px_80px_rgba(126,200,255,0.28)] transition hover:scale-[1.01] hover:bg-[#91d2ff] sm:w-auto sm:px-7"
-                >
-                  Jetzt als Anbieter registrieren
-                </Link>
-
-                <Link
-                  href="/preise"
-                  className="inline-flex min-h-[54px] w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-center text-base font-semibold text-white/90 backdrop-blur transition hover:bg-white/10 sm:w-auto sm:px-7"
-                >
-                  Credits & Preise ansehen
-                </Link>
-              </div>
-
-              <div className="mt-8 grid gap-4 sm:mt-10 sm:grid-cols-3">
-                <div className="rounded-[26px] border border-white/10 bg-white/5 p-5 backdrop-blur">
-                  <div className="text-2xl font-semibold text-white sm:text-3xl">
-                    Lokal
-                  </div>
-                  <div className="mt-2 text-sm leading-6 text-white/60">
-                    Passende Anfragen aus deiner Region und deinen Zielgebieten.
-                  </div>
-                </div>
-
-                <div className="rounded-[26px] border border-white/10 bg-white/5 p-5 backdrop-blur">
-                  <div className="text-2xl font-semibold text-white sm:text-3xl">
-                    Flexibel
-                  </div>
-                  <div className="mt-2 text-sm leading-6 text-white/60">
-                    Du entscheidest selbst, welche Leads du freischaltest.
-                  </div>
-                </div>
-
-                <div className="rounded-[26px] border border-white/10 bg-white/5 p-5 backdrop-blur">
-                  <div className="text-2xl font-semibold text-white sm:text-3xl">
-                    Direkt
-                  </div>
-                  <div className="mt-2 text-sm leading-6 text-white/60">
-                    Nach Freischaltung kannst du Kunden sofort kontaktieren.
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8 rounded-[26px] border border-white/10 bg-[#081122]/80 p-5 sm:p-6">
-                <h2 className="text-xl font-semibold sm:text-2xl">
-                  Warum dieses Modell für Firmen interessant ist
-                </h2>
-
-                <div className="mt-4 space-y-3 text-sm leading-7 text-white/65 sm:text-base sm:leading-8">
-                  <p>
-                    Viele Anbieter investieren heute in Werbung, Inserate,
-                    Plattformen oder allgemeine Sichtbarkeit, ohne genau zu
-                    wissen, ob daraus wirklich qualifizierte Kontakte entstehen.
-                    Auftrago dreht dieses Modell um: Statt für diffuse Reichweite
-                    zahlst du gezielt für echte Leads.
-                  </p>
-                  <p>
-                    Dadurch ist dein Aufwand besser kalkulierbar. Du siehst die
-                    Anfrage zuerst, bewertest sie und entscheidest dann, ob du
-                    investieren möchtest. Das ist besonders wertvoll für
-                    regionale Firmen, die effizient wachsen und ihre Zeit auf
-                    echte Chancen konzentrieren wollen.
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-7 flex flex-wrap gap-2.5 text-sm text-white/55 sm:mt-8 sm:gap-3">
-                {categories.map((item) => (
-                  <span
-                    key={item}
-                    className="rounded-full border border-white/10 bg-white/5 px-3.5 py-2 backdrop-blur sm:px-4"
-                  >
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="relative rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.10),rgba(255,255,255,0.04))] p-4 shadow-[0_25px_120px_rgba(0,0,0,0.35)] backdrop-blur-2xl sm:rounded-[32px] sm:p-6 md:p-7">
-              <div className="absolute inset-0 rounded-[28px] bg-[radial-gradient(circle_at_top,rgba(126,200,255,0.12),transparent_45%)] sm:rounded-[32px]" />
-
-              <div className="relative">
-                <div className="inline-flex rounded-full border border-[#7EC8FF]/25 bg-[#7EC8FF]/10 px-4 py-2 text-[11px] font-medium uppercase tracking-[0.18em] text-[#c7ebff] sm:text-xs sm:tracking-[0.22em]">
-                  Warum Anbieter Auftrago nutzen
-                </div>
-
-                <h2 className="mt-4 text-2xl font-semibold leading-tight sm:text-3xl">
-                  Eine moderne Plattform für echte Kundenanfragen
-                </h2>
-
-                <p className="mt-3 text-sm leading-7 text-white/62 md:text-base">
-                  Kein unübersichtliches Inserate-System, sondern ein klarer
-                  Lead-Marktplatz mit Fokus auf Qualität, Regionen und direkte
-                  Kontaktfreischaltung.
-                </p>
-
-                <div className="mt-6 space-y-4">
-                  {benefits.map((item) => (
-                    <div
-                      key={item.title}
-                      className="rounded-[22px] border border-white/10 bg-[#0b1328]/70 p-4 sm:p-5"
-                    >
-                      <div className="text-base font-semibold text-white sm:text-lg">
-                        {item.title}
-                      </div>
-                      <p className="mt-2 text-sm leading-7 text-white/62 sm:text-base sm:leading-8">
-                        {item.text}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-6 rounded-[22px] border border-white/10 bg-[#081122]/80 p-4 sm:p-5">
-                  <div className="text-sm font-semibold text-white">
-                    Für wen eignet sich Auftrago besonders?
-                  </div>
-                  <div className="mt-3 space-y-2 text-sm leading-7 text-white/62 sm:text-base sm:leading-8">
-                    <p>
-                      Besonders spannend ist die Plattform für regionale
-                      Dienstleister, die konstant neue Aufträge suchen, aber
-                      nicht auf klassische Massenwerbung angewiesen sein wollen.
-                    </p>
-                    <p>
-                      Wenn du lieber gezielt auf konkrete Anfragen reagierst,
-                      statt nur auf Sichtbarkeit zu hoffen, ist dieses Modell
-                      deutlich näher an einem echten Performance-System.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                  <Link
-                    href="/register"
-                    className="inline-flex min-h-[52px] w-full items-center justify-center rounded-2xl bg-[#7EC8FF] px-5 py-3 text-base font-semibold text-[#04101d] transition hover:bg-[#91d2ff]"
-                  >
-                    Kostenlos registrieren
-                  </Link>
-
-                  <Link
-                    href="/login"
-                    className="inline-flex min-h-[52px] w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-base font-semibold text-white transition hover:bg-white/10"
-                  >
-                    Bereits Konto? Login
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className="trust-row">
+          <span>Nur echte Anfragen</span>
+          <span>Regionale Kunden</span>
+          <span>Keine Kaltakquise</span>
+          <span>Volle Kontrolle</span>
         </div>
       </section>
 
-      <section className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
-        <div className="max-w-3xl">
-          <div className="text-xs uppercase tracking-[0.18em] text-white/45 sm:text-sm sm:tracking-[0.24em]">
-            Vorteile
-          </div>
-          <h2 className="mt-4 text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl">
-            Warum dieses Modell für Anbieter stark funktioniert
-          </h2>
-          <p className="mt-5 max-w-3xl text-base leading-7 text-white/68 sm:text-lg sm:leading-8">
-            Du musst nicht auf gut Glück Werbung schalten. Stattdessen bekommst
-            du strukturierte Anfragen von Kunden, die bereits ein konkretes
-            Bedürfnis haben und aktiv nach einer passenden Lösung suchen.
-          </p>
+      {/* LEAD SYSTEM + ORBIT DIAGRAM */}
+      <section className="section container">
+        <div className="lead-system-card">
 
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-white/55 sm:text-base sm:leading-8">
-            Genau das ist der große Unterschied: Nicht Reichweite um jeden
-            Preis, sondern qualifizierte Nachfrage, die zu deinem Angebot passt.
-            Das ist effizienter, klarer und besonders attraktiv für Unternehmen,
-            die regional wachsen wollen.
-          </p>
-        </div>
+          {/* TEXT */}
+          <div className="lead-system-copy">
+            <span className="eyebrow">Lead-System</span>
 
-        <div className="mt-8 grid gap-4 sm:mt-10 md:grid-cols-2 xl:grid-cols-4">
-          {[
-            {
-              title: "Mehr Fokus",
-              text: "Nur interessante Leads freischalten statt Zeit mit irrelevanten Kontakten zu verlieren.",
-            },
-            {
-              title: "Mehr Kontrolle",
-              text: "Du bestimmst selbst, wann du Credits einsetzt und bei welchen Aufträgen du aktiv wirst.",
-            },
-            {
-              title: "Mehr Übersicht",
-              text: "Leads, Freischaltungen und Credits lassen sich zentral über dein Dashboard verwalten.",
-            },
-            {
-              title: "Mehr Wachstum",
-              text: "Perfekte Basis für konstante Neukunden-Gewinnung in deiner Region und Kategorie.",
-            },
-          ].map((item) => (
-            <div
-              key={item.title}
-              className="rounded-[24px] border border-white/10 bg-white/5 p-5 backdrop-blur sm:rounded-[28px] sm:p-6"
-            >
-              <h3 className="text-xl font-semibold">{item.title}</h3>
-              <p className="mt-3 text-sm leading-7 text-white/62">{item.text}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="border-y border-white/10 bg-white/[0.03]">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
-          <div className="max-w-3xl">
-            <div className="text-xs uppercase tracking-[0.18em] text-white/45 sm:text-sm sm:tracking-[0.24em]">
-              So funktioniert es
-            </div>
-            <h2 className="mt-4 text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl">
-              In 3 Schritten zu neuen Aufträgen
+            <h2>
+              Mehr Anfragen.
+              <br />
+              Weniger Streuverlust.
             </h2>
-            <p className="mt-5 text-base leading-7 text-white/66 sm:text-lg sm:leading-8">
-              Der Ablauf ist bewusst einfach aufgebaut, damit du schnell loslegen
-              kannst und sofort verstehst, wie das System funktioniert.
+
+            <p>
+              Unser System analysiert jede einzelne Anfrage in Echtzeit und filtert
+              automatisch nach Region, Kategorie und Bedarf. Dadurch erhältst du
+              nur Anfragen, die wirklich zu deinem Unternehmen passen.
+            </p>
+
+            <p>
+              Keine unnötigen Kontakte mehr, keine Zeitverschwendung – sondern
+              gezielte Leads mit klaren Informationen und hoher Abschlusschance.
+            </p>
+
+            <p>
+              Das bedeutet für dich: mehr Umsatz, weniger Aufwand und ein klar
+              strukturierter Kundenfluss.
             </p>
           </div>
 
-          <div className="mt-8 grid gap-4 sm:mt-10 md:grid-cols-3">
-            {steps.map((item) => (
-              <div
-                key={item.step}
-                className="rounded-[24px] border border-white/10 bg-[#081122]/85 p-5 sm:rounded-[30px] sm:p-7"
-              >
-                <div className="text-sm font-medium tracking-[0.16em] text-[#9fd8ff] sm:tracking-[0.18em]">
-                  {item.step}
-                </div>
-                <h3 className="mt-3 text-xl font-semibold sm:text-2xl">
-                  {item.title}
-                </h3>
-                <p className="mt-4 text-sm leading-7 text-white/62 sm:text-base sm:leading-8">
-                  {item.text}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+          {/* GEILES ORBIT DIAGRAM */}
+          <div className="lead-orbit">
 
-      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
-        <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(135deg,rgba(126,200,255,0.18),rgba(255,255,255,0.04))] p-5 sm:rounded-[34px] sm:p-8 md:p-10">
-          <div className="max-w-3xl">
-            <div className="text-xs uppercase tracking-[0.18em] text-white/50 sm:text-sm sm:tracking-[0.24em]">
-              Regionen
+            <div className="orbit-ring ring-one"></div>
+            <div className="orbit-ring ring-two"></div>
+
+            <div className="orbit-core">
+              <strong>Auftrago</strong>
+              <span>Matching System</span>
             </div>
-            <h2 className="mt-4 text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl">
-              Finde passende Leads in deiner Region
-            </h2>
-            <p className="mt-5 text-base leading-7 text-white/68 sm:text-lg sm:leading-8">
-              Auftrago ist ideal für regionale Lead-Generierung. Starte in einer
-              Stadt oder decke gleich mehrere Gebiete in der Schweiz ab.
-            </p>
 
-            <p className="mt-4 text-sm leading-7 text-white/55 sm:text-base sm:leading-8">
-              Gerade für lokale Firmen ist regionale Sichtbarkeit entscheidend.
-              Deshalb eignet sich die Plattform besonders gut für Anbieter in
-              Zürich, Aargau, Basel, Bern, Luzern, Zug und weiteren stark
-              nachgefragten Regionen.
+            <div className="orbit-node node-one">
+              <strong>01</strong>
+              <span>Region</span>
+            </div>
+
+            <div className="orbit-node node-two">
+              <strong>02</strong>
+              <span>Kategorie</span>
+            </div>
+
+            <div className="orbit-node node-three">
+              <strong>03</strong>
+              <span>Bedarf</span>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* VORTEILE */}
+      <section className="section container">
+        <h2>Warum Anbieter Auftrago nutzen</h2>
+
+        <p style={{ maxWidth: 700 }}>
+          Auftrago wurde speziell für Dienstleister entwickelt, die nicht einfach
+          mehr Sichtbarkeit wollen – sondern bessere Kunden. Unser System sorgt
+          dafür, dass du nur relevante Anfragen erhältst und deine Zeit optimal
+          nutzt.
+        </p>
+
+        <div className="grid-3">
+          <div className="service-card">
+            <h3>Regionale Kunden</h3>
+            <p>
+              Du erhältst nur Anfragen aus deinem Einsatzgebiet. Keine unnötigen
+              Fahrten und kein Zeitverlust.
             </p>
           </div>
 
-          <div className="mt-7 flex flex-wrap gap-2.5 sm:mt-8 sm:gap-3">
-            {regions.map((city) => (
-              <span
-                key={city}
-                className="rounded-full border border-white/10 bg-white/10 px-3.5 py-2 text-sm text-white/85 sm:px-4"
-              >
-                {city}
-              </span>
-            ))}
+          <div className="service-card">
+            <h3>Keine Werbung nötig</h3>
+            <p>
+              Keine Google Ads, keine Flyer, keine Kaltakquise. Kunden kommen
+              direkt zu dir.
+            </p>
+          </div>
+
+          <div className="service-card">
+            <h3>Mehr Abschlüsse</h3>
+            <p>
+              Passende Anfragen bedeuten höhere Abschlussquoten und besseren Umsatz.
+            </p>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 sm:pb-24 lg:px-8">
-        <div className="rounded-[28px] border border-white/10 bg-white/5 p-5 text-center backdrop-blur sm:rounded-[34px] sm:p-8 md:p-12">
-          <div className="text-xs uppercase tracking-[0.18em] text-white/45 sm:text-sm sm:tracking-[0.24em]">
-            Jetzt starten
+      {/* HOW IT WORKS */}
+      <section className="section container">
+        <div className="split-card panel">
+
+          <div>
+            <h2>So funktioniert es</h2>
+
+            <p>
+              Kunden beschreiben ihren Auftrag in wenigen Sekunden. Unser System
+              analysiert alle Angaben automatisch und verteilt die Anfrage nur an
+              passende Anbieter.
+            </p>
+
+            <p>
+              Du erhältst sofort strukturierte Leads mit allen wichtigen Infos –
+              ohne Nachfragen, ohne Chaos.
+            </p>
+
+            <p>
+              Du entscheidest selbst, welche Anfragen du annimmst und behältst
+              jederzeit die volle Kontrolle.
+            </p>
           </div>
-          <h2 className="mt-4 text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl">
-            Werde Anbieter auf Auftrago und sichere dir neue Anfragen
+
+          <div className="grid-3">
+            <div className="stat-card">
+              <h3>01</h3>
+              <p>Region wird geprüft</p>
+            </div>
+
+            <div className="stat-card">
+              <h3>02</h3>
+              <p>Kategorie wird gefiltert</p>
+            </div>
+
+            <div className="stat-card">
+              <h3>03</h3>
+              <p>Nur passende Leads werden gesendet</p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* TRUST / TEXT BOOST */}
+      <section className="section container">
+        <h2>Mehr als nur Leads</h2>
+
+        <p style={{ maxWidth: 800 }}>
+          Auftrago ist kein klassisches Werbeportal. Es ist ein System, das gezielt
+          hochwertige Kundenanfragen generiert und effizient verteilt.
+        </p>
+
+        <p style={{ maxWidth: 800 }}>
+          Statt Streuverlust bekommst du klare Chancen. Statt Aufwand bekommst du
+          Struktur. Und statt Unsicherheit bekommst du echte Ergebnisse.
+        </p>
+      </section>
+
+      {/* CTA */}
+      <section className="final container">
+        <div className="final-card panel">
+          <h2>
+            Starte jetzt und sichere dir
+            <br />
+            regelmässige Kundenanfragen.
           </h2>
-          <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-white/66 sm:text-lg sm:leading-8">
-            Registriere dich, lade Credits auf und entscheide selbst, welche
-            Leads du freischalten willst. Einfach, modern und auf echte
-            Auftragschancen ausgerichtet.
+
+          <p>
+            Werde Teil des Auftrago Netzwerks und profitiere von einem System,
+            das dir konstant neue Kunden bringt – ohne Aufwand.
           </p>
 
-          <p className="mx-auto mt-4 max-w-3xl text-sm leading-7 text-white/55 sm:text-base sm:leading-8">
-            Wenn du als Firma neue Aufträge suchst und lieber gezielt auf echte
-            Anfragen reagierst, statt nur auf Sichtbarkeit zu hoffen, dann ist
-            Auftrago genau die richtige Grundlage für dein Wachstum.
-          </p>
-
-          <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:gap-4">
-            <Link
-              href="/register"
-              className="inline-flex min-h-[54px] w-full items-center justify-center rounded-2xl bg-[#7EC8FF] px-6 py-4 text-base font-semibold text-[#04101d] shadow-[0_20px_80px_rgba(126,200,255,0.28)] transition hover:bg-[#91d2ff] sm:w-auto sm:px-7"
-            >
+          <div className="actions">
+            <a href="/register" className="btn btn-primary">
               Jetzt registrieren
-            </Link>
-
-            <Link
-              href="/preise"
-              className="inline-flex min-h-[54px] w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-base font-semibold text-white/90 transition hover:bg-white/10 sm:w-auto sm:px-7"
-            >
-              Preise ansehen
-            </Link>
+            </a>
           </div>
         </div>
       </section>
+
     </main>
   );
 }

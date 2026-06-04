@@ -1,11 +1,11 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import SiteHeader from "@/components/site-header";
+import SiteHeader from "../components/site-header";
 
 export const metadata: Metadata = {
-  title: "Auftrago – Premium Offertenplattform Schweiz",
+  title: "Auftrago – Offertenplattform Schweiz",
   description:
-    "Offerten für Reinigung, Hauswartung, Umzug, Gartenpflege und Entsorgung.",
+    "Kostenlose Offerten für Reinigung, Hauswartung, Umzug, Gartenpflege und Entsorgung.",
 };
 
 export default function RootLayout({
