@@ -1,33 +1,10 @@
-const stats = [
-  { value: "12", label: "Neue Leads heute" },
-  { value: "38", label: "Leads diese Woche" },
-  { value: "CHF 240", label: "Guthaben" },
-  { value: "21%", label: "Abschlussquote" },
-];
+import { prisma } from "@/lib/prisma";
 
-const recentLeads = [
-  {
-    title: "Umzugsreinigung 4.5 Zimmer",
-    region: "Zürich",
-    category: "Reinigung",
-    price: "CHF 28",
-    status: "Neu",
-  },
-  {
-    title: "Privatumzug 3.5 Zimmer",
-    region: "Baden",
-    category: "Umzug",
-    price: "CHF 35",
-    status: "Neu",
-  },
-  {
-    title: "Hauswartung Mehrfamilienhaus",
-    region: "Winterthur",
-    category: "Hauswartung",
-    price: "CHF 42",
-    status: "Neu",
-  },
-];
+export const dynamic = "force-dynamic";
+
+const DEMO_PROVIDER_EMAIL =
+  process.env.DEMO_PROVIDER_EMAIL?.trim().toLowerCase() ||
+  "info@cavara-hauswartung.ch";
 
 const quickActions = [
   {
@@ -35,6 +12,12 @@ const quickActions = [
     text: "Öffne die Lead-Liste und finde passende Aufträge in deiner Region.",
     href: "/portal/leads",
     cta: "Zu den Leads",
+  },
+  {
+    title: "Meine Leads",
+    text: "Sieh alle freigeschalteten Kontakte und gekauften Leads.",
+    href: "/portal/meine-leads",
+    cta: "Meine Leads öffnen",
   },
   {
     title: "Guthaben aufladen",
@@ -50,7 +33,33 @@ const quickActions = [
   },
 ];
 
-export default function PortalDashboardPage() {
+export default async function PortalDashboardPage() {
+  const provider = await prisma.provider.findUnique({
+    where: {
+      email: DEMO_PROVIDER_EMAIL,
+    },
+    include: {
+      purchases: true,
+    },
+  });
+
+  const leads = await prisma.lead.findMany({
+    take: 3,
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  const totalLeads = await prisma.lead.count();
+  const purchasedCount = provider?.purchases.length ?? 0;
+
+  const stats = [
+    { value: String(totalLeads), label: "Aktive Leads" },
+    { value: String(purchasedCount), label: "Gekaufte Leads" },
+    { value: String(provider?.credits ?? 0), label: "Credits" },
+    { value: provider?.region || "—", label: "Region" },
+  ];
+
   return (
     <main className="page">
       <section className="portal-hero">
@@ -60,9 +69,9 @@ export default function PortalDashboardPage() {
               <span className="eyebrow">Firmen-Portal</span>
               <h1>Dein Anbieter-Dashboard.</h1>
               <p>
-                Verwalte Leads, Guthaben und dein Firmenprofil an einem Ort.
-                Alles übersichtlich, schnell und für den täglichen Einsatz
-                optimiert.
+                Willkommen {provider?.companyName || "im Anbieter-Portal"}.
+                Verwalte Leads, Guthaben, Käufe und dein Firmenprofil an einem
+                Ort.
               </p>
             </div>
 
@@ -70,8 +79,8 @@ export default function PortalDashboardPage() {
               <a href="/portal/leads" className="btn btn-primary">
                 Neue Leads
               </a>
-              <a href="/portal/profil" className="btn btn-secondary">
-                Profil bearbeiten
+              <a href="/portal/meine-leads" className="btn btn-secondary">
+                Meine Leads
               </a>
             </div>
           </div>
@@ -94,30 +103,41 @@ export default function PortalDashboardPage() {
               <span>Lead-Überblick</span>
               <h2>Neue passende Leads</h2>
               <p>
-                Die neuesten Anfragen aus passenden Regionen und Kategorien.
+                Die neuesten Anfragen aus deiner Datenbank. Öffne die Leadbörse,
+                um Kontakte freizuschalten.
               </p>
             </div>
 
             <div className="portal-lead-list">
-              {recentLeads.map((lead) => (
-                <article key={lead.title} className="portal-lead-card">
-                  <div className="portal-lead-info">
-                    <div className="portal-badges">
-                      <span>{lead.status}</span>
-                      <span>{lead.category}</span>
-                      <span>{lead.region}</span>
+              {leads.length === 0 ? (
+                <div className="portal-empty">
+                  <strong>Noch keine Leads vorhanden</strong>
+                  <p>
+                    Erstelle neue Leads im Admin-Bereich. Danach erscheinen sie
+                    automatisch hier.
+                  </p>
+                </div>
+              ) : (
+                leads.map((lead) => (
+                  <article key={lead.id} className="portal-lead-card">
+                    <div className="portal-lead-info">
+                      <div className="portal-badges">
+                        <span>Neu</span>
+                        <span>{lead.category}</span>
+                        <span>{lead.region}</span>
+                      </div>
+
+                      <h3>{lead.title}</h3>
+                      <p>{lead.description}</p>
                     </div>
 
-                    <h3>{lead.title}</h3>
-                    <p>Regionaler Lead mit vollständigen Basisdaten.</p>
-                  </div>
-
-                  <div className="portal-price">
-                    <span>Leadpreis</span>
-                    <strong>{lead.price}</strong>
-                  </div>
-                </article>
-              ))}
+                    <div className="portal-price">
+                      <span>Leadpreis</span>
+                      <strong>{lead.price} Credits</strong>
+                    </div>
+                  </article>
+                ))
+              )}
             </div>
 
             <a href="/portal/leads" className="btn btn-primary portal-full-btn">
@@ -132,7 +152,11 @@ export default function PortalDashboardPage() {
 
               <div className="portal-action-list">
                 {quickActions.map((item) => (
-                  <a key={item.title} href={item.href} className="portal-action-card">
+                  <a
+                    key={item.title}
+                    href={item.href}
+                    className="portal-action-card"
+                  >
                     <div>
                       <h3>{item.title}</h3>
                       <p>{item.text}</p>
@@ -148,15 +172,16 @@ export default function PortalDashboardPage() {
               <h2>Firmenstatus</h2>
 
               <div className="portal-tags">
-                <span>Profil aktiv</span>
-                <span>Zahlung bereit</span>
-                <span>Region Zürich</span>
-                <span>Reinigung</span>
+                <span>{provider ? "Profil aktiv" : "Profil fehlt"}</span>
+                <span>{provider?.credits ?? 0} Credits</span>
+                <span>{provider?.region || "Region fehlt"}</span>
+                <span>{provider?.category || "Kategorie fehlt"}</span>
               </div>
 
               <p>
-                Dein Profil ist aktiv. Du kannst Leads prüfen, Kontakte
-                freischalten und dein Guthaben verwalten.
+                {provider
+                  ? "Dein Profil ist aktiv. Du kannst Leads prüfen, Kontakte freischalten und dein Guthaben verwalten."
+                  : "Es wurde noch kein Anbieter-Profil gefunden. Bitte registriere zuerst deine Firma."}
               </p>
             </div>
           </aside>
@@ -213,7 +238,8 @@ export default function PortalDashboardPage() {
         .portal-main-card,
         .portal-side-card,
         .portal-lead-card,
-        .portal-action-card {
+        .portal-action-card,
+        .portal-empty {
           border: 1px solid rgba(255, 255, 255, 0.1);
           background:
             linear-gradient(135deg, rgba(45, 88, 125, 0.22), rgba(15, 18, 35, 0.92)),
@@ -230,9 +256,10 @@ export default function PortalDashboardPage() {
         .portal-stat-card strong {
           display: block;
           font-size: 2rem;
-          line-height: 1;
+          line-height: 1.1;
           color: white;
           letter-spacing: -0.04em;
+          word-break: break-word;
         }
 
         .portal-stat-card span {
@@ -328,7 +355,7 @@ export default function PortalDashboardPage() {
 
         .portal-price {
           text-align: right;
-          min-width: 120px;
+          min-width: 140px;
         }
 
         .portal-price span {
@@ -340,8 +367,23 @@ export default function PortalDashboardPage() {
           display: block;
           margin-top: 6px;
           color: white;
-          font-size: 2rem;
+          font-size: 1.5rem;
           letter-spacing: -0.05em;
+        }
+
+        .portal-empty {
+          border-radius: 26px;
+          padding: 24px;
+        }
+
+        .portal-empty strong {
+          color: white;
+          font-size: 1.3rem;
+        }
+
+        .portal-empty p {
+          margin-top: 8px;
+          color: rgba(245, 248, 255, 0.62);
         }
 
         .portal-full-btn {
