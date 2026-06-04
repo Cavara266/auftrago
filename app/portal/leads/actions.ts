@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 
 const DEMO_PROVIDER_EMAIL =
-  process.env.DEMO_PROVIDER_EMAIL?.trim().toLowerCase() || "firma@test.ch";
+  process.env.DEMO_PROVIDER_EMAIL?.trim().toLowerCase() ||
+  "info@cavara-hauswartung.ch";
 
 export async function buyLeadAction(formData: FormData) {
   const leadId = String(formData.get("leadId") || "").trim();
@@ -43,30 +44,43 @@ export async function buyLeadAction(formData: FormData) {
   });
 
   if (existingPurchase) {
-    redirect("/portal/leads?message=already-bought");
+    redirect("/portal/meine-leads?message=already-bought");
   }
 
   if (provider.credits < lead.price) {
     redirect("/portal/leads?error=not-enough-credits");
   }
 
-  await prisma.$transaction([
-    prisma.provider.update({
-      where: { id: provider.id },
+  await prisma.$transaction(async (tx) => {
+    const freshProvider = await tx.provider.findUnique({
+      where: {
+        id: provider.id,
+      },
+    });
+
+    if (!freshProvider || freshProvider.credits < lead.price) {
+      redirect("/portal/leads?error=not-enough-credits");
+    }
+
+    await tx.provider.update({
+      where: {
+        id: provider.id,
+      },
       data: {
         credits: {
           decrement: lead.price,
         },
       },
-    }),
-    prisma.leadPurchase.create({
+    });
+
+    await tx.leadPurchase.create({
       data: {
         providerId: provider.id,
         leadId: lead.id,
         price: lead.price,
       },
-    }),
-  ]);
+    });
+  });
 
-  redirect("/portal/leads?message=purchased");
+  redirect("/portal/meine-leads?message=purchased");
 }
