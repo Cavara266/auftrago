@@ -1,346 +1,306 @@
-const creditStats = [
-  { value: "CHF 240", label: "Aktuelles Guthaben" },
-  { value: "7", label: "Heute kaufbare Leads" },
-  { value: "CHF 31", label: "Ø Leadpreis" },
-  { value: "21%", label: "Abschlussquote" },
-];
+import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 
-const packages = [
+export const dynamic = "force-dynamic";
+
+const DEMO_PROVIDER_EMAIL =
+  process.env.DEMO_PROVIDER_EMAIL?.trim().toLowerCase() ||
+  "info@cavara-hauswartung.ch";
+
+const creditPackages = [
   {
-    name: "Starter",
+    title: "Starter",
+    credits: 50,
+    price: "CHF 50",
+    description: "Ideal zum Testen und für einzelne Lead-Käufe.",
+  },
+  {
+    title: "Business",
+    credits: 120,
     price: "CHF 100",
-    credits: "100 Credits",
-    highlight: false,
-    text: "Ideal für kleinere Betriebe, die erste Leads testen und neue Regionen erschliessen möchten.",
-    perks: [
-      "Sofort aktivierbar",
-      "Für erste Lead-Käufe",
-      "Einfacher Einstieg",
-    ],
+    description: "Mehr Credits für aktive Anbieter mit regelmässigen Leads.",
   },
   {
-    name: "Growth",
+    title: "Pro",
+    credits: 300,
     price: "CHF 250",
-    credits: "270 Credits",
-    highlight: true,
-    text: "Die beste Wahl für Firmen, die regelmässig Leads kaufen und konstant neue Anfragen erhalten möchten.",
-    perks: [
-      "Mehr Credits zum besseren Preis",
-      "Ideal für aktive Anbieter",
-      "Stärker für laufende Akquise",
-    ],
-  },
-  {
-    name: "Pro",
-    price: "CHF 500",
-    credits: "575 Credits",
-    highlight: false,
-    text: "Für Unternehmen mit mehreren Regionen, höherem Volumen und klarer Wachstumsstrategie.",
-    perks: [
-      "Für intensiven Lead-Einkauf",
-      "Sehr gutes Preis-Leistungs-Verhältnis",
-      "Für skalierbare Akquise",
-    ],
+    description: "Für Anbieter, die laufend neue Aufträge freischalten.",
   },
 ];
 
-const transactions = [
-  {
-    date: "12.03.2026",
-    type: "Lead gekauft",
-    info: "Umzugsreinigung nach Wohnungsabgabe",
-    amount: "- CHF 28",
-    status: "Abgeschlossen",
-  },
-  {
-    date: "11.03.2026",
-    type: "Guthaben aufgeladen",
-    info: "Growth Paket",
-    amount: "+ CHF 250",
-    status: "Gutgeschrieben",
-  },
-  {
-    date: "10.03.2026",
-    type: "Lead gekauft",
-    info: "Privatumzug innerhalb Baden",
-    amount: "- CHF 35",
-    status: "Abgeschlossen",
-  },
-  {
-    date: "09.03.2026",
-    type: "Lead gekauft",
-    info: "Hauswartung Mehrfamilienhaus",
-    amount: "- CHF 42",
-    status: "Abgeschlossen",
-  },
-];
+async function addCreditsAction(formData: FormData) {
+  "use server";
 
-export default function PortalGuthabenPage() {
+  const credits = Number(formData.get("credits") || 0);
+
+  if (!credits) {
+    redirect("/portal/guthaben?error=invalid");
+  }
+
+  await prisma.provider.update({
+    where: {
+      email: DEMO_PROVIDER_EMAIL,
+    },
+    data: {
+      credits: {
+        increment: credits,
+      },
+    },
+  });
+
+  redirect("/portal/guthaben?message=success");
+}
+
+export default async function GuthabenPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ message?: string; error?: string }>;
+}) {
+  const params = await searchParams;
+
+  const provider = await prisma.provider.findUnique({
+    where: {
+      email: DEMO_PROVIDER_EMAIL,
+    },
+  });
+
   return (
     <main className="page">
-      <section className="hero" style={{ paddingBottom: "12px" }}>
+      <section className="credit-hero">
         <div className="container">
-          <span className="kicker">Credits & Guthaben</span>
-          <h1 style={{ maxWidth: "12ch" }}>Lade Guthaben auf. Kaufe mehr Leads.</h1>
-          <p className="lead" style={{ maxWidth: "70ch" }}>
-            Ein klarer Guthabenbereich erhöht die Kaufbereitschaft. Firmen sollen
-            sofort sehen, wie viel Budget verfügbar ist, welche Pakete Sinn machen
-            und wie schnell sie neue Leads freischalten können.
-          </p>
+          <span className="eyebrow">Guthaben</span>
 
-          <div className="hero-actions">
-            <a href="/portal/leads" className="btn btn-secondary">
-              Leads ansehen
-            </a>
-            <a href="#pakete" className="btn btn-primary">
-              Guthaben aufladen
-            </a>
+          <div className="credit-head">
+            <div>
+              <h1>Credits aufladen.</h1>
+              <p>
+                Lade Guthaben auf, um Leads freizuschalten und direkt mit
+                potenziellen Kunden Kontakt aufzunehmen.
+              </p>
+            </div>
+
+            <div className="credit-actions">
+              <a href="/portal" className="btn btn-secondary">
+                Dashboard
+              </a>
+              <a href="/portal/leads" className="btn btn-primary">
+                Leads ansehen
+              </a>
+            </div>
           </div>
 
-          <div className="stats-grid" style={{ marginTop: "22px" }}>
-            {creditStats.map((item) => (
-              <div key={item.label} className="stat-card">
-                <strong>{item.value}</strong>
-                <span>{item.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+          {params?.message === "success" && (
+            <div className="credit-success">
+              Guthaben wurde erfolgreich aufgeladen.
+            </div>
+          )}
 
-      <section id="pakete" className="section">
-        <div className="container">
-          <div className="section-head">
-            <span className="section-kicker">Pakete</span>
-            <h2>Aufladepakete für aktive Anbieter</h2>
-            <p>
-              Diese Pakete sind so aufgebaut, dass Firmen schnell entscheiden und
-              ohne Reibung Guthaben nachladen können.
-            </p>
+          {params?.error === "invalid" && (
+            <div className="credit-error">
+              Das Guthaben konnte nicht aufgeladen werden.
+            </div>
+          )}
+
+          <div className="credit-overview">
+            <div className="credit-balance-card">
+              <span>Aktuelles Guthaben</span>
+              <strong>{provider?.credits ?? 0}</strong>
+              <small>Credits verfügbar</small>
+            </div>
+
+            <div className="credit-info-card">
+              <span>Firma</span>
+              <strong>{provider?.companyName || "Nicht gefunden"}</strong>
+              <small>{provider?.email || DEMO_PROVIDER_EMAIL}</small>
+            </div>
           </div>
 
-          <div className="credit-pack-grid">
-            {packages.map((pkg) => (
-              <article
-                key={pkg.name}
-                className={`panel credit-pack-card ${pkg.highlight ? "credit-pack-featured" : ""}`}
+          <div className="credit-packages">
+            {creditPackages.map((item) => (
+              <form
+                key={item.title}
+                action={addCreditsAction}
+                className="credit-package-card"
               >
-                <div className="provider-top">
-                  <span className={`badge ${pkg.highlight ? "white" : "soft"}`}>
-                    {pkg.highlight ? "Beliebtestes Paket" : "Lead-Paket"}
-                  </span>
-                </div>
+                <input type="hidden" name="credits" value={item.credits} />
 
-                <div style={{ marginTop: "18px" }}>
-                  <h3 style={{ margin: 0, fontSize: "2rem", letterSpacing: "-0.03em" }}>
-                    {pkg.name}
-                  </h3>
-                  <div
-                    style={{
-                      marginTop: "10px",
-                      fontSize: "2.2rem",
-                      fontWeight: 800,
-                      letterSpacing: "-0.05em",
-                    }}
-                  >
-                    {pkg.price}
-                  </div>
-                  <div
-                    style={{
-                      marginTop: "6px",
-                      color: "rgba(245,248,255,0.68)",
-                      fontSize: "1rem",
-                    }}
-                  >
-                    {pkg.credits}
-                  </div>
-                  <p style={{ marginTop: "16px" }}>{pkg.text}</p>
-                </div>
+                <span>{item.title}</span>
+                <h2>{item.credits} Credits</h2>
+                <p>{item.description}</p>
 
-                <div className="benefits" style={{ marginTop: "18px" }}>
-                  {pkg.perks.map((perk) => (
-                    <div key={perk} className="panel benefit-card" style={{ padding: "16px" }}>
-                      <h3 style={{ fontSize: "1rem", margin: 0 }}>{perk}</h3>
-                    </div>
-                  ))}
-                </div>
+                <div className="credit-price">{item.price}</div>
 
-                <div style={{ marginTop: "18px" }}>
-                  <button className="btn btn-primary btn-block">
-                    {pkg.name} Paket kaufen
-                  </button>
-                </div>
-              </article>
+                <button type="submit" className="btn btn-primary">
+                  Paket auswählen
+                </button>
+              </form>
             ))}
           </div>
         </div>
       </section>
-
-      <section className="section">
-        <div className="container">
-          <div className="portal-finance-grid">
-            <div className="panel pad-lg">
-              <div className="section-head" style={{ marginBottom: "18px" }}>
-                <span className="section-kicker">Kaufhistorie</span>
-                <h2>Letzte Transaktionen</h2>
-                <p>
-                  Transparenz ist wichtig. Firmen sollen Käufe, Aufladungen und
-                  Bewegungen sofort nachvollziehen können.
-                </p>
-              </div>
-
-              <div className="transaction-list">
-                {transactions.map((item) => (
-                  <div key={`${item.date}-${item.info}`} className="transaction-row">
-                    <div>
-                      <div className="transaction-title">{item.type}</div>
-                      <div className="transaction-info">{item.info}</div>
-                    </div>
-
-                    <div>
-                      <div className="transaction-date">{item.date}</div>
-                      <div className="transaction-status">{item.status}</div>
-                    </div>
-
-                    <div className="transaction-amount">{item.amount}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ display: "grid", gap: "22px" }}>
-              <div className="panel pad-lg">
-                <div className="section-head" style={{ marginBottom: "14px" }}>
-                  <span className="section-kicker">Warum mehr Guthaben?</span>
-                  <h2 style={{ fontSize: "2rem" }}>Mehr Budget = mehr Chancen</h2>
-                </div>
-
-                <div className="tag-list" style={{ marginTop: 0 }}>
-                  <span className="tag">Mehr Leads sofort kaufbar</span>
-                  <span className="tag">Schneller reagieren</span>
-                  <span className="tag">Weniger Unterbrechungen</span>
-                  <span className="tag">Bessere Akquiseplanung</span>
-                </div>
-
-                <p style={{ marginTop: "18px", color: "rgba(245,248,255,0.76)", lineHeight: 1.8 }}>
-                  Firmen mit verfügbarem Guthaben reagieren schneller, kaufen öfter
-                  relevante Leads und erhöhen damit ihre Abschlusschancen deutlich.
-                </p>
-
-                <div style={{ marginTop: "18px" }}>
-                  <button className="btn btn-primary btn-block">Jetzt Guthaben aufladen</button>
-                </div>
-              </div>
-
-              <div className="panel pad-lg">
-                <div className="section-head" style={{ marginBottom: "12px" }}>
-                  <span className="section-kicker">Zahlung</span>
-                  <h2 style={{ fontSize: "2rem" }}>Sicher & einfach</h2>
-                </div>
-
-                <div className="benefits" style={{ marginTop: 0 }}>
-                  <div className="panel benefit-card" style={{ padding: "16px" }}>
-                    <h3 style={{ fontSize: "1rem" }}>Kartenzahlung</h3>
-                    <p>Schnelle Freischaltung direkt nach erfolgreicher Zahlung.</p>
-                  </div>
-                  <div className="panel benefit-card" style={{ padding: "16px" }}>
-                    <h3 style={{ fontSize: "1rem" }}>Rechnung / Bank</h3>
-                    <p>Geeignet für Firmen mit internen Freigaben oder Buchhaltung.</p>
-                  </div>
-                  <div className="panel benefit-card" style={{ padding: "16px" }}>
-                    <h3 style={{ fontSize: "1rem" }}>Volle Übersicht</h3>
-                    <p>Alle Bewegungen klar im Portal dokumentiert und nachvollziehbar.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="footer-space" />
 
       <style>{`
-        .credit-pack-grid {
+        .credit-hero {
+          padding: 72px 0 90px;
+        }
+
+        .credit-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          gap: 24px;
+          margin-top: 18px;
+          margin-bottom: 28px;
+        }
+
+        .credit-head h1 {
+          color: white;
+          font-size: clamp(3.2rem, 8vw, 7rem);
+          line-height: 0.92;
+          letter-spacing: -0.07em;
+        }
+
+        .credit-head p {
+          max-width: 760px;
+          margin-top: 22px;
+          color: rgba(245, 248, 255, 0.68);
+          font-size: 1.15rem;
+          line-height: 1.65;
+        }
+
+        .credit-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+
+        .credit-success,
+        .credit-error {
+          margin: 22px 0;
+          width: fit-content;
+          border-radius: 18px;
+          padding: 14px 18px;
+          font-weight: 900;
+        }
+
+        .credit-success {
+          border: 1px solid rgba(34,197,94,0.24);
+          background: rgba(34,197,94,0.12);
+          color: #dcfce7;
+        }
+
+        .credit-error {
+          border: 1px solid rgba(244,63,94,0.24);
+          background: rgba(244,63,94,0.12);
+          color: #ffe4e6;
+        }
+
+        .credit-overview {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 18px;
+          margin-bottom: 24px;
+        }
+
+        .credit-balance-card,
+        .credit-info-card,
+        .credit-package-card {
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 34px;
+          background:
+            linear-gradient(135deg, rgba(45,88,125,0.22), rgba(15,18,35,0.94)),
+            rgba(255,255,255,0.04);
+          box-shadow: 0 30px 80px rgba(0,0,0,0.28);
+          padding: 30px;
+        }
+
+        .credit-balance-card span,
+        .credit-info-card span,
+        .credit-package-card span {
+          display: block;
+          color: rgba(245,248,255,0.52);
+          font-weight: 900;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          font-size: 0.78rem;
+        }
+
+        .credit-balance-card strong,
+        .credit-info-card strong {
+          display: block;
+          color: white;
+          font-size: clamp(2.3rem, 5vw, 4.8rem);
+          line-height: 1;
+          margin-top: 12px;
+          letter-spacing: -0.06em;
+        }
+
+        .credit-balance-card small,
+        .credit-info-card small {
+          display: block;
+          margin-top: 10px;
+          color: rgba(245,248,255,0.58);
+          font-weight: 800;
+        }
+
+        .credit-packages {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 22px;
-        }
-
-        .credit-pack-card {
-          padding: 26px;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .credit-pack-featured {
-          border-color: rgba(255,255,255,0.2);
-          box-shadow: 0 28px 60px rgba(0,0,0,0.28);
-        }
-
-        .credit-pack-featured::before {
-          content: "";
-          position: absolute;
-          inset: -20% -20% auto auto;
-          width: 220px;
-          height: 220px;
-          border-radius: 999px;
-          background: radial-gradient(circle, rgba(95,173,255,0.16), transparent 70%);
-          pointer-events: none;
-        }
-
-        .portal-finance-grid {
-          display: grid;
-          grid-template-columns: 1.15fr 0.85fr;
-          gap: 22px;
-        }
-
-        .transaction-list {
-          display: grid;
-          gap: 14px;
-        }
-
-        .transaction-row {
-          display: grid;
-          grid-template-columns: 1fr auto auto;
           gap: 18px;
-          align-items: center;
-          padding: 18px 20px;
-          border-radius: 22px;
-          border: 1px solid rgba(255,255,255,0.08);
-          background: rgba(255,255,255,0.04);
         }
 
-        .transaction-title {
-          font-weight: 800;
-          letter-spacing: -0.02em;
+        .credit-package-card {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          min-height: 360px;
         }
 
-        .transaction-info,
-        .transaction-date,
-        .transaction-status {
-          margin-top: 4px;
-          color: rgba(245,248,255,0.68);
-          font-size: 0.95rem;
+        .credit-package-card h2 {
+          margin-top: 14px;
+          color: white;
+          font-size: clamp(2rem, 4vw, 3.6rem);
+          line-height: 1;
+          letter-spacing: -0.06em;
         }
 
-        .transaction-amount {
-          font-size: 1.1rem;
-          font-weight: 800;
-          letter-spacing: -0.02em;
-          white-space: nowrap;
+        .credit-package-card p {
+          margin-top: 16px;
+          color: rgba(245,248,255,0.66);
+          line-height: 1.65;
         }
 
-        @media (max-width: 1100px) {
-          .credit-pack-grid,
-          .portal-finance-grid {
+        .credit-price {
+          margin-top: auto;
+          margin-bottom: 22px;
+          color: white;
+          font-size: 2rem;
+          font-weight: 900;
+          letter-spacing: -0.05em;
+        }
+
+        @media (max-width: 1050px) {
+          .credit-head {
+            align-items: flex-start;
+            flex-direction: column;
+          }
+
+          .credit-overview,
+          .credit-packages {
             grid-template-columns: 1fr;
           }
         }
 
-        @media (max-width: 768px) {
-          .transaction-row {
-            grid-template-columns: 1fr;
+        @media (max-width: 640px) {
+          .credit-hero {
+            padding: 46px 0 70px;
+          }
+
+          .credit-balance-card,
+          .credit-info-card,
+          .credit-package-card {
+            padding: 22px;
+            border-radius: 26px;
           }
         }
       `}</style>
