@@ -1,23 +1,47 @@
+import Link from "next/link";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { buyLeadAction } from "./actions";
+
+export const dynamic = "force-dynamic";
 
 type PageProps = {
   searchParams?: Promise<{
     error?: string;
     message?: string;
+    region?: string;
+    category?: string;
   }>;
 };
 
-const DEMO_PROVIDER_EMAIL =
-  process.env.DEMO_PROVIDER_EMAIL?.trim().toLowerCase() ||
-  "info@cavara-hauswartung.ch";
+const regions = [
+  "Aargau",
+  "Zürich",
+  "Bern",
+  "Luzern",
+  "Basel",
+  "Solothurn",
+  "Zug",
+  "St. Gallen",
+];
+
+const categories = [
+  "Hauswartung",
+  "Reinigung",
+  "Gartenpflege",
+  "Maler",
+  "Gipser",
+  "Sanitär",
+  "Elektriker",
+  "Umzug",
+  "Entsorgung",
+];
 
 function getErrorMessage(error?: string) {
   switch (error) {
     case "invalid-lead":
       return "Der Lead konnte nicht verarbeitet werden.";
-    case "provider-missing":
-      return "Es wurde noch kein Anbieter-Profil für den Kaufprozess gefunden.";
     case "lead-not-found":
       return "Der ausgewählte Lead wurde nicht gefunden.";
     case "not-enough-credits":
@@ -30,23 +54,29 @@ function getErrorMessage(error?: string) {
 function getInfoMessage(message?: string) {
   switch (message) {
     case "purchased":
-      return "Lead erfolgreich gekauft. Die Kontaktdaten sind jetzt freigeschaltet.";
+      return "Lead erfolgreich gekauft.";
     case "already-bought":
-      return "Dieser Lead wurde bereits gekauft und ist schon freigeschaltet.";
+      return "Dieser Lead wurde bereits gekauft.";
     default:
       return "";
   }
 }
 
 export default async function PortalLeadsPage({ searchParams }: PageProps) {
-  const params = await searchParams;
-  const errorMessage = getErrorMessage(params?.error);
-  const infoMessage = getInfoMessage(params?.message);
+  const params = searchParams ? await searchParams : undefined;
+
+  const selectedRegion = params?.region || "";
+  const selectedCategory = params?.category || "";
+
+  const cookieStore = await cookies();
+  const providerId = cookieStore.get("auftrago_session")?.value;
+
+  if (!providerId) {
+    redirect("/login");
+  }
 
   const provider = await prisma.provider.findUnique({
-    where: {
-      email: DEMO_PROVIDER_EMAIL,
-    },
+    where: { id: providerId },
     include: {
       purchases: {
         select: {
@@ -56,322 +86,276 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
     },
   });
 
+  if (!provider) {
+    redirect("/login");
+  }
+
   const leads = await prisma.lead.findMany({
+    where: {
+      ...(selectedRegion ? { region: selectedRegion } : {}),
+      ...(selectedCategory ? { category: selectedCategory } : {}),
+    },
     orderBy: {
       createdAt: "desc",
     },
   });
 
+  const sortedLeads = [...leads].sort((a, b) => {
+    const aMatch =
+      a.region === provider.region || a.category === provider.category;
+    const bMatch =
+      b.region === provider.region || b.category === provider.category;
+
+    if (aMatch === bMatch) {
+      return b.createdAt.getTime() - a.createdAt.getTime();
+    }
+
+    return aMatch ? -1 : 1;
+  });
+
   const purchasedLeadIds = new Set(
-    provider?.purchases.map((purchase) => purchase.leadId) || []
+    provider.purchases.map((purchase) => purchase.leadId)
   );
+
+  const errorMessage = getErrorMessage(params?.error);
+  const infoMessage = getInfoMessage(params?.message);
 
   return (
     <main className="page">
-      <section className="hero" style={{ paddingBottom: "10px" }}>
+      <section className="lead-market-hero">
         <div className="container">
           <span className="eyebrow">Lead-Marketplace</span>
 
-          <h1 style={{ maxWidth: "12ch" }}>
-            Neue Leads einkaufen.
-          </h1>
+          <div className="lead-market-head">
+            <div>
+              <h1>Neue Leads einkaufen.</h1>
+              <p>
+                Filtere passende Anfragen nach Region und Kategorie. Relevante
+                Leads für dein Profil werden automatisch zuerst angezeigt.
+              </p>
+            </div>
 
-          <p className="lead" style={{ maxWidth: "70ch" }}>
-            Hier sehen Anbieter neue Anfragen, prüfen Preis und Relevanz und
-            schalten nach dem Kauf die vollständigen Kontaktdaten frei.
-          </p>
+            <div className="lead-market-actions">
+              <Link href="/portal" className="btn btn-secondary">
+                Zum Dashboard
+              </Link>
 
-          <div className="hero-actions">
-            <a href="/portal" className="btn btn-secondary">
-              Zum Dashboard
-            </a>
-
-            <a href="/portal/guthaben" className="btn btn-primary">
-              Guthaben aufladen
-            </a>
+              <Link href="/portal/guthaben" className="btn btn-primary">
+                Guthaben aufladen
+              </Link>
+            </div>
           </div>
 
-          <div className="stats-grid" style={{ marginTop: "22px" }}>
-            <div className="stat-card">
-              <strong>{provider?.credits ?? 0}</strong>
+          <div className="lead-market-stats">
+            <div className="lead-market-stat">
+              <strong>{provider.credits}</strong>
               <span>Verfügbare Credits</span>
             </div>
 
-            <div className="stat-card">
-              <strong>{leads.length}</strong>
-              <span>Aktive Leads</span>
+            <div className="lead-market-stat">
+              <strong>{sortedLeads.length}</strong>
+              <span>Gefundene Leads</span>
             </div>
 
-            <div className="stat-card">
+            <div className="lead-market-stat">
               <strong>{purchasedLeadIds.size}</strong>
               <span>Bereits gekauft</span>
             </div>
 
-            <div className="stat-card">
-              <strong>{provider?.region || "—"}</strong>
-              <span>Aktive Hauptregion</span>
+            <div className="lead-market-stat">
+              <strong>{provider.region || "—"}</strong>
+              <span>Deine Region</span>
             </div>
           </div>
 
-          {errorMessage && (
-            <div
-              style={{
-                marginTop: "18px",
-                padding: "14px 16px",
-                borderRadius: "16px",
-                border: "1px solid rgba(244,63,94,0.25)",
-                background: "rgba(244,63,94,0.12)",
-                color: "#ffe4e6",
-              }}
-            >
-              {errorMessage}
-            </div>
-          )}
+          {errorMessage ? (
+            <div className="lead-market-error">{errorMessage}</div>
+          ) : null}
 
-          {infoMessage && (
-            <div
-              style={{
-                marginTop: "18px",
-                padding: "14px 16px",
-                borderRadius: "16px",
-                border: "1px solid rgba(125,211,252,0.22)",
-                background: "rgba(125,211,252,0.12)",
-                color: "#e0f2fe",
-              }}
-            >
-              {infoMessage}
-            </div>
-          )}
+          {infoMessage ? (
+            <div className="lead-market-success">{infoMessage}</div>
+          ) : null}
         </div>
       </section>
 
-      <section className="section">
-        <div className="container">
-          {!provider && (
-            <div className="panel pad-lg" style={{ marginBottom: "22px" }}>
-              <div className="section-head" style={{ marginBottom: 0 }}>
-                <span className="section-kicker">Wichtig</span>
-                <h2>Anbieter-Profil fehlt</h2>
+      <section className="lead-market-section">
+        <div className="container lead-market-layout">
+          <div className="lead-market-list">
+            <form className="lead-market-filter" action="/portal/leads">
+              <div>
+                <label>Region</label>
+                <select name="region" defaultValue={selectedRegion}>
+                  <option value="">Alle Regionen</option>
+                  {regions.map((region) => (
+                    <option key={region} value={region}>
+                      {region}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label>Kategorie</label>
+                <select name="category" defaultValue={selectedCategory}>
+                  <option value="">Alle Kategorien</option>
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button type="submit" className="btn btn-primary">
+                Filter anwenden
+              </button>
+
+              <Link href="/portal/leads" className="btn btn-secondary">
+                Zurücksetzen
+              </Link>
+            </form>
+
+            {sortedLeads.length === 0 ? (
+              <div className="lead-market-empty">
+                <span>Keine Leads gefunden</span>
+                <h2>Für diese Filter gibt es aktuell keine Leads.</h2>
                 <p>
-                  Damit der Kaufprozess funktioniert, muss ein Provider-Datensatz
-                  mit der E-Mail <strong>{DEMO_PROVIDER_EMAIL}</strong> existieren.
+                  Entferne den Filter oder prüfe später erneut neue Anfragen.
                 </p>
               </div>
-            </div>
-          )}
+            ) : (
+              sortedLeads.map((lead) => {
+                const isBought = purchasedLeadIds.has(lead.id);
+                const hasEnoughCredits = provider.credits >= lead.price;
+                const isMatching =
+                  lead.region === provider.region ||
+                  lead.category === provider.category;
 
-          <div
-            className="leads-layout-live"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1.15fr 0.85fr",
-              gap: "22px",
-            }}
-          >
-            <div className="providers">
-              {leads.length === 0 ? (
-                <div className="panel pad-lg">
-                  <div className="section-head" style={{ marginBottom: 0 }}>
-                    <span className="section-kicker">Keine Leads</span>
-                    <h2>Aktuell sind noch keine Leads vorhanden</h2>
-                    <p>
-                      Sobald neue Anfragen in der Datenbank angelegt werden,
-                      erscheinen sie hier automatisch.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                leads.map((lead) => {
-                  const isBought = purchasedLeadIds.has(lead.id);
-
-                  return (
-                    <article key={lead.id} className="panel provider-card">
-                      <div className="provider-top">
-                        <span className={`badge ${isBought ? "white" : "soft"}`}>
-                          {isBought ? "Freigeschaltet" : "Neu"}
-                        </span>
-                        <span className="badge soft">{lead.category}</span>
-                        <span className="badge soft">{lead.region}</span>
+                return (
+                  <article key={lead.id} className="lead-market-card">
+                    <div className="lead-market-card-main">
+                      <div className="lead-market-badges">
+                        <span>{isBought ? "Freigeschaltet" : "Neu"}</span>
+                        {isMatching ? <span>Passend</span> : null}
+                        <span>{lead.category}</span>
+                        <span>{lead.region}</span>
                       </div>
 
-                      <div className="provider-layout">
-                        <div>
-                          <h3>{lead.title}</h3>
-                          <p>{lead.description}</p>
+                      <h2>{lead.title}</h2>
+                      <p>{lead.description}</p>
 
-                          <div className="tag-list">
-                            <span className="tag">
-                              Preis: {lead.price} Credits
-                            </span>
-                            <span className="tag">
-                              Erstellt:{" "}
-                              {new Intl.DateTimeFormat("de-CH").format(
-                                lead.createdAt
-                              )}
-                            </span>
-                            <span className="tag">
-                              Status:{" "}
-                              {isBought
-                                ? "Kontaktdaten sichtbar"
-                                : "Kontaktdaten gesperrt"}
-                            </span>
-                          </div>
+                      <div className="lead-market-meta">
+                        <span>Preis: {lead.price} Credits</span>
+                        <span>
+                          Erstellt:{" "}
+                          {new Intl.DateTimeFormat("de-CH").format(
+                            lead.createdAt
+                          )}
+                        </span>
+                        <span>
+                          Status:{" "}
+                          {isBought
+                            ? "Kontaktdaten sichtbar"
+                            : "Kontaktdaten gesperrt"}
+                        </span>
+                      </div>
 
-                          <div
-                            style={{
-                              marginTop: "18px",
-                              padding: "18px",
-                              borderRadius: "22px",
-                              border: "1px solid rgba(255,255,255,0.08)",
-                              background: "rgba(255,255,255,0.04)",
-                            }}
-                          >
-                            <div
-                              style={{
-                                fontSize: "0.82rem",
-                                textTransform: "uppercase",
-                                letterSpacing: "0.16em",
-                                color: "rgba(245,248,255,0.5)",
-                              }}
-                            >
-                              Kontaktdaten
+                      <div className="lead-market-contact">
+                        <span>Kontaktdaten</span>
+
+                        {isBought ? (
+                          <div className="lead-market-contact-grid">
+                            <div>
+                              <small>Name</small>
+                              <strong>{lead.name}</strong>
                             </div>
 
-                            {isBought ? (
-                              <div style={{ marginTop: "12px", lineHeight: 1.9 }}>
-                                <div>
-                                  <strong>Name:</strong> {lead.name}
-                                </div>
-                                <div>
-                                  <strong>E-Mail:</strong> {lead.email}
-                                </div>
-                                <div>
-                                  <strong>Telefon:</strong> {lead.phone}
-                                </div>
-                              </div>
-                            ) : (
-                              <div
-                                style={{
-                                  marginTop: "12px",
-                                  color: "rgba(245,248,255,0.7)",
-                                }}
-                              >
-                                Nach dem Kauf werden Name, E-Mail und
-                                Telefonnummer freigeschaltet.
-                              </div>
-                            )}
+                            <div>
+                              <small>E-Mail</small>
+                              <strong>{lead.email}</strong>
+                            </div>
+
+                            <div>
+                              <small>Telefon</small>
+                              <strong>{lead.phone}</strong>
+                            </div>
                           </div>
-                        </div>
-
-                        <div className="rating-box">
-                          <div className="meta">Leadpreis</div>
-                          <div className="value">{lead.price}</div>
-                          <div className="reviews">Credits</div>
-
-                          <div className="actions">
-                            {isBought ? (
-                              <button
-                                className="btn btn-secondary btn-block"
-                                disabled
-                              >
-                                Bereits gekauft
-                              </button>
-                            ) : provider ? (
-                              <form action={buyLeadAction}>
-                                <input type="hidden" name="leadId" value={lead.id} />
-                                <button
-                                  type="submit"
-                                  className="btn btn-primary btn-block"
-                                >
-                                  Lead kaufen
-                                </button>
-                              </form>
-                            ) : (
-                              <button
-                                className="btn btn-secondary btn-block"
-                                disabled
-                              >
-                                Anbieter fehlt
-                              </button>
-                            )}
-
-                            <a
-                              href="/portal/guthaben"
-                              className="btn btn-secondary btn-block"
-                            >
-                              Credits aufladen
-                            </a>
-                          </div>
-                        </div>
+                        ) : (
+                          <p>
+                            Nach dem Kauf werden Name, E-Mail und Telefonnummer
+                            freigeschaltet.
+                          </p>
+                        )}
                       </div>
-                    </article>
-                  );
-                })
-              )}
-            </div>
+                    </div>
 
-            <div style={{ display: "grid", gap: "22px" }}>
-              <div className="panel pad-lg">
-                <div className="section-head" style={{ marginBottom: "14px" }}>
-                  <span className="section-kicker">Dein Konto</span>
-                  <h2 style={{ fontSize: "2rem" }}>Anbieterstatus</h2>
-                </div>
+                    <div className="lead-market-buybox">
+                      <span>Leadpreis</span>
+                      <strong>{lead.price}</strong>
+                      <small>Credits</small>
 
-                <div className="stats-grid" style={{ gridTemplateColumns: "1fr" }}>
-                  <div className="stat-card">
-                    <strong>{provider?.credits ?? 0}</strong>
-                    <span>Aktuelle Credits</span>
-                  </div>
+                      <div className="lead-market-buy-actions">
+                        {isBought ? (
+                          <button type="button" className="btn btn-secondary" disabled>
+                            Bereits gekauft
+                          </button>
+                        ) : hasEnoughCredits ? (
+                          <form action={buyLeadAction}>
+                            <input type="hidden" name="leadId" value={lead.id} />
+                            <button type="submit" className="btn btn-primary">
+                              Lead kaufen
+                            </button>
+                          </form>
+                        ) : (
+                          <Link href="/portal/guthaben" className="btn btn-primary">
+                            Credits aufladen
+                          </Link>
+                        )}
 
-                  <div className="stat-card">
-                    <strong>{provider?.companyName || "Nicht vorhanden"}</strong>
-                    <span>Firma</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="panel pad-lg">
-                <div className="section-head" style={{ marginBottom: "10px" }}>
-                  <span className="section-kicker">So funktioniert’s</span>
-                  <h2 style={{ fontSize: "2rem" }}>Lead-Kauf Flow</h2>
-                </div>
-
-                <div className="benefits" style={{ marginTop: 0 }}>
-                  <div className="panel benefit-card" style={{ padding: "18px" }}>
-                    <h3 style={{ fontSize: "1.12rem" }}>1. Lead prüfen</h3>
-                    <p>Region, Kategorie und Preis vor dem Kauf ansehen.</p>
-                  </div>
-
-                  <div className="panel benefit-card" style={{ padding: "18px" }}>
-                    <h3 style={{ fontSize: "1.12rem" }}>2. Credits einsetzen</h3>
-                    <p>
-                      Beim Kauf werden Credits automatisch vom Anbieter-Konto
-                      abgezogen.
-                    </p>
-                  </div>
-
-                  <div className="panel benefit-card" style={{ padding: "18px" }}>
-                    <h3 style={{ fontSize: "1.12rem" }}>3. Kontakt erhalten</h3>
-                    <p>
-                      Nach erfolgreichem Kauf werden alle Kontaktdaten sichtbar.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+                        <Link href="/portal/meine-leads" className="btn btn-secondary">
+                          Meine Leads
+                        </Link>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })
+            )}
           </div>
+
+          <aside className="lead-market-sidebar">
+            <div className="lead-market-side-card">
+              <span>Dein Konto</span>
+              <h2>Anbieterstatus</h2>
+
+              <div className="lead-market-side-stat">
+                <strong>{provider.credits}</strong>
+                <span>Aktuelle Credits</span>
+              </div>
+
+              <div className="lead-market-side-stat">
+                <strong>{provider.companyName}</strong>
+                <span>Firma</span>
+              </div>
+
+              <div className="lead-market-side-stat">
+                <strong>{provider.category || "—"}</strong>
+                <span>Deine Kategorie</span>
+              </div>
+            </div>
+
+            <div className="lead-market-side-card">
+              <span>Filter-Tipp</span>
+              <h2>Passende Leads</h2>
+
+              <p>
+                Leads mit deiner Region oder Kategorie werden automatisch weiter
+                oben angezeigt. So findest du schneller relevante Aufträge.
+              </p>
+            </div>
+          </aside>
         </div>
       </section>
-
-      <div className="footer-space" />
-
-      <style>{`
-        @media (max-width: 1100px) {
-          .leads-layout-live {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
     </main>
   );
 }

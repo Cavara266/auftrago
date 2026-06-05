@@ -1,24 +1,32 @@
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const body = await req.json();
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  const adminSecret = process.env.ADMIN_SECRET;
 
-  if (body.password !== process.env.ADMIN_PASSWORD) {
+  if (!adminPassword || !adminSecret) {
     return NextResponse.json(
-      { ok: false },
-      { status: 401 }
+      { ok: false, error: "Admin Login ist nicht konfiguriert." },
+      { status: 500 }
     );
   }
 
-  const res = NextResponse.json({ ok: true });
+  const body = await req.json();
+  const password = String(body.password || "");
 
-  res.cookies.set("auftrago_admin", process.env.ADMIN_SECRET || "", {
+  if (password !== adminPassword) {
+    return NextResponse.json({ ok: false }, { status: 401 });
+  }
+
+  const response = NextResponse.json({ ok: true });
+
+  response.cookies.set("auftrago_admin", adminSecret, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 8,
   });
 
-  return res;
+  return response;
 }

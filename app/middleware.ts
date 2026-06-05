@@ -11,11 +11,18 @@ export function middleware(request: NextRequest) {
   const adminSession = request.cookies.get("auftrago_admin")?.value;
 
   if (isPortalRoute && !portalSession) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirect", pathname);
+
+    return NextResponse.redirect(loginUrl);
   }
 
-  if (isAdminRoute && adminSession !== process.env.ADMIN_SECRET) {
-    return NextResponse.redirect(new URL("/admin-login", request.url));
+  if (isAdminRoute) {
+    const adminSecret = process.env.ADMIN_SECRET;
+
+    if (!adminSecret || adminSession !== adminSecret) {
+      return NextResponse.redirect(new URL("/admin-login", request.url));
+    }
   }
 
   return NextResponse.next();

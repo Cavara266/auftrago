@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import bcrypt from "bcrypt";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
     const email = String(body.email || "").trim().toLowerCase();
-    const password = String(body.password || "").trim();
+    const password = String(body.password || "");
 
     if (!email || !password) {
       return NextResponse.json(
@@ -16,17 +17,28 @@ export async function POST(req: Request) {
     }
 
     const provider = await prisma.provider.findUnique({
-      where: { email },
+      where: {
+        email,
+      },
     });
 
-    if (!provider || provider.password !== password) {
+    if (!provider) {
       return NextResponse.json(
         { ok: false, error: "Login fehlgeschlagen." },
         { status: 401 }
       );
     }
 
-    const res = NextResponse.json({
+    const passwordIsValid = await bcrypt.compare(password, provider.password);
+
+    if (!passwordIsValid) {
+      return NextResponse.json(
+        { ok: false, error: "Login fehlgeschlagen." },
+        { status: 401 }
+      );
+    }
+
+    const response = NextResponse.json({
       ok: true,
       provider: {
         id: provider.id,
@@ -37,15 +49,15 @@ export async function POST(req: Request) {
       },
     });
 
-    res.cookies.set("auftrago_session", provider.id, {
+    response.cookies.set("auftrago_session", provider.id, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
     });
 
-    return res;
+    return response;
   } catch (error) {
     console.error("LOGIN ERROR:", error);
 

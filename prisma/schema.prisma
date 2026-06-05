@@ -8,24 +8,31 @@ datasource db {
 }
 
 model Provider {
-  id           String         @id @default(uuid())
-  email        String         @unique
+  id           String   @id @default(uuid())
+  email        String   @unique
   password     String
   companyName  String
   contactName  String
   phone        String?
   region       String?
   category     String?
-  credits      Int            @default(0)
+  credits      Int      @default(0)
 
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  website      String?
+  description  String?
+  address      String?
+  postalCode   String?
+  city         String?
 
-  purchases    LeadPurchase[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  purchases       LeadPurchase[]
+  creditPurchases CreditPurchase[]
 }
 
 model Lead {
-  id           String         @id @default(uuid())
+  id           String   @id @default(uuid())
   title        String
   description  String
 
@@ -37,22 +44,39 @@ model Lead {
   category     String
   price        Int
 
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   purchases    LeadPurchase[]
 }
 
 model LeadPurchase {
-  id           String    @id @default(uuid())
-  providerId   String
-  leadId       String
-  price        Int
+  id          String   @id @default(uuid())
+  providerId  String
+  leadId      String
+  price       Int
 
-  createdAt    DateTime  @default(now())
+  createdAt   DateTime @default(now())
 
-  provider     Provider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  lead         Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  provider    Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
 
   @@unique([providerId, leadId])
+}
+
+model CreditPurchase {
+  id              String   @id @default(uuid())
+  providerId      String
+  stripeSessionId String   @unique
+  packageId       String?
+
+  credits         Int
+  amount          Int
+  currency        String   @default("chf")
+  status          String   @default("paid")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  provider        Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
 }

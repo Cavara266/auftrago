@@ -1,8 +1,11 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function LoginForm() {
+  const router = useRouter();
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -12,30 +15,37 @@ export default function LoginForm() {
     setError("");
     setLoading(true);
 
-    const fd = new FormData(e.currentTarget);
+    const formData = new FormData(e.currentTarget);
 
-    const payload = {
-      email: String(fd.get("email") || "").trim(),
-      password: String(fd.get("password") || "").trim(),
-    };
+    const email = String(formData.get("email") || "").trim().toLowerCase();
+    const password = String(formData.get("password") || "");
+
+    if (!email || !password) {
+      setError("Bitte E-Mail und Passwort eingeben.");
+      setLoading(false);
+      return;
+    }
 
     try {
-      const res = await fetch("/api/login", {
+      const response = await fetch("/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          email,
+          password,
+        }),
       });
 
-      if (!res.ok) {
+      if (!response.ok) {
         setError("E-Mail oder Passwort ist falsch.");
         return;
       }
 
-      window.location.href = "/portal";
-    } catch (error) {
-      console.error(error);
+      router.push("/portal");
+      router.refresh();
+    } catch {
       setError("Login konnte nicht durchgeführt werden.");
     } finally {
       setLoading(false);
@@ -45,30 +55,34 @@ export default function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="auth-form">
       <div className="auth-field">
-        <label>E-Mail</label>
+        <label htmlFor="email">E-Mail</label>
         <input
+          id="email"
           name="email"
           type="email"
           placeholder="info@cavara-hauswartung.ch"
+          autoComplete="email"
           required
         />
       </div>
 
       <div className="auth-field">
-        <label>Passwort</label>
+        <label htmlFor="password">Passwort</label>
         <input
+          id="password"
           name="password"
           type="password"
           placeholder="Passwort"
+          autoComplete="current-password"
           required
         />
       </div>
 
+      {error ? <p className="auth-error">{error}</p> : null}
+
       <button type="submit" disabled={loading}>
         {loading ? "Einloggen..." : "Einloggen"}
       </button>
-
-      {error && <p className="text-red-400 mt-4">{error}</p>}
     </form>
   );
 }
