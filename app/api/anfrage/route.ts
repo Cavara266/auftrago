@@ -1,47 +1,92 @@
+import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
     const data = await req.json();
 
-    console.log("Empfangene Daten:", data);
+    const name = String(data.name || "").trim();
+    const phone = String(data.phone || "").trim();
+    const region = String(data.region || "").trim();
+    const email = String(data.email || "").trim();
+    const service = String(data.service || "").trim();
+    const start = String(data.start || "").trim();
+    const message = String(data.message || "").trim();
 
-  const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT),
-  secure: process.env.SMTP_SECURE === "true",
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+    if (!name || !phone || !region || !email || !service || !start || !message) {
+      return NextResponse.json(
+        { ok: false, error: "Bitte alle Pflichtfelder ausfüllen." },
+        { status: 400 }
+      );
+    }
 
-await transporter.sendMail({
-  from: process.env.MAIL_FROM,
-  to: process.env.MAIL_TO,
-  subject: data.typ || "Neue Anfrage",
-  text: `...`,
-});
+    const mailHost = process.env.MAIL_HOST;
+    const mailPort = Number(process.env.MAIL_PORT || 587);
+    const mailUser = process.env.MAIL_USER;
+    const mailPass = process.env.MAIL_PASS;
+    const mailTo = process.env.MAIL_TO;
+
+    if (!mailHost || !mailUser || !mailPass || !mailTo) {
+      console.error("ANFRAGE MAIL CONFIG MISSING", {
+        hasMailHost: Boolean(mailHost),
+        hasMailUser: Boolean(mailUser),
+        hasMailPass: Boolean(mailPass),
+        hasMailTo: Boolean(mailTo),
+      });
+
+      return NextResponse.json(
+        { ok: false, error: "Mail-Konfiguration fehlt." },
+        { status: 500 }
+      );
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: mailHost,
+      port: mailPort,
+      secure: mailPort === 465,
+      auth: {
+        user: mailUser,
+        pass: mailPass,
+      },
+    });
+
+    await transporter.verify();
 
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: "info@cavara-hauswartung.ch",
-      subject: data.typ || "Neue Anfrage",
-      text: JSON.stringify(data, null, 2),
+      from: `"Auftrago Anfrage" <${mailUser}>`,
+      to: mailTo,
+      replyTo: email,
+      subject: `Neue Auftrago Anfrage: ${service} in ${region}`,
+      text: `
+Neue Anfrage über Auftrago
+
+Name: ${name}
+Telefon: ${phone}
+E-Mail: ${email}
+Ort / Region: ${region}
+Dienstleistung: ${service}
+Start: ${start}
+
+Beschreibung:
+${message}
+      `.trim(),
     });
 
-    return Response.json({
-      ok: true,
-      message: "Anfrage erfolgreich gesendet",
+    console.log("ANFRAGE MAIL SENT", {
+      to: mailTo,
+      service,
+      region,
     });
-  } catch (error: any) {
-    console.error("MAIL FEHLER:", error);
 
-    return Response.json(
-      {
-        ok: false,
-        error: error?.message || "Unbekannter Fehler",
-      },
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("ANFRAGE MAIL ERROR:", error);
+
+    return NextResponse.json(
+      { ok: false, error: "Anfrage konnte nicht gesendet werden." },
       { status: 500 }
     );
   }
