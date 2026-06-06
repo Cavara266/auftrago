@@ -4008,3 +4008,22 @@ input[type="checkbox"] {
     text-align: left;
   }
 }
+.admin-price-help {
+  display: grid;
+  gap: 8px;
+  border-radius: 20px;
+  padding: 18px;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  color: rgba(245, 248, 255, 0.72);
+  font-size: 0.92rem;
+}
+
+.admin-price-help strong {
+  color: white;
+  font-size: 1rem;
+}
+
+.admin-price-help span {
+  display: block;
+}

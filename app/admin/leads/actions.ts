@@ -7,6 +7,26 @@ function cleanValue(value: FormDataEntryValue | null) {
   return String(value || "").trim();
 }
 
+function calculateLeadPrice(estimatedValue: number) {
+  if (estimatedValue <= 300) {
+    return 10;
+  }
+
+  if (estimatedValue <= 700) {
+    return 20;
+  }
+
+  if (estimatedValue <= 1500) {
+    return 35;
+  }
+
+  if (estimatedValue <= 3000) {
+    return 55;
+  }
+
+  return 80;
+}
+
 export async function createLeadAction(formData: FormData) {
   const title = cleanValue(formData.get("title"));
   const description = cleanValue(formData.get("description"));
@@ -15,7 +35,9 @@ export async function createLeadAction(formData: FormData) {
   const phone = cleanValue(formData.get("phone"));
   const region = cleanValue(formData.get("region"));
   const category = cleanValue(formData.get("category"));
-  const price = Number(formData.get("price") || 0);
+
+  const estimatedValue = Number(formData.get("estimatedValue") || 0);
+  const manualPrice = Number(formData.get("price") || 0);
 
   if (
     !title ||
@@ -28,6 +50,15 @@ export async function createLeadAction(formData: FormData) {
   ) {
     redirect("/admin/leads?error=missing-fields");
   }
+
+  if (!Number.isFinite(estimatedValue) || estimatedValue < 1) {
+    redirect("/admin/leads?error=invalid-value");
+  }
+
+  const price =
+    Number.isFinite(manualPrice) && manualPrice >= 1
+      ? manualPrice
+      : calculateLeadPrice(estimatedValue);
 
   if (!Number.isFinite(price) || price < 1) {
     redirect("/admin/leads?error=invalid-price");

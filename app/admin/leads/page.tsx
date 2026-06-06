@@ -25,6 +25,7 @@ const regions = [
 const categories = [
   "Hauswartung",
   "Reinigung",
+  "Fensterreinigung",
   "Gartenpflege",
   "Maler",
   "Gipser",
@@ -50,7 +51,9 @@ function getError(error?: string) {
     case "missing-fields":
       return "Bitte alle Pflichtfelder ausfüllen.";
     case "invalid-price":
-      return "Der Preis muss mindestens 1 Credit betragen.";
+      return "Der Leadpreis muss mindestens 1 Credit betragen.";
+    case "invalid-value":
+      return "Der geschätzte Auftragswert muss mindestens CHF 1 betragen.";
     case "invalid-lead":
       return "Der Lead konnte nicht gefunden werden.";
     default:
@@ -88,8 +91,8 @@ export default async function AdminLeadsPage({ searchParams }: PageProps) {
               <h1>Leads verwalten.</h1>
 
               <p>
-                Erstelle Kundenanfragen, verwalte bestehende Leads und stelle
-                sie direkt im Anbieter-Portal bereit.
+                Erstelle Kundenanfragen, berechne den Leadpreis automatisch und
+                stelle neue Aufträge direkt im Anbieter-Portal bereit.
               </p>
             </div>
 
@@ -111,12 +114,17 @@ export default async function AdminLeadsPage({ searchParams }: PageProps) {
               <div className="admin-card-head">
                 <span>Neuer Lead</span>
                 <h2>Kundenanfrage erfassen</h2>
+                <p>
+                  Gib den geschätzten Auftragswert ein. Der Leadpreis wird
+                  automatisch berechnet. Du kannst ihn optional manuell
+                  überschreiben.
+                </p>
               </div>
 
               <input
                 name="title"
                 className="admin-input"
-                placeholder="Titel z.B. Hauswartung Mehrfamilienhaus"
+                placeholder="Titel z.B. Fensterreinigung Grafstal"
                 required
               />
 
@@ -187,13 +195,30 @@ export default async function AdminLeadsPage({ searchParams }: PageProps) {
                 </select>
 
                 <input
-                  name="price"
+                  name="estimatedValue"
                   type="number"
                   min="1"
                   className="admin-input"
-                  placeholder="Preis Credits"
+                  placeholder="Auftragswert CHF z.B. 520"
                   required
                 />
+              </div>
+
+              <input
+                name="price"
+                type="number"
+                min="1"
+                className="admin-input"
+                placeholder="Leadpreis Credits optional, sonst automatisch"
+              />
+
+              <div className="admin-price-help">
+                <strong>Automatische Preislogik</strong>
+                <span>bis CHF 300 → 10 Credits</span>
+                <span>CHF 301–700 → 20 Credits</span>
+                <span>CHF 701–1'500 → 35 Credits</span>
+                <span>CHF 1'501–3'000 → 55 Credits</span>
+                <span>über CHF 3'000 → 80 Credits</span>
               </div>
 
               <button type="submit" className="btn btn-primary admin-submit">
@@ -237,7 +262,7 @@ export default async function AdminLeadsPage({ searchParams }: PageProps) {
                       </div>
 
                       <div className="admin-price">
-                        <span>Preis</span>
+                        <span>Leadpreis</span>
                         <strong>{lead.price}</strong>
                         <small>Credits</small>
 
