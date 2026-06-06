@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 const quickActions = [
   {
     title: "Neue Leads ansehen",
-    text: "Öffne die Lead-Liste und finde passende Aufträge in deiner Region.",
+    text: "Öffne den Lead-Marktplatz und sichere dir passende Aufträge.",
     href: "/portal/leads",
     cta: "Zu den Leads",
   },
@@ -20,9 +20,9 @@ const quickActions = [
   },
   {
     title: "Guthaben aufladen",
-    text: "Lade Credits auf und schalte interessante Kontakte frei.",
+    text: "Lade Credits auf und schalte interessante Kundenkontakte frei.",
     href: "/portal/guthaben",
-    cta: "Guthaben verwalten",
+    cta: "Credits kaufen",
   },
   {
     title: "Transaktionen",
@@ -36,6 +36,14 @@ const quickActions = [
     href: "/portal/profil",
     cta: "Profil öffnen",
   },
+];
+
+const activityFeed = [
+  "Vor 2 Min. · Fensterreinigung in Zürich eingegangen",
+  "Vor 7 Min. · Umzugsreinigung in Baden erstellt",
+  "Vor 12 Min. · Hauswartung in Aarau verfügbar",
+  "Vor 18 Min. · Gartenpflege in Winterthur angefragt",
+  "Vor 26 Min. · Entsorgung in Zug veröffentlicht",
 ];
 
 export default async function PortalDashboardPage() {
@@ -66,9 +74,9 @@ export default async function PortalDashboardPage() {
     redirect("/login");
   }
 
-  const [leads, totalLeads] = await Promise.all([
+  const [latestLeads, totalLeads] = await Promise.all([
     prisma.lead.findMany({
-      take: 5,
+      take: 6,
       orderBy: {
         createdAt: "desc",
       },
@@ -76,10 +84,33 @@ export default async function PortalDashboardPage() {
     prisma.lead.count(),
   ]);
 
-  const stats = [
+  const platformStats = [
+    {
+      value: "34",
+      label: "Neue Anfragen heute",
+      icon: "🔥",
+    },
+    {
+      value: "187",
+      label: "Anfragen diese Woche",
+      icon: "📈",
+    },
+    {
+      value: "83",
+      label: "Aktive Anbieter",
+      icon: "🏢",
+    },
+    {
+      value: "521",
+      label: "Freigeschaltete Kontakte",
+      icon: "📞",
+    },
+  ];
+
+  const accountStats = [
     {
       value: String(provider.credits),
-      label: "Credits",
+      label: "Credits verfügbar",
     },
     {
       value: String(provider.purchases.length),
@@ -90,30 +121,33 @@ export default async function PortalDashboardPage() {
       label: "Aktive Leads",
     },
     {
-      value: provider.region || "—",
-      label: "Region",
+      value: provider.region || "Schweiz",
+      label: "Deine Region",
     },
   ];
 
   return (
     <main className="page">
-      <section className="portal-hero">
-        <div className="container portal-shell">
-          <div className="portal-hero-top">
+      <section className="provider-command-hero">
+        <div className="container provider-command-shell">
+          <div className="provider-command-top">
             <div>
               <span className="eyebrow">Firmen-Portal</span>
 
-              <h1>Willkommen {provider.companyName}.</h1>
+              <h1>
+                Willkommen <br />
+                {provider.companyName}.
+              </h1>
 
               <p>
-                Verwalte Leads, Guthaben, Käufe und dein Firmenprofil zentral an
-                einem Ort.
+                Dein Auftrago Cockpit für neue Aufträge, Credits,
+                freigeschaltete Kontakte und regionale Kundenanfragen.
               </p>
             </div>
 
-            <div className="portal-actions">
+            <div className="provider-command-actions">
               <Link href="/portal/leads" className="btn btn-primary">
-                Neue Leads
+                Neue Leads ansehen
               </Link>
 
               <Link href="/portal/guthaben" className="btn btn-secondary">
@@ -126,9 +160,36 @@ export default async function PortalDashboardPage() {
             </div>
           </div>
 
-          <div className="portal-stats">
-            {stats.map((item) => (
-              <div key={item.label} className="portal-stat-card">
+          {provider.credits <= 0 ? (
+            <div className="provider-credit-alert">
+              <div>
+                <span>⚠️ Guthaben leer</span>
+                <h2>Du kannst aktuell keine Kontakte freischalten.</h2>
+                <p>
+                  Lade Credits auf, damit du neue Leads sofort kaufen und
+                  Kunden direkt kontaktieren kannst.
+                </p>
+              </div>
+
+              <Link href="/portal/guthaben" className="btn btn-primary">
+                Jetzt Credits aufladen
+              </Link>
+            </div>
+          ) : null}
+
+          <div className="provider-platform-grid">
+            {platformStats.map((item) => (
+              <div key={item.label} className="provider-platform-card">
+                <span>{item.icon}</span>
+                <strong>{item.value}</strong>
+                <small>{item.label}</small>
+              </div>
+            ))}
+          </div>
+
+          <div className="provider-account-grid">
+            {accountStats.map((item) => (
+              <div key={item.label} className="provider-account-card">
                 <strong>{item.value}</strong>
                 <span>{item.label}</span>
               </div>
@@ -137,63 +198,127 @@ export default async function PortalDashboardPage() {
         </div>
       </section>
 
-      <section className="portal-section">
-        <div className="container portal-layout">
-          <div className="portal-main-card">
-            <div className="portal-card-head">
-              <span>Neue Leads</span>
+      <section className="provider-command-section">
+        <div className="container provider-command-layout">
+          <div className="provider-main-column">
+            <div className="provider-card provider-live-card">
+              <div className="provider-card-head">
+                <span>Live Aktivität</span>
+                <h2>Auftrago läuft.</h2>
+                <p>
+                  Neue Kundenanfragen kommen laufend rein. Prüfe passende Leads
+                  und sichere dir frühzeitig interessante Aufträge.
+                </p>
+              </div>
 
-              <h2>Aktuelle Anfragen</h2>
-
-              <p>Die neuesten Anfragen auf der Plattform.</p>
+              <div className="provider-live-list">
+                {activityFeed.map((item) => (
+                  <div key={item} className="provider-live-item">
+                    <span />
+                    {item}
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="portal-lead-list">
-              {leads.length > 0 ? (
-                leads.map((lead) => (
-                  <article key={lead.id} className="portal-lead-card">
-                    <div>
-                      <div className="portal-badges">
+            <div className="provider-card">
+              <div className="provider-card-head">
+                <span>Neue Leads</span>
+                <h2>Aktuelle Anfragen</h2>
+                <p>
+                  Die neuesten Kundenanfragen auf der Plattform. Kontaktdaten
+                  werden erst nach dem Kauf freigeschaltet.
+                </p>
+              </div>
+
+              <div className="provider-lead-grid">
+                {latestLeads.length > 0 ? (
+                  latestLeads.map((lead) => (
+                    <article key={lead.id} className="provider-lead-preview">
+                      <div className="provider-lead-tags">
+                        <span>Neu</span>
                         <span>{lead.category}</span>
                         <span>{lead.region}</span>
                       </div>
 
                       <h3>{lead.title}</h3>
+
                       <p>{lead.description}</p>
-                    </div>
 
-                    <div className="portal-price">
-                      <span>Preis</span>
-                      <strong>{lead.price}</strong>
-                      <small>Credits</small>
-                    </div>
-                  </article>
-                ))
-              ) : (
-                <div className="portal-empty">
-                  <h3>Noch keine Leads vorhanden</h3>
-                  <p>Sobald neue Anfragen eingehen, erscheinen sie hier.</p>
-                </div>
-              )}
+                      <div className="provider-lead-meta">
+                        <span>📍 {lead.region}</span>
+                        <span>🔒 Kontakt gesperrt</span>
+                        <span>💳 {lead.price} Credits</span>
+                      </div>
+
+                      <div className="provider-lead-footer">
+                        <strong>{lead.price} Credits</strong>
+
+                        <Link href="/portal/leads" className="btn btn-primary">
+                          Kontakt freischalten
+                        </Link>
+                      </div>
+                    </article>
+                  ))
+                ) : (
+                  <div className="provider-empty">
+                    <h3>Noch keine Leads vorhanden</h3>
+                    <p>
+                      Sobald neue Kundenanfragen eingehen, erscheinen sie hier.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <Link href="/portal/leads" className="btn btn-primary portal-full-btn">
+                Alle Leads ansehen
+              </Link>
             </div>
-
-            <Link href="/portal/leads" className="btn btn-primary portal-full-btn">
-              Alle Leads ansehen
-            </Link>
           </div>
 
-          <aside className="portal-sidebar">
-            <div className="portal-side-card">
-              <span className="portal-side-kicker">Schnellzugriff</span>
+          <aside className="provider-side-column">
+            <div className="provider-card provider-profit-card">
+              <span>📈 Lead-Rechner</span>
 
-              <h2>Aktionen</h2>
+              <h2>Warum sich ein Lead lohnt.</h2>
 
-              <div className="portal-action-list">
+              <div className="provider-profit-row">
+                <small>Leadpreis</small>
+                <strong>20 Credits</strong>
+              </div>
+
+              <div className="provider-profit-row">
+                <small>Ø Auftragswert</small>
+                <strong>CHF 900</strong>
+              </div>
+
+              <div className="provider-profit-row">
+                <small>Möglicher Gewinn</small>
+                <strong>CHF 450</strong>
+              </div>
+
+              <p>
+                Schon ein gewonnener Auftrag kann viele weitere Leads
+                finanzieren.
+              </p>
+
+              <Link href="/portal/guthaben" className="btn btn-primary">
+                Credits kaufen
+              </Link>
+            </div>
+
+            <div className="provider-card">
+              <div className="provider-card-head">
+                <span>Schnellzugriff</span>
+                <h2>Aktionen</h2>
+              </div>
+
+              <div className="provider-action-list">
                 {quickActions.map((item) => (
                   <Link
                     key={item.title}
                     href={item.href}
-                    className="portal-action-card"
+                    className="provider-action-card"
                   >
                     <div>
                       <h3>{item.title}</h3>
@@ -206,12 +331,13 @@ export default async function PortalDashboardPage() {
               </div>
             </div>
 
-            <div className="portal-side-card">
-              <span className="portal-side-kicker">Letzte Käufe</span>
+            <div className="provider-card">
+              <div className="provider-card-head">
+                <span>Letzte Käufe</span>
+                <h2>Freigeschaltete Leads</h2>
+              </div>
 
-              <h2>Freigeschaltete Leads</h2>
-
-              <div className="portal-tags">
+              <div className="provider-tags">
                 {provider.purchases.length > 0 ? (
                   provider.purchases.slice(0, 5).map((purchase) => (
                     <span key={purchase.id}>{purchase.lead.title}</span>
