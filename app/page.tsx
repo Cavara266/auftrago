@@ -1,5 +1,9 @@
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 import HomeLeadForm from "@/components/home-lead-form";
+import LiveLeadFeed from "@/components/live-lead-feed";
+
+export const dynamic = "force-dynamic";
 
 const services = [
   {
@@ -62,7 +66,50 @@ const regions = [
   "Schweiz",
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const now = new Date();
+
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - 7);
+
+  const [latestLeads, todayCount, weekCount, totalCount] = await Promise.all([
+    prisma.lead.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 6,
+      select: {
+        id: true,
+        title: true,
+        region: true,
+        category: true,
+        price: true,
+        createdAt: true,
+      },
+    }),
+
+    prisma.lead.count({
+      where: {
+        createdAt: {
+          gte: startOfToday,
+        },
+      },
+    }),
+
+    prisma.lead.count({
+      where: {
+        createdAt: {
+          gte: startOfWeek,
+        },
+      },
+    }),
+
+    prisma.lead.count(),
+  ]);
+
   return (
     <main className="home-page premium-home">
       <section className="premium-hero">
@@ -70,9 +117,7 @@ export default function HomePage() {
           <div className="premium-hero-copy">
             <span className="eyebrow">Premium Offertenplattform Schweiz</span>
 
-            <h1>
-              In 60 Sekunden zur passenden Offerte.
-            </h1>
+            <h1>In 60 Sekunden zur passenden Offerte.</h1>
 
             <p>
               Auftrago hilft dir, schnell und unkompliziert passende Anbieter für
@@ -90,6 +135,7 @@ export default function HomePage() {
               <a href="#anfrage" className="btn btn-primary">
                 Kostenlose Offerte anfragen
               </a>
+
               <Link href="/anbieter" className="btn btn-secondary">
                 Anbieter werden
               </Link>
@@ -102,6 +148,13 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <LiveLeadFeed
+        leads={latestLeads}
+        todayCount={todayCount}
+        weekCount={weekCount}
+        totalCount={totalCount}
+      />
 
       <section className="premium-section">
         <div className="container premium-intro-card">
@@ -135,7 +188,9 @@ export default function HomePage() {
         <div className="container">
           <div className="section-head">
             <span className="eyebrow">Leistungen</span>
+
             <h2>Für starke lokale Dienstleister.</h2>
+
             <p>
               Auftrago bündelt Anfragen aus Bereichen, in denen Kunden oft schnell
               eine zuverlässige Firma benötigen. Dadurch entstehen bessere Anfragen,
@@ -177,6 +232,7 @@ export default function HomePage() {
             <Link href="/anbieter" className="btn btn-primary">
               Anbieter werden
             </Link>
+
             <Link href="/preise" className="btn btn-secondary">
               Preise ansehen
             </Link>
@@ -188,7 +244,9 @@ export default function HomePage() {
         <div className="container premium-region-card">
           <div>
             <span className="eyebrow">Regionen</span>
+
             <h2>Stark in Zürich, Aargau und der ganzen Schweiz.</h2>
+
             <p>
               Lokale Dienstleistungen brauchen Nähe. Deshalb setzt Auftrago auf
               regionale Anfragen und passende Anbieter aus der Umgebung.
@@ -206,7 +264,9 @@ export default function HomePage() {
       <section className="premium-final">
         <div className="container premium-final-card">
           <span className="eyebrow">Jetzt starten</span>
+
           <h2>Beschreibe deinen Auftrag einmal. Erhalte passende Offerten.</h2>
+
           <p>
             Kostenlos, unverbindlich und regional. Starte deine Anfrage in weniger
             als einer Minute und finde passende Anbieter ohne unnötigen Aufwand.
