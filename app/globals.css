@@ -4502,3 +4502,424 @@ input[type="checkbox"] {
     align-items: flex-start;
   }
 }
+.leadx-hero {
+  padding: 88px 0 42px;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(56, 189, 248, 0.24), transparent 32%),
+    radial-gradient(circle at 85% 0%, rgba(99, 102, 241, 0.28), transparent 34%),
+    linear-gradient(135deg, #020617, #0f172a 55%, #11133a);
+}
+
+.leadx-hero-shell {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.leadx-hero h1 {
+  margin-top: 18px;
+  color: white;
+  font-size: clamp(4rem, 10vw, 8.5rem);
+  line-height: 0.85;
+  letter-spacing: -0.085em;
+  max-width: 950px;
+}
+
+.leadx-hero p {
+  margin-top: 24px;
+  color: rgba(245, 248, 255, 0.7);
+  font-size: 1.2rem;
+  line-height: 1.7;
+  max-width: 780px;
+}
+
+.leadx-hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.leadx-hero-badges span {
+  border-radius: 999px;
+  padding: 10px 14px;
+  color: white;
+  font-weight: 900;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leadx-hero-actions {
+  display: grid;
+  gap: 12px;
+  min-width: 260px;
+}
+
+.leadx-section {
+  padding: 34px 0 90px;
+  background: #020617;
+}
+
+.leadx-error,
+.leadx-success {
+  border-radius: 22px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  color: white;
+  font-weight: 900;
+}
+
+.leadx-error {
+  background: rgba(239, 68, 68, 0.14);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.leadx-success {
+  background: rgba(34, 197, 94, 0.14);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.leadx-credit-warning {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  border-radius: 30px;
+  padding: 26px;
+  margin-bottom: 22px;
+  background:
+    radial-gradient(circle at top left, rgba(251, 191, 36, 0.18), transparent 34%),
+    rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.28);
+}
+
+.leadx-credit-warning span {
+  color: #fbbf24;
+  font-weight: 950;
+}
+
+.leadx-credit-warning h2 {
+  margin-top: 8px;
+  color: white;
+  font-size: clamp(1.8rem, 4vw, 3.2rem);
+  letter-spacing: -0.06em;
+}
+
+.leadx-credit-warning p {
+  margin-top: 8px;
+  color: rgba(245, 248, 255, 0.68);
+}
+
+.leadx-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 26px;
+}
+
+.leadx-stats div {
+  border-radius: 28px;
+  padding: 26px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leadx-stats strong {
+  display: block;
+  color: white;
+  font-size: clamp(2.3rem, 5vw, 4.6rem);
+  line-height: 1;
+  letter-spacing: -0.07em;
+}
+
+.leadx-stats span {
+  display: block;
+  margin-top: 10px;
+  color: rgba(245, 248, 255, 0.62);
+  font-weight: 850;
+}
+
+.leadx-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(330px, 0.75fr);
+  gap: 24px;
+}
+
+.leadx-filter {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto auto;
+  gap: 12px;
+  align-items: end;
+  border-radius: 30px;
+  padding: 22px;
+  margin-bottom: 22px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leadx-filter label {
+  display: block;
+  color: rgba(245, 248, 255, 0.68);
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.leadx-filter select {
+  width: 100%;
+  border-radius: 18px;
+  padding: 17px 16px;
+  color: white;
+  font-weight: 900;
+  background: rgba(2, 6, 23, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leadx-list {
+  display: grid;
+  gap: 22px;
+}
+
+.leadx-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 22px;
+  border-radius: 34px;
+  padding: 26px;
+  background:
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.12), transparent 34%),
+    rgba(15, 23, 42, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
+}
+
+.leadx-badges,
+.leadx-value-grid,
+.leadx-contact-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.leadx-badges span {
+  border-radius: 999px;
+  padding: 8px 11px;
+  color: rgba(245, 248, 255, 0.78);
+  background: rgba(255, 255, 255, 0.08);
+  font-weight: 900;
+  font-size: 0.82rem;
+}
+
+.leadx-card h2 {
+  margin-top: 16px;
+  color: white;
+  font-size: clamp(2.3rem, 5vw, 4.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.075em;
+}
+
+.leadx-card p {
+  margin-top: 16px;
+  color: rgba(245, 248, 255, 0.65);
+  font-size: 1.08rem;
+  line-height: 1.65;
+}
+
+.leadx-value-grid {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.leadx-value-grid div,
+.leadx-locked-box,
+.leadx-side-stat,
+.leadx-profit div {
+  border-radius: 22px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leadx-value-grid small,
+.leadx-contact-grid small,
+.leadx-side-stat small,
+.leadx-profit small {
+  display: block;
+  color: rgba(245, 248, 255, 0.52);
+  font-weight: 850;
+}
+
+.leadx-value-grid strong,
+.leadx-contact-grid strong,
+.leadx-side-stat strong,
+.leadx-profit strong {
+  display: block;
+  margin-top: 8px;
+  color: white;
+  font-size: 1.15rem;
+}
+
+.leadx-locked-box {
+  margin-top: 18px;
+}
+
+.leadx-locked-box > span {
+  display: block;
+  color: rgba(245, 248, 255, 0.48);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.8rem;
+  font-weight: 950;
+}
+
+.leadx-contact-grid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.leadx-buybox {
+  border-radius: 28px;
+  padding: 22px;
+  background:
+    radial-gradient(circle at top, rgba(99, 102, 241, 0.2), transparent 42%),
+    rgba(2, 6, 23, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  align-self: start;
+}
+
+.leadx-buy-top {
+  text-align: center;
+}
+
+.leadx-buy-top span {
+  color: rgba(245, 248, 255, 0.58);
+  font-weight: 900;
+}
+
+.leadx-buy-top strong {
+  display: block;
+  color: white;
+  font-size: 5rem;
+  line-height: 0.9;
+  letter-spacing: -0.08em;
+}
+
+.leadx-buy-top small {
+  color: rgba(245, 248, 255, 0.62);
+  font-weight: 900;
+}
+
+.leadx-fomo {
+  display: grid;
+  gap: 9px;
+  margin: 20px 0;
+}
+
+.leadx-fomo span {
+  border-radius: 14px;
+  padding: 10px 12px;
+  color: rgba(245, 248, 255, 0.76);
+  font-size: 0.9rem;
+  font-weight: 850;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.leadx-full {
+  width: 100%;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.leadx-sidebar {
+  display: grid;
+  gap: 22px;
+  align-content: start;
+}
+
+.leadx-side-card {
+  border-radius: 34px;
+  padding: 28px;
+  background:
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.11), transparent 34%),
+    rgba(15, 23, 42, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+}
+
+.leadx-side-card > span {
+  color: #38bdf8;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+
+.leadx-side-card h2 {
+  margin-top: 12px;
+  color: white;
+  font-size: clamp(2rem, 4vw, 3.8rem);
+  line-height: 0.95;
+  letter-spacing: -0.075em;
+}
+
+.leadx-side-card p {
+  margin-top: 16px;
+  color: rgba(245, 248, 255, 0.64);
+  line-height: 1.65;
+}
+
+.leadx-side-stat,
+.leadx-profit div {
+  margin-top: 14px;
+}
+
+.leadx-profit .btn {
+  margin-top: 20px;
+}
+
+.leadx-empty {
+  border-radius: 30px;
+  padding: 34px;
+  background: rgba(15, 23, 42, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leadx-empty span {
+  color: #38bdf8;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.leadx-empty h2 {
+  margin-top: 14px;
+  color: white;
+  font-size: 3rem;
+  letter-spacing: -0.07em;
+}
+
+.leadx-empty p {
+  margin-top: 12px;
+  color: rgba(245, 248, 255, 0.62);
+}
+
+@media (max-width: 1050px) {
+  .leadx-hero-shell,
+  .leadx-credit-warning {
+    flex-direction: column;
+  }
+
+  .leadx-hero-actions {
+    width: 100%;
+  }
+
+  .leadx-stats,
+  .leadx-layout,
+  .leadx-card,
+  .leadx-value-grid,
+  .leadx-contact-grid,
+  .leadx-filter {
+    grid-template-columns: 1fr;
+  }
+}
