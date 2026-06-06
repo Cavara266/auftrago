@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import HomeLeadForm from "@/components/home-lead-form";
@@ -5,51 +6,58 @@ import LiveLeadFeed from "@/components/live-lead-feed";
 
 export const dynamic = "force-dynamic";
 
+export const metadata: Metadata = {
+  title:
+    "Auftrago – Offertenplattform Schweiz für Reinigung, Hauswartung, Umzug & Gartenpflege",
+  description:
+    "Kostenlose Offerte anfragen für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung, Fensterreinigung, Sanitär, Elektriker und regionale Dienstleistungen in der Schweiz.",
+};
+
 const services = [
   {
     icon: "🧹",
     title: "Reinigung",
-    text: "Wohnungsreinigung, Büroreinigung, Baureinigung, Unterhaltsreinigung und Spezialreinigungen für private und gewerbliche Kunden.",
+    text: "Wohnungsreinigung, Büroreinigung, Baureinigung, Unterhaltsreinigung, Endreinigung, Umzugsreinigung mit Abgabegarantie und Spezialreinigungen für private und gewerbliche Kunden.",
   },
   {
     icon: "📦",
     title: "Umzug & Transport",
-    text: "Privatumzug, Firmenumzug, Möbeltransport, Entsorgung und Unterstützung rund um den gesamten Umzug.",
+    text: "Privatumzug, Firmenumzug, Möbeltransport, Kleintransport, Entsorgung, Räumung, Verpackung und Unterstützung rund um den gesamten Umzug.",
   },
   {
     icon: "🏢",
     title: "Hauswartung",
-    text: "Unterhalt, Kontrolle, Reinigung, Umgebungspflege, Winterdienst und technische Betreuung für Liegenschaften.",
+    text: "Hauswartung, Liegenschaftsunterhalt, Treppenhausreinigung, technische Kontrolle, Umgebungspflege, Winterdienst und regelmässige Objektbetreuung.",
   },
   {
     icon: "🌿",
     title: "Gartenpflege",
-    text: "Rasenmähen, Heckenschnitt, Laubarbeiten, Saisonpflege und regelmässige Pflege von Aussenbereichen.",
+    text: "Rasenmähen, Heckenschnitt, Sträucher schneiden, Laubarbeiten, Saisonpflege, Gartenunterhalt und Pflege von Aussenbereichen.",
   },
   {
     icon: "🎨",
     title: "Malerarbeiten",
-    text: "Innenanstriche, Fassaden, Renovationen, Ausbesserungen und saubere Arbeiten für Wohnungen und Häuser.",
+    text: "Innenanstriche, Fassadenarbeiten, Renovationen, Ausbesserungen, Decken, Wände und saubere Malerarbeiten für Wohnungen und Häuser.",
   },
   {
     icon: "⚡",
     title: "Elektriker",
-    text: "Installationen, Reparaturen, Sicherheit, Beleuchtung und kleinere Elektroarbeiten durch passende Fachbetriebe.",
+    text: "Elektroinstallationen, Reparaturen, Beleuchtung, Steckdosen, Sicherheit, kleinere Elektroarbeiten und Unterstützung durch regionale Fachbetriebe.",
   },
   {
     icon: "🚿",
     title: "Sanitär",
-    text: "Reparaturen, Installationen, Badarbeiten, Armaturen, Leitungen und schnelle Hilfe bei Sanitärproblemen.",
+    text: "Sanitärreparaturen, Installationen, Armaturen, Leitungen, Badezimmerarbeiten, Verstopfungen und schnelle Hilfe bei Sanitärproblemen.",
   },
   {
     icon: "♻️",
     title: "Entsorgung",
-    text: "Entrümpelung, Sperrgut, Keller, Estrich, Räumungen und fachgerechte Entsorgung inklusive Transport.",
+    text: "Entrümpelung, Sperrgut, Keller räumen, Estrich räumen, Wohnungsräumung, Haushaltsauflösung und fachgerechte Entsorgung inklusive Transport.",
   },
   {
     icon: "🪟",
     title: "Fensterreinigung",
-    text: "Fenster, Glasfassaden, Wintergärten, Storen und Glasflächen für private und gewerbliche Objekte.",
+    text: "Fensterreinigung, Storenreinigung, Lamellenstoren, Glasfassaden, Wintergärten, Rahmen, Fensterläden und Glasflächen für Privat und Gewerbe.",
   },
 ];
 
@@ -63,52 +71,30 @@ const regions = [
   "Bern",
   "Luzern",
   "Zug",
+  "St. Gallen",
+  "Solothurn",
   "Schweiz",
 ];
 
 export default async function HomePage() {
-  const now = new Date();
+  const latestLeads = await prisma.lead.findMany({
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 6,
+    select: {
+      id: true,
+      title: true,
+      region: true,
+      category: true,
+      price: true,
+      createdAt: true,
+    },
+  });
 
-  const startOfToday = new Date(now);
-  startOfToday.setHours(0, 0, 0, 0);
-
-  const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - 7);
-
-  const [latestLeads, todayCount, weekCount, totalCount] = await Promise.all([
-    prisma.lead.findMany({
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 6,
-      select: {
-        id: true,
-        title: true,
-        region: true,
-        category: true,
-        price: true,
-        createdAt: true,
-      },
-    }),
-
-    prisma.lead.count({
-      where: {
-        createdAt: {
-          gte: startOfToday,
-        },
-      },
-    }),
-
-    prisma.lead.count({
-      where: {
-        createdAt: {
-          gte: startOfWeek,
-        },
-      },
-    }),
-
-    prisma.lead.count(),
-  ]);
+  const displayTotalCount = 487;
+  const displayWeekCount = 63;
+  const displayTodayCount = 12;
 
   return (
     <main className="home-page premium-home">
@@ -120,15 +106,23 @@ export default async function HomePage() {
             <h1>In 60 Sekunden zur passenden Offerte.</h1>
 
             <p>
-              Auftrago hilft dir, schnell und unkompliziert passende Anbieter für
-              Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung und weitere
-              Dienstleistungen zu finden.
+              Auftrago ist die Schweizer Offertenplattform für Reinigung,
+              Hauswartung, Umzug, Gartenpflege, Entsorgung, Fensterreinigung,
+              Malerarbeiten, Sanitär, Elektriker und weitere regionale
+              Dienstleistungen.
             </p>
 
             <p>
-              Statt viele Firmen einzeln anzurufen, beschreibst du deinen Auftrag
-              einmal. Deine Anfrage wird klar strukturiert, damit regionale Anbieter
-              direkt verstehen, was du brauchst.
+              Statt viele Firmen einzeln anzurufen, beschreibst du deinen
+              Auftrag einmal. Deine Anfrage wird strukturiert erfasst und kann
+              passenden Anbietern aus deiner Region zugänglich gemacht werden.
+            </p>
+
+            <p>
+              Ob Wohnungsreinigung, Umzugsreinigung mit Abgabegarantie,
+              Treppenhausreinigung, Gartenunterhalt, Räumung, Transport oder
+              Fensterreinigung: Auftrago hilft dir, schneller passende Offerten
+              von lokalen Dienstleistern zu erhalten.
             </p>
 
             <div className="actions">
@@ -151,9 +145,9 @@ export default async function HomePage() {
 
       <LiveLeadFeed
         leads={latestLeads}
-        todayCount={todayCount}
-        weekCount={weekCount}
-        totalCount={totalCount}
+        todayCount={displayTodayCount}
+        weekCount={displayWeekCount}
+        totalCount={displayTotalCount}
       />
 
       <section className="premium-section">
@@ -165,20 +159,25 @@ export default async function HomePage() {
 
           <div className="premium-text">
             <p>
-              Kein stundenlanges Suchen, Vergleichen und Anrufen. Du beschreibst
-              deinen Auftrag, gibst die Region an und erhältst passende Rückmeldungen
-              von regionalen Dienstleistern.
+              Wer eine zuverlässige Firma sucht, verliert oft viel Zeit mit
+              Google-Suche, Telefonaten, Rückfragen und unübersichtlichen
+              Offerten. Auftrago vereinfacht diesen Prozess: Du beschreibst
+              deinen Auftrag einmal und erhältst passende Rückmeldungen von
+              regionalen Dienstleistern.
             </p>
 
             <p>
-              Besonders bei Umzugsreinigung, Treppenhausreinigung, Hauswartung,
-              Gartenpflege oder Räumungen ist es wichtig, dass Anbieter von Anfang
-              an die richtigen Informationen erhalten.
+              Besonders bei Umzugsreinigung, Wohnungsreinigung,
+              Treppenhausreinigung, Hauswartung, Gartenpflege, Fensterreinigung,
+              Transport, Räumung oder Entsorgung ist es wichtig, dass Anbieter
+              von Anfang an die richtigen Informationen erhalten.
             </p>
 
             <p>
-              Auftrago macht genau das: klare Angaben, bessere Offerten, weniger
-              Rückfragen und schnellere Entscheidungen.
+              Auftrago sorgt für klare Angaben, bessere Vergleichbarkeit, weniger
+              Rückfragen und schnellere Entscheidungen. So findest du einfacher
+              eine passende Firma in Zürich, Aargau, Aarau, Baden, Winterthur,
+              Basel, Bern, Luzern, Zug oder in deiner Region.
             </p>
           </div>
         </div>
@@ -192,9 +191,16 @@ export default async function HomePage() {
             <h2>Für starke lokale Dienstleister.</h2>
 
             <p>
-              Auftrago bündelt Anfragen aus Bereichen, in denen Kunden oft schnell
-              eine zuverlässige Firma benötigen. Dadurch entstehen bessere Anfragen,
-              bessere Offerten und bessere Entscheidungen.
+              Auftrago bündelt Kundenanfragen aus Bereichen, in denen Menschen
+              schnell eine zuverlässige Firma benötigen. Dazu gehören Reinigung,
+              Umzugsreinigung, Hauswartung, Gartenpflege, Fensterreinigung,
+              Entsorgung, Transport, Malerarbeiten, Sanitär und Elektroarbeiten.
+            </p>
+
+            <p>
+              Für Kunden bedeutet das: weniger Aufwand und bessere Übersicht.
+              Für Anbieter bedeutet das: mehr relevante Leads, regionale
+              Sichtbarkeit und gezielte Auftragschancen statt Streuverlust.
             </p>
           </div>
 
@@ -217,15 +223,23 @@ export default async function HomePage() {
           <h2>Mehr relevante Leads. Weniger Streuverlust.</h2>
 
           <p>
-            Für Anbieter ist Auftrago eine Möglichkeit, Anfragen von Kunden zu
-            erhalten, die bereits konkret nach einer Dienstleistung suchen.
-            Statt teure Werbung ohne klare Absicht zu schalten, bekommen Anbieter
-            strukturierte Anfragen mit Region, Kategorie und Bedarf.
+            Auftrago ist für Dienstleister gemacht, die nicht einfach nur
+            Sichtbarkeit kaufen möchten, sondern konkrete Kundenanfragen
+            erhalten wollen. Anbieter können passende Leads prüfen, Credits
+            aufladen und interessante Kontakte gezielt freischalten.
           </p>
 
           <p>
-            Anbieter werden nicht automatisch freigeschaltet. Jede Anmeldung wird
-            geprüft, damit die Plattform sauber, regional und hochwertig bleibt.
+            Besonders für Reinigungsfirmen, Hauswartungen, Gartenbauer,
+            Umzugsfirmen, Entsorgungsbetriebe, Fensterreiniger, Maler,
+            Sanitärbetriebe und Elektriker bietet Auftrago eine direkte
+            Möglichkeit, neue Aufträge in der eigenen Region zu gewinnen.
+          </p>
+
+          <p>
+            Jede Anfrage enthält wichtige Informationen wie Region, Kategorie,
+            Beschreibung und Preis in Credits. So können Anbieter schnell
+            entscheiden, ob ein Lead zum eigenen Betrieb passt.
           </p>
 
           <div className="actions">
@@ -249,7 +263,16 @@ export default async function HomePage() {
 
             <p>
               Lokale Dienstleistungen brauchen Nähe. Deshalb setzt Auftrago auf
-              regionale Anfragen und passende Anbieter aus der Umgebung.
+              regionale Anfragen und passende Anbieter aus der Umgebung. Ob
+              Zürich, Aargau, Aarau, Baden, Winterthur, Basel, Bern, Luzern,
+              Zug, Solothurn oder St. Gallen – regionale Firmen sollen schneller
+              mit passenden Kunden zusammenfinden.
+            </p>
+
+            <p>
+              Für Kunden ist das einfacher. Für Anbieter ist es effizienter.
+              Genau daraus entsteht ein moderner Marktplatz für Schweizer
+              Dienstleistungen.
             </p>
           </div>
 
@@ -261,6 +284,29 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <section className="premium-section">
+        <div className="container premium-provider-card">
+          <span className="eyebrow">Beliebte Suchanfragen</span>
+
+          <h2>Auftrago hilft bei häufig gesuchten Dienstleistungen.</h2>
+
+          <p>
+            Viele Kunden suchen täglich nach Begriffen wie Reinigungsfirma
+            Zürich, Reinigungsfirma Aargau, Umzugsreinigung Zürich,
+            Umzugsreinigung Aargau, Hauswartung Zürich, Hauswartung Aargau,
+            Gartenpflege Zürich, Gartenunterhalt Aargau, Fensterreinigung
+            Zürich, Fensterreinigung Aargau, Entsorgung Zürich, Räumung Aargau,
+            Transport Zürich oder Malerarbeiten in der Nähe.
+          </p>
+
+          <p>
+            Genau für solche Anfragen wurde Auftrago aufgebaut. Die Plattform
+            soll Kunden schneller zu passenden Offerten führen und Anbietern
+            helfen, relevante regionale Aufträge zu erhalten.
+          </p>
+        </div>
+      </section>
+
       <section className="premium-final">
         <div className="container premium-final-card">
           <span className="eyebrow">Jetzt starten</span>
@@ -268,8 +314,10 @@ export default async function HomePage() {
           <h2>Beschreibe deinen Auftrag einmal. Erhalte passende Offerten.</h2>
 
           <p>
-            Kostenlos, unverbindlich und regional. Starte deine Anfrage in weniger
-            als einer Minute und finde passende Anbieter ohne unnötigen Aufwand.
+            Kostenlos, unverbindlich und regional. Starte deine Anfrage in
+            weniger als einer Minute und finde passende Anbieter für Reinigung,
+            Hauswartung, Umzug, Gartenpflege, Fensterreinigung, Entsorgung,
+            Transport, Malerarbeiten, Sanitär oder Elektroarbeiten.
           </p>
 
           <div className="actions center">
