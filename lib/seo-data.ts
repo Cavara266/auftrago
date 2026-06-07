@@ -32,6 +32,18 @@ export const cities = [
   "meilen",
   "schlieren",
   "duebendorf",
+  "wallisellen",
+  "opfikon",
+  "kloten",
+  "regensdorf",
+  "adliswil",
+  "kilchberg",
+  "dietlikon",
+  "volketswil",
+  "maennedorf",
+  "kuesnacht",
+  "affoltern-am-albis",
+
   "aargau",
   "aarau",
   "baden",
@@ -42,21 +54,57 @@ export const cities = [
   "rheinfelden",
   "wettingen",
   "spreitenbach",
+  "muri",
+  "suhr",
+  "oftringen",
+  "frick",
+  "rohrdorferberg",
+
   "basel",
+  "allschwil",
+  "muttenz",
+  "pratteln",
+  "liestal",
+  "reinach-bl",
+
   "bern",
-  "luzern",
-  "zug",
-  "st-gallen",
-  "chur",
-  "solothurn",
-  "schaffhausen",
   "thun",
   "biel",
+  "langenthal",
+  "burgdorf",
+  "interlaken",
+
+  "luzern",
+  "emmen",
+  "kriens",
+  "horw",
+  "sursee",
+
+  "zug",
+  "baar",
+  "cham",
+
+  "st-gallen",
+  "wil",
+  "gossau",
+  "uzwil",
+  "rapperswil",
+
+  "chur",
+  "domat-ems",
+
+  "solothurn",
+  "olten",
+
+  "schaffhausen",
+
+  "frauenfeld",
+  "kreuzlingen",
+  "arbon",
+
   "lausanne",
   "genf",
   "sion",
-  "frauenfeld",
-  "kreuzlingen",
 ];
 
 export const serviceKeywords: Record<string, string[]> = {
@@ -257,3 +305,108 @@ export function getSeoData(slug: string) {
     keywords: serviceKeywords[service] || [formatText(service)],
   };
 }
+export const serviceFaqs: Record<
+  string,
+  {
+    question: string;
+    answer: string;
+  }[]
+> = {
+  reinigung: [
+    {
+      question: "Was kostet eine Reinigung?",
+      answer:
+        "Die Kosten hängen von Objektgrösse, Aufwand und Reinigungsart ab.",
+    },
+    {
+      question: "Wie kurzfristig kann eine Reinigung erfolgen?",
+      answer:
+        "Viele Anbieter können kurzfristige Termine anbieten, abhängig von der Auslastung.",
+    },
+    {
+      question: "Sind regelmässige Reinigungen möglich?",
+      answer:
+        "Ja. Viele Anbieter bieten wöchentliche oder monatliche Einsätze an.",
+    },
+  ],
+
+  umzugsreinigung: [
+    {
+      question: "Ist eine Abnahmegarantie möglich?",
+      answer:
+        "Viele Anbieter bieten auf Wunsch eine Abnahmegarantie an.",
+    },
+    {
+      question: "Sind Fenster inklusive?",
+      answer:
+        "In den meisten Fällen gehören Fenster und Rahmen zur Umzugsreinigung.",
+    },
+    {
+      question: "Wie lange dauert eine Umzugsreinigung?",
+      answer:
+        "Die Dauer hängt von der Wohnungsgrösse und dem Zustand ab.",
+    },
+  ],
+
+  hauswartung: [
+    {
+      question: "Welche Aufgaben übernimmt ein Hauswart?",
+      answer:
+        "Hauswarte übernehmen Reinigung, Kontrollgänge und kleinere Unterhaltsarbeiten.",
+    },
+    {
+      question: "Sind regelmässige Einsätze möglich?",
+      answer:
+        "Ja. Hauswartung wird häufig wöchentlich oder monatlich durchgeführt.",
+    },
+    {
+      question: "Ist Hauswartung auch für kleinere Objekte geeignet?",
+      answer:
+        "Ja. Viele Anbieter betreuen sowohl kleine als auch grosse Liegenschaften.",
+    },
+  ],
+
+  umzug: [
+    {
+      question: "Wie viel kostet ein Umzug?",
+      answer:
+        "Die Kosten hängen von Distanz, Umfang und benötigten Helfern ab.",
+    },
+    {
+      question: "Sind Verpackungsarbeiten möglich?",
+      answer:
+        "Viele Umzugsfirmen bieten Verpackungs- und Demontageservices an.",
+    },
+    {
+      question: "Wie früh sollte ein Umzug geplant werden?",
+      answer:
+        "Je früher angefragt wird, desto grösser ist die Verfügbarkeit.",
+    },
+  ],
+
+  transport: [
+    {
+      question: "Welche Gegenstände können transportiert werden?",
+      answer:
+        "Von Möbeln bis zu einzelnen Transportgütern sind viele Aufträge möglich.",
+    },
+    {
+      question: "Sind kurzfristige Transporte möglich?",
+      answer:
+        "Ja. Viele Anbieter übernehmen auch kurzfristige Aufträge.",
+    },
+  ],
+
+  entsorgung: [
+    {
+      question: "Was kann entsorgt werden?",
+      answer:
+        "Möbel, Sperrgut, Kellerinhalt, Estrichmaterial und viele weitere Gegenstände.",
+    },
+    {
+      question: "Sind Räumungen ebenfalls möglich?",
+      answer:
+        "Ja. Viele Anbieter kombinieren Entsorgung und Räumung.",
+    },
+  ],
+};
