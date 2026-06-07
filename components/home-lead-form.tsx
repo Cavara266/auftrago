@@ -2,472 +2,230 @@
 
 import { useState } from "react";
 
+const services = [
+  { name: "Reinigung", icon: "🧹", text: "Wohnung, Büro, Endreinigung" },
+  { name: "Umzugsreinigung", icon: "🏠", text: "Mit oder ohne Abgabegarantie" },
+  { name: "Fensterreinigung", icon: "🪟", text: "Fenster, Storen, Glasflächen" },
+  { name: "Hauswartung", icon: "🏢", text: "Liegenschaften & Unterhalt" },
+  { name: "Gartenpflege", icon: "🌿", text: "Rasen, Hecken, Pflege" },
+  { name: "Entsorgung", icon: "♻️", text: "Räumung, Keller, Sperrgut" },
+  { name: "Transport", icon: "🚚", text: "Umzug, Lieferung, Möbel" },
+  { name: "Andere", icon: "✨", text: "Sonstige Dienstleistung" },
+];
+
 export default function HomeLeadForm() {
+  const [step, setStep] = useState(1);
+  const [service, setService] = useState("");
+  const [description, setDescription] = useState("");
+  const [region, setRegion] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [sent, setSent] = useState(false);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-
-    setError("");
-    setLoading(true);
-
-    const formData = new FormData(e.currentTarget);
-
+  async function handleSubmit() {
     const payload = {
-      name: String(formData.get("name") || "").trim(),
-      phone: String(formData.get("phone") || "").trim(),
-      email: String(formData.get("email") || "").trim(),
+      name,
+      phone,
+      email: "Nicht angegeben",
+      region,
+      service,
+      start: "Nach Absprache",
+      propertyType: "Nicht angegeben",
+      message: description || "Kurzanfrage über Startseite",
 
-      salutation: String(formData.get("salutation") || "").trim(),
-      street: String(formData.get("street") || "").trim(),
-      postalCode: String(formData.get("postalCode") || "").trim(),
-      city: String(formData.get("city") || "").trim(),
-      region: String(formData.get("region") || "").trim(),
-
-      service: String(formData.get("service") || "").trim(),
-      start: String(formData.get("start") || "").trim(),
-      flexibleDate: String(formData.get("flexibleDate") || "").trim(),
-      viewingWanted: String(formData.get("viewingWanted") || "").trim(),
-      phoneAvailability: String(formData.get("phoneAvailability") || "").trim(),
-
-      objectType: String(formData.get("objectType") || "").trim(),
-      propertyType: String(formData.get("propertyType") || "").trim(),
-      floor: String(formData.get("floor") || "").trim(),
-      elevator: String(formData.get("elevator") || "").trim(),
-      parking: String(formData.get("parking") || "").trim(),
-
-      rooms: String(formData.get("rooms") || "").trim(),
-      area: String(formData.get("area") || "").trim(),
-      windows: String(formData.get("windows") || "").trim(),
-      windowSize: String(formData.get("windowSize") || "").trim(),
-      blinds: String(formData.get("blinds") || "").trim(),
-      shutters: String(formData.get("shutters") || "").trim(),
-
-      handoverGuarantee: String(formData.get("handoverGuarantee") || "").trim(),
-      cellar: String(formData.get("cellar") || "").trim(),
-      balcony: String(formData.get("balcony") || "").trim(),
-      carpetCleaning: String(formData.get("carpetCleaning") || "").trim(),
-
-      budget: String(formData.get("budget") || "").trim(),
-      offersWanted: String(formData.get("offersWanted") || "").trim(),
-      important: String(formData.get("important") || "").trim(),
-
-      message: String(formData.get("message") || "").trim(),
+      salutation: "Nicht angegeben",
+      street: "Nicht angegeben",
+      postalCode: region,
+      city: region,
+      flexibleDate: "Nach Absprache",
+      viewingWanted: "Nach Absprache",
+      phoneAvailability: "Nach Absprache",
+      objectType: "Nicht angegeben",
+      floor: "Nicht angegeben",
+      elevator: "Nicht angegeben",
+      parking: "Nicht angegeben",
+      rooms: "Nicht angegeben",
+      area: "Nicht angegeben",
+      windows: "Nicht angegeben",
+      windowSize: "Nicht angegeben",
+      blinds: "Nicht angegeben",
+      shutters: "Nicht angegeben",
+      handoverGuarantee: "Nicht angegeben",
+      cellar: "Nicht angegeben",
+      balcony: "Nicht angegeben",
+      carpetCleaning: "Nicht angegeben",
+      budget: "Nicht angegeben",
+      offersWanted: "3 Angebote",
+      important: "Preis und Qualität",
     };
 
-    try {
-      const response = await fetch("/api/anfrage", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+    await fetch("/api/anfrage", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
 
-      if (!response.ok) {
-        setError("Die Anfrage konnte nicht gesendet werden.");
-        return;
-      }
-
-      setSent(true);
-    } catch {
-      setError("Serverfehler. Bitte später erneut versuchen.");
-    } finally {
-      setLoading(false);
-    }
+    setSent(true);
   }
 
   if (sent) {
     return (
-      <div className="premium-form-success">
+      <div className="mega-lead-success">
         <div>✓</div>
         <h3>Anfrage erhalten</h3>
-        <p>
-          Danke. Wir prüfen deine Anfrage und leiten sie an passende regionale
-          Anbieter weiter.
-        </p>
+        <p>Danke. Wir melden uns schnellstmöglich mit passenden Anbietern.</p>
       </div>
     );
   }
 
   return (
-    <form className="premium-lead-form" onSubmit={handleSubmit}>
-      <div className="premium-form-head">
-        <span>Live Anfrage</span>
-        <h3>Passende Offerte finden</h3>
-        <p>
-          Je genauer deine Angaben sind, desto schneller können Anbieter eine
-          passende Offerte erstellen.
-        </p>
+    <div className="mega-lead">
+      <div className="mega-lead-top">
+        <span>🔥 Beliebte Anfrage</span>
+        <strong>Schritt {step} von 4</strong>
       </div>
 
-      <div className="premium-form-section">
-        <h4>Kontaktangaben</h4>
-
-        <div className="premium-form-grid">
-          <label>
-            <span>Anrede</span>
-            <select name="salutation" required defaultValue="">
-              <option value="" disabled>
-                Bitte wählen
-              </option>
-              <option>Herr</option>
-              <option>Frau</option>
-              <option>Firma</option>
-            </select>
-          </label>
-
-          <label>
-            <span>Name</span>
-            <input name="name" placeholder="Max Muster" required />
-          </label>
-
-          <label>
-            <span>Telefon</span>
-            <input name="phone" placeholder="079 123 45 67" required />
-          </label>
-
-          <label>
-            <span>Erreichbarkeit</span>
-            <select name="phoneAvailability" required defaultValue="">
-              <option value="" disabled>
-                Bitte wählen
-              </option>
-              <option>Jederzeit</option>
-              <option>Bürozeiten</option>
-              <option>Abends</option>
-              <option>Nur per E-Mail</option>
-            </select>
-          </label>
-
-          <label>
-            <span>E-Mail</span>
-            <input
-              name="email"
-              type="email"
-              placeholder="name@email.ch"
-              required
-            />
-          </label>
-
-          <label>
-            <span>Strasse / Nr.</span>
-            <input name="street" placeholder="Bahnhofstrasse 1" required />
-          </label>
-
-          <label>
-            <span>PLZ</span>
-            <input name="postalCode" placeholder="8000" required />
-          </label>
-
-          <label>
-            <span>Ort</span>
-            <input name="city" placeholder="Zürich" required />
-          </label>
-
-          <label>
-            <span>Region / Kanton</span>
-            <select name="region" required defaultValue="">
-              <option value="" disabled>
-                Region auswählen
-              </option>
-              <option>Zürich</option>
-              <option>Aargau</option>
-              <option>Bern</option>
-              <option>Basel</option>
-              <option>Luzern</option>
-              <option>Zug</option>
-              <option>Solothurn</option>
-              <option>St. Gallen</option>
-              <option>Schweiz</option>
-            </select>
-          </label>
-        </div>
+      <div className="mega-progress">
+        <span className={step >= 1 ? "active" : ""}>Projekt</span>
+        <span className={step >= 2 ? "active" : ""}>Details</span>
+        <span className={step >= 3 ? "active" : ""}>Kontakt</span>
+        <span className={step >= 4 ? "active" : ""}>Senden</span>
       </div>
 
-      <div className="premium-form-section">
-        <h4>Auftrag</h4>
+      {step === 1 && (
+        <>
+          <div className="mega-head">
+            <div className="mega-pill">✓ Kostenlos & unverbindlich</div>
+            <h3>Was möchtest du machen lassen?</h3>
+            <p>Wähle eine Dienstleistung und starte deine Anfrage in wenigen Sekunden.</p>
+          </div>
 
-        <div className="premium-form-grid">
-          <label>
-            <span>Dienstleistung</span>
-            <select name="service" required defaultValue="">
-              <option value="" disabled>
-                Dienstleistung wählen
-              </option>
-              <option>Hauswartung</option>
-              <option>Reinigung</option>
-              <option>Umzugsreinigung</option>
-              <option>Fensterreinigung</option>
-              <option>Gartenpflege</option>
-              <option>Entsorgung</option>
-              <option>Transport</option>
-              <option>Malerarbeiten</option>
-              <option>Sanitär</option>
-              <option>Elektriker</option>
-            </select>
-          </label>
+          <div className="mega-services">
+            {services.map((item) => (
+              <button
+                key={item.name}
+                type="button"
+                className={service === item.name ? "mega-service active" : "mega-service"}
+                onClick={() => setService(item.name)}
+              >
+                <b>{item.icon}</b>
+                <strong>{item.name}</strong>
+                <small>{item.text}</small>
+              </button>
+            ))}
+          </div>
 
-          <label>
-            <span>Gewünschter Start / Datum</span>
-            <input name="start" type="date" required />
-          </label>
+          <button
+            className="mega-main-btn"
+            disabled={!service}
+            onClick={() => setStep(2)}
+          >
+            Weiter zu den Details →
+          </button>
+        </>
+      )}
 
-          <label>
-            <span>Flexibles Datum?</span>
-            <select name="flexibleDate" required defaultValue="">
-              <option value="" disabled>
-                Bitte wählen
-              </option>
-              <option>Ja</option>
-              <option>Nein</option>
-            </select>
-          </label>
+      {step === 2 && (
+        <>
+          <div className="mega-head">
+            <div className="mega-pill">{service}</div>
+            <h3>Beschreibe deinen Auftrag</h3>
+            <p>Je genauer deine Angaben sind, desto bessere Offerten erhältst du.</p>
+          </div>
 
-          <label>
-            <span>Besichtigung erwünscht?</span>
-            <select name="viewingWanted" required defaultValue="">
-              <option value="" disabled>
-                Bitte wählen
-              </option>
-              <option>Ja</option>
-              <option>Nein</option>
-              <option>Nach Absprache</option>
-            </select>
-          </label>
+          <textarea
+            className="mega-textarea"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder={`z.B. ${service} in Zürich, 3.5 Zimmer Wohnung, Termin nächste Woche...`}
+          />
 
-          <label>
-            <span>Objekt</span>
-            <select name="objectType" required defaultValue="">
-              <option value="" disabled>
-                Bitte wählen
-              </option>
-              <option>Privat</option>
-              <option>Gewerbe</option>
-              <option>Mehrfamilienhaus</option>
-              <option>Büro</option>
-              <option>Liegenschaft</option>
-            </select>
-          </label>
+          <div className="mega-hints">
+            <span>💡 Grösse / Zimmer</span>
+            <span>📍 Ort / Region</span>
+            <span>📅 Gewünschter Termin</span>
+          </div>
 
-          <label>
-            <span>Objektart</span>
-            <select name="propertyType" required defaultValue="">
-              <option value="" disabled>
-                Bitte wählen
-              </option>
-              <option>Wohnung</option>
-              <option>Einfamilienhaus</option>
-              <option>Mehrfamilienhaus</option>
-              <option>Büro / Praxis</option>
-              <option>Ladenlokal</option>
-              <option>Baustelle</option>
-              <option>Andere</option>
-            </select>
-          </label>
-        </div>
-      </div>
+          <div className="mega-row">
+            <button className="mega-back" onClick={() => setStep(1)}>
+              ← Zurück
+            </button>
+            <button className="mega-main-btn" onClick={() => setStep(3)}>
+              Weiter →
+            </button>
+          </div>
+        </>
+      )}
 
-      <div className="premium-form-section">
-        <h4>Objektdetails</h4>
+      {step === 3 && (
+        <>
+          <div className="mega-head">
+            <div className="mega-pill">📍 Fast geschafft</div>
+            <h3>Wo sollen Anbieter sich melden?</h3>
+            <p>Deine Angaben werden nur für passende Offerten verwendet.</p>
+          </div>
 
-        <div className="premium-form-grid">
-          <label>
-            <span>Wohnfläche / Fläche m²</span>
-            <input name="area" placeholder="z.B. 75 m²" />
-          </label>
+          <div className="mega-fields">
+            <input value={region} onChange={(e) => setRegion(e.target.value)} placeholder="PLZ / Ort" />
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Vorname / Name" />
+            <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Telefon" />
+          </div>
 
-          <label>
-            <span>Anzahl Zimmer</span>
-            <select name="rooms" defaultValue="">
-              <option value="">Bitte wählen</option>
-              <option>1 Zimmer</option>
-              <option>1.5 Zimmer</option>
-              <option>2 Zimmer</option>
-              <option>2.5 Zimmer</option>
-              <option>3 Zimmer</option>
-              <option>3.5 Zimmer</option>
-              <option>4 Zimmer</option>
-              <option>4.5 Zimmer</option>
-              <option>5+ Zimmer</option>
-            </select>
-          </label>
+          <div className="mega-row">
+            <button className="mega-back" onClick={() => setStep(2)}>
+              ← Zurück
+            </button>
+            <button
+              className="mega-main-btn"
+              disabled={!region || !name || !phone}
+              onClick={() => setStep(4)}
+            >
+              Anfrage prüfen →
+            </button>
+          </div>
+        </>
+      )}
 
-          <label>
-            <span>Etage</span>
-            <input name="floor" placeholder="z.B. 2. Stock" />
-          </label>
+      {step === 4 && (
+        <>
+          <div className="mega-head">
+            <div className="mega-pill">🚀 Bereit zum Senden</div>
+            <h3>Deine Anfrage ist bereit</h3>
+            <p>Jetzt kostenlos passende Offerten von regionalen Anbietern erhalten.</p>
+          </div>
 
-          <label>
-            <span>Lift vorhanden?</span>
-            <select name="elevator" defaultValue="">
-              <option value="">Bitte wählen</option>
-              <option>Ja</option>
-              <option>Nein</option>
-            </select>
-          </label>
+          <div className="mega-summary">
+            <div>
+              <span>Dienstleistung</span>
+              <strong>{service}</strong>
+            </div>
+            <div>
+              <span>Region</span>
+              <strong>{region}</strong>
+            </div>
+            <div>
+              <span>Beschreibung</span>
+              <p>{description || "Keine zusätzlichen Details angegeben."}</p>
+            </div>
+          </div>
 
-          <label>
-            <span>Parkplatz vorhanden?</span>
-            <select name="parking" defaultValue="">
-              <option value="">Bitte wählen</option>
-              <option>Ja</option>
-              <option>Nein</option>
-              <option>Unklar</option>
-            </select>
-          </label>
+          <button className="mega-submit" onClick={handleSubmit}>
+            🚀 Kostenlose Offerten erhalten
+          </button>
 
-          <label>
-            <span>Abgabegarantie gewünscht?</span>
-            <select name="handoverGuarantee" defaultValue="">
-              <option value="">Bitte wählen</option>
-              <option>Ja</option>
-              <option>Nein</option>
-              <option>Nicht relevant</option>
-            </select>
-          </label>
+          <button className="mega-back full" onClick={() => setStep(3)}>
+            ← Zurück
+          </button>
+        </>
+      )}
 
-          <label>
-            <span>Keller vorhanden?</span>
-            <select name="cellar" defaultValue="">
-              <option value="">Bitte wählen</option>
-              <option>Ja</option>
-              <option>Nein</option>
-            </select>
-          </label>
-
-          <label>
-            <span>Balkon vorhanden?</span>
-            <select name="balcony" defaultValue="">
-              <option value="">Bitte wählen</option>
-              <option>Ja</option>
-              <option>Nein</option>
-            </select>
-          </label>
-        </div>
-      </div>
-
-      <div className="premium-form-section">
-        <h4>Fenster / Spezialdetails</h4>
-
-        <div className="premium-form-grid">
-          <label>
-            <span>Anzahl Fenster</span>
-            <select name="windows" defaultValue="">
-              <option value="">Bitte wählen</option>
-              <option>1 - 5</option>
-              <option>6 - 10</option>
-              <option>11 - 15</option>
-              <option>16 - 25</option>
-              <option>25+</option>
-              <option>Nicht relevant</option>
-            </select>
-          </label>
-
-          <label>
-            <span>Fenstergrösse</span>
-            <select name="windowSize" defaultValue="">
-              <option value="">Bitte wählen</option>
-              <option>Klein</option>
-              <option>Normal</option>
-              <option>Gross</option>
-              <option>Bodenhohe Fenster</option>
-              <option>Nicht relevant</option>
-            </select>
-          </label>
-
-          <label>
-            <span>Lamellenstoren?</span>
-            <select name="blinds" defaultValue="">
-              <option value="">Bitte wählen</option>
-              <option>Ja</option>
-              <option>Nein</option>
-              <option>Teilweise</option>
-            </select>
-          </label>
-
-          <label>
-            <span>Fensterläden?</span>
-            <select name="shutters" defaultValue="">
-              <option value="">Bitte wählen</option>
-              <option>Ja</option>
-              <option>Nein</option>
-              <option>Teilweise</option>
-            </select>
-          </label>
-
-          <label>
-            <span>Teppichreinigung?</span>
-            <select name="carpetCleaning" defaultValue="">
-              <option value="">Bitte wählen</option>
-              <option>Ja</option>
-              <option>Nein</option>
-              <option>Teilweise</option>
-              <option>Nicht relevant</option>
-            </select>
-          </label>
-
-          <label>
-            <span>Budget / Preisvorstellung</span>
-            <input name="budget" placeholder="z.B. CHF 500 - 800" />
-          </label>
-
-          <label>
-            <span>Anzahl gewünschte Angebote</span>
-            <select name="offersWanted" defaultValue="3 Angebote">
-              <option>1 Angebot</option>
-              <option>2 Angebote</option>
-              <option>3 Angebote</option>
-              <option>4 Angebote</option>
-              <option>5 Angebote</option>
-            </select>
-          </label>
-
-          <label>
-            <span>Was ist dir wichtig?</span>
-            <select name="important" defaultValue="">
-              <option value="">Bitte wählen</option>
-              <option>Preis</option>
-              <option>Qualität</option>
-              <option>Regionalität</option>
-              <option>Schnelligkeit</option>
-              <option>Preis und Qualität</option>
-              <option>Qualität und Regionalität</option>
-            </select>
-          </label>
-        </div>
-      </div>
-
-      <label className="premium-textarea">
-        <span>Auftrag genau beschreiben</span>
-        <textarea
-          name="message"
-          placeholder="Beschreibe bitte möglichst genau, was gemacht werden soll. Beispiel: Umzugsreinigung 3.5 Zimmer Wohnung, 75 m², 2 Badezimmer, Küche, Fenster, Balkon, Keller, Abgabe am Montag um 10:00 Uhr."
-          required
-        />
-      </label>
-
-      <label className="premium-check">
-        <input type="checkbox" required />
-        <span>
-          Ich stimme zu, dass meine Angaben zur Bearbeitung der Anfrage
-          verwendet und an passende Anbieter weitergeleitet werden.
-        </span>
-      </label>
-
-      {error ? <div className="premium-form-error">{error}</div> : null}
-
-      <button className="premium-submit" type="submit" disabled={loading}>
-        {loading ? "Wird gesendet..." : "Kostenlose Anfrage senden →"}
-      </button>
-
-      <div className="premium-form-trust">
+      <div className="mega-trust">
         <span>✓ Kostenlos</span>
         <span>✓ Unverbindlich</span>
-        <span>✓ Präzise Anfrage</span>
+        <span>✓ Regionale Anbieter</span>
       </div>
-    </form>
+    </div>
   );
 }
