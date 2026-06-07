@@ -2,9 +2,11 @@ import Link from "next/link";
 import { Metadata } from "next";
 import {
   cities,
+  cityContent,
   formatText,
   generateSlugs,
   getSeoData,
+  serviceContent,
   services,
 } from "@/lib/seo-data";
 
@@ -22,10 +24,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { serviceLabel, cityLabel } = getSeoData(params.slug);
 
   return {
-    title: `${serviceLabel} ${cityLabel} | Offerten vergleichen | Auftrago`,
-    description: `Finde passende Anbieter für ${serviceLabel} in ${cityLabel}. Kostenlos Anfrage senden und regionale Offerten vergleichen.`,
+    title: `${serviceLabel} in ${cityLabel} | Kostenlose Offerten vergleichen`,
+    description: `Finde regionale Anbieter für ${serviceLabel} in ${cityLabel}. Kostenlos Anfrage senden, Offerten erhalten und passende Firmen vergleichen.`,
     alternates: {
       canonical: `https://auftrago.ch/${params.slug}`,
+    },
+    openGraph: {
+      title: `${serviceLabel} in ${cityLabel} vergleichen`,
+      description: `Kostenlose Anfrage für ${serviceLabel} in ${cityLabel} senden und regionale Anbieter vergleichen.`,
+      url: `https://auftrago.ch/${params.slug}`,
+      siteName: "Auftrago",
+      type: "website",
     },
   };
 }
@@ -35,10 +44,20 @@ export default function SeoLandingPage({ params }: Props) {
     params.slug
   );
 
-  const relatedCities = cities.filter((item) => item !== city).slice(0, 10);
-  const relatedServices = services.filter((item) => item !== service).slice(0, 10);
+  const relatedCities = cities.filter((item) => item !== city).slice(0, 12);
+  const relatedServices = services
+    .filter((item) => item !== service)
+    .slice(0, 12);
 
-  const schema = {
+  const cityText =
+    cityContent[city] ||
+    `${cityLabel} ist ein wichtiger regionaler Standort. Über Auftrago findest du passende Anbieter aus der Umgebung und kannst kostenlos Offerten vergleichen.`;
+
+  const serviceText =
+    serviceContent[service] ||
+    `${serviceLabel} ist eine gefragte Dienstleistung. Über Auftrago kannst du passende regionale Anbieter vergleichen.`;
+
+  const serviceSchema = {
     "@context": "https://schema.org",
     "@type": "Service",
     name: `${serviceLabel} in ${cityLabel}`,
@@ -50,80 +69,187 @@ export default function SeoLandingPage({ params }: Props) {
     },
   };
 
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: `Ist die Anfrage für ${serviceLabel} in ${cityLabel} kostenlos?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Ja. Die Anfrage über Auftrago ist kostenlos und unverbindlich.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Wie schnell erhalte ich Rückmeldungen?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Das hängt von Region, Auftrag und Verfügbarkeit der Anbieter ab. Eine genaue Beschreibung erhöht die Chance auf schnelle Rückmeldungen.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Kann ich mehrere Offerten vergleichen?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Ja. Auftrago hilft dir, mehrere regionale Anbieter und Offerten einfacher zu vergleichen.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Bin ich nach der Anfrage verpflichtet?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Nein. Die Anfrage ist unverbindlich. Du entscheidest selbst, ob du ein Angebot annehmen möchtest.",
+        },
+      },
+    ],
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Startseite",
+        item: "https://auftrago.ch",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: serviceLabel,
+        item: `https://auftrago.ch/${service}-${city}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: cityLabel,
+        item: `https://auftrago.ch/${params.slug}`,
+      },
+    ],
+  };
+
   return (
     <main className="seo-page">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
       />
 
-      <section className="seo-hero">
-        <div className="container seo-hero-grid">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+
+      <section className="seo-new-hero">
+        <div className="container seo-new-hero-grid">
           <div>
-            <span className="eyebrow">Regionale Offerten</span>
+            <span className="seo-pill">Regionale Offerten</span>
 
             <h1>
               {serviceLabel} in {cityLabel}
               <br />
-              einfach vergleichen.
+              Offerten vergleichen.
             </h1>
 
             <p>
-              Du suchst zuverlässige Anbieter für {serviceLabel} in {cityLabel}?
-              Auftrago hilft dir, passende regionale Dienstleister zu finden,
-              Offerten zu vergleichen und schneller eine gute Entscheidung zu
-              treffen.
+              Finde passende Anbieter für {serviceLabel} in {cityLabel}. Erstelle
+              kostenlos eine Anfrage und vergleiche regionale Firmen ohne
+              Verpflichtung.
             </p>
 
-            <div className="seo-actions">
+            <div className="seo-hero-actions">
               <Link href="/offerte-anfragen" className="btn btn-primary">
                 Kostenlose Offerte anfragen
               </Link>
 
-              <Link href="/leistungen" className="btn btn-secondary">
-                Alle Leistungen ansehen
+              <Link href="/anbieter" className="btn btn-secondary">
+                Anbieter werden
               </Link>
+            </div>
+
+            <div className="seo-trust-row">
+              <span>✓ Kostenlos</span>
+              <span>✓ Unverbindlich</span>
+              <span>✓ Regionale Firmen</span>
+              <span>✓ Schnelle Rückmeldungen</span>
             </div>
           </div>
 
-          <aside className="seo-card">
-            <strong>Deine Vorteile</strong>
-            <ul>
-              <li>✓ Kostenlos & unverbindlich</li>
-              <li>✓ Regionale Anbieter</li>
-              <li>✓ Für Privatkunden & Firmen</li>
-              <li>✓ Schnelle Rückmeldung</li>
-            </ul>
+          <aside className="seo-request-card">
+            <span>So funktioniert es</span>
+            <h2>In 3 Schritten zur Offerte</h2>
+
+            <div>
+              <strong>1. Anfrage senden</strong>
+              <p>Beschreibe kurz deinen Auftrag in {cityLabel}.</p>
+            </div>
+
+            <div>
+              <strong>2. Anbieter erhalten</strong>
+              <p>Regionale Firmen prüfen deine Anfrage.</p>
+            </div>
+
+            <div>
+              <strong>3. Offerten vergleichen</strong>
+              <p>Du wählst selbst, welches Angebot passt.</p>
+            </div>
           </aside>
         </div>
       </section>
 
-      <section className="seo-content">
-        <div className="container seo-content-grid">
-          <article>
+      <section className="seo-new-section">
+        <div className="container seo-new-grid">
+          <article className="seo-main-content">
             <h2>{serviceLabel} in {cityLabel}: passende Anbieter finden</h2>
 
+            <div className="seo-info-box">
+              <p>{cityText}</p>
+            </div>
+
+            <div className="seo-info-box">
+              <p>{serviceText}</p>
+            </div>
+
             <p>
-              Eine gute Firma für {serviceLabel} in {cityLabel} zu finden, kostet
-              oft Zeit. Man muss Anbieter suchen, Webseiten vergleichen, mehrere
-              Firmen kontaktieren und warten, bis Rückmeldungen kommen. Auftrago
-              macht diesen Prozess einfacher: Du beschreibst deinen Auftrag einmal
-              und kannst danach passende regionale Offerten vergleichen.
+              Eine zuverlässige Firma für {serviceLabel} in {cityLabel} zu
+              finden, ist oft zeitaufwendig. Viele Kunden vergleichen mehrere
+              Webseiten, kontaktieren verschiedene Anbieter einzeln und warten
+              anschliessend auf Rückmeldungen. Auftrago vereinfacht diesen
+              Prozess: Du erstellst eine Anfrage und passende regionale Firmen
+              können sich bei dir melden.
             </p>
 
             <p>
-              Besonders bei lokalen Dienstleistungen zählt Nähe. Anbieter aus der
-              Region kennen die Umgebung, können schneller reagieren und verstehen
-              typische Anforderungen in {cityLabel}. Egal ob einmaliger Auftrag,
-              regelmässiger Einsatz oder kurzfristige Anfrage — mit Auftrago
-              startest du strukturiert und unkompliziert.
+              Gerade bei lokalen Dienstleistungen zählt Nähe. Anbieter aus{" "}
+              {cityLabel} kennen die Region, können Termine oft flexibler planen
+              und reagieren bei Rückfragen schneller. Das ist besonders hilfreich
+              bei kurzfristigen Einsätzen, wiederkehrenden Arbeiten oder
+              Aufträgen mit klaren Terminen.
             </p>
-          </article>
 
-          <article>
-            <h2>Typische Leistungen</h2>
+            <div className="seo-highlight-box">
+              <h3>Warum Auftrago?</h3>
+              <ul>
+                <li>Keine lange Suche nach einzelnen Firmen</li>
+                <li>Mehrere Offerten einfacher vergleichen</li>
+                <li>Regionale Anbieter aus der Umgebung</li>
+                <li>Geeignet für Privatkunden und Unternehmen</li>
+              </ul>
+            </div>
 
-            <div className="seo-keyword-grid">
+            <h2>Typische Leistungen bei {serviceLabel}</h2>
+
+            <div className="seo-service-grid">
               {keywords.map((keyword) => (
                 <div key={keyword}>
                   <span>✓</span>
@@ -133,83 +259,103 @@ export default function SeoLandingPage({ params }: Props) {
             </div>
 
             <p>
-              Je genauer du deine Anfrage beschreibst, desto besser können
-              Anbieter einschätzen, ob sie zu deinem Auftrag passen. So erhältst
-              du relevantere Rückmeldungen und sparst Zeit beim Vergleichen.
+              Je genauer du deinen Auftrag beschreibst, desto besser können
+              Anbieter den Aufwand einschätzen. Wichtige Angaben sind zum
+              Beispiel Ort, gewünschter Termin, Objektgrösse, Umfang der Arbeiten
+              und besondere Anforderungen.
             </p>
-          </article>
 
-          <article>
-            <h2>So funktioniert Auftrago</h2>
-
-            <div className="seo-steps">
-              <div>
-                <span>01</span>
-                <strong>Anfrage senden</strong>
-                <p>Beschreibe kurz deinen Auftrag, Ort und Wunschzeitpunkt.</p>
-              </div>
-
-              <div>
-                <span>02</span>
-                <strong>Anbieter erhalten</strong>
-                <p>Regionale Dienstleister prüfen deine Anfrage.</p>
-              </div>
-
-              <div>
-                <span>03</span>
-                <strong>Offerten vergleichen</strong>
-                <p>Du entscheidest selbst, welches Angebot am besten passt.</p>
-              </div>
-            </div>
-          </article>
-
-          <article>
-            <h2>Warum regionale Anbieter wichtig sind</h2>
+            <h2>Für wen eignet sich Auftrago?</h2>
 
             <p>
-              Bei {serviceLabel} in {cityLabel} ist ein regionaler Anbieter oft
-              die bessere Wahl. Kurze Wege, bessere Erreichbarkeit und ein
-              direkter Bezug zur Umgebung machen viele Aufträge einfacher.
-              Besonders bei Reinigung, Hauswartung, Umzug, Gartenpflege,
-              Transport oder Entsorgung kann die regionale Nähe entscheidend sein.
+              Auftrago eignet sich für Privatpersonen, Verwaltungen, Firmen und
+              Eigentümer, die einen passenden Dienstleister in {cityLabel}
+              suchen. Ob einmaliger Auftrag, regelmässige Arbeit oder dringende
+              Anfrage: Mit einer strukturierten Anfrage erhöhst du die Chance auf
+              passende Rückmeldungen.
             </p>
 
-            <ul className="seo-list">
-              <li>Weniger Aufwand bei der Suche</li>
-              <li>Schnellere Rückmeldungen aus deiner Region</li>
-              <li>Bessere Vergleichbarkeit der Angebote</li>
-              <li>Geeignet für private, gewerbliche und wiederkehrende Aufträge</li>
-            </ul>
-          </article>
+            <div className="seo-two-boxes">
+              <div>
+                <h3>Privatkunden</h3>
+                <p>
+                  Ideal für Wohnungen, Häuser, Umzüge, Reinigungen,
+                  Gartenarbeiten oder kleinere Handwerkeraufträge.
+                </p>
+              </div>
 
-          <article>
+              <div>
+                <h3>Firmen & Verwaltungen</h3>
+                <p>
+                  Geeignet für wiederkehrende Einsätze, Unterhalt, Betreuung von
+                  Liegenschaften und regionale Dienstleistungsaufträge.
+                </p>
+              </div>
+            </div>
+
             <h2>Häufige Fragen zu {serviceLabel} in {cityLabel}</h2>
 
             <div className="seo-faq">
               <details>
-                <summary>Ist die Anfrage kostenlos?</summary>
+                <summary>Ist die Anfrage über Auftrago kostenlos?</summary>
                 <p>
-                  Ja. Deine Anfrage über Auftrago ist kostenlos und unverbindlich.
+                  Ja. Du kannst deine Anfrage kostenlos und unverbindlich über
+                  Auftrago senden.
                 </p>
               </details>
 
               <details>
-                <summary>Wie schnell bekomme ich eine Rückmeldung?</summary>
+                <summary>Wie schnell erhalte ich Rückmeldungen?</summary>
                 <p>
-                  Das hängt von Region, Auftrag und Verfügbarkeit ab. Eine klare
-                  Anfrage erhöht die Chance auf schnelle und passende Antworten.
+                  Das hängt von Region, Auftrag und Verfügbarkeit der Anbieter
+                  ab. Eine genaue Beschreibung erhöht die Chance auf schnelle
+                  Antworten.
                 </p>
               </details>
 
               <details>
                 <summary>Kann ich mehrere Offerten vergleichen?</summary>
                 <p>
-                  Ja. Ziel von Auftrago ist, dir den Vergleich von regionalen
-                  Anbietern einfacher zu machen.
+                  Ja. Auftrago ist darauf ausgelegt, dass du passende regionale
+                  Anbieter einfacher vergleichen kannst.
+                </p>
+              </details>
+
+              <details>
+                <summary>Bin ich nach der Anfrage verpflichtet?</summary>
+                <p>
+                  Nein. Die Anfrage ist unverbindlich. Du entscheidest selbst, ob
+                  du ein Angebot annehmen möchtest.
                 </p>
               </details>
             </div>
           </article>
+
+          <aside className="seo-sidebar">
+            <div className="seo-sidebar-card">
+              <span>Kostenlos starten</span>
+              <h3>Offerte für {serviceLabel} anfragen</h3>
+              <p>
+                Beschreibe deinen Auftrag in {cityLabel} und erhalte passende
+                Rückmeldungen von regionalen Anbietern.
+              </p>
+              <Link href="/offerte-anfragen" className="btn btn-primary">
+                Anfrage starten
+              </Link>
+            </div>
+
+            <div className="seo-sidebar-card">
+              <span>Beliebt</span>
+              <h3>Weitere Orte</h3>
+              <div className="seo-small-links">
+                {relatedCities.slice(0, 8).map((relatedCity) => (
+                  <Link key={relatedCity} href={`/${service}-${relatedCity}`}>
+                    {formatText(relatedCity)}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </aside>
         </div>
       </section>
 
