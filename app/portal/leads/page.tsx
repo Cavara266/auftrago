@@ -71,6 +71,43 @@ function estimateOrderValue(price: number) {
   return "CHF 4'500+";
 }
 
+function cleanDescription(description: string | null) {
+  if (!description) return "";
+
+  return description
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((line) => !line.toLowerCase().includes("nicht angegeben"))
+    .filter((line) => !line.toLowerCase().includes("nach absprache"))
+    .filter((line) => !line.toLowerCase().includes("objekt:"))
+    .filter((line) => !line.toLowerCase().includes("fenster / spezialdetails"))
+    .join(" · ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getLeadHighlights(lead: {
+  description: string | null;
+  region: string;
+  category: string;
+  title: string;
+}) {
+  const text = `${lead.title} ${lead.description || ""}`.toLowerCase();
+
+  const highlights = [
+    lead.category ? `🔧 ${lead.category}` : "",
+    lead.region ? `📍 ${lead.region}` : "",
+    text.includes("abgabegarantie") ? "✅ Abgabegarantie erwähnt" : "",
+    text.includes("zimmer") ? "🏠 Zimmerangaben vorhanden" : "",
+    text.includes("fenster") ? "🪟 Fenster erwähnt" : "",
+    text.includes("balkon") ? "🌤 Balkon erwähnt" : "",
+    text.includes("keller") ? "📦 Keller erwähnt" : "",
+  ].filter(Boolean);
+
+  return highlights.slice(0, 5);
+}
+
 export default async function PortalLeadsPage({ searchParams }: PageProps) {
   const params = searchParams ? await searchParams : undefined;
 
@@ -164,13 +201,8 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
 
       <section className="leadx-section">
         <div className="container">
-          {errorMessage ? (
-            <div className="leadx-error">{errorMessage}</div>
-          ) : null}
-
-          {infoMessage ? (
-            <div className="leadx-success">{infoMessage}</div>
-          ) : null}
+          {errorMessage ? <div className="leadx-error">{errorMessage}</div> : null}
+          {infoMessage ? <div className="leadx-success">{infoMessage}</div> : null}
 
           {provider.credits <= 0 ? (
             <div className="leadx-credit-warning">
@@ -264,6 +296,9 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
                       lead.region === provider.region ||
                       lead.category === provider.category;
 
+                    const cleanText = cleanDescription(lead.description);
+                    const highlights = getLeadHighlights(lead);
+
                     return (
                       <article key={lead.id} className="leadx-card">
                         <div className="leadx-card-main">
@@ -276,25 +311,37 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
 
                           <h2>{lead.title}</h2>
 
-                          <p>{lead.description}</p>
-
-                          <div className="leadx-value-grid">
+                          <div className="leadx-clean-grid">
                             <div>
-                              <small>Geschätzter Auftragswert</small>
+                              <small>Dienstleistung</small>
+                              <strong>{lead.category}</strong>
+                            </div>
+
+                            <div>
+                              <small>Region</small>
+                              <strong>{lead.region}</strong>
+                            </div>
+
+                            <div>
+                              <small>Auftragswert</small>
                               <strong>{estimateOrderValue(lead.price)}</strong>
                             </div>
+                          </div>
 
-                            <div>
-                              <small>Leadpreis</small>
-                              <strong>{lead.price} Credits</strong>
+                          {highlights.length > 0 ? (
+                            <div className="leadx-highlights">
+                              {highlights.map((item) => (
+                                <span key={item}>{item}</span>
+                              ))}
                             </div>
+                          ) : null}
 
-                            <div>
-                              <small>Status</small>
-                              <strong>
-                                {isBought ? "Kontakt sichtbar" : "Gesperrt"}
-                              </strong>
-                            </div>
+                          <div className="leadx-description-box">
+                            <small>Beschreibung</small>
+                            <p>
+                              {cleanText ||
+                                "Der Kunde sucht passende Anbieter und möchte eine Offerte erhalten."}
+                            </p>
                           </div>
 
                           <div className="leadx-locked-box">
@@ -328,7 +375,7 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
 
                         <div className="leadx-buybox">
                           <div className="leadx-buy-top">
-                            <span>Nur</span>
+                            <span>Leadpreis</span>
                             <strong>{lead.price}</strong>
                             <small>Credits</small>
                           </div>
@@ -348,17 +395,13 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
                             </Link>
                           ) : hasEnoughCredits ? (
                             <form action={buyLeadAction}>
-                              <input
-                                type="hidden"
-                                name="leadId"
-                                value={lead.id}
-                              />
+                              <input type="hidden" name="leadId" value={lead.id} />
 
                               <button
                                 type="submit"
                                 className="btn btn-primary leadx-full"
                               >
-                                Kontakt jetzt freischalten
+                                Kontakt freischalten
                               </button>
                             </form>
                           ) : (

@@ -7061,3 +7061,64 @@ input[type="checkbox"] {
     font-size: .72rem;
   }
 }
+.leadx-clean-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.leadx-clean-grid div,
+.leadx-description-box {
+  border-radius: 22px;
+  padding: 18px;
+  background: rgba(255,255,255,0.055);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.leadx-clean-grid small,
+.leadx-description-box small {
+  display: block;
+  color: rgba(245,248,255,0.52);
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.leadx-clean-grid strong {
+  display: block;
+  color: white;
+  font-size: 1.1rem;
+}
+
+.leadx-highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 16px;
+}
+
+.leadx-highlights span {
+  border-radius: 999px;
+  padding: 9px 12px;
+  background: rgba(56,189,248,0.1);
+  border: 1px solid rgba(56,189,248,0.18);
+  color: #bae6fd;
+  font-size: 0.85rem;
+  font-weight: 900;
+}
+
+.leadx-description-box {
+  margin-top: 16px;
+}
+
+.leadx-description-box p {
+  margin: 0;
+  color: rgba(245,248,255,0.72);
+  line-height: 1.6;
+}
+
+@media (max-width: 800px) {
+  .leadx-clean-grid {
+    grid-template-columns: 1fr;
+  }
+}

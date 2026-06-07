@@ -8,7 +8,7 @@ import Footer from "@/components/footer";
 export const metadata: Metadata = {
   title: "Auftrago – Offertenplattform Schweiz",
   description:
-    "Kostenlose Offerten für Reinigung, Hauswartung, Umzug, Gartenpflege, Fensterreinigung, Entsorgung und weitere Dienstleistungen in der Schweiz.",
+    "Kostenlose Offerten für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung und weitere Dienstleistungen in der Schweiz.",
 };
 
 export default function RootLayout({
