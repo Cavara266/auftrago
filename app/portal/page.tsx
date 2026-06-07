@@ -234,25 +234,29 @@ export default async function PortalDashboardPage() {
               <div className="provider-lead-grid">
                 {latestLeads.length > 0 ? (
                   latestLeads.map((lead) => (
-                    <article key={lead.id} className="provider-lead-preview">
+                    <article
+                      key={lead.id}
+                      className="provider-lead-preview provider-lead-compact"
+                    >
                       <div className="provider-lead-tags">
                         <span>Neu</span>
                         <span>{lead.category}</span>
                         <span>{lead.region}</span>
                       </div>
 
-                      <h3>{lead.title}</h3>
+                      <h3>{lead.category}</h3>
 
-                      <p>{lead.description}</p>
-
-                      <div className="provider-lead-meta">
+                      <div className="provider-lead-info">
                         <span>📍 {lead.region}</span>
                         <span>🔒 Kontakt gesperrt</span>
                         <span>💳 {lead.price} Credits</span>
                       </div>
 
                       <div className="provider-lead-footer">
-                        <strong>{lead.price} Credits</strong>
+                        <div>
+                          <strong>{lead.price} Credits</strong>
+                          <small>Details nach Freischaltung</small>
+                        </div>
 
                         <Link href="/portal/leads" className="btn btn-primary">
                           Kontakt freischalten

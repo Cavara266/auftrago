@@ -61,6 +61,19 @@ function getError(error?: string) {
   }
 }
 
+function shortText(text: string | null, maxLength = 120) {
+  if (!text) return "Keine Beschreibung vorhanden.";
+
+  const cleaned = text
+    .replace(/\s+/g, " ")
+    .replaceAll("Nicht angegeben", "")
+    .trim();
+
+  if (cleaned.length <= maxLength) return cleaned;
+
+  return `${cleaned.slice(0, maxLength)}...`;
+}
+
 export default async function AdminLeadsPage({ searchParams }: PageProps) {
   const params = searchParams ? await searchParams : undefined;
 
@@ -254,7 +267,7 @@ export default async function AdminLeadsPage({ searchParams }: PageProps) {
 
                         <h3>{lead.title}</h3>
 
-                        <p>{lead.description}</p>
+                        <p>{shortText(lead.description)}</p>
 
                         <div className="admin-contact">
                           {lead.name} · {lead.email} · {lead.phone}

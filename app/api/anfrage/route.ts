@@ -111,8 +111,8 @@ export async function POST(req: Request) {
 
     const title = `${service} ${region}`;
 
-    const description = `
-Neue Kundenanfrage über Auftrago
+const description = `
+${service} in ${city}
 
 AUFTRAG
 Dienstleistung: ${service}
@@ -148,7 +148,7 @@ Teppichreinigung: ${carpetCleaning || "Nicht angegeben"}
 
 BESCHREIBUNG
 ${message}
-    `.trim();
+`.trim();
 
     const price = calculateLeadPrice(service, budget);
 

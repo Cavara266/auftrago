@@ -63,49 +63,20 @@ function getInfoMessage(message?: string) {
   }
 }
 
-function estimateOrderValue(price: number) {
-  if (price <= 10) return "CHF 300–600";
-  if (price <= 20) return "CHF 600–1'200";
-  if (price <= 35) return "CHF 1'200–2'500";
-  if (price <= 55) return "CHF 2'500–4'500";
-  return "CHF 4'500+";
+function formatDate(date: Date) {
+  return new Intl.DateTimeFormat("de-CH", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
 }
 
-function cleanDescription(description: string | null) {
-  if (!description) return "";
-
-  return description
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .filter((line) => !line.toLowerCase().includes("nicht angegeben"))
-    .filter((line) => !line.toLowerCase().includes("nach absprache"))
-    .filter((line) => !line.toLowerCase().includes("objekt:"))
-    .filter((line) => !line.toLowerCase().includes("fenster / spezialdetails"))
-    .join(" · ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function getLeadHighlights(lead: {
-  description: string | null;
-  region: string;
-  category: string;
-  title: string;
-}) {
-  const text = `${lead.title} ${lead.description || ""}`.toLowerCase();
-
-  const highlights = [
-    lead.category ? `🔧 ${lead.category}` : "",
-    lead.region ? `📍 ${lead.region}` : "",
-    text.includes("abgabegarantie") ? "✅ Abgabegarantie erwähnt" : "",
-    text.includes("zimmer") ? "🏠 Zimmerangaben vorhanden" : "",
-    text.includes("fenster") ? "🪟 Fenster erwähnt" : "",
-    text.includes("balkon") ? "🌤 Balkon erwähnt" : "",
-    text.includes("keller") ? "📦 Keller erwähnt" : "",
-  ].filter(Boolean);
-
-  return highlights.slice(0, 5);
+function getShortTitle(title: string) {
+  return title
+    .replace("Umzugsreinigung - ", "")
+    .replace("Grundreinigung - ", "")
+    .replace("Fensterreinigung - ", "")
+    .replace("Unterhaltsreinigung - ", "");
 }
 
 export default async function PortalLeadsPage({ searchParams }: PageProps) {
@@ -172,19 +143,11 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
         <div className="container leadx-hero-shell">
           <div className="leadx-hero-content">
             <span className="eyebrow">Lead-Marketplace</span>
-
             <h1>Neue Aufträge sichern.</h1>
-
             <p>
               Kaufe nur Leads, die wirklich zu deiner Firma passen. Nach dem
-              Freischalten erhältst du Name, E-Mail und Telefonnummer des Kunden.
+              Freischalten erhältst du alle Kontaktdaten und Details.
             </p>
-
-            <div className="leadx-hero-badges">
-              <span>🔥 34 neue Anfragen heute</span>
-              <span>🔒 Kontakt erst nach Kauf sichtbar</span>
-              <span>⚡ Sofort verfügbar</span>
-            </div>
           </div>
 
           <div className="leadx-hero-actions">
@@ -204,23 +167,6 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
           {errorMessage ? <div className="leadx-error">{errorMessage}</div> : null}
           {infoMessage ? <div className="leadx-success">{infoMessage}</div> : null}
 
-          {provider.credits <= 0 ? (
-            <div className="leadx-credit-warning">
-              <div>
-                <span>⚠️ Guthaben leer</span>
-                <h2>Du verpasst gerade kaufbereite Kunden.</h2>
-                <p>
-                  Lade Credits auf, damit du Kontakte sofort freischalten und
-                  Kunden direkt kontaktieren kannst.
-                </p>
-              </div>
-
-              <Link href="/portal/guthaben" className="btn btn-primary">
-                Jetzt Guthaben aufladen
-              </Link>
-            </div>
-          ) : null}
-
           <div className="leadx-stats">
             <div>
               <strong>{provider.credits}</strong>
@@ -229,12 +175,12 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
 
             <div>
               <strong>{sortedLeads.length}</strong>
-              <span>Neue Leads verfügbar</span>
+              <span>Leads verfügbar</span>
             </div>
 
             <div>
               <strong>{purchasedLeadIds.size}</strong>
-              <span>Bereits freigeschaltet</span>
+              <span>Gekauft</span>
             </div>
 
             <div>
@@ -271,7 +217,7 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
                 </div>
 
                 <button type="submit" className="btn btn-primary">
-                  Passende Leads finden
+                  Leads filtern
                 </button>
 
                 <Link href="/portal/leads" className="btn btn-secondary">
@@ -283,12 +229,10 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
                 <div className="leadx-empty">
                   <span>Keine Leads gefunden</span>
                   <h2>Für diese Filter gibt es aktuell keine Leads.</h2>
-                  <p>
-                    Entferne den Filter oder prüfe später erneut neue Anfragen.
-                  </p>
+                  <p>Entferne den Filter oder prüfe später erneut neue Anfragen.</p>
                 </div>
               ) : (
-                <div className="leadx-list">
+                <div className="topoffer-leads-list">
                   {sortedLeads.map((lead) => {
                     const isBought = purchasedLeadIds.has(lead.id);
                     const hasEnoughCredits = provider.credits >= lead.price;
@@ -296,100 +240,48 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
                       lead.region === provider.region ||
                       lead.category === provider.category;
 
-                    const cleanText = cleanDescription(lead.description);
-                    const highlights = getLeadHighlights(lead);
-
                     return (
-                      <article key={lead.id} className="leadx-card">
-                        <div className="leadx-card-main">
-                          <div className="leadx-badges">
+                      <article key={lead.id} className="topoffer-lead-card">
+                        <div className="topoffer-card-header">
+                          <div className="topoffer-badges">
                             <span>{isBought ? "Freigeschaltet" : "Neu"}</span>
-                            {isMatching ? <span>Perfekt passend</span> : null}
                             <span>{lead.category}</span>
-                            <span>{lead.region}</span>
+                            {isMatching ? <span>Passend</span> : null}
                           </div>
 
-                          <h2>{lead.title}</h2>
-
-                          <div className="leadx-clean-grid">
-                            <div>
-                              <small>Dienstleistung</small>
-                              <strong>{lead.category}</strong>
-                            </div>
-
-                            <div>
-                              <small>Region</small>
-                              <strong>{lead.region}</strong>
-                            </div>
-
-                            <div>
-                              <small>Auftragswert</small>
-                              <strong>{estimateOrderValue(lead.price)}</strong>
-                            </div>
-                          </div>
-
-                          {highlights.length > 0 ? (
-                            <div className="leadx-highlights">
-                              {highlights.map((item) => (
-                                <span key={item}>{item}</span>
-                              ))}
-                            </div>
-                          ) : null}
-
-                          <div className="leadx-description-box">
-                            <small>Beschreibung</small>
-                            <p>
-                              {cleanText ||
-                                "Der Kunde sucht passende Anbieter und möchte eine Offerte erhalten."}
-                            </p>
-                          </div>
-
-                          <div className="leadx-locked-box">
-                            <span>Kontaktdaten</span>
-
-                            {isBought ? (
-                              <div className="leadx-contact-grid">
-                                <div>
-                                  <small>Name</small>
-                                  <strong>{lead.name}</strong>
-                                </div>
-
-                                <div>
-                                  <small>E-Mail</small>
-                                  <strong>{lead.email}</strong>
-                                </div>
-
-                                <div>
-                                  <small>Telefon</small>
-                                  <strong>{lead.phone}</strong>
-                                </div>
-                              </div>
-                            ) : (
-                              <p>
-                                Nach dem Kauf werden Name, E-Mail und
-                                Telefonnummer sofort freigeschaltet.
-                              </p>
-                            )}
-                          </div>
+                          <span className="topoffer-company-count">
+                            2 von 4 Firmen
+                          </span>
                         </div>
 
-                        <div className="leadx-buybox">
-                          <div className="leadx-buy-top">
-                            <span>Leadpreis</span>
-                            <strong>{lead.price}</strong>
-                            <small>Credits</small>
-                          </div>
+                        <div className="topoffer-card-body">
+                          <h2>{lead.category}</h2>
 
-                          <div className="leadx-fomo">
-                            <span>🔥 Hohe Anfragequalität</span>
-                            <span>👀 Mehrere Anbieter sehen diesen Lead</span>
-                            <span>⚡ Sofort kontaktieren</span>
+                          <p className="topoffer-subtitle">
+                            {getShortTitle(lead.title)}
+                          </p>
+
+                          <p className="topoffer-location">{lead.region}</p>
+
+                          <p className="topoffer-date">
+                            Angefragt am {formatDate(lead.createdAt)}
+                          </p>
+
+                          <p className="topoffer-status">
+                            {isBought ? "Kontakt freigeschaltet" : "Kontakt gesperrt"}
+                          </p>
+                        </div>
+
+                        <div className="topoffer-card-footer">
+                          <div>
+                            <strong>{lead.price} Credits</strong>
+                            <small>Details erst nach Freischaltung</small>
                           </div>
 
                           {isBought ? (
                             <Link
                               href="/portal/meine-leads"
-                              className="btn btn-secondary leadx-full"
+                              className="btn btn-secondary"
                             >
                               Kontakt ansehen
                             </Link>
@@ -397,28 +289,15 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
                             <form action={buyLeadAction}>
                               <input type="hidden" name="leadId" value={lead.id} />
 
-                              <button
-                                type="submit"
-                                className="btn btn-primary leadx-full"
-                              >
+                              <button type="submit" className="btn btn-primary">
                                 Kontakt freischalten
                               </button>
                             </form>
                           ) : (
-                            <Link
-                              href="/portal/guthaben"
-                              className="btn btn-primary leadx-full"
-                            >
+                            <Link href="/portal/guthaben" className="btn btn-primary">
                               Credits aufladen
                             </Link>
                           )}
-
-                          <Link
-                            href="/portal/meine-leads"
-                            className="btn btn-secondary leadx-full"
-                          >
-                            Meine Leads
-                          </Link>
                         </div>
                       </article>
                     );
@@ -449,28 +328,12 @@ export default async function PortalLeadsPage({ searchParams }: PageProps) {
               </div>
 
               <div className="leadx-side-card leadx-profit">
-                <span>Rechner</span>
-                <h2>Warum sich Leads lohnen.</h2>
+                <span>Aktionen</span>
+                <h2>Neue Leads ansehen.</h2>
 
                 <p>
-                  Ein Lead für 20 Credits kann einen Auftrag von mehreren
-                  hundert Franken bringen.
+                  Öffne den Lead-Marktplatz und sichere dir passende Aufträge.
                 </p>
-
-                <div>
-                  <strong>20 Credits</strong>
-                  <small>Leadpreis</small>
-                </div>
-
-                <div>
-                  <strong>CHF 900</strong>
-                  <small>Ø Auftragswert</small>
-                </div>
-
-                <div>
-                  <strong>45x</strong>
-                  <small>möglicher Hebel</small>
-                </div>
 
                 <Link href="/portal/guthaben" className="btn btn-primary">
                   Credits kaufen
