@@ -58,7 +58,7 @@ export default function SeoLandingPage({ params }: Props) {
     serviceContent[service] ||
     `${serviceLabel} ist eine gefragte Dienstleistung. Über Auftrago kannst du passende regionale Anbieter vergleichen.`;
 
-  const faqs =
+  const baseFaqs =
     serviceFaqs?.[service] || [
       {
         question: "Ist die Anfrage über Auftrago kostenlos?",
@@ -76,6 +76,24 @@ export default function SeoLandingPage({ params }: Props) {
           "Nein. Die Anfrage ist unverbindlich. Du entscheidest selbst, ob du ein Angebot annehmen möchtest.",
       },
     ];
+
+  const faqs = [
+    ...baseFaqs,
+    {
+      question: `Wie finde ich Anbieter für ${serviceLabel} in ${cityLabel}?`,
+      answer: `Über Auftrago kannst du kostenlos eine Anfrage für ${serviceLabel} in ${cityLabel} senden und passende regionale Anbieter vergleichen.`,
+    },
+    {
+      question: `Was kostet ${serviceLabel} in ${cityLabel}?`,
+      answer:
+        "Die Kosten hängen von Umfang, Objektgrösse, Termin, Aufwand und gewünschten Zusatzleistungen ab.",
+    },
+    {
+      question: "Warum sollte ich regionale Anbieter vergleichen?",
+      answer:
+        "Regionale Anbieter haben kurze Wege, kennen die Umgebung und können Termine oft flexibler planen.",
+    },
+  ];
 
   const serviceSchema = {
     "@context": "https://schema.org",
@@ -116,7 +134,7 @@ export default function SeoLandingPage({ params }: Props) {
         "@type": "ListItem",
         position: 2,
         name: serviceLabel,
-        item: `https://www.auftrago.ch/${service}-${city}`,
+        item: `https://www.auftrago.ch/leistungen/${service}`,
       },
       {
         "@type": "ListItem",
@@ -156,9 +174,9 @@ export default function SeoLandingPage({ params }: Props) {
             </h1>
 
             <p>
-              Finde passende Anbieter für {serviceLabel} in {cityLabel}. Erstelle
-              kostenlos eine Anfrage und vergleiche regionale Firmen ohne
-              Verpflichtung.
+              Finde passende Anbieter für {serviceLabel} in {cityLabel}.
+              Erstelle kostenlos eine Anfrage und vergleiche regionale Firmen
+              ohne Verpflichtung.
             </p>
 
             <div className="seo-hero-actions">
@@ -167,7 +185,7 @@ export default function SeoLandingPage({ params }: Props) {
               </Link>
 
               <Link href="/anbieter" className="btn btn-secondary">
-                Anbieter werden
+                Anbieter ansehen
               </Link>
             </div>
 
@@ -226,9 +244,9 @@ export default function SeoLandingPage({ params }: Props) {
             <p>
               Gerade bei lokalen Dienstleistungen zählt Nähe. Anbieter aus{" "}
               {cityLabel} kennen die Region, können Termine oft flexibler planen
-              und reagieren bei Rückfragen schneller. Das ist besonders hilfreich
-              bei kurzfristigen Einsätzen, wiederkehrenden Arbeiten oder
-              Aufträgen mit klaren Terminen.
+              und reagieren bei Rückfragen schneller. Das ist besonders
+              hilfreich bei kurzfristigen Einsätzen, wiederkehrenden Arbeiten
+              oder Aufträgen mit klaren Terminen.
             </p>
 
             <div className="seo-highlight-box">
@@ -255,9 +273,79 @@ export default function SeoLandingPage({ params }: Props) {
             <p>
               Je genauer du deinen Auftrag beschreibst, desto besser können
               Anbieter den Aufwand einschätzen. Wichtige Angaben sind zum
-              Beispiel Ort, gewünschter Termin, Objektgrösse, Umfang der Arbeiten
-              und besondere Anforderungen.
+              Beispiel Ort, gewünschter Termin, Objektgrösse, Umfang der
+              Arbeiten und besondere Anforderungen.
             </p>
+
+            <h2>Was kostet {serviceLabel} in {cityLabel}?</h2>
+
+            <p>
+              Die Kosten für {serviceLabel} in {cityLabel} hängen von
+              verschiedenen Faktoren ab. Dazu gehören Umfang, Objektgrösse,
+              gewünschter Termin, Erreichbarkeit, Materialaufwand,
+              Personalaufwand und besondere Anforderungen.
+            </p>
+
+            <p>
+              Viele Kunden vergleichen mehrere Angebote, bevor sie sich für
+              einen Anbieter entscheiden. Deshalb lohnt es sich, eine möglichst
+              genaue Anfrage zu erstellen. Je klarer die Angaben sind, desto
+              besser können Anbieter den Aufwand einschätzen und eine passende
+              Rückmeldung geben.
+            </p>
+
+            <div className="seo-highlight-box">
+              <h3>Wichtige Preisfaktoren</h3>
+              <ul>
+                <li>Grösse und Umfang des Auftrags</li>
+                <li>Gewünschter Termin und Verfügbarkeit</li>
+                <li>Material-, Geräte- und Personalaufwand</li>
+                <li>Regionale Anfahrtswege</li>
+                <li>Zusätzliche Leistungen oder Spezialwünsche</li>
+              </ul>
+            </div>
+
+            <h2>Ablauf einer Anfrage über Auftrago</h2>
+
+            <p>
+              Über Auftrago kannst du deinen Auftrag in wenigen Minuten
+              erfassen. Anschliessend können passende Anbieter aus {cityLabel}
+              deine Anfrage prüfen und sich bei Interesse melden.
+            </p>
+
+            <div className="seo-two-boxes">
+              <div>
+                <h3>1. Auftrag beschreiben</h3>
+                <p>
+                  Gib Dienstleistung, Ort, Termin, Objekt und wichtige Details
+                  an.
+                </p>
+              </div>
+
+              <div>
+                <h3>2. Anfrage senden</h3>
+                <p>
+                  Deine Angaben werden strukturiert erfasst und für Anbieter
+                  verständlich aufbereitet.
+                </p>
+              </div>
+
+              <div>
+                <h3>3. Anbieter vergleichen</h3>
+                <p>
+                  Regionale Firmen können deine Anfrage prüfen und passende
+                  Rückmeldungen geben.
+                </p>
+              </div>
+
+              <div>
+                <h3>4. Entscheidung treffen</h3>
+                <p>
+                  Du entscheidest selbst, ob ein Angebot und Anbieter zu deinem
+                  Auftrag passen.
+                </p>
+              </div>
+            </div>
 
             <h2>Warum regionale Anbieter in {cityLabel} sinnvoll sind</h2>
 
@@ -282,8 +370,8 @@ export default function SeoLandingPage({ params }: Props) {
               Auftrago eignet sich für Privatpersonen, Verwaltungen, Firmen und
               Eigentümer, die einen passenden Dienstleister in {cityLabel}
               suchen. Ob einmaliger Auftrag, regelmässige Arbeit oder dringende
-              Anfrage: Mit einer strukturierten Anfrage erhöhst du die Chance auf
-              passende Rückmeldungen.
+              Anfrage: Mit einer strukturierten Anfrage erhöhst du die Chance
+              auf passende Rückmeldungen.
             </p>
 
             <div className="seo-two-boxes">
@@ -303,6 +391,21 @@ export default function SeoLandingPage({ params }: Props) {
                 </p>
               </div>
             </div>
+
+            <h2>Weitere Informationen zu {serviceLabel} in {cityLabel}</h2>
+
+            <p>
+              Die Nachfrage nach {serviceLabel} in {cityLabel} ist besonders
+              dann hoch, wenn Kunden schnell eine zuverlässige Firma benötigen.
+              Dazu gehören kurzfristige Termine, wiederkehrende Arbeiten,
+              saisonale Einsätze oder Aufträge mit klaren Anforderungen.
+            </p>
+
+            <p>
+              Über Auftrago lassen sich verschiedene Anbieter einfacher
+              vergleichen. Dadurch entsteht mehr Transparenz bei Leistungen,
+              Verfügbarkeit, Kosten und regionaler Nähe.
+            </p>
 
             <h2>Häufige Fragen zu {serviceLabel} in {cityLabel}</h2>
 
