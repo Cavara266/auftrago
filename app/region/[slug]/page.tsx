@@ -25,13 +25,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return {
-    title: `Anbieter in ${region.name} finden | Auftrago`,
-    description: `Finde regionale Anbieter für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung und weitere Dienstleistungen in ${region.name}.`,
+    title: `Anbieter in ${region.name} finden | Regionale Offerten vergleichen`,
+    description: `Finde regionale Anbieter für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung und weitere Dienstleistungen in ${region.name}. Kostenlos Anfrage senden.`,
     alternates: {
       canonical: `https://www.auftrago.ch/region/${region.slug}`,
     },
     openGraph: {
-      title: `Anbieter in ${region.name}`,
+      title: `Anbieter in ${region.name} finden`,
       description: `Regionale Firmen und Dienstleister in ${region.name} vergleichen.`,
       url: `https://www.auftrago.ch/region/${region.slug}`,
       siteName: "Auftrago",
@@ -48,42 +48,49 @@ export default function RegionPage({ params }: Props) {
       <main className="seo-page">
         <section className="container page-section-space">
           <h1>Region nicht gefunden</h1>
+          <Link href="/region" className="btn btn-primary">
+            Alle Regionen ansehen
+          </Link>
         </section>
       </main>
     );
   }
 
-  const topServices = services.slice(0, 12);
+  const topServices = services.slice(0, 14);
+
+  const faqs = [
+    {
+      question: `Welche Anbieter finde ich in ${region.name}?`,
+      answer: `Über Auftrago findest du regionale Anbieter für Reinigung, Hauswartung, Umzug, Gartenpflege, Fensterreinigung, Entsorgung und weitere Dienstleistungen in ${region.name}.`,
+    },
+    {
+      question: `Ist die Anfrage in ${region.name} kostenlos?`,
+      answer:
+        "Ja. Die Anfrage über Auftrago ist kostenlos und unverbindlich.",
+    },
+    {
+      question: "Kann ich mehrere Offerten vergleichen?",
+      answer:
+        "Ja. Du kannst Rückmeldungen und Offerten verschiedener Anbieter vergleichen und selbst entscheiden.",
+    },
+    {
+      question: "Für wen eignet sich Auftrago?",
+      answer:
+        "Auftrago eignet sich für Privatkunden, Firmen, Verwaltungen und Eigentümer, die regionale Dienstleister suchen.",
+    },
+  ];
 
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: `Welche Anbieter gibt es in ${region.name}?`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: `Über Auftrago findest du regionale Anbieter für Reinigung, Hauswartung, Umzug, Gartenpflege und weitere Dienstleistungen in ${region.name}.`,
-        },
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
       },
-      {
-        "@type": "Question",
-        name: "Ist die Anfrage kostenlos?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Ja. Die Anfrage ist kostenlos und unverbindlich.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Kann ich mehrere Offerten vergleichen?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Ja. Du kannst mehrere Anbieter vergleichen und selbst entscheiden.",
-        },
-      },
-    ],
+    })),
   };
 
   const breadcrumbSchema = {
@@ -131,10 +138,10 @@ export default function RegionPage({ params }: Props) {
             <h1>
               Anbieter in {region.name}
               <br />
-              einfach finden.
+              einfach vergleichen.
             </h1>
 
-            <p>{region.description}</p>
+            <p>{region.longDescription}</p>
 
             <div className="seo-hero-actions">
               <Link href="/offerte-anfragen" className="btn btn-primary">
@@ -145,14 +152,21 @@ export default function RegionPage({ params }: Props) {
                 Anbieter ansehen
               </Link>
             </div>
+
+            <div className="seo-trust-row">
+              <span>✓ Kostenlos</span>
+              <span>✓ Regional</span>
+              <span>✓ Unverbindlich</span>
+              <span>✓ Für Privat & Firmen</span>
+            </div>
           </div>
 
           <aside className="provider-hero-card">
-            <span>Regionale Orte</span>
-            <h2>Beliebte Orte</h2>
+            <span>Beliebte Orte</span>
+            <h2>{region.name}</h2>
 
             <div className="seo-small-links">
-              {region.cities.slice(0, 8).map((city) => (
+              {region.cities.slice(0, 10).map((city) => (
                 <Link key={city} href="/offerte-anfragen">
                   {city}
                 </Link>
@@ -170,9 +184,8 @@ export default function RegionPage({ params }: Props) {
             <h2>Beliebte Dienstleistungen in {region.name}</h2>
 
             <p>
-              Finde passende Anbieter aus deiner Region und vergleiche
-              verschiedene Offerten für Reinigung, Hauswartung, Umzug,
-              Gartenpflege, Entsorgung und weitere Dienstleistungen.
+              Finde passende Anbieter aus deiner Region und vergleiche Offerten
+              für häufig gesuchte Dienstleistungen.
             </p>
           </div>
 
@@ -189,9 +202,9 @@ export default function RegionPage({ params }: Props) {
                   <div>
                     <span>Dienstleistung</span>
                     <h3>{serviceLabel}</h3>
-
                     <p>
-                      Anbieter für {serviceLabel} in {region.name} vergleichen.
+                      Anbieter für {serviceLabel} in {region.name} vergleichen
+                      und passende Offerten erhalten.
                     </p>
                   </div>
 
@@ -206,36 +219,38 @@ export default function RegionPage({ params }: Props) {
       <section className="provider-section provider-dark">
         <div className="container provider-split">
           <div>
-            <span className="seo-pill">Vergleich</span>
+            <span className="seo-pill">Regionale Nähe</span>
 
             <h2>Warum Anbieter in {region.name} vergleichen?</h2>
 
             <p>
-              Auftrago hilft Privatpersonen, Verwaltungen und Unternehmen dabei,
-              passende regionale Anbieter schneller zu finden.
+              Regionale Anbieter kennen die Umgebung, können Termine oft
+              flexibler planen und reagieren bei Rückfragen schneller. Gerade
+              bei lokalen Dienstleistungen ist Nähe ein grosser Vorteil.
             </p>
 
             <p>
-              Statt verschiedene Firmen einzeln anzufragen, kannst du deinen
-              Auftrag einmal erfassen und verschiedene Angebote vergleichen.
+              In {region.name} werden regelmässig Firmen für Reinigung,
+              Hauswartung, Umzug, Gartenpflege, Fensterreinigung, Transport und
+              Entsorgung gesucht. Mit Auftrago kannst du deine Anfrage einmal
+              erfassen und passende Anbieter einfacher vergleichen.
             </p>
 
             <p>
-              Besonders bei Reinigung, Hauswartung, Umzug, Fensterreinigung,
-              Gartenpflege oder Entsorgung spart das Zeit und erleichtert den
-              Vergleich.
+              Das spart Zeit, reduziert Rückfragen und hilft dir, eine bessere
+              Entscheidung zu treffen.
             </p>
           </div>
 
           <div className="provider-benefits">
             <div>
-              <strong>Regionale Nähe</strong>
-              <p>Anbieter aus {region.name} kennen die Umgebung.</p>
+              <strong>Kurze Wege</strong>
+              <p>Anbieter aus {region.name} sind oft schneller verfügbar.</p>
             </div>
 
             <div>
-              <strong>Mehr Vergleich</strong>
-              <p>Leistungen und Offerten einfacher gegenüberstellen.</p>
+              <strong>Mehr Übersicht</strong>
+              <p>Leistungen, Preise und Verfügbarkeit einfacher vergleichen.</p>
             </div>
 
             <div>
@@ -248,28 +263,104 @@ export default function RegionPage({ params }: Props) {
 
       <section className="provider-section">
         <div className="container">
-          <h2>Häufige Fragen</h2>
+          <div className="provider-section-head">
+            <span className="seo-pill">Orte</span>
+
+            <h2>Beliebte Orte in {region.name}</h2>
+
+            <p>
+              Auftrago hilft dir, Anbieter in der gesamten Region zu finden.
+            </p>
+          </div>
+
+          <div className="provider-category-grid">
+            {region.cities.map((city) => (
+              <div key={city} className="provider-category-card">
+                <div>
+                  <span>Ort</span>
+                  <h3>{city}</h3>
+                  <p>
+                    Anbieter für Reinigung, Hauswartung, Umzug, Gartenpflege,
+                    Entsorgung und weitere Dienstleistungen in {city}.
+                  </p>
+                </div>
+
+                <Link href="/offerte-anfragen">Anfrage starten →</Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="provider-section provider-dark">
+        <div className="container provider-split">
+          <div>
+            <span className="seo-pill">Für Kunden</span>
+
+            <h2>Offerten in {region.name} einfacher vergleichen</h2>
+
+            <p>
+              Statt einzelne Firmen zu suchen und jede separat zu kontaktieren,
+              kannst du über Auftrago eine strukturierte Anfrage senden. Das ist
+              besonders praktisch, wenn du wenig Zeit hast oder mehrere Angebote
+              vergleichen möchtest.
+            </p>
+
+            <p>
+              Eine gute Anfrage enthält Angaben zu Ort, gewünschter
+              Dienstleistung, Termin, Objektgrösse und besonderen Anforderungen.
+              Je genauer die Angaben sind, desto besser können Anbieter den
+              Auftrag einschätzen.
+            </p>
+          </div>
+
+          <div className="provider-benefits">
+            {region.popularServices.map((service) => (
+              <div key={service}>
+                <strong>{service}</strong>
+                <p>
+                  Offerten für {service} in {region.name} vergleichen.
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="provider-section">
+        <div className="container">
+          <h2>Häufige Fragen zu Anbietern in {region.name}</h2>
 
           <div className="quote-faq">
-            <details>
-              <summary>Welche Anbieter finde ich in {region.name}?</summary>
-              <p>
-                Regionale Firmen für Reinigung, Hauswartung, Gartenpflege,
-                Umzug, Entsorgung und weitere Dienstleistungen.
-              </p>
-            </details>
+            {faqs.map((faq) => (
+              <details key={faq.question}>
+                <summary>{faq.question}</summary>
+                <p>{faq.answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            <details>
-              <summary>Ist die Anfrage kostenlos?</summary>
-              <p>
-                Ja. Die Anfrage über Auftrago ist kostenlos und unverbindlich.
-              </p>
-            </details>
+      <section className="provider-section provider-dark">
+        <div className="container provider-cta">
+          <span className="seo-pill">Jetzt starten</span>
 
-            <details>
-              <summary>Kann ich mehrere Offerten erhalten?</summary>
-              <p>Ja. Mehrere Anbieter können auf deine Anfrage reagieren.</p>
-            </details>
+          <h2>Passende Anbieter in {region.name} finden</h2>
+
+          <p>
+            Beschreibe deinen Auftrag und finde regionale Firmen für deine
+            Dienstleistung.
+          </p>
+
+          <div className="seo-hero-actions">
+            <Link href="/offerte-anfragen" className="btn btn-primary">
+              Kostenlose Anfrage senden
+            </Link>
+
+            <Link href="/region" className="btn btn-secondary">
+              Alle Regionen ansehen
+            </Link>
           </div>
         </div>
       </section>
