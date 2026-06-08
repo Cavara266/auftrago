@@ -19,6 +19,16 @@ export const services = [
   "winterdienst",
   "kellerraeumung",
   "moebeltransport",
+  "wohnungsreinigung",
+"unterhaltsreinigung",
+"praxisreinigung",
+"fassadenreinigung",
+"heckenschnitt",
+"rasenpflege",
+"liegenschaftsunterhalt",
+"hausmeisterservice",
+"raeumung",
+"estrichraeumung",
 ];
 
 export const cities = [
@@ -108,26 +118,144 @@ export const cities = [
 ];
 
 export const serviceKeywords: Record<string, string[]> = {
-  reinigung: ["Reinigungsfirma", "Wohnungsreinigung", "Unterhaltsreinigung"],
-  umzugsreinigung: ["Endreinigung", "Wohnungsabgabe", "Abgabereinigung"],
-  hauswartung: ["Liegenschaftsservice", "Gebäudeunterhalt", "Hauswart"],
-  treppenhausreinigung: ["Treppenhaus", "Eingangsbereich", "Gemeinschaftsflächen"],
-  bueroreinigung: ["Büroreinigung", "Praxisreinigung", "Gewerbereinigung"],
-  gartenpflege: ["Gartenunterhalt", "Rasenpflege", "Hecken schneiden"],
-  umzug: ["Umzugsfirma", "Privatumzug", "Firmenumzug"],
-  transport: ["Kleintransport", "Möbeltransport", "Lieferung"],
-  entsorgung: ["Räumung", "Sperrgut", "Entrümpelung"],
-  maler: ["Malerarbeiten", "Streichen", "Renovation"],
-  bodenleger: ["Boden verlegen", "Parkett", "Vinylboden"],
-  elektriker: ["Elektroarbeiten", "Installation", "Reparatur"],
-  sanitaer: ["Sanitär", "Bad", "Wasserinstallation"],
-  fensterreinigung: ["Fenster putzen", "Glasreinigung", "Schaufensterreinigung"],
-  baureinigung: ["Baustellenreinigung", "Bauschlussreinigung", "Grob- und Feinreinigung"],
-  "end-reinigung": ["Endreinigung", "Wohnungsabgabe", "Übergabereinigung"],
-  gebaeudereinigung: ["Gebäudereinigung", "Objektreinigung", "Unterhalt"],
-  winterdienst: ["Schneeräumung", "Salzen", "Winterservice"],
-  kellerraeumung: ["Keller räumen", "Estrich räumen", "Entrümpelung"],
-  moebeltransport: ["Möbeltransport", "Zügeltransport", "Transporthilfe"],
+  reinigung: [
+    "Reinigungsfirma",
+    "Wohnungsreinigung",
+    "Unterhaltsreinigung",
+    "Putzfirma",
+    "Reinigungsservice",
+  ],
+
+  umzugsreinigung: [
+    "Endreinigung",
+    "Wohnungsabgabe",
+    "Abgabereinigung",
+    "Umzugsreinigung mit Abnahmegarantie",
+  ],
+
+  hauswartung: [
+    "Hauswartfirma",
+    "Hauswartservice",
+    "Hauswartarbeiten",
+    "Liegenschaftsunterhalt",
+    "Gebäudeunterhalt",
+    "Hauswart",
+  ],
+
+  treppenhausreinigung: [
+    "Treppenhaus",
+    "Treppenhausreinigung",
+    "Eingangsbereich",
+    "Gemeinschaftsflächen",
+  ],
+
+  bueroreinigung: [
+    "Büroreinigung",
+    "Praxisreinigung",
+    "Gewerbereinigung",
+    "Unterhaltsreinigung Büro",
+  ],
+
+  gartenpflege: [
+    "Gartenunterhalt",
+    "Rasenpflege",
+    "Hecken schneiden",
+    "Gartenservice",
+    "Gärtner",
+  ],
+
+  umzug: [
+    "Umzugsfirma",
+    "Privatumzug",
+    "Firmenumzug",
+    "Zügelunternehmen",
+    "Umzugshilfe",
+  ],
+
+  transport: [
+    "Kleintransport",
+    "Möbeltransport",
+    "Lieferung",
+    "Transportservice",
+  ],
+
+  entsorgung: [
+    "Räumung",
+    "Sperrgut",
+    "Entrümpelung",
+    "Haushaltsauflösung",
+  ],
+
+  maler: [
+    "Malerarbeiten",
+    "Streichen",
+    "Renovation",
+    "Malerfirma",
+  ],
+
+  bodenleger: [
+    "Boden verlegen",
+    "Parkett",
+    "Vinylboden",
+    "Laminat",
+  ],
+
+  elektriker: [
+    "Elektriker",
+    "Elektroarbeiten",
+    "Installation",
+    "Reparatur",
+  ],
+
+  sanitaer: [
+    "Sanitär",
+    "Sanitärservice",
+    "Badumbau",
+    "Wasserinstallation",
+  ],
+
+  fensterreinigung: [
+    "Fensterreinigung",
+    "Fenster putzen",
+    "Glasreinigung",
+    "Storenreinigung",
+  ],
+
+  baureinigung: [
+    "Baustellenreinigung",
+    "Bauschlussreinigung",
+    "Baureinigung",
+  ],
+
+  "end-reinigung": [
+    "Endreinigung",
+    "Übergabereinigung",
+    "Wohnungsabgabe",
+  ],
+
+  gebaeudereinigung: [
+    "Gebäudereinigung",
+    "Objektreinigung",
+    "Unterhaltsreinigung",
+  ],
+
+  winterdienst: [
+    "Winterdienst",
+    "Schneeräumung",
+    "Salzen",
+  ],
+
+  kellerraeumung: [
+    "Kellerräumung",
+    "Estrichräumung",
+    "Entrümpelung",
+  ],
+
+  moebeltransport: [
+    "Möbeltransport",
+    "Transporthilfe",
+    "Zügeltransport",
+  ],
 };
 
 export const cityContent: Record<string, string> = {

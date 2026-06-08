@@ -2,6 +2,7 @@ import { MetadataRoute } from "next";
 import { generateSlugs, services } from "@/lib/seo-data";
 import { regions } from "@/lib/region-data";
 import { citiesSeo } from "@/lib/city-data";
+import { prioritySeoPages } from "@/lib/priority-seo-pages";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://www.auftrago.ch";
@@ -67,6 +68,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.85,
   }));
 
+  const priorityPages: MetadataRoute.Sitemap = prioritySeoPages.map(
+    (page) => ({
+      url: `${baseUrl}/${page.slug}`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.95,
+    })
+  );
+
   const seoPages: MetadataRoute.Sitemap = generateSlugs().map((slug) => ({
     url: `${baseUrl}/${slug}`,
     lastModified: now,
@@ -79,6 +89,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...regionPages,
     ...cityPages,
     ...servicePages,
+    ...priorityPages,
     ...seoPages,
   ];
 }

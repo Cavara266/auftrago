@@ -7,6 +7,5 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
     },
     sitemap: "https://www.auftrago.ch/sitemap.xml",
-    host: "https://www.auftrago.ch",
   };
 }
