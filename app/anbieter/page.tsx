@@ -19,27 +19,109 @@ export const metadata: Metadata = {
   },
 };
 
+const regions = [
+  "Zürich",
+  "Aargau",
+  "Basel",
+  "Bern",
+  "Luzern",
+  "Zug",
+  "St. Gallen",
+  "Schaffhausen",
+  "Thurgau",
+];
+
+const stats = [
+  { value: "100%", label: "kostenlose Anfrage" },
+  { value: "24h", label: "schnelle Rückmeldungen möglich" },
+  { value: "CH", label: "regionale Anbieter" },
+];
+
+const steps = [
+  {
+    number: "01",
+    title: "Auftrag erfassen",
+    text: "Beschreibe deine Dienstleistung, Ort, Termin und wichtige Details.",
+  },
+  {
+    number: "02",
+    title: "Regionale Firmen erreichen",
+    text: "Passende Anbieter aus deiner Umgebung können deine Anfrage prüfen.",
+  },
+  {
+    number: "03",
+    title: "Offerten vergleichen",
+    text: "Du vergleichst Leistungen, Preise und Verfügbarkeit in Ruhe.",
+  },
+];
+
+const benefits = [
+  "Keine lange Suche nach einzelnen Firmen",
+  "Regionale Anbieter aus deiner Umgebung",
+  "Geeignet für Privatkunden, Firmen und Verwaltungen",
+  "Kostenlos und unverbindlich starten",
+  "Mehr Übersicht bei Preisen und Leistungen",
+  "Schneller passende Dienstleister finden",
+];
+
+const faqs = [
+  {
+    question: "Ist die Anfrage über Auftrago kostenlos?",
+    answer:
+      "Ja. Kunden können kostenlos und unverbindlich eine Anfrage senden.",
+  },
+  {
+    question: "Welche Anbieter finde ich auf Auftrago?",
+    answer:
+      "Auftrago hilft bei der Suche nach regionalen Dienstleistern für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung und weitere Arbeiten.",
+  },
+  {
+    question: "Bin ich nach der Anfrage verpflichtet?",
+    answer:
+      "Nein. Du entscheidest selbst, ob du ein Angebot annehmen möchtest.",
+  },
+  {
+    question: "Können sich Firmen registrieren?",
+    answer:
+      "Ja. Dienstleister können sich als Anbieter registrieren und passende Kundenanfragen erhalten.",
+  },
+];
+
 export default function AnbieterPage() {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: "Anbieter finden auf Auftrago",
+    url: "https://www.auftrago.ch/anbieter",
+    description:
+      "Regionale Anbieter für Reinigung, Hauswartung, Umzug, Gartenpflege und weitere Dienstleistungen vergleichen.",
+  };
+
   return (
-    <main className="seo-page">
-      <section className="provider-hero">
-        <div className="container provider-hero-grid">
+    <main className="provider-page">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
+
+      <section className="anbieter-hero">
+        <div className="container anbieter-hero-grid">
           <div>
-            <span className="seo-pill">Anbieter finden</span>
+            <span className="anbieter-pill">Anbieter finden</span>
 
             <h1>
               Regionale Firmen
               <br />
-              einfach vergleichen.
+              schneller vergleichen.
             </h1>
 
             <p>
               Finde passende Dienstleister für Reinigung, Hauswartung, Umzug,
-              Gartenpflege, Entsorgung und weitere Aufträge. Kostenlos Anfrage
-              senden und regionale Anbieter vergleichen.
+              Gartenpflege, Entsorgung und weitere Aufträge. Sende eine Anfrage
+              und vergleiche regionale Anbieter ohne Verpflichtung.
             </p>
 
-            <div className="seo-hero-actions">
+            <div className="anbieter-actions">
               <Link href="/offerte-anfragen" className="btn btn-primary">
                 Kostenlose Anfrage senden
               </Link>
@@ -49,7 +131,7 @@ export default function AnbieterPage() {
               </Link>
             </div>
 
-            <div className="seo-trust-row">
+            <div className="anbieter-trust">
               <span>✓ Kostenlos</span>
               <span>✓ Regional</span>
               <span>✓ Unverbindlich</span>
@@ -57,45 +139,50 @@ export default function AnbieterPage() {
             </div>
           </div>
 
-          <aside className="provider-hero-card">
-            <span>Auftrago</span>
-            <h2>So funktioniert der Vergleich</h2>
+          <aside className="anbieter-search-card">
+            <span>Direkt starten</span>
+            <h2>Was suchst du?</h2>
 
-            <div>
-              <strong>1. Auftrag beschreiben</strong>
-              <p>Du erfasst deine Anfrage mit Ort, Termin und Details.</p>
+            <div className="anbieter-search-box">
+              <strong>Reinigung, Umzug, Hauswartung...</strong>
+              <small>Auftrag beschreiben und Anbieter finden</small>
             </div>
 
-            <div>
-              <strong>2. Anbieter vergleichen</strong>
-              <p>Regionale Firmen können deine Anfrage prüfen.</p>
-            </div>
-
-            <div>
-              <strong>3. Passende Offerte wählen</strong>
-              <p>Du entscheidest selbst, welches Angebot passt.</p>
-            </div>
+            <Link href="/offerte-anfragen" className="anbieter-big-button">
+              Anfrage erstellen →
+            </Link>
           </aside>
         </div>
       </section>
 
-      <section className="provider-section">
+      <section className="anbieter-stats">
+        <div className="container anbieter-stats-grid">
+          {stats.map((item) => (
+            <div key={item.label}>
+              <strong>{item.value}</strong>
+              <span>{item.label}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="anbieter-section">
         <div className="container">
-          <div className="provider-section-head">
-            <span className="seo-pill">Kategorien</span>
+          <div className="anbieter-section-head">
+            <span className="anbieter-pill">Kategorien</span>
             <h2>Beliebte Anbieter-Kategorien</h2>
             <p>
-              Wähle eine Dienstleistung und finde regionale Anbieter aus deiner
+              Wähle eine Dienstleistung und finde passende Anbieter aus deiner
               Umgebung.
             </p>
           </div>
 
-          <div className="provider-category-grid">
+          <div className="anbieter-category-grid">
             {providerCategories.map((category) => (
               <Link
                 key={category.title}
                 href={category.href}
-                className="provider-category-card"
+                className="anbieter-category-card"
               >
                 <div>
                   <span>Anbieter</span>
@@ -103,7 +190,7 @@ export default function AnbieterPage() {
                   <p>{category.description}</p>
                 </div>
 
-                <div className="provider-tags">
+                <div className="anbieter-tags">
                   {category.services.map((service) => (
                     <small key={service}>{service}</small>
                   ))}
@@ -116,10 +203,33 @@ export default function AnbieterPage() {
         </div>
       </section>
 
-      <section className="provider-section provider-dark">
-        <div className="container provider-split">
+      <section className="anbieter-section anbieter-dark">
+        <div className="container anbieter-steps-grid">
+          <div className="anbieter-section-head">
+            <span className="anbieter-pill">Ablauf</span>
+            <h2>In 3 Schritten zur passenden Firma</h2>
+            <p>
+              Auftrago macht die Suche nach regionalen Dienstleistern einfacher,
+              schneller und übersichtlicher.
+            </p>
+          </div>
+
+          <div className="anbieter-step-list">
+            {steps.map((step) => (
+              <div key={step.number} className="anbieter-step-card">
+                <span>{step.number}</span>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="anbieter-section">
+        <div className="container anbieter-split">
           <div>
-            <span className="seo-pill">Für Kunden</span>
+            <span className="anbieter-pill">Vorteile</span>
             <h2>Warum Anbieter über Auftrago vergleichen?</h2>
             <p>
               Statt einzelne Firmen zu suchen, mehrere Webseiten zu öffnen und
@@ -129,35 +239,66 @@ export default function AnbieterPage() {
             </p>
           </div>
 
-          <div className="provider-benefits">
-            <div>
-              <strong>Regionale Nähe</strong>
-              <p>Kurze Wege und Anbieter aus deiner Umgebung.</p>
-            </div>
-
-            <div>
-              <strong>Bessere Vergleichbarkeit</strong>
-              <p>Offerten und Leistungen einfacher gegenüberstellen.</p>
-            </div>
-
-            <div>
-              <strong>Keine Verpflichtung</strong>
-              <p>Du entscheidest selbst, ob du ein Angebot annimmst.</p>
-            </div>
+          <div className="anbieter-benefit-grid">
+            {benefits.map((benefit) => (
+              <div key={benefit}>
+                <span>✓</span>
+                <strong>{benefit}</strong>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="provider-section">
-        <div className="container provider-cta">
-          <span className="seo-pill">Jetzt starten</span>
+      <section className="anbieter-section anbieter-dark">
+        <div className="container">
+          <div className="anbieter-section-head">
+            <span className="anbieter-pill">Regionen</span>
+            <h2>Anbieter in deiner Region finden</h2>
+            <p>
+              Starte mit deiner Region und finde passende Dienstleister für
+              deinen Auftrag.
+            </p>
+          </div>
+
+          <div className="anbieter-region-grid">
+            {regions.map((region) => (
+              <Link key={region} href="/offerte-anfragen">
+                {region}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="anbieter-section">
+        <div className="container anbieter-faq-grid">
+          <div>
+            <span className="anbieter-pill">FAQ</span>
+            <h2>Häufige Fragen</h2>
+          </div>
+
+          <div className="anbieter-faq">
+            {faqs.map((faq) => (
+              <details key={faq.question}>
+                <summary>{faq.question}</summary>
+                <p>{faq.answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="anbieter-final-cta">
+        <div className="container">
+          <span className="anbieter-pill">Jetzt starten</span>
           <h2>Passende Anbieter finden</h2>
           <p>
             Beschreibe deinen Auftrag und finde regionale Firmen für deine
             Dienstleistung.
           </p>
 
-          <div className="seo-hero-actions">
+          <div className="anbieter-actions center">
             <Link href="/offerte-anfragen" className="btn btn-primary">
               Anfrage senden
             </Link>
