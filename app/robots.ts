@@ -1,11 +1,12 @@
-export default function robots(){
+import { MetadataRoute } from "next";
 
-return{
-rules:{
-userAgent:"*",
-allow:"/"
-},
-sitemap:"https://auftrago.ch/sitemap.xml"
-}
-
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: {
+      userAgent: "*",
+      allow: "/",
+    },
+    sitemap: "https://www.auftrago.ch/sitemap.xml",
+    host: "https://www.auftrago.ch",
+  };
 }
