@@ -3,6 +3,9 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import HomeLeadForm from "@/components/home-lead-form";
 import LiveLeadFeed from "@/components/live-lead-feed";
+import { regions as regionData } from "@/lib/region-data";
+import { citiesSeo } from "@/lib/city-data";
+import { services as seoServices, formatText } from "@/lib/seo-data";
 
 export const dynamic = "force-dynamic";
 
@@ -10,21 +13,21 @@ export const metadata: Metadata = {
   title:
     "Auftrago – Offertenplattform Schweiz für Reinigung, Hauswartung, Umzug & Gartenpflege",
   description:
-    "Kostenlose Offerte anfragen für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung, Fensterreinigung, Sanitär, Elektriker und regionale Dienstleistungen in der Schweiz.",
+    "Kostenlose Offerten für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung, Fensterreinigung, Sanitär, Elektriker und regionale Dienstleistungen in der Schweiz vergleichen.",
   alternates: {
     canonical: "https://www.auftrago.ch",
   },
   openGraph: {
     title: "Auftrago – Offertenplattform Schweiz",
     description:
-      "Kostenlose Offerten für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung und weitere Dienstleistungen in der Schweiz vergleichen.",
+      "Finde regionale Anbieter für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung und weitere Dienstleistungen in der Schweiz.",
     url: "https://www.auftrago.ch",
     siteName: "Auftrago",
     type: "website",
   },
 };
 
-const services = [
+const mainServices = [
   {
     icon: "🧹",
     title: "Reinigung",
@@ -81,19 +84,15 @@ const services = [
   },
 ];
 
-const regions = [
-  "Zürich",
-  "Aargau",
-  "Aarau",
-  "Baden",
-  "Winterthur",
-  "Basel",
-  "Bern",
-  "Luzern",
-  "Zug",
-  "St. Gallen",
-  "Solothurn",
-  "Schweiz",
+const priorityLinks = [
+  ["Hauswartfirma Uster", "/hauswartung-uster"],
+  ["Hauswartservice Uster", "/hauswartung-uster"],
+  ["Hauswartarbeiten Uster", "/hauswartung-uster"],
+  ["Reinigung Uster", "/reinigung-uster"],
+  ["Endreinigung Bülach", "/end-reinigung-buelach"],
+  ["Büroreinigung Bülach", "/bueroreinigung-buelach"],
+  ["Umzug Lenzburg", "/umzug-lenzburg"],
+  ["Fensterreinigung Solothurn", "/fensterreinigung-solothurn"],
 ];
 
 const popularLinks = [
@@ -132,6 +131,11 @@ const faqs = [
     answer:
       "Nein. Die Anfrage ist unverbindlich. Du entscheidest selbst, ob ein Angebot zu deinem Auftrag passt.",
   },
+  {
+    question: "Für welche Regionen ist Auftrago geeignet?",
+    answer:
+      "Auftrago eignet sich für Zürich, Aargau, Basel, Bern, Luzern, Zug, St. Gallen, Solothurn, Schaffhausen und weitere Regionen in der Schweiz.",
+  },
 ];
 
 export default async function HomePage() {
@@ -150,10 +154,6 @@ export default async function HomePage() {
     },
   });
 
-  const displayTotalCount = 487;
-  const displayWeekCount = 63;
-  const displayTodayCount = 12;
-
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -167,13 +167,11 @@ export default async function HomePage() {
     })),
   };
 
-  const organizationSchema = {
+  const websiteSchema = {
     "@context": "https://schema.org",
-    "@type": "Organization",
+    "@type": "WebSite",
     name: "Auftrago",
     url: "https://www.auftrago.ch",
-    description:
-      "Schweizer Offertenplattform für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung und weitere regionale Dienstleistungen.",
   };
 
   return (
@@ -185,7 +183,7 @@ export default async function HomePage() {
 
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
       />
 
       <section className="premium-hero">
@@ -203,8 +201,8 @@ export default async function HomePage() {
 
             <p>
               Statt viele Firmen einzeln anzurufen, beschreibst du deinen Auftrag
-              einmal. Deine Anfrage wird strukturiert erfasst und passende
-              Anbieter aus deiner Region können darauf reagieren.
+              einmal. Passende Anbieter aus deiner Region können deine Anfrage
+              prüfen und sich bei dir melden.
             </p>
 
             <div className="actions">
@@ -227,9 +225,9 @@ export default async function HomePage() {
 
       <LiveLeadFeed
         leads={latestLeads}
-        todayCount={displayTodayCount}
-        weekCount={displayWeekCount}
-        totalCount={displayTotalCount}
+        todayCount={12}
+        weekCount={63}
+        totalCount={487}
       />
 
       <section className="premium-section">
@@ -243,9 +241,7 @@ export default async function HomePage() {
             <p>
               Wer eine zuverlässige Firma sucht, verliert oft viel Zeit mit
               Google-Suche, Telefonaten, Rückfragen und unübersichtlichen
-              Offerten. Auftrago vereinfacht diesen Prozess: Du beschreibst
-              deinen Auftrag einmal und erhältst eine bessere Grundlage für den
-              Vergleich.
+              Offerten. Auftrago vereinfacht diesen Prozess.
             </p>
 
             <p>
@@ -257,9 +253,7 @@ export default async function HomePage() {
 
             <p>
               Auftrago sorgt für klare Angaben, bessere Vergleichbarkeit, weniger
-              Rückfragen und schnellere Entscheidungen. So findest du einfacher
-              eine passende Firma in Zürich, Aargau, Aarau, Baden, Winterthur,
-              Basel, Bern, Luzern, Zug oder in deiner Region.
+              Rückfragen und schnellere Entscheidungen.
             </p>
           </div>
         </div>
@@ -269,19 +263,15 @@ export default async function HomePage() {
         <div className="container">
           <div className="section-head">
             <span className="eyebrow">Leistungen</span>
-
             <h2>Finde Anbieter für viele Dienstleistungen.</h2>
-
             <p>
-              Auftrago bündelt Kundenanfragen aus Bereichen, in denen Menschen
-              schnell eine zuverlässige Firma benötigen. Dazu gehören Reinigung,
-              Umzugsreinigung, Hauswartung, Gartenpflege, Fensterreinigung,
-              Entsorgung, Transport, Malerarbeiten, Sanitär und Elektroarbeiten.
+              Von Reinigung über Hauswartung bis Umzug: Auftrago verbindet
+              Kunden mit passenden regionalen Anbietern.
             </p>
           </div>
 
           <div className="premium-service-grid">
-            {services.map((service) => (
+            {mainServices.map((service) => (
               <Link
                 href={service.href}
                 className="premium-service-card"
@@ -298,24 +288,19 @@ export default async function HomePage() {
       </section>
 
       <section className="premium-section">
-        <div className="container premium-region-card">
-          <div>
-            <span className="eyebrow">Regionen</span>
+        <div className="container premium-provider-card">
+          <span className="eyebrow">SEO Fokus</span>
+          <h2>Häufig gesuchte Dienstleistungen</h2>
+          <p>
+            Diese Seiten helfen Google, Auftrago als Plattform für regionale
+            Dienstleistungen in der Schweiz besser einzuordnen.
+          </p>
 
-            <h2>Stark in Zürich, Aargau und der ganzen Schweiz.</h2>
-
-            <p>
-              Lokale Dienstleistungen brauchen Nähe. Deshalb setzt Auftrago auf
-              regionale Anfragen und passende Anbieter aus der Umgebung. Ob
-              Zürich, Aargau, Aarau, Baden, Winterthur, Basel, Bern, Luzern,
-              Zug, Solothurn oder St. Gallen – regionale Firmen sollen schneller
-              mit passenden Kunden zusammenfinden.
-            </p>
-          </div>
-
-          <div className="premium-region-list">
-            {regions.map((region) => (
-              <span key={region}>{region}</span>
+          <div className="seo-link-grid">
+            {seoServices.slice(0, 20).map((service) => (
+              <Link key={service} href={`/leistungen/${service}`}>
+                {formatText(service)}
+              </Link>
             ))}
           </div>
         </div>
@@ -323,15 +308,72 @@ export default async function HomePage() {
 
       <section className="premium-section">
         <div className="container premium-provider-card">
-          <span className="eyebrow">Beliebte Suchanfragen</span>
+          <span className="eyebrow">Regionen</span>
+          <h2>Regionale Anbieter in der Schweiz finden</h2>
+          <p>
+            Wähle deine Region und finde passende Anbieter für Reinigung,
+            Hauswartung, Umzug, Gartenpflege, Fensterreinigung, Entsorgung und
+            weitere Dienstleistungen.
+          </p>
 
-          <h2>Direkt zu häufig gesuchten Offerten.</h2>
+          <div className="seo-link-grid">
+            {regionData.map((region) => (
+              <Link key={region.slug} href={`/region/${region.slug}`}>
+                Anbieter in {region.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="premium-section">
+        <div className="container premium-provider-card">
+          <span className="eyebrow">Städte</span>
+          <h2>Anbieter in deiner Stadt finden</h2>
+          <p>
+            Lokale Suchanfragen bringen oft die besten Kunden. Deshalb verlinkt
+            Auftrago wichtige Stadtseiten direkt von der Startseite.
+          </p>
+
+          <div className="seo-link-grid">
+            {citiesSeo.map((city) => (
+              <Link key={city.slug} href={`/stadt/${city.slug}`}>
+                Anbieter in {city.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="premium-section">
+        <div className="container premium-provider-card">
+          <span className="eyebrow">Priorität</span>
+          <h2>Starke Seiten für aktuelle Suchanfragen</h2>
+          <p>
+            Diese Suchbegriffe zeigen bereits Interesse in Google. Deshalb
+            werden sie besonders stark intern verlinkt.
+          </p>
+
+          <div className="seo-link-grid">
+            {priorityLinks.map(([label, href]) => (
+              <Link key={href + label} href={href}>
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="premium-section">
+        <div className="container premium-provider-card">
+          <span className="eyebrow">Beliebte Offerten</span>
+
+          <h2>Direkt zu häufig gesuchten Kombinationen.</h2>
 
           <p>
-            Viele Kunden suchen täglich nach Begriffen wie Reinigungsfirma
-            Zürich, Reinigungsfirma Aargau, Umzugsreinigung Zürich,
-            Hauswartung Zürich, Gartenpflege Zürich, Fensterreinigung Zürich,
-            Entsorgung Zürich oder Umzug Zürich.
+            Viele Kunden suchen täglich nach Reinigungsfirma Zürich,
+            Umzugsreinigung Zürich, Hauswartung Uster, Umzug Lenzburg,
+            Büroreinigung Bülach oder Fensterreinigung Solothurn.
           </p>
 
           <div className="seo-link-grid">
@@ -351,10 +393,8 @@ export default async function HomePage() {
           <h2>Mehr relevante Leads. Weniger Streuverlust.</h2>
 
           <p>
-            Auftrago ist für Dienstleister gemacht, die nicht einfach nur
-            Sichtbarkeit kaufen möchten, sondern konkrete Kundenanfragen erhalten
-            wollen. Anbieter können passende Leads prüfen, Credits aufladen und
-            interessante Kontakte gezielt freischalten.
+            Auftrago ist für Dienstleister gemacht, die nicht nur Sichtbarkeit
+            möchten, sondern konkrete Kundenanfragen erhalten wollen.
           </p>
 
           <p>
@@ -400,9 +440,7 @@ export default async function HomePage() {
 
           <p>
             Kostenlos, unverbindlich und regional. Starte deine Anfrage in
-            weniger als einer Minute und finde passende Anbieter für Reinigung,
-            Hauswartung, Umzug, Gartenpflege, Fensterreinigung, Entsorgung,
-            Transport, Malerarbeiten, Sanitär oder Elektroarbeiten.
+            weniger als einer Minute.
           </p>
 
           <div className="actions center">
