@@ -254,6 +254,67 @@ export default async function HomePage() {
       />
 
       <section className="premium-section">
+        <div className="container">
+          <div className="trust-stats">
+            <div className="trust-card">
+              <strong>2200+</strong>
+              <span>Regionale Angebotsseiten</span>
+            </div>
+
+            <div className="trust-card">
+              <strong>20+</strong>
+              <span>Schweizer Regionen</span>
+            </div>
+
+            <div className="trust-card">
+              <strong>100%</strong>
+              <span>Kostenlose Anfrage</span>
+            </div>
+
+            <div className="trust-card">
+              <strong>CH</strong>
+              <span>Regionale Anbieter</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="premium-section">
+        <div className="container">
+          <div className="section-head">
+            <span className="eyebrow">So funktioniert es</span>
+            <h2>In 4 Schritten zur passenden Offerte</h2>
+          </div>
+
+          <div className="how-grid">
+            <div className="how-card">
+              <strong>1</strong>
+              <h3>Auftrag beschreiben</h3>
+              <p>Beschreibe kurz dein Projekt und die gewünschte Dienstleistung.</p>
+            </div>
+
+            <div className="how-card">
+              <strong>2</strong>
+              <h3>Anfrage senden</h3>
+              <p>Deine Anfrage ist kostenlos und unverbindlich.</p>
+            </div>
+
+            <div className="how-card">
+              <strong>3</strong>
+              <h3>Offerten erhalten</h3>
+              <p>Passende regionale Anbieter können sich bei dir melden.</p>
+            </div>
+
+            <div className="how-card">
+              <strong>4</strong>
+              <h3>Vergleichen</h3>
+              <p>Vergleiche Preis, Qualität, Service und Verfügbarkeit.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="premium-section">
         <div className="container premium-intro-card">
           <div>
             <span className="eyebrow">Warum Auftrago?</span>

@@ -9643,3 +9643,29 @@ input[type="checkbox"] {
     font-size: 18px;
   }
 }
+.mega-error {
+  margin: 14px 0;
+  padding: 14px 16px;
+  border-radius: 16px;
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.mega-submit:disabled,
+.mega-main-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.mega-fields input[type="email"] {
+  grid-column: span 2;
+}
+
+@media (max-width: 760px) {
+  .mega-fields input[type="email"] {
+    grid-column: auto;
+  }
+}

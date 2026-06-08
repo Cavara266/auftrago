@@ -3,13 +3,13 @@
 import { useState } from "react";
 
 const services = [
-  { name: "Reinigung", icon: "🧹", text: "Wohnung, Büro, Endreinigung" },
-  { name: "Umzugsreinigung", icon: "🏠", text: "Mit oder ohne Abgabegarantie" },
-  { name: "Fensterreinigung", icon: "🪟", text: "Fenster, Storen, Glasflächen" },
+  { name: "Reinigung", icon: "🧹", text: "Wohnung, Büro, Unterhalt" },
+  { name: "Umzugsreinigung", icon: "🏠", text: "Endreinigung & Abgabe" },
+  { name: "Fensterreinigung", icon: "🪟", text: "Fenster, Storen, Glas" },
   { name: "Hauswartung", icon: "🏢", text: "Liegenschaften & Unterhalt" },
   { name: "Gartenpflege", icon: "🌿", text: "Rasen, Hecken, Pflege" },
+  { name: "Umzug", icon: "📦", text: "Privatumzug & Transport" },
   { name: "Entsorgung", icon: "♻️", text: "Räumung, Keller, Sperrgut" },
-  { name: "Transport", icon: "🚚", text: "Umzug, Lieferung, Möbel" },
   { name: "Andere", icon: "✨", text: "Sonstige Dienstleistung" },
 ];
 
@@ -20,13 +20,24 @@ export default function HomeLeadForm() {
   const [region, setRegion] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit() {
+    if (!service || !region || !name || !phone) {
+      setError("Bitte fülle alle Pflichtfelder aus.");
+      return;
+    }
+
+    setSending(true);
+    setError("");
+
     const payload = {
       name,
       phone,
-      email: "Nicht angegeben",
+      email: email || "Nicht angegeben",
       region,
       service,
       start: "Nach Absprache",
@@ -56,18 +67,29 @@ export default function HomeLeadForm() {
       carpetCleaning: "Nicht angegeben",
       budget: "Nicht angegeben",
       offersWanted: "3 Angebote",
-      important: "Preis und Qualität",
+      important: "Preis, Qualität und schnelle Rückmeldung",
     };
 
-    await fetch("/api/anfrage", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const res = await fetch("/api/anfrage", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-    setSent(true);
+      if (!res.ok) {
+        setError("Die Anfrage konnte nicht gesendet werden. Bitte versuche es erneut.");
+        return;
+      }
+
+      setSent(true);
+    } catch {
+      setError("Es gab ein technisches Problem. Bitte versuche es erneut.");
+    } finally {
+      setSending(false);
+    }
   }
 
   if (sent) {
@@ -75,7 +97,10 @@ export default function HomeLeadForm() {
       <div className="mega-lead-success">
         <div>✓</div>
         <h3>Anfrage erhalten</h3>
-        <p>Danke. Wir melden uns schnellstmöglich mit passenden Anbietern.</p>
+        <p>
+          Danke. Deine Anfrage wurde gesendet. Passende Anbieter können sich
+          direkt bei dir melden.
+        </p>
       </div>
     );
   }
@@ -83,7 +108,7 @@ export default function HomeLeadForm() {
   return (
     <div className="mega-lead">
       <div className="mega-lead-top">
-        <span>🔥 Beliebte Anfrage</span>
+        <span>🔥 Schnellstart</span>
         <strong>Schritt {step} von 4</strong>
       </div>
 
@@ -98,8 +123,10 @@ export default function HomeLeadForm() {
         <>
           <div className="mega-head">
             <div className="mega-pill">✓ Kostenlos & unverbindlich</div>
-            <h3>Was möchtest du machen lassen?</h3>
-            <p>Wähle eine Dienstleistung und starte deine Anfrage in wenigen Sekunden.</p>
+            <h3>Welche Dienstleistung brauchst du?</h3>
+            <p>
+              Wähle eine Kategorie. Danach beschreibst du kurz deinen Auftrag.
+            </p>
           </div>
 
           <div className="mega-services">
@@ -107,7 +134,9 @@ export default function HomeLeadForm() {
               <button
                 key={item.name}
                 type="button"
-                className={service === item.name ? "mega-service active" : "mega-service"}
+                className={
+                  service === item.name ? "mega-service active" : "mega-service"
+                }
                 onClick={() => setService(item.name)}
               >
                 <b>{item.icon}</b>
@@ -118,6 +147,7 @@ export default function HomeLeadForm() {
           </div>
 
           <button
+            type="button"
             className="mega-main-btn"
             disabled={!service}
             onClick={() => setStep(2)}
@@ -132,14 +162,17 @@ export default function HomeLeadForm() {
           <div className="mega-head">
             <div className="mega-pill">{service}</div>
             <h3>Beschreibe deinen Auftrag</h3>
-            <p>Je genauer deine Angaben sind, desto bessere Offerten erhältst du.</p>
+            <p>
+              Gute Angaben erhöhen die Chance auf schnelle und passende
+              Rückmeldungen.
+            </p>
           </div>
 
           <textarea
             className="mega-textarea"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder={`z.B. ${service} in Zürich, 3.5 Zimmer Wohnung, Termin nächste Woche...`}
+            placeholder={`z.B. ${service} in Zürich, 3.5 Zimmer Wohnung, Termin nächste Woche, Besonderheiten...`}
           />
 
           <div className="mega-hints">
@@ -149,10 +182,11 @@ export default function HomeLeadForm() {
           </div>
 
           <div className="mega-row">
-            <button className="mega-back" onClick={() => setStep(1)}>
+            <button type="button" className="mega-back" onClick={() => setStep(1)}>
               ← Zurück
             </button>
-            <button className="mega-main-btn" onClick={() => setStep(3)}>
+
+            <button type="button" className="mega-main-btn" onClick={() => setStep(3)}>
               Weiter →
             </button>
           </div>
@@ -163,21 +197,47 @@ export default function HomeLeadForm() {
         <>
           <div className="mega-head">
             <div className="mega-pill">📍 Fast geschafft</div>
-            <h3>Wo sollen Anbieter sich melden?</h3>
-            <p>Deine Angaben werden nur für passende Offerten verwendet.</p>
+            <h3>Wohin sollen Anbieter sich melden?</h3>
+            <p>
+              Deine Angaben werden nur für deine Anfrage und passende Offerten
+              verwendet.
+            </p>
           </div>
 
           <div className="mega-fields">
-            <input value={region} onChange={(e) => setRegion(e.target.value)} placeholder="PLZ / Ort" />
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Vorname / Name" />
-            <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Telefon" />
+            <input
+              value={region}
+              onChange={(e) => setRegion(e.target.value)}
+              placeholder="PLZ / Ort *"
+            />
+
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Vorname / Name *"
+            />
+
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Telefon *"
+            />
+
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="E-Mail optional"
+              type="email"
+            />
           </div>
 
           <div className="mega-row">
-            <button className="mega-back" onClick={() => setStep(2)}>
+            <button type="button" className="mega-back" onClick={() => setStep(2)}>
               ← Zurück
             </button>
+
             <button
+              type="button"
               className="mega-main-btn"
               disabled={!region || !name || !phone}
               onClick={() => setStep(4)}
@@ -193,7 +253,9 @@ export default function HomeLeadForm() {
           <div className="mega-head">
             <div className="mega-pill">🚀 Bereit zum Senden</div>
             <h3>Deine Anfrage ist bereit</h3>
-            <p>Jetzt kostenlos passende Offerten von regionalen Anbietern erhalten.</p>
+            <p>
+              Sende deine Anfrage kostenlos und unverbindlich an Auftrago.
+            </p>
           </div>
 
           <div className="mega-summary">
@@ -201,25 +263,42 @@ export default function HomeLeadForm() {
               <span>Dienstleistung</span>
               <strong>{service}</strong>
             </div>
+
             <div>
               <span>Region</span>
               <strong>{region}</strong>
             </div>
+
+            <div>
+              <span>Kontakt</span>
+              <strong>{name}</strong>
+              <p>{phone}</p>
+            </div>
+
             <div>
               <span>Beschreibung</span>
               <p>{description || "Keine zusätzlichen Details angegeben."}</p>
             </div>
           </div>
 
-          <button className="mega-submit" onClick={handleSubmit}>
-            🚀 Kostenlose Offerten erhalten
+          {error ? <p className="mega-error">{error}</p> : null}
+
+          <button
+            type="button"
+            className="mega-submit"
+            onClick={handleSubmit}
+            disabled={sending}
+          >
+            {sending ? "Wird gesendet..." : "🚀 Kostenlose Offerten erhalten"}
           </button>
 
-          <button className="mega-back full" onClick={() => setStep(3)}>
+          <button type="button" className="mega-back full" onClick={() => setStep(3)}>
             ← Zurück
           </button>
         </>
       )}
+
+      {error && step !== 4 ? <p className="mega-error">{error}</p> : null}
 
       <div className="mega-trust">
         <span>✓ Kostenlos</span>
