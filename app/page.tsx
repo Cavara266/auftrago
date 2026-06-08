@@ -93,6 +93,10 @@ const priorityLinks = [
   ["Büroreinigung Bülach", "/bueroreinigung-buelach"],
   ["Umzug Lenzburg", "/umzug-lenzburg"],
   ["Fensterreinigung Solothurn", "/fensterreinigung-solothurn"],
+  ["Winterdienst Aargau", "/winterdienst-aargau"],
+  ["Maler Dübendorf", "/maler-duebendorf"],
+  ["Elektriker Bern", "/elektriker-bern"],
+  ["Umzug Baden", "/umzug-baden"],
 ];
 
 const popularLinks = [
@@ -136,6 +140,11 @@ const faqs = [
     answer:
       "Auftrago eignet sich für Zürich, Aargau, Basel, Bern, Luzern, Zug, St. Gallen, Solothurn, Schaffhausen und weitere Regionen in der Schweiz.",
   },
+  {
+    question: "Kann ich mehrere Anbieter vergleichen?",
+    answer:
+      "Ja. Auftrago ist darauf ausgelegt, dass du regionale Anbieter und Offerten einfacher vergleichen kannst.",
+  },
 ];
 
 export default async function HomePage() {
@@ -174,6 +183,15 @@ export default async function HomePage() {
     url: "https://www.auftrago.ch",
   };
 
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Auftrago",
+    url: "https://www.auftrago.ch",
+    description:
+      "Schweizer Offertenplattform für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung und regionale Dienstleistungen.",
+  };
+
   return (
     <main className="home-page premium-home">
       <script
@@ -184,6 +202,11 @@ export default async function HomePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
 
       <section className="premium-hero">
@@ -253,7 +276,9 @@ export default async function HomePage() {
 
             <p>
               Auftrago sorgt für klare Angaben, bessere Vergleichbarkeit, weniger
-              Rückfragen und schnellere Entscheidungen.
+              Rückfragen und schnellere Entscheidungen. Dadurch können Kunden
+              schneller passende regionale Firmen finden und Anbieter erhalten
+              relevantere Anfragen aus ihrer Umgebung.
             </p>
           </div>
         </div>
