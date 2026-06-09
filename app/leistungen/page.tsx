@@ -1,16 +1,25 @@
 import Link from "next/link";
 import { Metadata } from "next";
+import { services as seoServices, formatText } from "@/lib/seo-data";
 
 export const metadata: Metadata = {
   title: "Leistungen | Reinigung, Umzug, Hauswartung & mehr | Auftrago",
   description:
-    "Alle Dienstleistungen auf Auftrago: Reinigung, Umzug, Hauswartung, Gartenpflege, Entsorgung, Maler, Elektriker, Sanitär und mehr vergleichen.",
+    "Alle Dienstleistungen auf Auftrago: Reinigung, Umzug, Hauswartung, Gartenpflege, Entsorgung, Maler, Elektriker, Sanitär, Fensterreinigung und mehr vergleichen.",
   alternates: {
     canonical: "https://www.auftrago.ch/leistungen",
   },
+  openGraph: {
+    title: "Leistungen | Auftrago",
+    description:
+      "Finde regionale Anbieter für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung und weitere Dienstleistungen.",
+    url: "https://www.auftrago.ch/leistungen",
+    siteName: "Auftrago",
+    type: "website",
+  },
 };
 
-const services = [
+const mainServices = [
   {
     icon: "🧹",
     title: "Reinigung",
@@ -81,12 +90,69 @@ const services = [
     href: "/sanitaer-zuerich",
     tags: ["Bad", "Wasser", "Reparatur"],
   },
+  {
+    icon: "❄️",
+    title: "Winterdienst",
+    text: "Schneeräumung, Salzen, sichere Zugänge, Einfahrten und Liegenschaftswege.",
+    href: "/winterdienst-aargau",
+    tags: ["Schnee", "Salzen", "Sicherheit"],
+  },
+  {
+    icon: "🏗️",
+    title: "Baureinigung",
+    text: "Baustellenreinigung, Bauschlussreinigung, Grobreinigung und Feinreinigung.",
+    href: "/baureinigung-zuerich",
+    tags: ["Bau", "Feinreinigung", "Übergabe"],
+  },
 ];
 
 const steps = [
-  ["01", "Dienstleistung wählen", "Wähle aus, welche Arbeit erledigt werden soll."],
-  ["02", "Auftrag beschreiben", "Ort, Termin, Objekt und wichtige Details eintragen."],
-  ["03", "Anbieter vergleichen", "Regionale Firmen prüfen deine Anfrage."],
+  {
+    number: "01",
+    title: "Dienstleistung wählen",
+    text: "Wähle aus, welche Arbeit erledigt werden soll.",
+  },
+  {
+    number: "02",
+    title: "Auftrag beschreiben",
+    text: "Ort, Termin, Objekt und wichtige Details eintragen.",
+  },
+  {
+    number: "03",
+    title: "Anfrage senden",
+    text: "Deine Anfrage ist kostenlos und unverbindlich.",
+  },
+  {
+    number: "04",
+    title: "Anbieter vergleichen",
+    text: "Regionale Firmen können deine Anfrage prüfen.",
+  },
+];
+
+const popularLinks = [
+  { label: "Reinigung Zürich", href: "/reinigung-zuerich" },
+  { label: "Hauswartung Uster", href: "/hauswartung-uster" },
+  { label: "Hauswartfirma Uster", href: "/hauswartfirma-uster" },
+  { label: "Umzug Lenzburg", href: "/umzug-lenzburg" },
+  { label: "Endreinigung Bülach", href: "/end-reinigung-buelach" },
+  { label: "Büroreinigung Bülach", href: "/bueroreinigung-buelach" },
+  { label: "Fensterreinigung Solothurn", href: "/fensterreinigung-solothurn" },
+  { label: "Winterdienst Aargau", href: "/winterdienst-aargau" },
+  { label: "Maler Dübendorf", href: "/maler-duebendorf" },
+  { label: "Elektriker Bern", href: "/elektriker-bern" },
+  { label: "Umzug Baden", href: "/umzug-baden" },
+  { label: "Gebäudereinigung Horgen", href: "/gebaeudereinigung-horgen" },
+];
+
+const regionLinks = [
+  { label: "Zürich", href: "/region/zuerich" },
+  { label: "Aargau", href: "/region/aargau" },
+  { label: "Basel", href: "/region/basel" },
+  { label: "Bern", href: "/region/bern" },
+  { label: "Luzern", href: "/region/luzern" },
+  { label: "Zug", href: "/region/zug" },
+  { label: "St. Gallen", href: "/region/st-gallen" },
+  { label: "Schaffhausen", href: "/region/schaffhausen" },
 ];
 
 const faqs = [
@@ -96,31 +162,72 @@ const faqs = [
   },
   {
     q: "Welche Dienstleistungen kann ich anfragen?",
-    a: "Du kannst Reinigung, Umzug, Hauswartung, Gartenpflege, Entsorgung, Malerarbeiten, Elektriker, Sanitär und viele weitere Arbeiten anfragen.",
+    a: "Du kannst Reinigung, Umzug, Hauswartung, Gartenpflege, Entsorgung, Malerarbeiten, Elektriker, Sanitär, Fensterreinigung, Winterdienst und viele weitere Arbeiten anfragen.",
   },
   {
     q: "Muss ich ein Angebot annehmen?",
     a: "Nein. Du entscheidest selbst, ob ein Anbieter und eine Offerte für dich passen.",
   },
+  {
+    q: "Kann ich mehrere Anbieter vergleichen?",
+    a: "Ja. Auftrago hilft dir, regionale Anbieter und Offerten einfacher zu vergleichen.",
+  },
 ];
 
 export default function LeistungenPage() {
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.a,
+      },
+    })),
+  };
+
+  const collectionSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Leistungen auf Auftrago",
+    url: "https://www.auftrago.ch/leistungen",
+    description:
+      "Übersicht aller Dienstleistungen auf Auftrago für regionale Offerten in der Schweiz.",
+  };
+
   return (
     <main className="leistungen-page">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqSchema),
+        }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(collectionSchema),
+        }}
+      />
+
       <section className="leistungen-new-hero">
         <div className="container leistungen-hero-grid">
           <div>
             <span className="anbieter-pill">Leistungen</span>
 
             <h1>
-              Alles rund ums Zuhause
+              Alle Dienstleistungen
               <br />
               einfach vergleichen.
             </h1>
 
             <p>
               Finde regionale Anbieter für Reinigung, Hauswartung, Umzug,
-              Gartenpflege, Entsorgung und weitere Dienstleistungen. Eine
+              Gartenpflege, Entsorgung, Fensterreinigung, Malerarbeiten,
+              Elektriker, Sanitär und viele weitere Dienstleistungen. Eine
               Anfrage genügt.
             </p>
 
@@ -149,6 +256,7 @@ export default function LeistungenPage() {
             <Link href="/umzugsreinigung-zuerich">Umzugsreinigung</Link>
             <Link href="/hauswartung-zuerich">Hauswartung</Link>
             <Link href="/gartenpflege-zuerich">Gartenpflege</Link>
+            <Link href="/fensterreinigung-zuerich">Fensterreinigung</Link>
           </aside>
         </div>
       </section>
@@ -157,7 +265,7 @@ export default function LeistungenPage() {
         <div className="container">
           <div className="anbieter-section-head">
             <span className="anbieter-pill">Kategorien</span>
-            <h2>Wähle deine Dienstleistung</h2>
+            <h2>Wähle deine passende Dienstleistung</h2>
             <p>
               Jede Kategorie ist so aufgebaut, dass Anbieter schnell verstehen,
               was du brauchst. Dadurch erhältst du bessere Rückmeldungen und
@@ -166,7 +274,7 @@ export default function LeistungenPage() {
           </div>
 
           <div className="leistungen-service-grid-new">
-            {services.map((service) => (
+            {mainServices.map((service) => (
               <Link
                 key={service.title}
                 href={service.href}
@@ -196,16 +304,17 @@ export default function LeistungenPage() {
             <h2>Eine Anfrage. Mehrere Möglichkeiten.</h2>
             <p>
               Statt einzelne Firmen zu suchen und jede separat zu kontaktieren,
-              sendest du deine Anfrage einmal über Auftrago.
+              sendest du deine Anfrage einmal über Auftrago. Passende Anbieter
+              können deine Anfrage prüfen und sich bei dir melden.
             </p>
           </div>
 
           <div className="anbieter-step-list">
-            {steps.map(([number, title, text]) => (
-              <div key={number} className="anbieter-step-card">
-                <span>{number}</span>
-                <h3>{title}</h3>
-                <p>{text}</p>
+            {steps.map((step) => (
+              <div key={step.number} className="anbieter-step-card">
+                <span>{step.number}</span>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
               </div>
             ))}
           </div>
@@ -216,11 +325,20 @@ export default function LeistungenPage() {
         <div className="container leistungen-split">
           <div>
             <span className="anbieter-pill">Vorteile</span>
-            <h2>Warum Auftrago?</h2>
+
+            <h2>Warum Auftrago für Dienstleistungen?</h2>
+
             <p>
               Auftrago macht Dienstleistungsaufträge einfacher. Du beschreibst
               deinen Auftrag, regionale Anbieter können reagieren und du
               vergleichst in Ruhe.
+            </p>
+
+            <p>
+              Besonders bei Reinigung, Hauswartung, Umzug, Gartenpflege,
+              Entsorgung, Fensterreinigung oder Handwerkerarbeiten lohnt sich ein
+              strukturierter Vergleich. So erkennst du schneller, welcher
+              Anbieter zu deinem Auftrag passt.
             </p>
           </div>
 
@@ -246,6 +364,69 @@ export default function LeistungenPage() {
       </section>
 
       <section className="leistungen-section-new leistungen-dark">
+        <div className="container">
+          <div className="anbieter-section-head">
+            <span className="anbieter-pill">Beliebte Suchanfragen</span>
+            <h2>Häufig gesuchte Dienstleistungen</h2>
+            <p>
+              Diese Seiten werden besonders stark verlinkt, weil sie für lokale
+              Kundenanfragen wichtig sind.
+            </p>
+          </div>
+
+          <div className="anbieter-region-grid">
+            {popularLinks.map((item) => (
+              <Link key={item.href} href={item.href}>
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="leistungen-section-new">
+        <div className="container">
+          <div className="anbieter-section-head">
+            <span className="anbieter-pill">Alle Leistungen</span>
+            <h2>Dienstleistungs-Hubs auf Auftrago</h2>
+            <p>
+              Diese Übersicht hilft dir, passende Kategorien zu finden und gibt
+              Google eine klare interne Struktur über alle Leistungen.
+            </p>
+          </div>
+
+          <div className="anbieter-region-grid">
+            {seoServices.map((service) => (
+              <Link key={service} href={`/leistungen/${service}`}>
+                {formatText(service)}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="leistungen-section-new leistungen-dark">
+        <div className="container">
+          <div className="anbieter-section-head">
+            <span className="anbieter-pill">Regionen</span>
+            <h2>Dienstleister nach Region finden</h2>
+            <p>
+              Starte mit deiner Region und finde passende Anbieter für deine
+              Dienstleistung.
+            </p>
+          </div>
+
+          <div className="anbieter-region-grid">
+            {regionLinks.map((region) => (
+              <Link key={region.href} href={region.href}>
+                {region.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="leistungen-section-new">
         <div className="container leistungen-faq-grid">
           <div>
             <span className="anbieter-pill">FAQ</span>

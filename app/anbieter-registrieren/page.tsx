@@ -1,53 +1,122 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import AnbieterRegistrierenForm from "@/components/anbieter-registrieren-form";
 
 export const metadata: Metadata = {
-  title: "Als Anbieter registrieren | Neue Kundenanfragen erhalten",
+  title: "Anbieter werden | Kundenanfragen erhalten | Auftrago",
   description:
-    "Registriere deine Firma auf Auftrago und erhalte passende Kundenanfragen für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung und weitere Dienstleistungen.",
+    "Registriere deine Firma auf Auftrago und erhalte regionale Kundenanfragen für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung, Fensterreinigung, Malerarbeiten und weitere Dienstleistungen.",
   alternates: {
     canonical: "https://www.auftrago.ch/anbieter-registrieren",
   },
   openGraph: {
-    title: "Als Anbieter registrieren | Auftrago",
+    title: "Anbieter werden | Neue Kundenanfragen erhalten | Auftrago",
     description:
-      "Erhalte regionale Kundenanfragen für deine Dienstleistung in der Schweiz.",
+      "Erhalte passende regionale Kundenanfragen für deine Dienstleistung in der Schweiz.",
     url: "https://www.auftrago.ch/anbieter-registrieren",
     siteName: "Auftrago",
     type: "website",
   },
 };
 
+const providerTypes = [
+  "Reinigungsfirmen",
+  "Hauswartungen",
+  "Umzugsfirmen",
+  "Gartenpflege",
+  "Entsorgung",
+  "Fensterreinigung",
+  "Malerarbeiten",
+  "Elektriker",
+  "Sanitär",
+  "Transportfirmen",
+  "Bodenleger",
+  "Winterdienst",
+];
+
+const benefits = [
+  {
+    title: "Regionale Kundenanfragen",
+    text: "Erhalte Anfragen aus Regionen, in denen deine Firma wirklich tätig ist.",
+  },
+  {
+    title: "Weniger Streuverlust",
+    text: "Auftrago sammelt strukturierte Angaben zu Dienstleistung, Ort und Auftrag.",
+  },
+  {
+    title: "Mehr Sichtbarkeit",
+    text: "Deine Firma kann auf einer Plattform sichtbar werden, die für lokale Dienstleistungen optimiert ist.",
+  },
+  {
+    title: "Passende Kategorien",
+    text: "Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung und viele weitere Bereiche.",
+  },
+];
+
+const regions = [
+  "Zürich",
+  "Aargau",
+  "Basel",
+  "Bern",
+  "Luzern",
+  "Zug",
+  "St. Gallen",
+  "Schaffhausen",
+  "Thurgau",
+  "Solothurn",
+  "Graubünden",
+  "Genf",
+];
+
+const faqs = [
+  {
+    question: "Für welche Firmen ist Auftrago geeignet?",
+    answer:
+      "Auftrago eignet sich für Reinigungsfirmen, Hauswartungen, Umzugsfirmen, Gartenbauer, Entsorgungsbetriebe, Fensterreiniger, Maler, Elektriker, Sanitärbetriebe und weitere regionale Dienstleister.",
+  },
+  {
+    question: "Wie funktioniert die Anbieter-Registrierung?",
+    answer:
+      "Du sendest deine Firmendaten über das Formular. Auftrago prüft die Angaben und meldet sich persönlich bei dir.",
+  },
+  {
+    question: "Erhalte ich direkt Kundenanfragen?",
+    answer:
+      "Nach der Prüfung kannst du passende regionale Kundenanfragen erhalten, sofern sie zu deinen Dienstleistungen und Regionen passen.",
+  },
+  {
+    question: "Welche Angaben sollte ich eintragen?",
+    answer:
+      "Wichtig sind Firmenname, Kontaktperson, Telefonnummer, E-Mail, Region, Website und deine wichtigsten Dienstleistungen.",
+  },
+  {
+    question: "Ist Auftrago für lokale Anbieter geeignet?",
+    answer:
+      "Ja. Auftrago ist besonders für regionale Anbieter gedacht, die Kundenanfragen in bestimmten Städten, Kantonen oder Einsatzgebieten erhalten möchten.",
+  },
+];
+
 export default function AnbieterRegistrierenPage() {
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: "Für welche Firmen ist Auftrago geeignet?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Auftrago eignet sich für Reinigungsfirmen, Hauswartungen, Umzugsfirmen, Gartenbauer, Entsorgungsbetriebe, Fensterreiniger, Maler, Sanitärbetriebe und weitere regionale Dienstleister.",
-        },
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
       },
-      {
-        "@type": "Question",
-        name: "Wie funktioniert die Anbieter-Registrierung?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Du sendest deine Firmendaten über das Formular. Auftrago prüft die Angaben und meldet sich persönlich bei dir.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Erhalte ich direkt Kundenanfragen?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Nach der Prüfung kannst du passende regionale Kundenanfragen erhalten, sofern sie zu deinen Dienstleistungen und Regionen passen.",
-        },
-      },
-    ],
+    })),
+  };
+
+  const webPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: "Anbieter werden auf Auftrago",
+    url: "https://www.auftrago.ch/anbieter-registrieren",
+    description:
+      "Firmen können sich auf Auftrago registrieren, um regionale Kundenanfragen für Dienstleistungen in der Schweiz zu erhalten.",
   };
 
   return (
@@ -59,10 +128,17 @@ export default function AnbieterRegistrierenPage() {
         }}
       />
 
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(webPageSchema),
+        }}
+      />
+
       <section className="provider-hero">
         <div className="container provider-hero-grid">
           <div>
-            <span className="seo-pill">Für Anbieter</span>
+            <span className="seo-pill">Anbieter werden</span>
 
             <h1>
               Neue Kundenanfragen
@@ -73,9 +149,19 @@ export default function AnbieterRegistrierenPage() {
             <p>
               Registriere deine Firma auf Auftrago und erhalte passende
               Kundenanfragen aus deiner Region. Ideal für Reinigung,
-              Hauswartung, Umzug, Gartenpflege, Entsorgung, Fensterreinigung und
-              weitere Dienstleistungen.
+              Hauswartung, Umzug, Gartenpflege, Entsorgung, Fensterreinigung,
+              Malerarbeiten, Elektriker, Sanitär und weitere Dienstleistungen.
             </p>
+
+            <div className="seo-hero-actions">
+              <a href="#anbieter-formular" className="btn btn-primary">
+                Firma kostenlos eintragen
+              </a>
+
+              <Link href="/anbieter" className="btn btn-secondary">
+                Anbieter ansehen
+              </Link>
+            </div>
 
             <div className="seo-trust-row">
               <span>✓ Regionale Leads</span>
@@ -115,10 +201,10 @@ export default function AnbieterRegistrierenPage() {
             <h2>Mehr relevante Kunden statt Streuverlust.</h2>
 
             <p>
-              Viele Firmen investieren Zeit in Werbung, erhalten aber unpassende
-              Anfragen. Auftrago ist darauf ausgelegt, Kundenanfragen
-              strukturierter zu erfassen und regional passenden Anbietern
-              zuzuordnen.
+              Viele Firmen investieren Zeit und Geld in Werbung, erhalten aber
+              unpassende oder unvollständige Anfragen. Auftrago ist darauf
+              ausgelegt, Kundenanfragen strukturierter zu erfassen und regional
+              passenden Anbietern zuzuordnen.
             </p>
 
             <p>
@@ -126,32 +212,81 @@ export default function AnbieterRegistrierenPage() {
               suchen häufig Firmen in ihrer Umgebung, die schnell reagieren,
               klare Angebote machen und zuverlässig arbeiten.
             </p>
+
+            <p>
+              Wenn deine Firma regelmässig neue Aufträge sucht, kann Auftrago ein
+              zusätzlicher Kanal für regionale Kundenanfragen werden.
+            </p>
           </div>
 
           <div className="provider-benefits">
-            <div>
-              <strong>Regionale Sichtbarkeit</strong>
-              <p>Erreiche Kunden in deinen gewünschten Einsatzgebieten.</p>
-            </div>
+            {benefits.map((benefit) => (
+              <div key={benefit.title}>
+                <strong>{benefit.title}</strong>
+                <p>{benefit.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            <div>
-              <strong>Passende Dienstleistungen</strong>
-              <p>Leads werden nach Kategorie und Region strukturiert.</p>
-            </div>
+      <section className="provider-section provider-dark">
+        <div className="container">
+          <div className="provider-section-head">
+            <span className="seo-pill">Geeignet für</span>
+            <h2>Dienstleister aus vielen Branchen</h2>
+            <p>
+              Auftrago richtet sich an regionale Firmen, die neue Kundenanfragen
+              für Dienstleistungen in der Schweiz erhalten möchten.
+            </p>
+          </div>
 
-            <div>
-              <strong>Weniger Aufwand</strong>
-              <p>Kunden beschreiben ihren Auftrag bereits vorab.</p>
-            </div>
+          <div className="provider-category-grid">
+            {providerTypes.map((item) => (
+              <div key={item} className="provider-category-card">
+                <span>Anbieter</span>
+                <h3>{item}</h3>
+                <p>
+                  Erhalte regionale Kundenanfragen für {item} und baue deine
+                  Sichtbarkeit auf Auftrago aus.
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       <section className="provider-section">
+        <div className="container provider-split">
+          <div>
+            <span className="seo-pill">Regionen</span>
+
+            <h2>Kundenanfragen aus deiner Region</h2>
+
+            <p>
+              Auftrago ist für regionale Dienstleister in der Schweiz aufgebaut.
+              Du kannst deine gewünschten Einsatzgebiete angeben, damit Anfragen
+              besser zu deiner Firma passen.
+            </p>
+          </div>
+
+          <div className="anbieter-region-grid">
+            {regions.map((region) => (
+              <Link key={region} href="/anbieter-registrieren">
+                {region}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="provider-section" id="anbieter-formular">
         <div className="container">
           <div className="provider-section-head">
             <span className="seo-pill">Registrierung</span>
-            <h2>Firma kostenlos anfragen</h2>
+
+            <h2>Firma kostenlos eintragen</h2>
+
             <p>
               Sende deine Firmendaten. Wir prüfen deine Anfrage und melden uns
               persönlich bei dir.
@@ -164,29 +299,42 @@ export default function AnbieterRegistrierenPage() {
 
       <section className="provider-section provider-dark">
         <div className="container">
-          <h2>Geeignet für viele Dienstleister</h2>
+          <div className="provider-section-head">
+            <span className="seo-pill">FAQ</span>
 
-          <div className="provider-category-grid">
-            {[
-              "Reinigungsfirmen",
-              "Hauswartungen",
-              "Umzugsfirmen",
-              "Gartenpflege",
-              "Entsorgung",
-              "Fensterreinigung",
-              "Malerarbeiten",
-              "Elektriker",
-              "Sanitär",
-            ].map((item) => (
-              <div key={item} className="provider-category-card">
-                <span>Anbieter</span>
-                <h3>{item}</h3>
-                <p>
-                  Erhalte regionale Kundenanfragen für {item} und baue deine
-                  Sichtbarkeit auf Auftrago aus.
-                </p>
-              </div>
+            <h2>Häufige Fragen für Anbieter</h2>
+          </div>
+
+          <div className="quote-faq">
+            {faqs.map((faq) => (
+              <details key={faq.question}>
+                <summary>{faq.question}</summary>
+                <p>{faq.answer}</p>
+              </details>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="provider-section">
+        <div className="container provider-cta">
+          <span className="seo-pill">Jetzt starten</span>
+
+          <h2>Neue Kundenanfragen erhalten</h2>
+
+          <p>
+            Trage deine Firma ein und werde Teil von Auftrago. Wir prüfen deine
+            Anfrage und melden uns persönlich bei dir.
+          </p>
+
+          <div className="seo-hero-actions">
+            <a href="#anbieter-formular" className="btn btn-primary">
+              Firma eintragen
+            </a>
+
+            <Link href="/offerte-anfragen" className="btn btn-secondary">
+              Kundenformular ansehen
+            </Link>
           </div>
         </div>
       </section>
