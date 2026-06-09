@@ -27,14 +27,13 @@ export default function AGBPage() {
               5507 Mellingen
               <br />
               Schweiz
-              <br />
-              E-Mail:{" "}
-              <a href="mailto:info@cavara-hauswartung.ch">
-                info@cavara-hauswartung.ch
-              </a>
             </p>
 
-            <h2>2. Zweck der Plattform</h2>
+            <h2>2. Verantwortliche Stelle</h2>
+
+            <p>Auftrago.ch</p>
+
+            <h2>3. Zweck der Plattform</h2>
 
             <p>
               Auftrago.ch ist eine Plattform zur Erfassung, Verwaltung und
@@ -49,7 +48,7 @@ export default function AGBPage() {
               Kontaktdaten freischalten.
             </p>
 
-            <h2>3. Rolle von Auftrago</h2>
+            <h2>4. Rolle von Auftrago</h2>
 
             <p>
               Auftrago ist Vermittlungsplattform und nicht automatisch Partei
@@ -63,16 +62,16 @@ export default function AGBPage() {
               Qualität, Preis, Ausführung oder Erfolg einer Dienstleistung.
             </p>
 
-            <h2>4. Kundenanfragen</h2>
+            <h2>5. Kundenanfragen</h2>
 
             <p>
               Kunden sind verpflichtet, ihre Anfrage wahrheitsgemäss und so
-              vollständig wie möglich zu erfassen. Auftrago darf Anfragen prüfen,
-              bearbeiten, ergänzen, ablehnen oder löschen, wenn sie unvollständig,
-              missbräuchlich oder offensichtlich ungeeignet sind.
+              vollständig wie möglich zu erfassen. Auftrago darf Anfragen
+              prüfen, bearbeiten, ergänzen, ablehnen oder löschen, wenn sie
+              unvollständig, missbräuchlich oder offensichtlich ungeeignet sind.
             </p>
 
-            <h2>5. Anbieter-Konten</h2>
+            <h2>6. Anbieter-Konten</h2>
 
             <p>
               Anbieter sind für die Richtigkeit ihrer Angaben verantwortlich.
@@ -86,12 +85,12 @@ export default function AGBPage() {
               Plattform missbräuchlich genutzt wird.
             </p>
 
-            <h2>6. Leads und Credits</h2>
+            <h2>7. Leads und Credits</h2>
 
             <p>
-              Anbieter können Credits erwerben und damit Leads freischalten.
-              Ein Lead enthält Informationen zu einer Kundenanfrage. Je nach
-              Lead können Kontaktdaten erst nach Freischaltung sichtbar sein.
+              Anbieter können Credits erwerben und damit Leads freischalten. Ein
+              Lead enthält Informationen zu einer Kundenanfrage. Je nach Lead
+              können Kontaktdaten erst nach Freischaltung sichtbar sein.
             </p>
 
             <p>
@@ -100,7 +99,7 @@ export default function AGBPage() {
               Auftragswert oder Qualität der Anfrage variieren.
             </p>
 
-            <h2>7. Keine Erfolgsgarantie</h2>
+            <h2>8. Keine Erfolgsgarantie</h2>
 
             <p>
               Der Kauf oder die Freischaltung eines Leads garantiert nicht, dass
@@ -114,7 +113,7 @@ export default function AGBPage() {
               Lead ein Auftrag entsteht.
             </p>
 
-            <h2>8. Zahlungen</h2>
+            <h2>9. Zahlungen</h2>
 
             <p>
               Zahlungen für Credits erfolgen über die auf der Plattform
@@ -127,7 +126,7 @@ export default function AGBPage() {
               gutgeschrieben. Technische Verzögerungen bleiben vorbehalten.
             </p>
 
-            <h2>9. Rückerstattungen</h2>
+            <h2>10. Rückerstattungen</h2>
 
             <p>
               Bereits gekaufte Credits und freigeschaltete Leads werden
@@ -141,7 +140,7 @@ export default function AGBPage() {
               war. Ein Anspruch darauf besteht nicht.
             </p>
 
-            <h2>10. Pflichten der Anbieter</h2>
+            <h2>11. Pflichten der Anbieter</h2>
 
             <p>
               Anbieter verpflichten sich, Kunden seriös, transparent und
@@ -150,7 +149,7 @@ export default function AGBPage() {
               Kontaktdaten oder Weitergabe von Lead-Daten an Dritte.
             </p>
 
-            <h2>11. Datenschutz und Vertraulichkeit</h2>
+            <h2>12. Datenschutz und Vertraulichkeit</h2>
 
             <p>
               Anbieter dürfen erhaltene Kundendaten ausschliesslich zur
@@ -163,15 +162,15 @@ export default function AGBPage() {
               finden Sie in unserer Datenschutzerklärung.
             </p>
 
-            <h2>12. Verfügbarkeit der Plattform</h2>
+            <h2>13. Verfügbarkeit der Plattform</h2>
 
             <p>
-              Auftrago bemüht sich um einen stabilen Betrieb der Plattform.
-              Eine jederzeitige Verfügbarkeit wird jedoch nicht garantiert.
-              Wartungen, technische Störungen oder Ausfälle können auftreten.
+              Auftrago bemüht sich um einen stabilen Betrieb der Plattform. Eine
+              jederzeitige Verfügbarkeit wird jedoch nicht garantiert. Wartungen,
+              technische Störungen oder Ausfälle können auftreten.
             </p>
 
-            <h2>13. Haftung</h2>
+            <h2>14. Haftung</h2>
 
             <p>
               Soweit gesetzlich zulässig, haftet Auftrago nicht für direkte oder
@@ -180,23 +179,28 @@ export default function AGBPage() {
               zwischen Kunden und Anbietern.
             </p>
 
-            <h2>14. Änderungen der AGB</h2>
+            <h2>15. Änderungen der AGB</h2>
 
             <p>
               Auftrago kann diese AGB jederzeit ändern. Es gilt jeweils die auf
               der Website veröffentlichte aktuelle Version.
             </p>
 
-            <h2>15. Anwendbares Recht und Gerichtsstand</h2>
+            <h2>16. Kontakt</h2>
+
+            <p>
+              Kontaktanfragen können über die Plattform oder über die jeweiligen
+              Kontaktformulare eingereicht werden.
+            </p>
+
+            <h2>17. Anwendbares Recht und Gerichtsstand</h2>
 
             <p>
               Es gilt schweizerisches Recht. Gerichtsstand ist Mellingen AG,
               soweit gesetzlich zulässig.
             </p>
 
-            <p>
-              Stand: Juni 2026
-            </p>
+            <p>Stand: Juni 2026</p>
           </div>
         </div>
       </section>
