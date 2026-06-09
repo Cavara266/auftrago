@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const services = [
   "Reinigung",
@@ -16,16 +16,112 @@ const services = [
   "Sanitär",
 ];
 
+type TrackingData = {
+  landingPage: string;
+  currentPage: string;
+  utmSource: string;
+  utmMedium: string;
+  utmCampaign: string;
+  utmTerm: string;
+  utmContent: string;
+  gclid: string;
+  fbclid: string;
+};
+
 declare global {
   interface Window {
     gtag?: (...args: unknown[]) => void;
   }
 }
 
+function getTrackingData(): TrackingData {
+  if (typeof window === "undefined") {
+    return {
+      landingPage: "",
+      currentPage: "",
+      utmSource: "",
+      utmMedium: "",
+      utmCampaign: "",
+      utmTerm: "",
+      utmContent: "",
+      gclid: "",
+      fbclid: "",
+    };
+  }
+
+  const url = new URL(window.location.href);
+  const params = url.searchParams;
+
+  const existingLandingPage = sessionStorage.getItem("auftrago_landing_page");
+  const landingPage = existingLandingPage || window.location.href;
+
+  if (!existingLandingPage) {
+    sessionStorage.setItem("auftrago_landing_page", landingPage);
+  }
+
+  const tracking: TrackingData = {
+    landingPage,
+    currentPage: window.location.href,
+    utmSource:
+      params.get("utm_source") ||
+      sessionStorage.getItem("auftrago_utm_source") ||
+      "",
+    utmMedium:
+      params.get("utm_medium") ||
+      sessionStorage.getItem("auftrago_utm_medium") ||
+      "",
+    utmCampaign:
+      params.get("utm_campaign") ||
+      sessionStorage.getItem("auftrago_utm_campaign") ||
+      "",
+    utmTerm:
+      params.get("utm_term") ||
+      sessionStorage.getItem("auftrago_utm_term") ||
+      "",
+    utmContent:
+      params.get("utm_content") ||
+      sessionStorage.getItem("auftrago_utm_content") ||
+      "",
+    gclid:
+      params.get("gclid") ||
+      sessionStorage.getItem("auftrago_gclid") ||
+      "",
+    fbclid:
+      params.get("fbclid") ||
+      sessionStorage.getItem("auftrago_fbclid") ||
+      "",
+  };
+
+  sessionStorage.setItem("auftrago_utm_source", tracking.utmSource);
+  sessionStorage.setItem("auftrago_utm_medium", tracking.utmMedium);
+  sessionStorage.setItem("auftrago_utm_campaign", tracking.utmCampaign);
+  sessionStorage.setItem("auftrago_utm_term", tracking.utmTerm);
+  sessionStorage.setItem("auftrago_utm_content", tracking.utmContent);
+  sessionStorage.setItem("auftrago_gclid", tracking.gclid);
+  sessionStorage.setItem("auftrago_fbclid", tracking.fbclid);
+
+  return tracking;
+}
+
 export default function OfferteAnfrageForm() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+  const [tracking, setTracking] = useState<TrackingData>({
+    landingPage: "",
+    currentPage: "",
+    utmSource: "",
+    utmMedium: "",
+    utmCampaign: "",
+    utmTerm: "",
+    utmContent: "",
+    gclid: "",
+    fbclid: "",
+  });
+
+  useEffect(() => {
+    setTracking(getTrackingData());
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -35,6 +131,7 @@ export default function OfferteAnfrageForm() {
 
     const form = e.currentTarget;
     const fd = new FormData(form);
+    const latestTracking = getTrackingData();
 
     const payload = {
       name: String(fd.get("name") || "").trim(),
@@ -82,6 +179,16 @@ export default function OfferteAnfrageForm() {
       important: String(fd.get("important") || "Preis und Qualität").trim(),
 
       message: String(fd.get("message") || "").trim(),
+
+      landingPage: latestTracking.landingPage,
+      currentPage: latestTracking.currentPage,
+      utmSource: latestTracking.utmSource,
+      utmMedium: latestTracking.utmMedium,
+      utmCampaign: latestTracking.utmCampaign,
+      utmTerm: latestTracking.utmTerm,
+      utmContent: latestTracking.utmContent,
+      gclid: latestTracking.gclid,
+      fbclid: latestTracking.fbclid,
     };
 
     try {
@@ -111,12 +218,23 @@ export default function OfferteAnfrageForm() {
           event_label: payload.service,
           service: payload.service,
           region: payload.region,
+          city: payload.city,
+          landing_page: payload.landingPage,
+          current_page: payload.currentPage,
+          utm_source: payload.utmSource,
+          utm_medium: payload.utmMedium,
+          utm_campaign: payload.utmCampaign,
           value: 1,
         });
 
         console.log("GA4 generate_lead sent", {
           service: payload.service,
           region: payload.region,
+          city: payload.city,
+          landingPage: payload.landingPage,
+          utmSource: payload.utmSource,
+          utmMedium: payload.utmMedium,
+          utmCampaign: payload.utmCampaign,
         });
       }
 
@@ -233,6 +351,16 @@ export default function OfferteAnfrageForm() {
         placeholder="Beschreibe deinen Auftrag: Grösse, Termin, Besonderheiten..."
         required
       />
+
+      <input type="hidden" name="landingPage" value={tracking.landingPage} />
+      <input type="hidden" name="currentPage" value={tracking.currentPage} />
+      <input type="hidden" name="utmSource" value={tracking.utmSource} />
+      <input type="hidden" name="utmMedium" value={tracking.utmMedium} />
+      <input type="hidden" name="utmCampaign" value={tracking.utmCampaign} />
+      <input type="hidden" name="utmTerm" value={tracking.utmTerm} />
+      <input type="hidden" name="utmContent" value={tracking.utmContent} />
+      <input type="hidden" name="gclid" value={tracking.gclid} />
+      <input type="hidden" name="fbclid" value={tracking.fbclid} />
 
       {error ? <p className="mega-error">{error}</p> : null}
 

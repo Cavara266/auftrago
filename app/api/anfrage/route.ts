@@ -9,6 +9,10 @@ function clean(value: unknown) {
   return String(value || "").trim();
 }
 
+function fallback(value: string, fallbackText = "Nicht angegeben") {
+  return value || fallbackText;
+}
+
 function calculateLeadPrice(service: string, budget: string) {
   const text = `${service} ${budget}`.toLowerCase();
 
@@ -82,8 +86,20 @@ export async function POST(req: Request) {
     const budget = clean(data.budget);
     const offersWanted = clean(data.offersWanted);
     const important = clean(data.important);
-
     const message = clean(data.message);
+
+    const referer = clean(req.headers.get("referer"));
+    const userAgent = clean(req.headers.get("user-agent"));
+
+    const landingPage = clean(data.landingPage) || referer;
+    const currentPage = clean(data.currentPage);
+    const utmSource = clean(data.utmSource);
+    const utmMedium = clean(data.utmMedium);
+    const utmCampaign = clean(data.utmCampaign);
+    const utmTerm = clean(data.utmTerm);
+    const utmContent = clean(data.utmContent);
+    const gclid = clean(data.gclid);
+    const fbclid = clean(data.fbclid);
 
     if (
       !name ||
@@ -110,8 +126,24 @@ export async function POST(req: Request) {
     }
 
     const title = `${service} ${region}`;
+    const price = calculateLeadPrice(service, budget);
 
-const description = `
+    const trackingText = `
+TRACKING
+Landingpage: ${fallback(landingPage)}
+Aktuelle Seite: ${fallback(currentPage)}
+Referer: ${fallback(referer)}
+UTM Source: ${fallback(utmSource)}
+UTM Medium: ${fallback(utmMedium)}
+UTM Campaign: ${fallback(utmCampaign)}
+UTM Term: ${fallback(utmTerm)}
+UTM Content: ${fallback(utmContent)}
+Google Click ID: ${fallback(gclid)}
+Facebook Click ID: ${fallback(fbclid)}
+User Agent: ${fallback(userAgent)}
+`.trim();
+
+    const description = `
 ${service} in ${city}
 
 AUFTRAG
@@ -148,9 +180,9 @@ Teppichreinigung: ${carpetCleaning || "Nicht angegeben"}
 
 BESCHREIBUNG
 ${message}
-`.trim();
 
-    const price = calculateLeadPrice(service, budget);
+${trackingText}
+`.trim();
 
     await prisma.lead.create({
       data: {
@@ -228,6 +260,10 @@ Leadpreis im Portal: ${price} Credits
       service,
       region,
       price,
+      landingPage,
+      utmSource,
+      utmMedium,
+      utmCampaign,
     });
 
     return NextResponse.json({ ok: true });
