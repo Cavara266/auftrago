@@ -104,11 +104,21 @@ export default function OfferteAnfrageForm() {
         return;
       }
 
-      window.gtag?.("event", "generate_lead", {
-        event_category: "lead",
-        event_label: payload.service,
-        value: 1,
-      });
+      if (typeof window !== "undefined" && typeof window.gtag === "function") {
+        window.gtag("event", "generate_lead", {
+          send_to: "G-7YJE35KZCX",
+          event_category: "lead",
+          event_label: payload.service,
+          service: payload.service,
+          region: payload.region,
+          value: 1,
+        });
+
+        console.log("GA4 generate_lead sent", {
+          service: payload.service,
+          region: payload.region,
+        });
+      }
 
       setSent(true);
       form.reset();
