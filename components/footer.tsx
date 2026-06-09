@@ -1,5 +1,49 @@
 import Link from "next/link";
 
+const popularServices = [
+  ["Reinigung Zürich", "/reinigung-zuerich"],
+  ["Hauswartung Zürich", "/hauswartung-zuerich"],
+  ["Umzug Zürich", "/umzug-zuerich"],
+  ["Gartenpflege Zürich", "/gartenpflege-zuerich"],
+  ["Fensterreinigung Zürich", "/fensterreinigung-zuerich"],
+  ["Entsorgung Zürich", "/entsorgung-zuerich"],
+  ["Umzugsreinigung Zürich", "/umzugsreinigung-zuerich"],
+  ["Büroreinigung Zürich", "/bueroreinigung-zuerich"],
+];
+
+const seoSearches = [
+  ["Hauswartung Uster", "/hauswartung-uster"],
+  ["Hauswartfirma Uster", "/hauswartfirma-uster"],
+  ["Umzug Lenzburg", "/umzug-lenzburg"],
+  ["Endreinigung Bülach", "/end-reinigung-buelach"],
+  ["Büroreinigung Bülach", "/bueroreinigung-buelach"],
+  ["Fensterreinigung Solothurn", "/fensterreinigung-solothurn"],
+  ["Winterdienst Aargau", "/winterdienst-aargau"],
+  ["Maler Dübendorf", "/maler-duebendorf"],
+];
+
+const regions = [
+  ["Alle Regionen", "/region"],
+  ["Zürich", "/region/zuerich"],
+  ["Aargau", "/region/aargau"],
+  ["Bern", "/region/bern"],
+  ["Basel", "/region/basel"],
+  ["Luzern", "/region/luzern"],
+  ["Zug", "/region/zug"],
+  ["St. Gallen", "/region/st-gallen"],
+];
+
+const companyLinks = [
+  ["Dienstleistungen", "/leistungen"],
+  ["Städte", "/stadt"],
+  ["Anbieter finden", "/anbieter"],
+  ["Offerte anfragen", "/offerte-anfragen"],
+  ["Anbieter werden", "/anbieter-registrieren"],
+  ["Impressum", "/impressum"],
+  ["Datenschutz", "/datenschutz"],
+  ["AGB", "/agb"],
+];
+
 export default function Footer() {
   return (
     <footer className="site-footer">
@@ -15,13 +59,8 @@ export default function Footer() {
             </p>
 
             <div className="site-footer-links">
-              <Link href="/offerte-anfragen">
-                Kostenlose Offerte anfragen
-              </Link>
-
-              <Link href="/anbieter">
-                Anbieter finden
-              </Link>
+              <Link href="/offerte-anfragen">Kostenlose Offerte anfragen</Link>
+              <Link href="/anbieter-registrieren">Als Anbieter registrieren</Link>
             </div>
           </div>
 
@@ -29,29 +68,23 @@ export default function Footer() {
             <h4>Beliebte Dienstleistungen</h4>
 
             <div className="site-footer-links">
-              <Link href="/reinigung-zuerich">
-                Reinigung Zürich
-              </Link>
+              {popularServices.map(([label, href]) => (
+                <Link key={href} href={href}>
+                  {label}
+                </Link>
+              ))}
+            </div>
+          </div>
 
-              <Link href="/hauswartung-zuerich">
-                Hauswartung Zürich
-              </Link>
+          <div>
+            <h4>SEO Suchanfragen</h4>
 
-              <Link href="/umzug-zuerich">
-                Umzug Zürich
-              </Link>
-
-              <Link href="/gartenpflege-zuerich">
-                Gartenpflege Zürich
-              </Link>
-
-              <Link href="/fensterreinigung-zuerich">
-                Fensterreinigung Zürich
-              </Link>
-
-              <Link href="/entsorgung-zuerich">
-                Entsorgung Zürich
-              </Link>
+            <div className="site-footer-links">
+              {seoSearches.map(([label, href]) => (
+                <Link key={href} href={href}>
+                  {label}
+                </Link>
+              ))}
             </div>
           </div>
 
@@ -59,29 +92,11 @@ export default function Footer() {
             <h4>Regionen Schweiz</h4>
 
             <div className="site-footer-links">
-              <Link href="/region">
-                Alle Regionen
-              </Link>
-
-              <Link href="/region/zuerich">
-                Zürich
-              </Link>
-
-              <Link href="/region/aargau">
-                Aargau
-              </Link>
-
-              <Link href="/region/bern">
-                Bern
-              </Link>
-
-              <Link href="/region/basel">
-                Basel
-              </Link>
-
-              <Link href="/region/luzern">
-                Luzern
-              </Link>
+              {regions.map(([label, href]) => (
+                <Link key={href} href={href}>
+                  {label}
+                </Link>
+              ))}
             </div>
           </div>
 
@@ -89,33 +104,11 @@ export default function Footer() {
             <h4>Auftrago</h4>
 
             <div className="site-footer-links">
-              <Link href="/leistungen">
-                Dienstleistungen
-              </Link>
-
-              <Link href="/anbieter">
-                Anbieter
-              </Link>
-
-              <Link href="/offerte-anfragen">
-                Offerte anfragen
-              </Link>
-
-              <Link href="/anbieter-registrieren">
-                Anbieter werden
-              </Link>
-
-              <Link href="/impressum">
-                Impressum
-              </Link>
-
-              <Link href="/datenschutz">
-                Datenschutz
-              </Link>
-
-              <Link href="/agb">
-                AGB
-              </Link>
+              {companyLinks.map(([label, href]) => (
+                <Link key={href} href={href}>
+                  {label}
+                </Link>
+              ))}
             </div>
           </div>
         </div>
