@@ -37,45 +37,51 @@ export default function OfferteAnfrageForm() {
     const fd = new FormData(form);
 
     const payload = {
-      name: String(fd.get("name") || ""),
-      phone: String(fd.get("phone") || ""),
-      email: String(fd.get("email") || ""),
+      name: String(fd.get("name") || "").trim(),
+      phone: String(fd.get("phone") || "").trim(),
+      email: String(fd.get("email") || "").trim(),
 
-      salutation: String(fd.get("salutation") || ""),
-      street: String(fd.get("street") || ""),
-      postalCode: String(fd.get("postalCode") || ""),
-      city: String(fd.get("city") || ""),
-      region: String(fd.get("region") || ""),
+      salutation: String(fd.get("salutation") || "Nicht angegeben").trim(),
+      street: String(fd.get("street") || "Nicht angegeben").trim(),
+      postalCode: String(fd.get("postalCode") || "Nicht angegeben").trim(),
+      city: String(fd.get("city") || "").trim(),
+      region: String(fd.get("region") || "").trim(),
 
-      service: String(fd.get("service") || ""),
-      start: String(fd.get("start") || ""),
-      flexibleDate: String(fd.get("flexibleDate") || "Nach Absprache"),
-      viewingWanted: String(fd.get("viewingWanted") || "Nach Absprache"),
-      phoneAvailability: String(fd.get("phoneAvailability") || "Nach Absprache"),
+      service: String(fd.get("service") || "").trim(),
+      start: String(fd.get("start") || "Nach Absprache").trim(),
+      flexibleDate: String(fd.get("flexibleDate") || "Nach Absprache").trim(),
+      viewingWanted: String(fd.get("viewingWanted") || "Nach Absprache").trim(),
+      phoneAvailability: String(
+        fd.get("phoneAvailability") || "Nach Absprache"
+      ).trim(),
 
-      objectType: String(fd.get("objectType") || ""),
-      propertyType: String(fd.get("propertyType") || ""),
-      floor: String(fd.get("floor") || "Nicht angegeben"),
-      elevator: String(fd.get("elevator") || "Nicht angegeben"),
-      parking: String(fd.get("parking") || "Nicht angegeben"),
+      objectType: String(fd.get("objectType") || "Nicht angegeben").trim(),
+      propertyType: String(fd.get("propertyType") || "Nicht angegeben").trim(),
+      floor: String(fd.get("floor") || "Nicht angegeben").trim(),
+      elevator: String(fd.get("elevator") || "Nicht angegeben").trim(),
+      parking: String(fd.get("parking") || "Nicht angegeben").trim(),
 
-      rooms: String(fd.get("rooms") || "Nicht angegeben"),
-      area: String(fd.get("area") || "Nicht angegeben"),
-      windows: String(fd.get("windows") || "Nicht angegeben"),
-      windowSize: String(fd.get("windowSize") || "Nicht angegeben"),
-      blinds: String(fd.get("blinds") || "Nicht angegeben"),
-      shutters: String(fd.get("shutters") || "Nicht angegeben"),
+      rooms: String(fd.get("rooms") || "Nicht angegeben").trim(),
+      area: String(fd.get("area") || "Nicht angegeben").trim(),
+      windows: String(fd.get("windows") || "Nicht angegeben").trim(),
+      windowSize: String(fd.get("windowSize") || "Nicht angegeben").trim(),
+      blinds: String(fd.get("blinds") || "Nicht angegeben").trim(),
+      shutters: String(fd.get("shutters") || "Nicht angegeben").trim(),
 
-      handoverGuarantee: String(fd.get("handoverGuarantee") || "Nicht angegeben"),
-      cellar: String(fd.get("cellar") || "Nicht angegeben"),
-      balcony: String(fd.get("balcony") || "Nicht angegeben"),
-      carpetCleaning: String(fd.get("carpetCleaning") || "Nicht angegeben"),
+      handoverGuarantee: String(
+        fd.get("handoverGuarantee") || "Nicht angegeben"
+      ).trim(),
+      cellar: String(fd.get("cellar") || "Nicht angegeben").trim(),
+      balcony: String(fd.get("balcony") || "Nicht angegeben").trim(),
+      carpetCleaning: String(
+        fd.get("carpetCleaning") || "Nicht angegeben"
+      ).trim(),
 
-      budget: String(fd.get("budget") || "Nicht angegeben"),
-      offersWanted: String(fd.get("offersWanted") || "3 Angebote"),
-      important: String(fd.get("important") || "Preis und Qualität"),
+      budget: String(fd.get("budget") || "Nicht angegeben").trim(),
+      offersWanted: String(fd.get("offersWanted") || "3 Angebote").trim(),
+      important: String(fd.get("important") || "Preis und Qualität").trim(),
 
-      message: String(fd.get("message") || ""),
+      message: String(fd.get("message") || "").trim(),
     };
 
     try {
@@ -87,9 +93,14 @@ export default function OfferteAnfrageForm() {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        setError(data?.error || "Die Anfrage konnte nicht gesendet werden.");
+      const result = await res.json().catch(() => null);
+
+      if (!res.ok || !result?.ok) {
+        setError(
+          result?.error ||
+            result?.warning ||
+            "Die Anfrage konnte nicht gesendet werden."
+        );
         return;
       }
 
@@ -101,8 +112,9 @@ export default function OfferteAnfrageForm() {
 
       setSent(true);
       form.reset();
-    } catch {
-      setError("Es gab ein technisches Problem. Bitte versuche es erneut.");
+    } catch (err) {
+      console.error(err);
+      setError("Technischer Fehler. Bitte versuche es nochmals.");
     } finally {
       setSending(false);
     }
@@ -115,8 +127,8 @@ export default function OfferteAnfrageForm() {
           <span>✅ Anfrage gesendet</span>
           <h2>Danke für deine Anfrage</h2>
           <p>
-            Deine Anfrage wurde erfolgreich übermittelt. Passende Anbieter
-            können sich bei dir melden.
+            Deine Anfrage wurde erfolgreich übermittelt. Wir melden uns so
+            schnell wie möglich.
           </p>
         </div>
 
@@ -203,38 +215,8 @@ export default function OfferteAnfrageForm() {
 
       <div className="quote-form-row">
         <input name="parking" placeholder="Parkplatz vorhanden? Ja / Nein" />
-        <input name="viewingWanted" placeholder="Besichtigung erwünscht? Ja / Nein" />
+        <input name="viewingWanted" placeholder="Besichtigung? Ja / Nein" />
       </div>
-
-      <div className="quote-form-row">
-        <input name="windows" placeholder="Anzahl Fenster optional" />
-        <input name="windowSize" placeholder="Fenstergrösse optional" />
-      </div>
-
-      <div className="quote-form-row">
-        <input name="blinds" placeholder="Lamellenstoren? Ja / Nein" />
-        <input name="shutters" placeholder="Fensterläden? Ja / Nein" />
-      </div>
-
-      <div className="quote-form-row">
-        <input name="handoverGuarantee" placeholder="Abgabegarantie? Ja / Nein" />
-        <input name="carpetCleaning" placeholder="Teppichreinigung? Ja / Nein" />
-      </div>
-
-      <div className="quote-form-row">
-        <input name="cellar" placeholder="Keller? Ja / Nein" />
-        <input name="balcony" placeholder="Balkon? Ja / Nein" />
-      </div>
-
-      <div className="quote-form-row">
-        <input name="budget" placeholder="Budget optional" />
-        <input name="offersWanted" placeholder="Gewünschte Angebote z.B. 3" />
-      </div>
-
-      <input
-        name="important"
-        placeholder="Was ist dir wichtig? Preis, Qualität, schnell..."
-      />
 
       <textarea
         name="message"
