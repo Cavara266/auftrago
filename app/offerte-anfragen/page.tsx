@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Metadata } from "next";
+import OfferteAnfrageForm from "@/components/offerte-anfrage-form";
 
 export const metadata: Metadata = {
   title: "Kostenlose Offerte anfragen | Regionale Anbieter vergleichen",
@@ -17,20 +18,6 @@ export const metadata: Metadata = {
     type: "website",
   },
 };
-
-const services = [
-  "Reinigung",
-  "Umzugsreinigung",
-  "Hauswartung",
-  "Fensterreinigung",
-  "Gartenpflege",
-  "Umzug",
-  "Transport",
-  "Entsorgung",
-  "Malerarbeiten",
-  "Elektriker",
-  "Sanitär",
-];
 
 const popularServices = [
   {
@@ -142,7 +129,7 @@ export default function OfferteAnfragenPage() {
   };
 
   return (
-    <main className="quote-page">
+    <main className="quote-page" id="top">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
@@ -175,44 +162,7 @@ export default function OfferteAnfragenPage() {
             </div>
           </div>
 
-          <form className="quote-form">
-            <div className="quote-form-head">
-              <span>Jetzt starten</span>
-              <h2>Kostenlose Anfrage</h2>
-              <p>Alle Angaben helfen den Anbietern, schneller zu reagieren.</p>
-            </div>
-
-            <div className="quote-form-row">
-              <input name="name" placeholder="Vorname / Name" required />
-              <input name="email" type="email" placeholder="E-Mail" required />
-            </div>
-
-            <div className="quote-form-row">
-              <input name="phone" placeholder="Telefon" required />
-              <input name="location" placeholder="Ort / Region" required />
-            </div>
-
-            <select name="service" required defaultValue="">
-              <option value="" disabled>
-                Dienstleistung wählen
-              </option>
-              {services.map((service) => (
-                <option key={service} value={service}>
-                  {service}
-                </option>
-              ))}
-            </select>
-
-            <textarea
-              name="message"
-              placeholder="Beschreibe deinen Auftrag: Grösse, Termin, Adresse, Besonderheiten..."
-              required
-            />
-
-            <button type="submit">Anfrage kostenlos senden</button>
-
-            <small>✓ Kostenlos · ✓ Unverbindlich · ✓ Regionale Anbieter</small>
-          </form>
+          <OfferteAnfrageForm />
         </div>
       </section>
 
@@ -229,7 +179,11 @@ export default function OfferteAnfragenPage() {
 
         <div className="container quote-service-grid">
           {popularServices.map((service) => (
-            <Link key={service.title} href={service.href} className="quote-service-card">
+            <Link
+              key={service.title}
+              href={service.href}
+              className="quote-service-card"
+            >
               <span>{service.title}</span>
               <p>{service.text}</p>
               <strong>Mehr erfahren →</strong>
