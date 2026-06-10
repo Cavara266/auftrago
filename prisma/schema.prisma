@@ -7,76 +7,150 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum LeadStatus {
+  OPEN
+  CONTACTED
+  APPOINTMENT_SET
+  OFFER_SENT
+  WON
+  LOST
+  NO_OFFER
+}
+
+enum OfferStatus {
+  SENT
+  ACCEPTED
+  DECLINED
+}
+
 model Provider {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  password     String
-  companyName  String
-  contactName  String
-  phone        String?
-  region       String?
-  category     String?
-  credits      Int      @default(0)
+  id          String  @id @default(uuid())
+  email       String  @unique
+  password    String
+  companyName String
+  contactName String
+  phone       String?
+  region      String?
+  category    String?
+  credits     Int     @default(0)
 
-  website      String?
-  description  String?
-  address      String?
-  postalCode   String?
-  city         String?
+  website     String?
+  description String?
+  address     String?
+  postalCode  String?
+  city        String?
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   purchases       LeadPurchase[]
   creditPurchases CreditPurchase[]
 }
 
 model Lead {
-  id           String   @id @default(uuid())
-  title        String
-  description  String
+  id          String @id @default(uuid())
+  title       String
+  description String
 
-  name         String
-  email        String
-  phone        String
+  name  String
+  email String
+  phone String
 
-  region       String
-  category     String
-  price        Int
+  region   String
+  category String
+  price    Int
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  purchases    LeadPurchase[]
+  purchases LeadPurchase[]
 }
 
 model LeadPurchase {
-  id          String   @id @default(uuid())
-  providerId  String
-  leadId      String
-  price       Int
+  id         String     @id @default(uuid())
+  providerId String
+  leadId     String
+  price      Int
+  status     LeadStatus @default(OPEN)
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  provider    Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  lead     Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  notes      LeadNote[]
+  messages   LeadMessage[]
+  activities LeadActivity[]
+  offers     LeadOffer[]
 
   @@unique([providerId, leadId])
 }
 
+model LeadNote {
+  id             String @id @default(uuid())
+  leadPurchaseId String
+  content        String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  leadPurchase LeadPurchase @relation(fields: [leadPurchaseId], references: [id], onDelete: Cascade)
+}
+
+model LeadMessage {
+  id             String @id @default(uuid())
+  leadPurchaseId String
+
+  sender  String
+  message String
+
+  createdAt DateTime @default(now())
+
+  leadPurchase LeadPurchase @relation(fields: [leadPurchaseId], references: [id], onDelete: Cascade)
+}
+
+model LeadActivity {
+  id             String @id @default(uuid())
+  leadPurchaseId String
+
+  type        String
+  description String
+
+  createdAt DateTime @default(now())
+
+  leadPurchase LeadPurchase @relation(fields: [leadPurchaseId], references: [id], onDelete: Cascade)
+}
+
+model LeadOffer {
+  id             String @id @default(uuid())
+  leadPurchaseId String
+
+  title       String
+  description String?
+  amount      Float
+  status      OfferStatus @default(SENT)
+  pdfUrl      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  leadPurchase LeadPurchase @relation(fields: [leadPurchaseId], references: [id], onDelete: Cascade)
+}
+
 model CreditPurchase {
-  id              String   @id @default(uuid())
+  id              String  @id @default(uuid())
   providerId      String
-  stripeSessionId String   @unique
+  stripeSessionId String  @unique
   packageId       String?
 
-  credits         Int
-  amount          Int
-  currency        String   @default("chf")
-  status          String   @default("paid")
+  credits  Int
+  amount   Int
+  currency String @default("chf")
+  status   String @default("paid")
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  provider        Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
 }

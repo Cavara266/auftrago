@@ -1,8 +1,22 @@
 import Link from "next/link";
+import Script from "next/script";
 
 export default function DankePage() {
   return (
     <main className="min-h-screen bg-[#050816] px-6 py-12 text-white">
+      <Script id="ga4-generate-lead" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+
+          gtag("event", "generate_lead", {
+            event_category: "lead",
+            event_label: "Auftrago Anfrage",
+            value: 1
+          });
+        `}
+      </Script>
+
       <div className="mx-auto max-w-2xl rounded-3xl border border-white/10 bg-white/5 p-8 text-center shadow-2xl backdrop-blur">
         <div className="text-sm uppercase tracking-[0.2em] text-white/50">
           Danke
