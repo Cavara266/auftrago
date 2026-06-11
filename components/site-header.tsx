@@ -23,6 +23,17 @@ export default function SiteHeader() {
         <nav className="desktop-nav">
           <Link href="/">Startseite</Link>
           <Link href="/anbieter">Anbieter</Link>
+
+          <Link
+            href="/preisrechner"
+            style={{
+              color: "#10b981",
+              fontWeight: 900,
+            }}
+          >
+            💰 Preisrechner
+          </Link>
+
           <Link href="/offerte-anfragen">Offerte anfragen</Link>
           <Link href="/leistungen">Leistungen</Link>
         </nav>
