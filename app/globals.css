@@ -9764,3 +9764,30 @@ input[type="checkbox"] {
     padding: 24px;
   }
 }
+.brand-with-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-flame-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-flame-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 999px;
+  background: rgba(255, 75, 20, 0.35);
+  filter: blur(12px);
+}
+
+.brand-flame {
+  position: relative;
+  z-index: 1;
+  display: block;
+}

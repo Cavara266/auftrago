@@ -1,0 +1,30 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="flameGradient" x1="48" y1="8" x2="48" y2="88" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFB020"/>
+      <stop offset="0.45" stop-color="#FF3B1F"/>
+      <stop offset="1" stop-color="#C40000"/>
+    </linearGradient>
+    <linearGradient id="innerGradient" x1="48" y1="40" x2="48" y2="86" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE45C"/>
+      <stop offset="0.55" stop-color="#FF7A18"/>
+      <stop offset="1" stop-color="#FF2D2D"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 1  0 0.35 0 0 0.25  0 0 0 0 0  0 0 0 0.8 0"/>
+      <feBlend in="SourceGraphic"/>
+    </filter>
+  </defs>
+
+  <path
+    filter="url(#glow)"
+    d="M50.7 7.5C55.8 22.1 47.4 31.2 39.8 39.6C31.7 48.5 24.3 56.7 27.4 70.1C29.9 80.9 39.6 88.5 50.2 88.5C64.7 88.5 76.4 76.8 76.4 62.3C76.4 51.5 70.8 43.6 63.5 36.1C63.1 45.3 58.4 50.5 52.1 54.5C56.4 42.3 58.6 26.2 50.7 7.5Z"
+    fill="url(#flameGradient)"
+  />
+
+  <path
+    d="M48.1 83.2C40.5 79.6 36.7 73.8 37.7 67.1C38.4 62.3 41.2 58.6 44.3 55.1C44.8 62.2 48.8 65.5 53.2 68.3C55.8 70 57.7 72.4 57.5 75.7C57.2 80.4 53.2 83.1 48.1 83.2Z"
+    fill="url(#innerGradient)"
+  />
+</svg>
