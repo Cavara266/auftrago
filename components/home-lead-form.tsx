@@ -2,6 +2,12 @@
 
 import { useState } from "react";
 
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}
+
 const services = [
   { name: "Reinigung", icon: "🧹", text: "Wohnung, Büro, Unterhalt" },
   { name: "Umzugsreinigung", icon: "🏠", text: "Endreinigung & Abgabe" },
@@ -82,6 +88,15 @@ export default function HomeLeadForm() {
       if (!res.ok) {
         setError("Die Anfrage konnte nicht gesendet werden. Bitte versuche es erneut.");
         return;
+      }
+
+      if (typeof window !== "undefined" && typeof window.gtag === "function") {
+        window.gtag("event", "generate_lead", {
+          event_category: "lead",
+          event_label: "home_lead_form",
+          service,
+          region,
+        });
       }
 
       setSent(true);
