@@ -2,12 +2,6 @@
 
 import { useState } from "react";
 
-declare global {
-  interface Window {
-    gtag?: (...args: any[]) => void;
-  }
-}
-
 const services = [
   { name: "Reinigung", icon: "🧹", text: "Wohnung, Büro, Unterhalt" },
   { name: "Umzugsreinigung", icon: "🏠", text: "Endreinigung & Abgabe" },
@@ -30,6 +24,23 @@ export default function HomeLeadForm() {
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+
+  function trackLeadConversion() {
+    if (typeof window === "undefined") return;
+
+    const gtag = (window as Window & {
+      gtag?: (...args: unknown[]) => void;
+    }).gtag;
+
+    if (typeof gtag === "function") {
+      gtag("event", "generate_lead", {
+        event_category: "lead",
+        event_label: "home_lead_form",
+        service,
+        region,
+      });
+    }
+  }
 
   async function handleSubmit() {
     if (!service || !region || !name || !phone) {
@@ -90,15 +101,7 @@ export default function HomeLeadForm() {
         return;
       }
 
-      if (typeof window !== "undefined" && typeof window.gtag === "function") {
-        window.gtag("event", "generate_lead", {
-          event_category: "lead",
-          event_label: "home_lead_form",
-          service,
-          region,
-        });
-      }
-
+      trackLeadConversion();
       setSent(true);
     } catch {
       setError("Es gab ein technisches Problem. Bitte versuche es erneut.");
