@@ -10197,3 +10197,86 @@ input[type="checkbox"] {
     padding: 22px;
   }
 }
+.live-activity-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 34px;
+  padding: 48px;
+}
+
+.live-activity-head {
+  margin-bottom: 32px;
+}
+
+.live-activity-head h2 {
+  font-size: clamp(36px, 6vw, 72px);
+  line-height: 1;
+  margin-top: 14px;
+}
+
+.live-activity-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.live-request-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 22px;
+  padding: 22px;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.live-request-card span {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.live-request-card strong {
+  font-size: 22px;
+  color: white;
+  line-height: 1.2;
+}
+
+.live-request-card p {
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+}
+
+.review-card,
+.trust-review-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 360px;
+}
+
+.review-card p,
+.trust-review-card p {
+  min-height: 150px;
+}
+
+@media (max-width: 900px) {
+  .live-activity-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .live-activity-card {
+    padding: 32px;
+  }
+}
+
+@media (max-width: 600px) {
+  .live-activity-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .live-activity-card {
+    padding: 24px;
+  }
+}
