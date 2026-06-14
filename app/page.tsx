@@ -6,7 +6,6 @@ import LiveLeadFeed from "@/components/live-lead-feed";
 import { regions as regionData } from "@/lib/region-data";
 import { citiesSeo } from "@/lib/city-data";
 import { services as seoServices, formatText } from "@/lib/seo-data";
-import HowItWorksSection from "@/components/how-it-works-section";
 import TrustReviewsSection from "@/components/trust-reviews-section";
 
 export const dynamic = "force-dynamic";
@@ -262,28 +261,6 @@ export default async function HomePage() {
               <strong>2200+</strong>
               <span>Regionale Angebotsseiten</span>
             </div>
-            <section className="premium-section">
-  <div className="container">
-    <TrustReviewsSection />
-  </div>
-</section>
-
-<section className="premium-section">
-  <div className="container premium-provider-card">
-    <span className="eyebrow">Live Aktivität</span>
-
-    <h2>Aktuelle Anfragen auf Auftrago</h2>
-
-    <div className="seo-link-grid">
-      <div>🔥 Umzugsreinigung Zürich – vor 3 Minuten</div>
-      <div>🔥 Fensterreinigung Baden – vor 7 Minuten</div>
-      <div>🔥 Hauswartung Aarau – vor 12 Minuten</div>
-      <div>🔥 Gartenpflege Lenzburg – vor 18 Minuten</div>
-      <div>🔥 Wohnungsreinigung Winterthur – vor 24 Minuten</div>
-      <div>🔥 Entsorgung Zürich – vor 31 Minuten</div>
-    </div>
-  </div>
-</section>
 
             <div className="trust-card">
               <strong>20+</strong>
@@ -299,6 +276,25 @@ export default async function HomePage() {
               <strong>CH</strong>
               <span>Regionale Anbieter</span>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <TrustReviewsSection />
+
+      <section className="premium-section">
+        <div className="container premium-provider-card">
+          <span className="eyebrow">Live Aktivität</span>
+
+          <h2>Aktuelle Anfragen auf Auftrago</h2>
+
+          <div className="seo-link-grid">
+            <div>🔥 Umzugsreinigung Zürich – vor 3 Minuten</div>
+            <div>🔥 Fensterreinigung Baden – vor 7 Minuten</div>
+            <div>🔥 Hauswartung Aarau – vor 12 Minuten</div>
+            <div>🔥 Gartenpflege Lenzburg – vor 18 Minuten</div>
+            <div>🔥 Wohnungsreinigung Winterthur – vor 24 Minuten</div>
+            <div>🔥 Entsorgung Zürich – vor 31 Minuten</div>
           </div>
         </div>
       </section>

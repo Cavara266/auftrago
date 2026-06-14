@@ -10156,3 +10156,44 @@ input[type="checkbox"] {
 .review-card small {
   color: #94a3b8;
 }
+.trust-reviews {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.trust-review-grid,
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.trust-review-card,
+.review-card {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+@media (max-width: 1100px) {
+  .trust-review-grid,
+  .reviews-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .trust-review-grid,
+  .reviews-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .trust-review-card,
+  .review-card {
+    padding: 22px;
+  }
+}
