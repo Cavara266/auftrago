@@ -247,13 +247,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <LiveLeadFeed
-        leads={latestLeads}
-        todayCount={12}
-        weekCount={63}
-        totalCount={487}
-      />
-
     <section className="premium-section">
   <div className="container">
     <div className="live-activity-card">
