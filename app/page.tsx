@@ -249,21 +249,53 @@ export default async function HomePage() {
       <TrustReviewsSection />
 
       <section className="premium-section">
-        <div className="container premium-provider-card">
-          <span className="eyebrow">Live Aktivität</span>
+  <div className="container">
+    <div className="live-activity-card">
+      <div className="live-activity-head">
+        <span className="eyebrow">Live Aktivität</span>
+        <h2>Aktuelle Anfragen auf Auftrago</h2>
+      </div>
 
-          <h2>Aktuelle Anfragen auf Auftrago</h2>
-
-          <div className="seo-link-grid">
-            <div>🔥 Umzugsreinigung Zürich – vor 3 Minuten</div>
-            <div>🔥 Fensterreinigung Baden – vor 7 Minuten</div>
-            <div>🔥 Hauswartung Aarau – vor 12 Minuten</div>
-            <div>🔥 Gartenpflege Lenzburg – vor 18 Minuten</div>
-            <div>🔥 Wohnungsreinigung Winterthur – vor 24 Minuten</div>
-            <div>🔥 Entsorgung Zürich – vor 31 Minuten</div>
-          </div>
+      <div className="live-activity-grid">
+        <div className="live-request-card">
+          <span>🔥</span>
+          <strong>Umzugsreinigung</strong>
+          <p>Zürich · vor 3 Minuten</p>
         </div>
-      </section>
+
+        <div className="live-request-card">
+          <span>🔥</span>
+          <strong>Fensterreinigung</strong>
+          <p>Baden · vor 7 Minuten</p>
+        </div>
+
+        <div className="live-request-card">
+          <span>🔥</span>
+          <strong>Hauswartung</strong>
+          <p>Aarau · vor 12 Minuten</p>
+        </div>
+
+        <div className="live-request-card">
+          <span>🔥</span>
+          <strong>Gartenpflege</strong>
+          <p>Lenzburg · vor 18 Minuten</p>
+        </div>
+
+        <div className="live-request-card">
+          <span>🔥</span>
+          <strong>Wohnungsreinigung</strong>
+          <p>Winterthur · vor 24 Minuten</p>
+        </div>
+
+        <div className="live-request-card">
+          <span>🔥</span>
+          <strong>Entsorgung</strong>
+          <p>Zürich · vor 31 Minuten</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
       <section className="premium-section">
         <div className="container">
