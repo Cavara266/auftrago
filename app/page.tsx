@@ -6,7 +6,7 @@ import LiveLeadFeed from "@/components/live-lead-feed";
 import { regions as regionData } from "@/lib/region-data";
 import { citiesSeo } from "@/lib/city-data";
 import { services as seoServices, formatText } from "@/lib/seo-data";
-import HowItWorksSection from "./components/how-it-works-section";
+import HowItWorksSection from "@/components/how-it-works-section";
 import TrustReviewsSection from "@/components/trust-reviews-section";
 
 export const dynamic = "force-dynamic";
