@@ -10117,3 +10117,42 @@ input[type="checkbox"] {
     grid-template-columns: 1fr;
   }
 }
+.trust-reviews {
+  margin-top: 40px;
+}
+
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.review-card {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 24px;
+  padding: 28px;
+  backdrop-filter: blur(10px);
+}
+
+.review-stars {
+  color: #fbbf24;
+  font-size: 22px;
+  margin-bottom: 16px;
+}
+
+.review-card p {
+  color: #cbd5e1;
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+.review-card strong {
+  display: block;
+  color: white;
+  margin-bottom: 8px;
+}
+
+.review-card small {
+  color: #94a3b8;
+}
