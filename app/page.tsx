@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import HomeLeadForm from "@/components/home-lead-form";
-import LiveLeadFeed from "@/components/live-lead-feed";
 import { regions as regionData } from "@/lib/region-data";
 import { citiesSeo } from "@/lib/city-data";
 import { services as seoServices, formatText } from "@/lib/seo-data";
