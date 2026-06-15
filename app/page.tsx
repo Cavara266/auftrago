@@ -6,7 +6,7 @@ import { regions as regionData } from "@/lib/region-data";
 import { citiesSeo } from "@/lib/city-data";
 import { services as seoServices, formatText } from "@/lib/seo-data";
 import TrustReviewsSection from "@/components/trust-reviews-section";
-
+import WhyAuftragoSection from "@/components/why-auftrago-section";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -247,6 +247,7 @@ export default async function HomePage() {
       </section>
 
       <TrustReviewsSection />
+      <WhyAuftragoSection />
 
       <section className="premium-section">
   <div className="container">

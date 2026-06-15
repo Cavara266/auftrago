@@ -10306,3 +10306,46 @@ input[type="checkbox"] {
     padding-bottom: 90px;
   }
 }
+.comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin-top: 40px;
+}
+
+.comparison-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 24px;
+  padding: 32px;
+  backdrop-filter: blur(20px);
+}
+
+.comparison-card h3 {
+  font-size: 28px;
+  margin-bottom: 20px;
+  color: white;
+}
+
+.comparison-card ul {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.comparison-card li {
+  color: rgba(255,255,255,0.85);
+  font-size: 18px;
+  list-style: none;
+}
+
+.comparison-good {
+  border-color: rgba(50,230,161,0.4);
+  box-shadow: 0 0 40px rgba(50,230,161,0.08);
+}
+
+@media (max-width: 768px) {
+  .comparison-grid {
+    grid-template-columns: 1fr;
+  }
+}
