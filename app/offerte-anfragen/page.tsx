@@ -3,16 +3,16 @@ import { Metadata } from "next";
 import OfferteAnfrageForm from "@/components/offerte-anfrage-form";
 
 export const metadata: Metadata = {
-  title: "Kostenlose Offerte anfragen | Regionale Anbieter vergleichen",
+  title: "Kostenlos bis zu 3 Offerten erhalten | Auftrago Schweiz",
   description:
-    "Kostenlos und unverbindlich Offerten für Reinigung, Umzug, Hauswartung, Gartenpflege, Entsorgung, Transport und weitere Dienstleistungen in der Schweiz anfragen.",
+    "Beschreibe deinen Auftrag in 60 Sekunden und erhalte kostenlos und unverbindlich Offerten von regionalen Anbietern für Reinigung, Umzug, Hauswartung, Gartenpflege, Entsorgung und mehr.",
   alternates: {
     canonical: "https://www.auftrago.ch/offerte-anfragen",
   },
   openGraph: {
-    title: "Kostenlose Offerte anfragen | Auftrago",
+    title: "Kostenlos bis zu 3 Offerten erhalten | Auftrago",
     description:
-      "Beschreibe deinen Auftrag und vergleiche regionale Anbieter für Reinigung, Umzug, Hauswartung, Gartenpflege und mehr.",
+      "Beschreibe deinen Auftrag einmal und erhalte unverbindliche Angebote von regionalen Anbietern.",
     url: "https://www.auftrago.ch/offerte-anfragen",
     siteName: "Auftrago",
     type: "website",
@@ -55,28 +55,35 @@ const popularServices = [
 const steps = [
   {
     number: "01",
-    title: "Anfrage ausfüllen",
-    text: "Du beschreibst kurz deinen Auftrag, Ort, Termin und die wichtigsten Details.",
+    title: "Auftrag beschreiben",
+    text: "Du gibst kurz an, welche Dienstleistung du brauchst und wo der Auftrag stattfindet.",
   },
   {
     number: "02",
-    title: "Anbieter prüfen",
-    text: "Regionale Firmen können einschätzen, ob dein Auftrag zu ihnen passt.",
+    title: "Anbieter erhalten",
+    text: "Regionale Anbieter können deine Anfrage prüfen und sich direkt bei dir melden.",
   },
   {
     number: "03",
     title: "Offerten vergleichen",
-    text: "Du vergleichst Rückmeldungen, Preise und Leistungen in Ruhe.",
+    text: "Du vergleichst Preise, Leistungen und Verfügbarkeit ohne Verpflichtung.",
   },
 ];
 
 const benefits = [
-  "Kostenlose Anfrage senden",
-  "Regionale Anbieter erreichen",
-  "Zeit bei der Suche sparen",
-  "Offerten besser vergleichen",
+  "Kostenlos & unverbindlich",
+  "Bis zu 3 passende Offerten",
+  "Regionale Anbieter aus deiner Nähe",
+  "Nur eine Anfrage statt viele Telefonate",
   "Für Privatkunden und Firmen",
   "Keine Verpflichtung nach der Anfrage",
+];
+
+const trustItems = [
+  "✓ Kostenlos",
+  "✓ Unverbindlich",
+  "✓ Regionale Anbieter",
+  "✓ Schnelle Rückmeldung",
 ];
 
 const regions = [
@@ -98,6 +105,11 @@ const faqs = [
       "Ja. Die Anfrage ist kostenlos und unverbindlich. Du entscheidest selbst, ob du ein Angebot annehmen möchtest.",
   },
   {
+    question: "Wie viele Offerten erhalte ich?",
+    answer:
+      "Je nach Region, Auftrag und Verfügbarkeit können sich passende Anbieter direkt bei dir melden. Ziel ist, dass du Angebote einfacher vergleichen kannst.",
+  },
+  {
     question: "Welche Dienstleistungen kann ich anfragen?",
     answer:
       "Du kannst Anfragen für Reinigung, Umzugsreinigung, Hauswartung, Gartenpflege, Umzug, Transport, Entsorgung, Malerarbeiten, Elektriker, Sanitär und weitere Dienstleistungen senden.",
@@ -105,7 +117,7 @@ const faqs = [
   {
     question: "Wie schnell bekomme ich eine Rückmeldung?",
     answer:
-      "Das hängt von Region, Auftrag und Verfügbarkeit der Anbieter ab. Eine genaue Beschreibung erhöht die Chance auf schnelle und passende Rückmeldungen.",
+      "Das hängt von Region, Auftrag und Verfügbarkeit der Anbieter ab. Eine klare Beschreibung erhöht die Chance auf schnelle Rückmeldungen.",
   },
   {
     question: "Muss ich ein Angebot annehmen?",
@@ -141,16 +153,30 @@ export default function OfferteAnfragenPage() {
             <span className="quote-pill">Kostenlos & unverbindlich</span>
 
             <h1>
-              Die passende Firma
+              Kostenlos bis zu
               <br />
-              für deinen Auftrag.
+              3 Offerten erhalten.
             </h1>
 
             <p>
-              Beschreibe kurz, was du brauchst. Auftrago hilft dir, regionale
-              Anbieter für Reinigung, Umzug, Hauswartung, Gartenpflege,
-              Transport oder Entsorgung einfacher zu vergleichen.
+              Beschreibe deinen Auftrag in 60 Sekunden und erhalte
+              unverbindliche Angebote von regionalen Anbietern aus deiner Nähe.
             </p>
+
+            <div className="quote-trust-badges">
+              {trustItems.map((item) => (
+                <span key={item}>{item}</span>
+              ))}
+            </div>
+
+            <div className="quote-urgency-box">
+              <strong>Warum jetzt anfragen?</strong>
+              <p>
+                Viele Anbieter haben kurzfristige freie Termine. Je genauer du
+                deinen Auftrag beschreibst, desto schneller können passende
+                Firmen reagieren.
+              </p>
+            </div>
 
             <div className="quote-trust">
               {steps.map((step) => (
@@ -162,7 +188,29 @@ export default function OfferteAnfragenPage() {
             </div>
           </div>
 
-          <OfferteAnfrageForm />
+          <div className="quote-form-wrap">
+            <div className="quote-form-head">
+              <span>Jetzt starten</span>
+              <h2>Kostenlose Offerten anfragen</h2>
+              <p>
+                Keine Verpflichtung. Passende Anbieter können sich direkt bei
+                dir melden.
+              </p>
+            </div>
+
+            <OfferteAnfrageForm />
+          </div>
+        </div>
+      </section>
+
+      <section className="quote-section quote-benefits-strip">
+        <div className="container quote-benefit-grid">
+          {benefits.map((benefit) => (
+            <div key={benefit}>
+              <span>✓</span>
+              <strong>{benefit}</strong>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -217,29 +265,6 @@ export default function OfferteAnfragenPage() {
       </section>
 
       <section className="quote-section">
-        <div className="container quote-split">
-          <div>
-            <span className="quote-pill">Vorteile</span>
-            <h2>Warum über Auftrago anfragen?</h2>
-            <p>
-              Auftrago macht die Suche nach Dienstleistern einfacher. Du
-              beschreibst deinen Auftrag einmal und erhältst eine bessere
-              Grundlage für den Vergleich.
-            </p>
-          </div>
-
-          <div className="quote-benefit-grid">
-            {benefits.map((benefit) => (
-              <div key={benefit}>
-                <span>✓</span>
-                <strong>{benefit}</strong>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="quote-section quote-dark">
         <div className="container quote-section-head">
           <span className="quote-pill">Regionen</span>
           <h2>Offerten in deiner Region anfragen</h2>
@@ -279,12 +304,13 @@ export default function OfferteAnfragenPage() {
       <section className="quote-final">
         <div className="container">
           <span className="quote-pill">Jetzt starten</span>
-          <h2>Bereit für deine Offerte?</h2>
+          <h2>Kostenlos passende Offerten erhalten</h2>
           <p>
-            Beschreibe deinen Auftrag und finde passende regionale Anbieter.
+            Beschreibe deinen Auftrag einmal und spare dir die Suche nach
+            einzelnen Firmen.
           </p>
           <a href="#top" className="btn btn-primary">
-            Anfrage ausfüllen
+            Kostenlose Offerten anfragen
           </a>
         </div>
       </section>
