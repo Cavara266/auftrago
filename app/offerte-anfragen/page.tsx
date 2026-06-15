@@ -163,21 +163,20 @@ export default function OfferteAnfragenPage() {
               unverbindliche Angebote von regionalen Anbietern aus deiner Nähe.
             </p>
 
-            <div className="quote-trust-badges">
-              {trustItems.map((item) => (
-                <span key={item}>{item}</span>
-              ))}
-            </div>
+<div className="quote-highlights">
+  <span>✓ Kostenlos & unverbindlich</span>
+  <span>✓ Bis zu 3 Offerten</span>
+  <span>✓ Regionale Anbieter</span>
+  <span>✓ Rückmeldung oft innerhalb 24h</span>
+</div>
 
-            <div className="quote-urgency-box">
-              <strong>Warum jetzt anfragen?</strong>
-              <p>
-                Viele Anbieter haben kurzfristige freie Termine. Je genauer du
-                deinen Auftrag beschreibst, desto schneller können passende
-                Firmen reagieren.
-              </p>
-            </div>
-
+<div className="quote-urgency">
+  <h3>Warum jetzt anfragen?</h3>
+  <p>
+    Viele Anbieter haben kurzfristig freie Termine. Je genauer du deinen
+    Auftrag beschreibst, desto schneller können passende Firmen reagieren.
+  </p>
+</div>
             <div className="quote-trust">
               {steps.map((step) => (
                 <div key={step.number}>
