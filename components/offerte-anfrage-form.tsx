@@ -237,14 +237,20 @@ export default function OfferteAnfrageForm() {
       <div className="quote-form">
         <div className="quote-form-head">
           <span>✅ Anfrage gesendet</span>
+
           <h2>Danke für deine Anfrage</h2>
+
           <p>
             Deine Anfrage wurde erfolgreich übermittelt. Passende Anbieter
             können sich direkt bei dir melden.
           </p>
-        </div>
 
-        <small>✓ Anfrage gespeichert · ✓ Kostenlos · ✓ Unverbindlich</small>
+          <div className="quote-mini-trust">
+            <span>✓ Anfrage gespeichert</span>
+            <span>✓ Kostenlos</span>
+            <span>✓ Unverbindlich</span>
+          </div>
+        </div>
       </div>
     );
   }
@@ -252,12 +258,20 @@ export default function OfferteAnfrageForm() {
   return (
     <form className="quote-form" onSubmit={handleSubmit}>
       <div className="quote-form-head">
-        <span>Jetzt starten</span>
+        <span>🚀 Kostenlos & unverbindlich</span>
+
         <h2>Kostenlose Offerten erhalten</h2>
+
         <p>
-          Wenige Angaben reichen. Anbieter können Details später direkt mit dir
-          klären.
+          Beschreibe deinen Auftrag in weniger als 60 Sekunden und erhalte
+          passende Angebote von regionalen Anbietern.
         </p>
+
+        <div className="quote-mini-trust">
+          <span>✓ Kostenlos</span>
+          <span>✓ Unverbindlich</span>
+          <span>✓ Regionale Anbieter</span>
+        </div>
       </div>
 
       <select name="service" required defaultValue="">
@@ -309,8 +323,12 @@ export default function OfferteAnfrageForm() {
 
       {error ? <p className="mega-error">{error}</p> : null}
 
+      <div className="quote-security-box">
+        🔒 Deine Daten werden nur zur Vermittlung passender Anbieter verwendet.
+      </div>
+
       <button type="submit" disabled={sending}>
-        {sending ? "Wird gesendet..." : "Kostenlose Offerten erhalten"}
+        {sending ? "Wird gesendet..." : "Jetzt kostenlose Offerten erhalten"}
       </button>
 
       <small>

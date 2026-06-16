@@ -10484,3 +10484,26 @@ input[type="checkbox"] {
   font-size: 16px;
   line-height: 1.55;
 }
+.quote-mini-trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.quote-mini-trust span {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.quote-security-box {
+  margin: 16px 0;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 14px;
+  text-align: center;
+}
