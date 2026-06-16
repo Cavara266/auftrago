@@ -7,6 +7,7 @@ import { citiesSeo } from "@/lib/city-data";
 import { services as seoServices, formatText } from "@/lib/seo-data";
 import TrustReviewsSection from "@/components/trust-reviews-section";
 import WhyAuftragoSection from "@/components/why-auftrago-section";
+import LiveLeadsSection from "@/components/live-leads-section";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -364,7 +365,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="premium-section">
+      <LiveLeadsSection /><section className="premium-section">
         <div className="container">
           <div className="section-head">
             <span className="eyebrow">Leistungen</span>
