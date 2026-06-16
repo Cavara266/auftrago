@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Metadata } from "next";
 import OfferteAnfrageForm from "@/components/offerte-anfrage-form";
-
+import LiveLeadsSection from "@/components/live-leads-section";
 export const metadata: Metadata = {
   title: "Kostenlos bis zu 3 Offerten erhalten | Auftrago Schweiz",
   description:
@@ -202,7 +202,7 @@ export default function OfferteAnfragenPage() {
         </div>
       </section>
 
-      <section className="quote-section quote-benefits-strip">
+      <LiveLeadsSection /><section className="quote-section quote-benefits-strip">
         <div className="container quote-benefit-grid">
           {benefits.map((benefit) => (
             <div key={benefit}>
