@@ -1,11 +1,6 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 
-function shorten(text: string | null, length = 80) {
-  if (!text) return "";
-  return text.length > length ? `${text.slice(0, length)}...` : text;
-}
-
 function getIcon(category: string | null) {
   const value = (category || "").toLowerCase();
 
@@ -19,6 +14,20 @@ function getIcon(category: string | null) {
   return "🧹";
 }
 
+function formatTimeAgo(date: Date | null) {
+  if (!date) return "Aktiv";
+
+  const diffMs = Date.now() - new Date(date).getTime();
+  const minutes = Math.max(1, Math.floor(diffMs / 60000));
+
+  if (minutes < 60) return `vor ${minutes} Min.`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `vor ${hours} Std.`;
+
+  return "Aktiv";
+}
+
 export default async function LiveLeadsSection() {
   const leads = await prisma.lead.findMany({
     orderBy: { createdAt: "desc" },
@@ -26,14 +35,18 @@ export default async function LiveLeadsSection() {
     select: {
       id: true,
       title: true,
-      description: true,
       region: true,
       category: true,
       price: true,
+      createdAt: true,
     },
   });
 
   if (!leads.length) return null;
+
+  const averageCredits = Math.round(
+    leads.reduce((sum, lead) => sum + (lead.price || 20), 0) / leads.length
+  );
 
   return (
     <section className="live-leads-section">
@@ -44,12 +57,12 @@ export default async function LiveLeadsSection() {
             LIVE AUF AUFTRAGO
           </span>
 
-          <h2>Aktuelle Aufträge auf Auftrago</h2>
+          <h2>Aktuelle Aufträge in deiner Region</h2>
 
           <p>
-            Privatpersonen und Firmen suchen täglich passende Anbieter für
-            Reinigung, Umzug, Hauswartung, Gartenpflege und weitere
-            Dienstleistungen.
+            Auftrago zeigt laufend neue Anfragen von Kunden aus der Schweiz.
+            Exakte Kontaktdaten und Adressen sind erst nach Freischaltung
+            sichtbar.
           </p>
         </div>
 
@@ -60,13 +73,13 @@ export default async function LiveLeadsSection() {
           </div>
 
           <div>
-            <strong>ab {Math.min(...leads.map((lead) => lead.price || 20))}</strong>
-            <span>Credits pro Auftrag</span>
+            <strong>{averageCredits}</strong>
+            <span>Ø Credits pro Auftrag</span>
           </div>
 
           <div>
-            <strong>24h</strong>
-            <span>Neue Anfragen</span>
+            <strong>Live</strong>
+            <span>Neue Anfragen verfügbar</span>
           </div>
         </div>
 
@@ -82,11 +95,15 @@ export default async function LiveLeadsSection() {
 
               <h3>{lead.title || lead.category || "Neuer Auftrag"}</h3>
 
-              <p>{shorten(lead.description)}</p>
+              <p className="live-lead-privacy">
+                🔒 Vollständige Auftragsdetails, Adresse und Kontaktdaten sind
+                erst nach Freischaltung sichtbar.
+              </p>
 
               <div className="live-lead-meta">
                 <span>📍 {lead.region || "Schweiz"}</span>
                 <span>🏷 {lead.category || "Dienstleistung"}</span>
+                <span>⏱ {formatTimeAgo(lead.createdAt)}</span>
               </div>
 
               <div className="live-lead-bottom">
@@ -104,7 +121,10 @@ export default async function LiveLeadsSection() {
         <div className="live-leads-cta">
           <div>
             <h3>Du bist Anbieter?</h3>
-            <p>Erhalte Zugang zu neuen Aufträgen aus deiner Region.</p>
+            <p>
+              Erhalte Zugang zu neuen Aufträgen aus deiner Region und kaufe nur
+              Leads, die zu deinem Betrieb passen.
+            </p>
           </div>
 
           <Link href="/anbieter-werden" className="btn btn-primary">
