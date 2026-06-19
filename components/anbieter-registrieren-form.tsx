@@ -45,7 +45,7 @@ export default function AnbieterRegistrierenForm() {
         );
       }
 
-    const mailResponse = await fetch("/api/anfrage", {
+const mailResponse = await fetch("/api/anfrage", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
