@@ -8,19 +8,22 @@ export default function AnbieterRegistrierenForm() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
     setSending(true);
     setMessage("");
 
-    const fd = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const fd = new FormData(form);
 
     const providerPayload = {
-      companyName: String(fd.get("firma") || ""),
-      contactName: String(fd.get("kontaktperson") || ""),
-      phone: String(fd.get("telefon") || ""),
-      email: String(fd.get("email") || ""),
-      website: String(fd.get("website") || ""),
-      region: String(fd.get("ort") || ""),
-      services: String(fd.get("leistungen") || ""),
+      companyName: String(fd.get("firma") || "").trim(),
+      contactName: String(fd.get("kontaktperson") || "").trim(),
+      phone: String(fd.get("telefon") || "").trim(),
+      email: String(fd.get("email") || "").trim(),
+      website: String(fd.get("website") || "").trim(),
+      region: String(fd.get("ort") || "").trim(),
+      services: String(fd.get("leistungen") || "").trim(),
+      message: String(fd.get("nachricht") || "").trim(),
     };
 
     try {
@@ -32,35 +35,53 @@ export default function AnbieterRegistrierenForm() {
         body: JSON.stringify(providerPayload),
       });
 
-      if (!saveProvider.ok) {
-        throw new Error("Provider konnte nicht gespeichert werden");
+      const providerResult = await saveProvider.json().catch(() => null);
+
+      if (!saveProvider.ok || providerResult?.ok === false) {
+        throw new Error(
+          providerResult?.error ||
+            providerResult?.message ||
+            "Anbieter konnte nicht gespeichert werden."
+        );
       }
 
-      const mailPayload = {
-        typ: "Anbieter-Anfrage",
-        firma: providerPayload.companyName,
-        kontaktperson: providerPayload.contactName,
-        telefon: providerPayload.phone,
-        email: providerPayload.email,
-        website: providerPayload.website,
-        ort: providerPayload.region,
-        leistungen: providerPayload.services,
-        nachricht: String(fd.get("nachricht") || ""),
-      };
-
-      await fetch("/api/anfrage", {
+      const mailResponse = await fetch("/api/anbieter-anfrage", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(mailPayload),
+        body: JSON.stringify({
+          typ: "Anbieter-Anfrage",
+          firma: providerPayload.companyName,
+          kontaktperson: providerPayload.contactName,
+          telefon: providerPayload.phone,
+          email: providerPayload.email,
+          website: providerPayload.website,
+          ort: providerPayload.region,
+          leistungen: providerPayload.services,
+          nachricht: providerPayload.message,
+        }),
       });
 
-      setMessage("✅ Anfrage erfolgreich gesendet. Wir melden uns persönlich bei dir.");
-      e.currentTarget.reset();
+      const mailResult = await mailResponse.json().catch(() => null);
+
+      if (!mailResponse.ok || mailResult?.ok === false) {
+        console.warn("Anbieter wurde gespeichert, aber Mail fehlgeschlagen.");
+      }
+
+      setMessage(
+        "✅ Anfrage erfolgreich gesendet. Wir melden uns persönlich bei dir."
+      );
+
+      form.reset();
     } catch (error) {
       console.error(error);
-      setMessage("❌ Anfrage konnte nicht gesendet werden. Bitte versuche es erneut.");
+
+      setMessage(
+        `❌ Anfrage konnte nicht gesendet werden. ${
+          error instanceof Error ? error.message : "Bitte versuche es erneut."
+        }`
+      );
     } finally {
       setSending(false);
     }
@@ -98,7 +119,11 @@ export default function AnbieterRegistrierenForm() {
         {sending ? "Wird gesendet..." : "Anbieter-Anfrage senden"}
       </button>
 
-      {message && <p className="mega-error">{message}</p>}
+      {message && (
+        <p className={message.startsWith("✅") ? "mega-success" : "mega-error"}>
+          {message}
+        </p>
+      )}
     </form>
   );
 }
