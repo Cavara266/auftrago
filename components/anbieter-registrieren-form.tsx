@@ -45,23 +45,32 @@ export default function AnbieterRegistrierenForm() {
         );
       }
 
-      const mailResponse = await fetch("/api/anbieter-anfrage", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          typ: "Anbieter-Anfrage",
-          firma: providerPayload.companyName,
-          kontaktperson: providerPayload.contactName,
-          telefon: providerPayload.phone,
-          email: providerPayload.email,
-          website: providerPayload.website,
-          ort: providerPayload.region,
-          leistungen: providerPayload.services,
-          nachricht: providerPayload.message,
-        }),
-      });
+    const mailResponse = await fetch("/api/anfrage", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    name: providerPayload.contactName,
+    phone: providerPayload.phone,
+    email: providerPayload.email,
+    service: providerPayload.services,
+    city: providerPayload.region,
+    postalCode: "Nicht angegeben",
+    message: `Neue Anbieter-Anfrage
+
+Firma: ${providerPayload.companyName}
+Kontaktperson: ${providerPayload.contactName}
+Telefon: ${providerPayload.phone}
+E-Mail: ${providerPayload.email}
+Website: ${providerPayload.website || "Nicht angegeben"}
+Ort / Region: ${providerPayload.region}
+Leistungen: ${providerPayload.services}
+
+Nachricht:
+${providerPayload.message || "Keine Nachricht"}`,
+  }),
+});
 
       const mailResult = await mailResponse.json().catch(() => null);
 
