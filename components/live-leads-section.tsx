@@ -30,8 +30,10 @@ function formatTimeAgo(date: Date | null) {
 
 export default async function LiveLeadsSection() {
   const leads = await prisma.lead.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 6,
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 12,
     select: {
       id: true,
       title: true,
@@ -44,43 +46,22 @@ export default async function LiveLeadsSection() {
 
   if (!leads.length) return null;
 
-  const averageCredits = Math.round(
-    leads.reduce((sum, lead) => sum + (lead.price || 20), 0) / leads.length
-  );
-
   return (
     <section className="live-leads-section">
       <div className="container">
         <div className="live-leads-head">
           <span className="live-badge">
             <span className="live-dot" />
-            LIVE AUF AUFTRAGO
+            NEUE AUFTRÄGE
           </span>
 
-          <h2>Aktuelle Aufträge in deiner Region</h2>
+          <h2>Aktuelle Aufträge auf Auftrago</h2>
 
           <p>
-            Auftrago zeigt laufend neue Anfragen von Kunden aus der Schweiz.
-            Exakte Kontaktdaten und Adressen sind erst nach Freischaltung
-            sichtbar.
+            Anbieter sehen hier neue Anfragen aus verschiedenen Regionen.
+            Vollständige Details, Adresse und Kontaktdaten sind erst nach
+            Freischaltung sichtbar.
           </p>
-        </div>
-
-        <div className="live-leads-stats">
-          <div>
-            <strong>{leads.length}</strong>
-            <span>Aktuelle Aufträge</span>
-          </div>
-
-          <div>
-            <strong>{averageCredits}</strong>
-            <span>Ø Credits pro Auftrag</span>
-          </div>
-
-          <div>
-            <strong>Live</strong>
-            <span>Neue Anfragen verfügbar</span>
-          </div>
         </div>
 
         <div className="live-leads-grid">
@@ -122,8 +103,8 @@ export default async function LiveLeadsSection() {
           <div>
             <h3>Du bist Anbieter?</h3>
             <p>
-              Erhalte Zugang zu neuen Aufträgen aus deiner Region und kaufe nur
-              Leads, die zu deinem Betrieb passen.
+              Registriere dich kostenlos und erhalte Zugang zu neuen Aufträgen
+              aus deiner Region.
             </p>
           </div>
 
