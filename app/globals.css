@@ -10759,3 +10759,35 @@ input[type="checkbox"] {
     min-height: auto;
   }
 }
+.live-lead-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 520px;
+}
+
+.live-lead-card h3 {
+  min-height: 90px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.live-lead-privacy {
+  min-height: 90px;
+}
+
+.live-lead-meta {
+  min-height: 80px;
+}
+
+.live-lead-bottom {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+}
+
+.live-lead-bottom a {
+  white-space: nowrap;
+}
