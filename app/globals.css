@@ -10791,3 +10791,265 @@ input[type="checkbox"] {
 .live-lead-bottom a {
   white-space: nowrap;
 }
+.live-lead-meta {
+  min-height: unset !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin-top: 18px !important;
+  margin-bottom: 28px !important;
+}
+
+.live-lead-meta span {
+  width: auto !important;
+  height: auto !important;
+  min-width: unset !important;
+  min-height: unset !important;
+  border-radius: 999px !important;
+  padding: 10px 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+.live-lead-card {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.live-lead-bottom {
+  margin-top: auto !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-end !important;
+  gap: 20px !important;
+}
+/* ===== GOLDENE CREDITS ===== */
+
+.live-lead-bottom strong {
+  font-size: 4rem !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+
+  background: linear-gradient(
+    180deg,
+    #fff8c9 0%,
+    #ffe68a 15%,
+    #ffd447 35%,
+    #f7b500 60%,
+    #ffd95e 85%,
+    #fff5c0 100%
+  );
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+
+  text-shadow:
+    0 0 12px rgba(255, 215, 0, 0.35),
+    0 0 25px rgba(255, 190, 0, 0.25);
+}
+
+.live-lead-bottom div span {
+  color: #d8b55b !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.live-lead-bottom strong:hover {
+  filter: brightness(1.15);
+  transition: all 0.3s ease;
+}
+/* ==========================================
+   AUFTRAGO PREMIUM CREDIT COIN
+========================================== */
+
+.live-lead-bottom div {
+  position: relative;
+  padding-left: 95px;
+}
+
+.live-lead-bottom div::before {
+  content: "💰";
+  position: absolute;
+  left: 0;
+  top: 8px;
+
+  width: 72px;
+  height: 72px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 42px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(circle at 30% 30%,
+      #fff8c9,
+      #ffd84d 35%,
+      #f7b500 65%,
+      #c88700 100%);
+
+  box-shadow:
+    0 0 10px rgba(255,215,0,.4),
+    0 0 20px rgba(255,215,0,.3),
+    inset 0 2px 4px rgba(255,255,255,.5),
+    inset 0 -3px 8px rgba(0,0,0,.25);
+
+  animation: coinGlow 2.5s ease-in-out infinite;
+}
+
+.live-lead-bottom strong {
+  display: block;
+
+  font-size: 4.4rem !important;
+  font-weight: 900 !important;
+  line-height: 1;
+
+  background: linear-gradient(
+    180deg,
+    #fff8c9 0%,
+    #ffe68a 20%,
+    #ffd447 45%,
+    #f7b500 70%,
+    #fff1a0 100%
+  );
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.live-lead-bottom div span {
+  color: #e6c46b !important;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+@keyframes coinGlow {
+  0% {
+    transform: scale(1);
+    box-shadow:
+      0 0 10px rgba(255,215,0,.3),
+      0 0 20px rgba(255,215,0,.2);
+  }
+
+  50% {
+    transform: scale(1.08);
+    box-shadow:
+      0 0 20px rgba(255,215,0,.6),
+      0 0 40px rgba(255,215,0,.4);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow:
+      0 0 10px rgba(255,215,0,.3),
+      0 0 20px rgba(255,215,0,.2);
+  }
+}
+/* ==========================================
+   AUFTRAGO PREMIUM GOLD CREDITS
+========================================== */
+
+.live-lead-bottom div {
+  position: relative;
+  padding-left: 70px;
+}
+
+.live-lead-bottom div::before {
+  content: "💰";
+  position: absolute;
+  left: 0;
+  top: 4px;
+
+  width: 52px;
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 28px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle at 30% 30%,
+      #fff8c9,
+      #ffd84d 35%,
+      #f7b500 65%,
+      #c88700 100%
+    );
+
+  box-shadow:
+    0 0 10px rgba(255, 215, 0, 0.4),
+    0 0 20px rgba(255, 215, 0, 0.2);
+
+  animation: coinGlow 2.5s ease-in-out infinite;
+}
+
+.live-lead-bottom strong {
+  display: block;
+
+  font-size: 3rem !important;
+  font-weight: 900 !important;
+  line-height: 1;
+
+  background: linear-gradient(
+    180deg,
+    #fff8c9 0%,
+    #ffe68a 20%,
+    #ffd447 45%,
+    #f7b500 70%,
+    #fff1a0 100%
+  );
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+
+  text-shadow:
+    0 0 8px rgba(255, 215, 0, 0.25),
+    0 0 18px rgba(255, 190, 0, 0.15);
+}
+
+.live-lead-bottom div span {
+  color: #e6c46b !important;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+@keyframes coinGlow {
+  0% {
+    transform: scale(1);
+    box-shadow:
+      0 0 10px rgba(255, 215, 0, 0.3),
+      0 0 20px rgba(255, 215, 0, 0.2);
+  }
+
+  50% {
+    transform: scale(1.06);
+    box-shadow:
+      0 0 18px rgba(255, 215, 0, 0.5),
+      0 0 30px rgba(255, 215, 0, 0.3);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow:
+      0 0 10px rgba(255, 215, 0, 0.3),
+      0 0 20px rgba(255, 215, 0, 0.2);
+  }
+}
