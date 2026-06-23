@@ -214,13 +214,16 @@ ${trackingText}
     let mailError = "";
 
     try {
-      const mailHost = process.env.MAIL_HOST;
-      const mailPort = Number(process.env.MAIL_PORT || 587);
-      const mailUser = process.env.MAIL_USER;
-      const mailPass = process.env.MAIL_PASS;
+      const mailHost = process.env.MAIL_HOST || process.env.SMTP_HOST;
+      const mailPort = Number(
+        process.env.MAIL_PORT || process.env.SMTP_PORT || 587
+      );
+      const mailUser = process.env.MAIL_USER || process.env.SMTP_USER;
+      const mailPass = process.env.MAIL_PASS || process.env.SMTP_PASS;
       const mailTo = process.env.MAIL_TO;
+      const mailFrom = process.env.MAIL_FROM || mailUser;
 
-      if (!mailHost || !mailUser || !mailPass || !mailTo) {
+      if (!mailHost || !mailUser || !mailPass || !mailTo || !mailFrom) {
         throw new Error("Mail-Konfiguration fehlt.");
       }
 
@@ -234,10 +237,10 @@ ${trackingText}
         },
       });
 
-      await transporter.sendMail({
-        from: `"Auftrago Anfrage" <${mailUser}>`,
+      const info = await transporter.sendMail({
+        from: mailFrom,
         to: mailTo,
-        replyTo: email || mailUser,
+        replyTo: email || mailFrom,
         subject: `Neue Auftrago Anfrage: ${service} in ${region}`,
         text: `
 Neue Anfrage über Auftrago
@@ -260,6 +263,13 @@ Leadpreis im Portal: ${price} Credits
         `.trim(),
       });
 
+      console.log("ANFRAGE MAIL INFO:", {
+        messageId: info.messageId,
+        accepted: info.accepted,
+        rejected: info.rejected,
+        response: info.response,
+      });
+
       mailSent = true;
     } catch (error) {
       mailError = error instanceof Error ? error.message : "Mailfehler";
@@ -270,7 +280,9 @@ Leadpreis im Portal: ${price} Credits
       ok: true,
       leadId: lead.id,
       mailSent,
-      warning: mailSent ? null : `Lead gespeichert, aber Mail nicht gesendet: ${mailError}`,
+      warning: mailSent
+        ? null
+        : `Lead gespeichert, aber Mail nicht gesendet: ${mailError}`,
     });
   } catch (error) {
     console.error("ANFRAGE ERROR:", error);
