@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,6 +43,24 @@ function calculateLeadPrice(service: string, budget: string) {
   }
 
   return 20;
+}
+
+function isProviderText(text: string) {
+  const value = text.toLowerCase();
+
+  const blockedWords = [
+    "ich biete",
+    "wir bieten",
+    "meine dienstleistungen",
+    "unsere dienstleistungen",
+    "gerne erstelle ich ihnen eine offerte",
+    "zuverlässig, sauber",
+    "faire preise",
+    "kurzfristige einsätze",
+    "handwerks- und dienstleistungen",
+  ];
+
+  return blockedWords.some((word) => value.includes(word));
 }
 
 export async function POST(req: Request) {
@@ -101,31 +119,26 @@ export async function POST(req: Request) {
     const gclid = clean(data.gclid);
     const fbclid = clean(data.fbclid);
 
-    if (
-      !name ||
-      !phone ||
-      !email ||
-      !salutation ||
-      !street ||
-      !postalCode ||
-      !city ||
-      !region ||
-      !service ||
-      !start ||
-      !flexibleDate ||
-      !viewingWanted ||
-      !phoneAvailability ||
-      !objectType ||
-      !propertyType ||
-      !message
-    ) {
+    if (!name || !phone || !region || !service || !message) {
       return NextResponse.json(
         { ok: false, error: "Bitte alle Pflichtfelder ausfüllen." },
         { status: 400 }
       );
     }
 
-    const title = `${service} ${region}`;
+    if (isProviderText(`${service} ${message} ${important}`)) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "Anbieter-Anmeldungen bitte über die Anbieter-Registrierung senden.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const safeCity = city || region || "Schweiz";
+    const title = `${service} in ${safeCity}`;
     const price = calculateLeadPrice(service, budget);
 
     const trackingText = `
@@ -144,47 +157,47 @@ User Agent: ${fallback(userAgent)}
 `.trim();
 
     const description = `
-${service} in ${city}
+${service} in ${safeCity}
 
 AUFTRAG
-Dienstleistung: ${service}
-Region: ${region}
-Ort: ${city}
-PLZ: ${postalCode}
-Adresse: ${street}
-Gewünschter Start / Datum: ${start}
-Flexibles Datum: ${flexibleDate}
-Besichtigung erwünscht: ${viewingWanted}
-Gewünschte Angebote: ${offersWanted || "Nicht angegeben"}
-Wichtig für Kunde: ${important || "Nicht angegeben"}
-Budget / Preisvorstellung: ${budget || "Nicht angegeben"}
+Dienstleistung: ${fallback(service)}
+Region: ${fallback(region)}
+Ort: ${fallback(city)}
+PLZ: ${fallback(postalCode)}
+Adresse: ${fallback(street)}
+Gewünschter Start / Datum: ${fallback(start)}
+Flexibles Datum: ${fallback(flexibleDate)}
+Besichtigung erwünscht: ${fallback(viewingWanted)}
+Gewünschte Angebote: ${fallback(offersWanted)}
+Wichtig für Kunde: ${fallback(important)}
+Budget / Preisvorstellung: ${fallback(budget)}
 
 OBJEKT
-Objekt: ${objectType}
-Objektart: ${propertyType}
-Fläche: ${area || "Nicht angegeben"}
-Zimmer: ${rooms || "Nicht angegeben"}
-Etage: ${floor || "Nicht angegeben"}
-Lift: ${elevator || "Nicht angegeben"}
-Parkplatz: ${parking || "Nicht angegeben"}
-Abgabegarantie: ${handoverGuarantee || "Nicht angegeben"}
-Keller: ${cellar || "Nicht angegeben"}
-Balkon: ${balcony || "Nicht angegeben"}
+Objekt: ${fallback(objectType)}
+Objektart: ${fallback(propertyType)}
+Fläche: ${fallback(area)}
+Zimmer: ${fallback(rooms)}
+Etage: ${fallback(floor)}
+Lift: ${fallback(elevator)}
+Parkplatz: ${fallback(parking)}
+Abgabegarantie: ${fallback(handoverGuarantee)}
+Keller: ${fallback(cellar)}
+Balkon: ${fallback(balcony)}
 
 FENSTER / SPEZIALDETAILS
-Anzahl Fenster: ${windows || "Nicht angegeben"}
-Fenstergrösse: ${windowSize || "Nicht angegeben"}
-Lamellenstoren: ${blinds || "Nicht angegeben"}
-Fensterläden: ${shutters || "Nicht angegeben"}
-Teppichreinigung: ${carpetCleaning || "Nicht angegeben"}
+Anzahl Fenster: ${fallback(windows)}
+Fenstergrösse: ${fallback(windowSize)}
+Lamellenstoren: ${fallback(blinds)}
+Fensterläden: ${fallback(shutters)}
+Teppichreinigung: ${fallback(carpetCleaning)}
 
 BESCHREIBUNG
-${message}
+${fallback(message)}
 
 ${trackingText}
 `.trim();
 
-    await prisma.lead.create({
+    const lead = await prisma.lead.create({
       data: {
         title,
         description,
@@ -197,81 +210,73 @@ ${trackingText}
       },
     });
 
-    const mailHost = process.env.MAIL_HOST;
-    const mailPort = Number(process.env.MAIL_PORT || 587);
-    const mailUser = process.env.MAIL_USER;
-    const mailPass = process.env.MAIL_PASS;
-    const mailTo = process.env.MAIL_TO;
+    let mailSent = false;
+    let mailError = "";
 
-    if (!mailHost || !mailUser || !mailPass || !mailTo) {
-      console.error("ANFRAGE MAIL CONFIG MISSING", {
-        hasMailHost: Boolean(mailHost),
-        hasMailUser: Boolean(mailUser),
-        hasMailPass: Boolean(mailPass),
-        hasMailTo: Boolean(mailTo),
+    try {
+      const mailHost = process.env.MAIL_HOST;
+      const mailPort = Number(process.env.MAIL_PORT || 587);
+      const mailUser = process.env.MAIL_USER;
+      const mailPass = process.env.MAIL_PASS;
+      const mailTo = process.env.MAIL_TO;
+
+      if (!mailHost || !mailUser || !mailPass || !mailTo) {
+        throw new Error("Mail-Konfiguration fehlt.");
+      }
+
+      const transporter = nodemailer.createTransport({
+        host: mailHost,
+        port: mailPort,
+        secure: mailPort === 465,
+        auth: {
+          user: mailUser,
+          pass: mailPass,
+        },
       });
 
-      return NextResponse.json({
-        ok: true,
-        warning: "Lead gespeichert, aber Mail-Konfiguration fehlt.",
-      });
-    }
-
-    const transporter = nodemailer.createTransport({
-      host: mailHost,
-      port: mailPort,
-      secure: mailPort === 465,
-      auth: {
-        user: mailUser,
-        pass: mailPass,
-      },
-    });
-
-    await transporter.verify();
-
-    await transporter.sendMail({
-      from: `"Auftrago Anfrage" <${mailUser}>`,
-      to: mailTo,
-      replyTo: email,
-      subject: `Neue Auftrago Anfrage: ${service} in ${region}`,
-      text: `
+      await transporter.sendMail({
+        from: `"Auftrago Anfrage" <${mailUser}>`,
+        to: mailTo,
+        replyTo: email || mailUser,
+        subject: `Neue Auftrago Anfrage: ${service} in ${region}`,
+        text: `
 Neue Anfrage über Auftrago
 
 KONTAKT
-Anrede: ${salutation}
-Name: ${name}
-Telefon: ${phone}
-Erreichbarkeit: ${phoneAvailability}
-E-Mail: ${email}
+Anrede: ${fallback(salutation)}
+Name: ${fallback(name)}
+Telefon: ${fallback(phone)}
+Erreichbarkeit: ${fallback(phoneAvailability)}
+E-Mail: ${fallback(email)}
 
 ADRESSE
-Adresse: ${street}
-PLZ / Ort: ${postalCode} ${city}
-Region: ${region}
+Adresse: ${fallback(street)}
+PLZ / Ort: ${fallback(postalCode)} ${fallback(city)}
+Region: ${fallback(region)}
 
 ${description}
 
 Leadpreis im Portal: ${price} Credits
-      `.trim(),
-    });
+        `.trim(),
+      });
 
-    console.log("ANFRAGE SAVED AND MAIL SENT", {
-      to: mailTo,
-      service,
-      region,
-      price,
-      landingPage,
-      utmSource,
-      utmMedium,
-      utmCampaign,
-    });
+      mailSent = true;
+    } catch (error) {
+      mailError = error instanceof Error ? error.message : "Mailfehler";
+      console.error("ANFRAGE MAIL ERROR:", error);
+    }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({
+      ok: true,
+      leadId: lead.id,
+      mailSent,
+      warning: mailSent ? null : `Lead gespeichert, aber Mail nicht gesendet: ${mailError}`,
+    });
   } catch (error) {
     console.error("ANFRAGE ERROR:", error);
 
     return NextResponse.json(
-      { ok: false, error: "Anfrage konnte nicht gesendet werden." },
+      { ok: false, error: "Anfrage konnte nicht gespeichert werden." },
       { status: 500 }
     );
   }
