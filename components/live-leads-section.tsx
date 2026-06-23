@@ -10,6 +10,7 @@ function getIcon(category: string | null) {
   if (value.includes("umzug")) return "🏠";
   if (value.includes("entsorgung")) return "♻️";
   if (value.includes("transport")) return "🚚";
+  if (value.includes("maler")) return "🎨";
 
   return "🧹";
 }
@@ -26,6 +27,37 @@ function formatTimeAgo(date: Date | null) {
   if (hours < 24) return `vor ${hours} Std.`;
 
   return "Aktiv";
+}
+
+function cleanText(value: string | null | undefined, fallback: string) {
+  const text = String(value || fallback)
+    .replace(/\*\*/g, "")
+    .replace(/>>/g, "")
+    .replace(/>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return text || fallback;
+}
+
+function shortText(value: string | null | undefined, fallback: string, max = 42) {
+  const text = cleanText(value, fallback);
+
+  if (text.length <= max) return text;
+
+  return `${text.slice(0, max).trim()}...`;
+}
+
+function getLeadTitle(title: string | null, category: string | null, region: string | null) {
+  const cleanTitle = cleanText(title, "");
+  const cleanCategory = cleanText(category, "Auftrag");
+  const cleanRegion = cleanText(region, "Schweiz");
+
+  if (!cleanTitle || cleanTitle.length > 70) {
+    return `${cleanCategory} in ${cleanRegion}`;
+  }
+
+  return cleanTitle;
 }
 
 export default async function LiveLeadsSection() {
@@ -65,38 +97,44 @@ export default async function LiveLeadsSection() {
         </div>
 
         <div className="live-leads-grid">
-          {leads.map((lead, index) => (
-            <article key={lead.id} className="live-lead-card">
-              <div className="live-lead-top">
-                <span className="live-lead-icon">{getIcon(lead.category)}</span>
-                <span className="live-lead-new">
-                  {index === 0 ? "🔥 Neu" : "Aktiv"}
-                </span>
-              </div>
+          {leads.map((lead, index) => {
+            const title = getLeadTitle(lead.title, lead.category, lead.region);
+            const region = shortText(lead.region, "Schweiz", 20);
+            const category = shortText(lead.category, "Dienstleistung", 22);
 
-              <h3>{lead.title || lead.category || "Neuer Auftrag"}</h3>
-
-              <p className="live-lead-privacy">
-                🔒 Vollständige Auftragsdetails, Adresse und Kontaktdaten sind
-                erst nach Freischaltung sichtbar.
-              </p>
-
-              <div className="live-lead-meta">
-                <span>📍 {lead.region || "Schweiz"}</span>
-                <span>🏷 {lead.category || "Dienstleistung"}</span>
-                <span>⏱ {formatTimeAgo(lead.createdAt)}</span>
-              </div>
-
-              <div className="live-lead-bottom">
-                <div>
-                  <strong>{lead.price || 20}</strong>
-                  <span>Credits</span>
+            return (
+              <article key={lead.id} className="live-lead-card">
+                <div className="live-lead-top">
+                  <span className="live-lead-icon">{getIcon(lead.category)}</span>
+                  <span className="live-lead-new">
+                    {index === 0 ? "🔥 Neu" : "Aktiv"}
+                  </span>
                 </div>
 
-                <Link href="/anbieter-werden">Auftrag ansehen →</Link>
-              </div>
-            </article>
-          ))}
+                <h3 className="live-lead-title">{title}</h3>
+
+                <p className="live-lead-privacy">
+                  🔒 Vollständige Auftragsdetails, Adresse und Kontaktdaten sind
+                  erst nach Freischaltung sichtbar.
+                </p>
+
+                <div className="live-lead-meta">
+                  <span>📍 {region}</span>
+                  <span>🏷 {category}</span>
+                  <span>⏱ {formatTimeAgo(lead.createdAt)}</span>
+                </div>
+
+                <div className="live-lead-bottom">
+                  <div>
+                    <strong>{lead.price || 20}</strong>
+                    <span>Credits</span>
+                  </div>
+
+                  <Link href="/anbieter-werden">Auftrag ansehen →</Link>
+                </div>
+              </article>
+            );
+          })}
         </div>
 
         <div className="live-leads-cta">

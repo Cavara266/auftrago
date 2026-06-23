@@ -11265,3 +11265,20 @@ input[type="checkbox"] {
       0 10px 24px rgba(57, 189, 248, 0.35);
   }
 }
+.live-lead-title {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  min-height: 78px !important;
+}
+
+.live-lead-meta {
+  overflow: hidden !important;
+}
+
+.live-lead-meta span {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
