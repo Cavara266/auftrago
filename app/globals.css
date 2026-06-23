@@ -11053,3 +11053,111 @@ input[type="checkbox"] {
       0 0 20px rgba(255, 215, 0, 0.2);
   }
 }
+/* ==========================================
+   PREMIUM GOLD STARS
+========================================== */
+
+.testimonial-stars {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 22px;
+
+  font-size: 32px;
+  line-height: 1;
+
+  background: linear-gradient(
+    180deg,
+    #fff9d6 0%,
+    #ffe89b 15%,
+    #ffd447 35%,
+    #ffbf00 55%,
+    #f7b500 75%,
+    #b87700 100%
+  );
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.35))
+          drop-shadow(0 0 16px rgba(255, 215, 0, 0.15));
+}
+
+.testimonial-stars span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  animation: starGlow 3s ease-in-out infinite;
+}
+
+@keyframes starGlow {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 5px rgba(255,215,0,.3));
+  }
+
+  50% {
+    transform: scale(1.08);
+    filter: drop-shadow(0 0 14px rgba(255,215,0,.6));
+  }
+
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 5px rgba(255,215,0,.3));
+  }
+}
+/* ==========================================
+   PREMIUM GOLD REVIEW STARS FIX
+========================================== */
+
+.trust-reviews-section .review-stars,
+.trust-reviews-section .testimonial-stars,
+.trust-reviews-section [class*="star"],
+.trust-reviews-section [class*="Stars"] {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+
+  font-size: 32px !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+
+  color: #f7b500 !important;
+
+  background: linear-gradient(
+    180deg,
+    #fff9d6 0%,
+    #ffe89b 18%,
+    #ffd447 38%,
+    #ffbf00 58%,
+    #f7b500 78%,
+    #b87700 100%
+  ) !important;
+
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+
+  filter:
+    drop-shadow(0 0 8px rgba(255, 215, 0, 0.35))
+    drop-shadow(0 0 16px rgba(255, 215, 0, 0.18)) !important;
+
+  margin-bottom: 34px !important;
+}
+
+/* Falls die Sterne als normaler Text ★★★★★ drin sind */
+.trust-reviews-section .review-card > div:first-child,
+.trust-reviews-section .testimonial-card > div:first-child,
+.trust-reviews-section article > div:first-child {
+  color: #f7b500 !important;
+  font-size: 32px !important;
+  letter-spacing: 2px !important;
+  line-height: 1 !important;
+
+  text-shadow:
+    0 0 8px rgba(255, 215, 0, 0.35),
+    0 0 16px rgba(255, 215, 0, 0.18) !important;
+}
