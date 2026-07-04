@@ -64,7 +64,7 @@ async function deleteProvider(formData: FormData) {
 
 export default async function AdminProvidersPage() {
   const providers = await prisma.provider.findMany({
-    orderBy: { createdAt: "desc" },
+    orderBy: { updatedAt: "desc" },
   });
 
   return (

@@ -23,16 +23,23 @@ enum OfferStatus {
   DECLINED
 }
 
+enum ProviderStatus {
+  PENDING
+  APPROVED
+  BLOCKED
+}
+
 model Provider {
-  id          String  @id @default(uuid())
-  email       String  @unique
+  id          String         @id @default(uuid())
+  email       String         @unique
   password    String
   companyName String
   contactName String
   phone       String?
   region      String?
   category    String?
-  credits     Int     @default(0)
+  credits     Int            @default(0)
+  status      ProviderStatus @default(PENDING)
 
   website     String?
   description String?
