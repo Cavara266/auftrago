@@ -109,4 +109,4 @@ export default function LeadForm() {
       {okMsg && <div className="text-sm text-green-400">{okMsg}</div>}
     </form>
   );
-}
+} 
