@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { prisma } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -67,23 +67,23 @@ export async function POST(req: Request) {
   try {
     const data = await req.json();
 
-    const name = clean(data.name);
-    const phone = clean(data.phone);
+    const name = clean(data.name || data.firma);
+    const phone = clean(data.phone || data.telefon);
     const email = clean(data.email);
 
     const salutation = clean(data.salutation);
     const street = clean(data.street);
     const postalCode = clean(data.postalCode);
-    const city = clean(data.city);
-    const region = clean(data.region);
+    const city = clean(data.city || data.stadt);
+    const region = clean(data.region || data.stadt);
 
-    const service = clean(data.service);
+    const service = clean(data.service || data.leistung);
     const start = clean(data.start);
     const flexibleDate = clean(data.flexibleDate);
     const viewingWanted = clean(data.viewingWanted);
     const phoneAvailability = clean(data.phoneAvailability);
 
-    const objectType = clean(data.objectType);
+    const objectType = clean(data.objectType || data.objekt);
     const propertyType = clean(data.propertyType);
     const floor = clean(data.floor);
     const elevator = clean(data.elevator);
@@ -102,9 +102,9 @@ export async function POST(req: Request) {
     const carpetCleaning = clean(data.carpetCleaning);
 
     const budget = clean(data.budget);
-    const offersWanted = clean(data.offersWanted);
+    const offersWanted = clean(data.offersWanted || data.haeufigkeit);
     const important = clean(data.important);
-    const message = clean(data.message);
+    const message = clean(data.message || data.beschreibung);
 
     const referer = clean(req.headers.get("referer"));
     const userAgent = clean(req.headers.get("user-agent"));
@@ -121,7 +121,7 @@ export async function POST(req: Request) {
 
     if (!name || !phone || !region || !service || !message) {
       return NextResponse.json(
-        { ok: false, error: "Bitte alle Pflichtfelder ausfüllen." },
+        { ok: false, success: false, error: "Bitte alle Pflichtfelder ausfüllen." },
         { status: 400 }
       );
     }
@@ -130,6 +130,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           ok: false,
+          success: false,
           error:
             "Anbieter-Anmeldungen bitte über die Anbieter-Registrierung senden.",
         },
@@ -168,7 +169,7 @@ Adresse: ${fallback(street)}
 Gewünschter Start / Datum: ${fallback(start)}
 Flexibles Datum: ${fallback(flexibleDate)}
 Besichtigung erwünscht: ${fallback(viewingWanted)}
-Gewünschte Angebote: ${fallback(offersWanted)}
+Gewünschte Angebote / Häufigkeit: ${fallback(offersWanted)}
 Wichtig für Kunde: ${fallback(important)}
 Budget / Preisvorstellung: ${fallback(budget)}
 
@@ -214,40 +215,29 @@ ${trackingText}
     let mailError = "";
 
     try {
-      const mailHost = process.env.MAIL_HOST || process.env.SMTP_HOST;
-      const mailPort = Number(
-        process.env.MAIL_PORT || process.env.SMTP_PORT || 587
-      );
-      const mailUser = process.env.MAIL_USER || process.env.SMTP_USER;
-      const mailPass = process.env.MAIL_PASS || process.env.SMTP_PASS;
-      const mailTo = process.env.MAIL_TO;
-      const mailFrom = process.env.MAIL_FROM || mailUser;
+      const apiKey = process.env.RESEND_API_KEY;
 
-      if (!mailHost || !mailUser || !mailPass || !mailTo || !mailFrom) {
-        throw new Error("Mail-Konfiguration fehlt.");
+      if (!apiKey) {
+        throw new Error("RESEND_API_KEY fehlt.");
       }
 
-      const transporter = nodemailer.createTransport({
-        host: mailHost,
-        port: mailPort,
-        secure: mailPort === 465,
-        auth: {
-          user: mailUser,
-          pass: mailPass,
-        },
-      });
+      const resend = new Resend(apiKey);
 
-      const info = await transporter.sendMail({
+      const mailTo = process.env.CONTACT_EMAIL || "info@auftrago.ch";
+      const mailFrom =
+        process.env.FROM_EMAIL || "Auftrago <info@auftrago.ch>";
+
+      const info = await resend.emails.send({
         from: mailFrom,
         to: mailTo,
-        replyTo: email || mailFrom,
-        subject: `Neue Auftrago Anfrage: ${service} in ${region}`,
+        replyTo: email || "info@auftrago.ch",
+        subject: `Neue Auftrago Anfrage: ${service} in ${safeCity}`,
         text: `
 Neue Anfrage über Auftrago
 
 KONTAKT
 Anrede: ${fallback(salutation)}
-Name: ${fallback(name)}
+Name / Firma: ${fallback(name)}
 Telefon: ${fallback(phone)}
 Erreichbarkeit: ${fallback(phoneAvailability)}
 E-Mail: ${fallback(email)}
@@ -260,24 +250,20 @@ Region: ${fallback(region)}
 ${description}
 
 Leadpreis im Portal: ${price} Credits
+Lead-ID: ${lead.id}
         `.trim(),
       });
 
-      console.log("ANFRAGE MAIL INFO:", {
-        messageId: info.messageId,
-        accepted: info.accepted,
-        rejected: info.rejected,
-        response: info.response,
-      });
-
+      console.log("ANFRAGE RESEND INFO:", info);
       mailSent = true;
     } catch (error) {
       mailError = error instanceof Error ? error.message : "Mailfehler";
-      console.error("ANFRAGE MAIL ERROR:", error);
+      console.error("ANFRAGE RESEND ERROR:", error);
     }
 
     return NextResponse.json({
       ok: true,
+      success: true,
       leadId: lead.id,
       mailSent,
       warning: mailSent
@@ -288,7 +274,11 @@ Leadpreis im Portal: ${price} Credits
     console.error("ANFRAGE ERROR:", error);
 
     return NextResponse.json(
-      { ok: false, error: "Anfrage konnte nicht gespeichert werden." },
+      {
+        ok: false,
+        success: false,
+        error: "Anfrage konnte nicht gespeichert werden.",
+      },
       { status: 500 }
     );
   }
