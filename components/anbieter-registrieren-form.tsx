@@ -45,6 +45,20 @@ export default function AnbieterRegistrierenForm() {
         );
       }
 
+      const mailResponse = await fetch("/api/provider-mail", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(providerPayload),
+      });
+
+      const mailResult = await mailResponse.json().catch(() => null);
+
+      if (!mailResponse.ok || mailResult?.ok === false) {
+        console.warn("Anbieter gespeichert, aber Mail wurde nicht gesendet.");
+      }
+
       setMessage(
         "✅ Anbieter-Anfrage erfolgreich gesendet. Wir prüfen deine Angaben und melden uns persönlich bei dir."
       );
