@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { ProviderStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,7 @@ async function updateProvider(formData: FormData) {
   const id = String(formData.get("id") || "");
   const companyName = String(formData.get("companyName") || "").trim();
   const contactName = String(formData.get("contactName") || "").trim();
-  const email = String(formData.get("email") || "").trim();
+  const email = String(formData.get("email") || "").trim().toLowerCase();
   const phone = String(formData.get("phone") || "").trim();
   const website = String(formData.get("website") || "").trim();
   const region = String(formData.get("region") || "").trim();
@@ -18,6 +19,7 @@ async function updateProvider(formData: FormData) {
   const city = String(formData.get("city") || "").trim();
   const credits = Number(formData.get("credits") || 0);
   const description = String(formData.get("description") || "").trim();
+  const status = String(formData.get("status") || "PENDING") as ProviderStatus;
 
   if (!id || !companyName || !contactName || !email) {
     throw new Error("Pflichtfelder fehlen.");
@@ -36,6 +38,7 @@ async function updateProvider(formData: FormData) {
       city,
       credits,
       description,
+      status,
     },
   });
 
@@ -62,10 +65,53 @@ async function deleteProvider(formData: FormData) {
   revalidatePath("/anbieter");
 }
 
-export default async function AdminProvidersPage() {
+export default async function AdminProvidersPage({
+  searchParams,
+}: {
+  searchParams?: {
+    q?: string;
+    status?: string;
+  };
+}) {
+  const q = String(searchParams?.q || "").trim();
+  const statusFilter = String(searchParams?.status || "").trim();
+
   const providers = await prisma.provider.findMany({
+    where: {
+      AND: [
+        q
+          ? {
+              OR: [
+                { companyName: { contains: q, mode: "insensitive" } },
+                { contactName: { contains: q, mode: "insensitive" } },
+                { email: { contains: q, mode: "insensitive" } },
+                { phone: { contains: q, mode: "insensitive" } },
+                { region: { contains: q, mode: "insensitive" } },
+                { category: { contains: q, mode: "insensitive" } },
+              ],
+            }
+          : {},
+        statusFilter && statusFilter !== "ALL"
+          ? { status: statusFilter as ProviderStatus }
+          : {},
+      ],
+    },
     orderBy: { updatedAt: "desc" },
   });
+
+  const counts = await prisma.provider.groupBy({
+    by: ["status"],
+    _count: {
+      status: true,
+    },
+  });
+
+  const pendingCount =
+    counts.find((item) => item.status === "PENDING")?._count.status || 0;
+  const approvedCount =
+    counts.find((item) => item.status === "APPROVED")?._count.status || 0;
+  const blockedCount =
+    counts.find((item) => item.status === "BLOCKED")?._count.status || 0;
 
   return (
     <main className="page">
@@ -76,7 +122,7 @@ export default async function AdminProvidersPage() {
           <div className="admin-head">
             <div>
               <h1>Anbieter verwalten</h1>
-              <p>Firmen bearbeiten, Credits vergeben und Anbieter löschen.</p>
+              <p>Firmen prüfen, freigeben, sperren, Credits vergeben und löschen.</p>
             </div>
 
             <div className="admin-actions">
@@ -90,6 +136,61 @@ export default async function AdminProvidersPage() {
             </div>
           </div>
 
+          <div className="admin-stats">
+            <div className="admin-stat-card">
+              <strong>{providers.length}</strong>
+              <span>Gefunden</span>
+            </div>
+
+            <div className="admin-stat-card">
+              <strong>{pendingCount}</strong>
+              <span>Ausstehend</span>
+            </div>
+
+            <div className="admin-stat-card">
+              <strong>{approvedCount}</strong>
+              <span>Genehmigt</span>
+            </div>
+
+            <div className="admin-stat-card">
+              <strong>{blockedCount}</strong>
+              <span>Gesperrt</span>
+            </div>
+          </div>
+
+          <section className="admin-card admin-card-wide">
+            <div className="admin-card-head">
+              <span>Suche & Filter</span>
+              <h2>Anbieter finden</h2>
+            </div>
+
+            <form
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 240px auto",
+                gap: 14,
+                alignItems: "center",
+              }}
+            >
+              <input
+                name="q"
+                defaultValue={q}
+                placeholder="Firma, Kontakt, E-Mail, Telefon, Region oder Kategorie suchen..."
+              />
+
+              <select name="status" defaultValue={statusFilter || "ALL"}>
+                <option value="ALL">Alle Status</option>
+                <option value="PENDING">Ausstehend</option>
+                <option value="APPROVED">Genehmigt</option>
+                <option value="BLOCKED">Gesperrt</option>
+              </select>
+
+              <button className="btn btn-primary" type="submit">
+                Suchen
+              </button>
+            </form>
+          </section>
+
           <section className="admin-card admin-card-wide">
             <div className="admin-card-head">
               <span>Alle Anbieter</span>
@@ -98,7 +199,7 @@ export default async function AdminProvidersPage() {
 
             <div style={{ display: "grid", gap: 24 }}>
               {providers.length === 0 ? (
-                <p className="admin-empty">Noch keine Anbieter vorhanden.</p>
+                <p className="admin-empty">Keine Anbieter gefunden.</p>
               ) : (
                 providers.map((provider) => (
                   <article
@@ -119,6 +220,7 @@ export default async function AdminProvidersPage() {
                         gap: 20,
                         alignItems: "flex-start",
                         marginBottom: 22,
+                        flexWrap: "wrap",
                       }}
                     >
                       <div>
@@ -131,8 +233,21 @@ export default async function AdminProvidersPage() {
                         </p>
                       </div>
 
-                      <div className="admin-pill">
-                        {provider.credits} Credits
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: 10,
+                          flexWrap: "wrap",
+                          alignItems: "center",
+                        }}
+                      >
+                        <div className="admin-pill">{provider.credits} Credits</div>
+
+                        <div className="admin-pill">
+                          {provider.status === "PENDING" && "Ausstehend"}
+                          {provider.status === "APPROVED" && "Genehmigt"}
+                          {provider.status === "BLOCKED" && "Gesperrt"}
+                        </div>
                       </div>
                     </div>
 
@@ -208,12 +323,28 @@ export default async function AdminProvidersPage() {
                           placeholder="Credits"
                         />
 
+                        <select name="status" defaultValue={provider.status}>
+                          <option value="PENDING">Ausstehend</option>
+                          <option value="APPROVED">Genehmigt</option>
+                          <option value="BLOCKED">Gesperrt</option>
+                        </select>
+                      </div>
+
+                      <div className="form-row">
                         <input
                           value={new Intl.DateTimeFormat("de-CH").format(
                             provider.createdAt
                           )}
                           readOnly
                           placeholder="Erstellt am"
+                        />
+
+                        <input
+                          value={new Intl.DateTimeFormat("de-CH").format(
+                            provider.updatedAt
+                          )}
+                          readOnly
+                          placeholder="Aktualisiert am"
                         />
                       </div>
 
