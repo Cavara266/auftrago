@@ -45,73 +45,8 @@ export default function AnbieterRegistrierenForm() {
         );
       }
 
-const mailResponse = await fetch("/api/anfrage", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    name: providerPayload.contactName,
-    phone: providerPayload.phone,
-    email: providerPayload.email,
-
-    salutation: "Anbieter",
-    street: "Nicht angegeben",
-    postalCode: "Nicht angegeben",
-    city: providerPayload.region,
-    region: providerPayload.region,
-
-    service: providerPayload.services,
-    start: "Nicht angegeben",
-    flexibleDate: "Nicht angegeben",
-    viewingWanted: "Nicht angegeben",
-    phoneAvailability: "Nicht angegeben",
-
-    objectType: "Anbieter-Registrierung",
-    propertyType: "Nicht angegeben",
-    floor: "Nicht angegeben",
-    elevator: "Nicht angegeben",
-    parking: "Nicht angegeben",
-
-    rooms: "Nicht angegeben",
-    area: "Nicht angegeben",
-    windows: "Nicht angegeben",
-    windowSize: "Nicht angegeben",
-    blinds: "Nicht angegeben",
-    shutters: "Nicht angegeben",
-
-    handoverGuarantee: "Nicht angegeben",
-    cellar: "Nicht angegeben",
-    balcony: "Nicht angegeben",
-    carpetCleaning: "Nicht angegeben",
-
-    budget: "Nicht angegeben",
-    offersWanted: "Nicht angegeben",
-    important: "Anbieter möchte auf Auftrago aufgenommen werden",
-
-    message: `Neue Anbieter-Anfrage
-
-Firma: ${providerPayload.companyName}
-Kontaktperson: ${providerPayload.contactName}
-Telefon: ${providerPayload.phone}
-E-Mail: ${providerPayload.email}
-Website: ${providerPayload.website || "Nicht angegeben"}
-Ort / Region: ${providerPayload.region}
-Leistungen: ${providerPayload.services}
-
-Nachricht:
-${providerPayload.message || "Keine Nachricht"}`,
-  }),
-});
-
-      const mailResult = await mailResponse.json().catch(() => null);
-
-      if (!mailResponse.ok || mailResult?.ok === false) {
-        console.warn("Anbieter wurde gespeichert, aber Mail fehlgeschlagen.");
-      }
-
       setMessage(
-        "✅ Anfrage erfolgreich gesendet. Wir melden uns persönlich bei dir."
+        "✅ Anbieter-Anfrage erfolgreich gesendet. Wir prüfen deine Angaben und melden uns persönlich bei dir."
       );
 
       form.reset();

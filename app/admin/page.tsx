@@ -47,6 +47,10 @@ export default async function AdminDashboardPage() {
             </div>
 
             <div className="admin-actions">
+              <Link href="/admin/providers" className="btn btn-primary">
+                Anbieter verwalten
+              </Link>
+
               <Link href="/admin/leads" className="btn btn-primary">
                 Leads verwalten
               </Link>
