@@ -11282,3 +11282,64 @@ input[type="checkbox"] {
   overflow: hidden !important;
   text-overflow: ellipsis !important;
 }
+/* ===========================
+   PREMIUM BOOKING DESIGN
+=========================== */
+
+.bottom-trust{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:16px;
+  margin-top:28px;
+}
+
+.trust-card{
+  position:relative;
+  overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.025));
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:22px;
+  padding:22px;
+  transition:.3s ease;
+}
+
+.trust-card:hover{
+  transform:translateY(-4px);
+  border-color:rgba(16,185,129,.45);
+  box-shadow:0 20px 45px rgba(16,185,129,.15);
+}
+
+.trust-card span{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:54px;
+  height:54px;
+  border-radius:16px;
+  background:rgba(16,185,129,.12);
+  border:1px solid rgba(16,185,129,.35);
+  font-size:26px;
+  margin-bottom:16px;
+}
+
+.trust-card strong{
+  display:block;
+  font-size:22px;
+  font-weight:800;
+  color:#fff;
+  margin-bottom:8px;
+  line-height:1.2;
+}
+
+.trust-card p{
+  margin:0;
+  color:#94a3b8;
+  font-size:15px;
+  line-height:1.6;
+}
+
+@media (max-width:900px){
+  .bottom-trust{
+    grid-template-columns:1fr;
+  }
+}
