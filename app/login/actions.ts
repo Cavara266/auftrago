@@ -1,25 +1,28 @@
 "use server";
 
-import { createSession, clearSession } from "@/lib/auth";
+import { clearSession } from "@/lib/auth";
 
 export async function loginAction() {
-  await createSession({
-    id: "demo-user",
-    email: "info@cavara-hauswartung.ch",
-    name: "Auftrago Admin",
-    role: "admin",
-    credits: 999, // ✅ WICHTIG
-  });
-
   return {
-    ok: true,
+    ok: false,
+    error:
+      "Die Demo-Anmeldung wurde deaktiviert. Bitte melde dich mit deiner E-Mail-Adresse und deinem Passwort an.",
   };
 }
 
 export async function logoutAction() {
-  await clearSession();
+  try {
+    await clearSession();
 
-  return {
-    ok: true,
-  };
+    return {
+      ok: true,
+    };
+  } catch (error) {
+    console.error("LOGOUT ACTION ERROR:", error);
+
+    return {
+      ok: false,
+      error: "Die Abmeldung ist fehlgeschlagen.",
+    };
+  }
 }
