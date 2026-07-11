@@ -1,3 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 /* Google Font entfernt, damit Next/VScode keinen CSS-Import-Fehler zeigt */
 
 *,
@@ -11341,5 +11344,49 @@ input[type="checkbox"] {
 @media (max-width:900px){
   .bottom-trust{
     grid-template-columns:1fr;
+  }
+}
+/* ===== Beispiel-Lead Karten gleich hoch ===== */
+
+.example-leads-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
+.example-lead-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 360px;
+}
+
+.example-lead-card .card-content {
+  flex: 1;
+}
+
+.example-lead-card .card-footer {
+  margin-top: auto;
+  padding-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+.example-lead-card .credits {
+  font-size: 32px;
+  font-weight: 800;
+  color: #5ab8ff;
+}
+
+.example-lead-card .unlock-btn {
+  font-weight: 700;
+}
+
+@media (max-width: 1000px) {
+  .example-leads-grid {
+    grid-template-columns: 1fr;
   }
 }

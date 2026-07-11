@@ -53,25 +53,37 @@ const packages = [
 
 const exampleLeads = [
   {
+    icon: "🧽",
     category: "Umzugsreinigung",
     location: "Zürich",
     title: "4.5-Zimmer-Wohnung reinigen",
+    description:
+      "Komplette Umzugsreinigung einer Wohnung inklusive Abgabegarantie.",
     details: ["120 m²", "2 Nasszellen", "Abgabegarantie"],
     credits: "12 Credits",
+    label: "Neue Anfrage",
   },
   {
+    icon: "🪟",
     category: "Fensterreinigung",
     location: "Baden",
     title: "Fenster und Storen reinigen",
+    description:
+      "Fensterreinigung in einem Privathaushalt inklusive Lamellenstoren.",
     details: ["11–15 Fenster", "Lamellenstoren", "Privathaushalt"],
     credits: "7 Credits",
+    label: "Regionaler Lead",
   },
   {
+    icon: "🏠",
     category: "Unterhaltsreinigung",
     location: "Aarau",
     title: "Wöchentliche Hausreinigung",
+    description:
+      "Regelmässige Unterstützung für einen privaten Haushalt gesucht.",
     details: ["Privathaushalt", "Ca. 4 Stunden", "Wiederkehrend"],
     credits: "9 Credits",
+    label: "Wiederkehrend",
   },
 ];
 
@@ -84,6 +96,34 @@ const services = [
   "Gartenpflege",
   "Entsorgung",
   "Malerarbeiten",
+];
+
+const processSteps = [
+  {
+    number: "01",
+    title: "Firma registrieren",
+    text: "Unternehmensdaten, Dienstleistungen und Einsatzgebiete erfassen.",
+  },
+  {
+    number: "02",
+    title: "Prüfung",
+    text: "Auftrago prüft deine Angaben und schaltet dein Anbieterprofil frei.",
+  },
+  {
+    number: "03",
+    title: "Anfragen ansehen",
+    text: "Passende Kundenanfragen aus deinen Regionen prüfen.",
+  },
+  {
+    number: "04",
+    title: "Kontakt freischalten",
+    text: "Nur interessante Kontakte mit Credits freischalten.",
+  },
+  {
+    number: "05",
+    title: "Auftrag gewinnen",
+    text: "Kunden kontaktieren, Angebot senden und überzeugen.",
+  },
 ];
 
 const faqs = [
@@ -105,7 +145,7 @@ const faqs = [
   {
     question: "Ist ein Auftrag garantiert?",
     answer:
-      "Nein. Auftrago vermittelt konkrete Kundenanfragen. Ob daraus ein Auftrag entsteht, hängt unter anderem von deinem Angebot, deiner Reaktionszeit und deiner Kommunikation ab.",
+      "Nein. Auftrago vermittelt konkrete Kundenanfragen. Ob daraus ein Auftrag entsteht, hängt von deinem Angebot, deiner Reaktionszeit und deiner Kommunikation ab.",
   },
   {
     question: "Kann ich selbst entscheiden, welche Leads ich kaufe?",
@@ -122,17 +162,17 @@ const faqs = [
 export default function PreisePage() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#050816] text-white">
-      {/* Hero */}
+      {/* HERO */}
       <section className="relative border-b border-white/10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_25%,rgba(14,165,233,0.18),transparent_32%),radial-gradient(circle_at_85%_15%,rgba(99,102,241,0.16),transparent_28%)]" />
 
-        <div className="relative mx-auto grid max-w-7xl gap-14 px-6 py-20 lg:grid-cols-[1.12fr_0.88fr] lg:px-8 lg:py-28">
+        <div className="relative mx-auto grid max-w-7xl gap-14 px-6 py-20 lg:grid-cols-[1.08fr_0.92fr] lg:px-8 lg:py-28">
           <div className="max-w-3xl">
-            <div className="mb-7 inline-flex items-center rounded-full border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-sky-300">
+            <span className="inline-flex rounded-full border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-sky-300">
               Neue Kundenanfragen aus deiner Region
-            </div>
+            </span>
 
-            <h1 className="max-w-4xl text-5xl font-black leading-[0.94] tracking-[-0.055em] sm:text-6xl lg:text-7xl">
+            <h1 className="mt-7 max-w-4xl text-5xl font-black leading-[0.94] tracking-[-0.055em] sm:text-6xl lg:text-7xl">
               Gewinne neue Aufträge.
               <span className="mt-2 block bg-gradient-to-r from-sky-300 via-cyan-300 to-indigo-400 bg-clip-text text-transparent">
                 Ohne Abo. Ohne Werberisiko.
@@ -148,14 +188,14 @@ export default function PreisePage() {
             <div className="mt-9 flex flex-col gap-4 sm:flex-row">
               <Link
                 href="/anbieter-registrieren"
-                className="inline-flex min-h-14 items-center justify-center rounded-2xl bg-gradient-to-r from-sky-400 to-indigo-500 px-7 py-4 text-base font-black text-white shadow-[0_18px_50px_rgba(14,165,233,0.24)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_60px_rgba(14,165,233,0.35)]"
+                className="inline-flex min-h-14 items-center justify-center rounded-2xl bg-gradient-to-r from-sky-400 to-indigo-500 px-7 py-4 text-base font-black text-white shadow-[0_18px_50px_rgba(14,165,233,0.24)] transition hover:-translate-y-0.5"
               >
                 Jetzt kostenlos Anbieter werden
               </Link>
 
               <Link
                 href="/leads"
-                className="inline-flex min-h-14 items-center justify-center rounded-2xl border border-white/15 bg-white/5 px-7 py-4 text-base font-bold text-white transition hover:border-sky-300/40 hover:bg-white/10"
+                className="inline-flex min-h-14 items-center justify-center rounded-2xl border border-white/15 bg-white/5 px-7 py-4 text-base font-black text-white transition hover:border-sky-300/40 hover:bg-white/10"
               >
                 Aktuelle Anfragen ansehen
               </Link>
@@ -184,9 +224,10 @@ export default function PreisePage() {
             <div className="relative rounded-[32px] border border-white/15 bg-[#0b1226]/90 p-7 shadow-2xl backdrop-blur-xl sm:p-9">
               <div className="flex items-start justify-between gap-5">
                 <div>
-                  <div className="text-sm font-bold uppercase tracking-[0.18em] text-sky-300">
+                  <span className="text-sm font-black uppercase tracking-[0.18em] text-sky-300">
                     Pay-per-Contact
-                  </div>
+                  </span>
+
                   <h2 className="mt-4 text-3xl font-black leading-tight tracking-tight sm:text-4xl">
                     Bezahle nur für Kontakte, die dich interessieren.
                   </h2>
@@ -211,16 +252,18 @@ export default function PreisePage() {
                     <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-400/15 text-sm font-black text-emerald-300">
                       ✓
                     </span>
-                    <span className="font-semibold text-slate-100">{item}</span>
+                    <span className="font-semibold text-slate-100">
+                      {item}
+                    </span>
                   </div>
                 ))}
               </div>
 
               <div className="mt-7 rounded-2xl border border-sky-400/20 bg-sky-400/[0.07] p-5">
-                <div className="text-sm font-bold text-sky-300">
+                <div className="text-sm font-black text-sky-300">
                   Volle Kostenkontrolle
                 </div>
-                <p className="mt-2 leading-7 text-slate-300">
+                <p className="mt-2 text-base leading-7 text-slate-300">
                   Vor jeder Freischaltung siehst du, wie viele Credits die
                   Anfrage kostet.
                 </p>
@@ -230,10 +273,10 @@ export default function PreisePage() {
         </div>
       </section>
 
-      {/* Services */}
+      {/* SERVICES */}
       <section className="border-b border-white/10 bg-white/[0.025]">
         <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8">
-          <p className="text-center text-sm font-bold uppercase tracking-[0.2em] text-slate-400">
+          <p className="text-center text-sm font-black uppercase tracking-[0.2em] text-slate-400">
             Für lokale Dienstleister in der ganzen Schweiz
           </p>
 
@@ -250,31 +293,52 @@ export default function PreisePage() {
         </div>
       </section>
 
-      {/* Example leads */}
+      {/* EXAMPLE LEADS */}
       <section className="px-6 py-20 lg:px-8 lg:py-28">
         <div className="mx-auto max-w-7xl">
-          <div className="max-w-3xl">
-            <span className="text-sm font-black uppercase tracking-[0.2em] text-sky-300">
-              Echte Verkaufschancen
-            </span>
+          <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div className="max-w-3xl">
+              <span className="text-sm font-black uppercase tracking-[0.2em] text-sky-300">
+                Aktuelle Verkaufschancen
+              </span>
 
-            <h2 className="mt-5 text-4xl font-black tracking-[-0.04em] sm:text-5xl">
-              Sieh zuerst, worum es beim Auftrag geht.
-            </h2>
+              <h2 className="mt-5 text-4xl font-black tracking-[-0.04em] sm:text-5xl">
+                Prüfe den Auftrag, bevor du Credits einsetzt.
+              </h2>
 
-            <p className="mt-6 text-lg leading-8 text-slate-300">
-              Du erhältst bereits vor dem Kauf wichtige Informationen. Erst wenn
-              eine Anfrage zu deiner Firma passt, schaltest du den Kontakt frei.
-            </p>
+              <p className="mt-6 text-lg leading-8 text-slate-300">
+                Region, Dienstleistung, Auftragsumfang und wichtige Eckdaten
+                sind bereits vor der Freischaltung sichtbar.
+              </p>
+            </div>
+
+            <Link
+              href="/leads"
+              className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/15 bg-white/5 px-6 py-3 font-black text-white transition hover:border-sky-300/40 hover:bg-white/10"
+            >
+              Alle Anfragen ansehen →
+            </Link>
           </div>
 
-          <div className="mt-12 grid gap-6 lg:grid-cols-3">
+          <div className="mt-12 grid items-stretch gap-6 lg:grid-cols-3">
             {exampleLeads.map((lead) => (
               <article
                 key={`${lead.category}-${lead.location}`}
-                className="group rounded-[28px] border border-white/10 bg-[#0b1226] p-6 transition hover:-translate-y-1 hover:border-sky-400/40"
+                className="group relative flex min-h-[470px] flex-col overflow-hidden rounded-[30px] border border-white/10 bg-[#0b1226] p-7 shadow-[0_24px_80px_rgba(0,0,0,0.25)] transition duration-300 hover:-translate-y-2 hover:border-sky-400/45"
               >
-                <div className="flex items-center justify-between gap-4">
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-400/70 to-transparent" />
+
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-400/20 bg-sky-400/10 text-2xl">
+                    {lead.icon}
+                  </div>
+
+                  <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-xs font-black uppercase tracking-wider text-emerald-300">
+                    {lead.label}
+                  </span>
+                </div>
+
+                <div className="mt-6 flex flex-wrap items-center gap-3">
                   <span className="rounded-full bg-sky-400/10 px-3 py-1.5 text-xs font-black uppercase tracking-wider text-sky-300">
                     {lead.category}
                   </span>
@@ -284,39 +348,67 @@ export default function PreisePage() {
                   </span>
                 </div>
 
-                <h3 className="mt-6 text-2xl font-black tracking-tight">
+                <h3 className="mt-6 text-2xl font-black leading-tight tracking-tight text-white">
                   {lead.title}
                 </h3>
 
-                <div className="mt-5 flex flex-wrap gap-2">
+                <p className="mt-4 text-base leading-7 text-slate-400">
+                  {lead.description}
+                </p>
+
+                <div className="mt-6 flex flex-wrap gap-2">
                   {lead.details.map((detail) => (
                     <span
                       key={detail}
-                      className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-300"
+                      className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-slate-300"
                     >
                       {detail}
                     </span>
                   ))}
                 </div>
 
-                <div className="mt-7 flex items-center justify-between border-t border-white/10 pt-5">
-                  <span className="font-bold text-sky-300">{lead.credits}</span>
-                  <span className="text-sm font-bold text-white">
-                    Kontakt freischalten →
-                  </span>
+                <div className="mt-auto pt-7">
+                  <div className="border-t border-white/10 pt-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <span className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                          Freischaltung
+                        </span>
+                        <strong className="mt-1 block text-2xl font-black text-sky-300">
+                          {lead.credits}
+                        </strong>
+                      </div>
+
+                      <Link
+                        href="/anbieter-registrieren"
+                        className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-gradient-to-r from-sky-400 to-indigo-500 px-5 py-3 text-sm font-black text-white shadow-[0_14px_40px_rgba(14,165,233,0.2)] transition hover:scale-[1.02]"
+                      >
+                        Kontakt freischalten
+                      </Link>
+                    </div>
+                  </div>
                 </div>
               </article>
             ))}
           </div>
 
-          <p className="mt-5 text-sm text-slate-500">
-            Beispielanfragen zur Veranschaulichung. Verfügbarkeit und
-            Credit-Preise können je nach Anfrage variieren.
-          </p>
+          <div className="mt-7 flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.035] px-5 py-4 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              Beispielanfragen zur Veranschaulichung. Verfügbarkeit und
+              Credit-Preise können variieren.
+            </span>
+
+            <Link
+              href="/anbieter-registrieren"
+              className="shrink-0 font-black text-sky-300 hover:text-sky-200"
+            >
+              Kostenlos Anbieter werden →
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* Comparison */}
+      {/* COMPARISON */}
       <section className="border-y border-white/10 bg-[#080d1e] px-6 py-20 lg:px-8 lg:py-28">
         <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-2 lg:items-center">
           <div>
@@ -367,7 +459,7 @@ export default function PreisePage() {
         </div>
       </section>
 
-      {/* Process */}
+      {/* PROCESS */}
       <section className="px-6 py-20 lg:px-8 lg:py-28">
         <div className="mx-auto max-w-7xl">
           <div className="text-center">
@@ -381,33 +473,7 @@ export default function PreisePage() {
           </div>
 
           <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-5">
-            {[
-              {
-                number: "01",
-                title: "Firma registrieren",
-                text: "Unternehmensdaten, Dienstleistungen und Regionen erfassen.",
-              },
-              {
-                number: "02",
-                title: "Prüfung",
-                text: "Auftrago prüft deine Angaben und schaltet dein Profil frei.",
-              },
-              {
-                number: "03",
-                title: "Leads ansehen",
-                text: "Passende Kundenanfragen aus deinen Regionen prüfen.",
-              },
-              {
-                number: "04",
-                title: "Kontakt kaufen",
-                text: "Nur interessante Kontakte mit Credits freischalten.",
-              },
-              {
-                number: "05",
-                title: "Auftrag gewinnen",
-                text: "Kunden kontaktieren, Angebot senden und überzeugen.",
-              },
-            ].map((step) => (
+            {processSteps.map((step) => (
               <article
                 key={step.number}
                 className="rounded-[24px] border border-white/10 bg-white/[0.035] p-6"
@@ -416,14 +482,16 @@ export default function PreisePage() {
                   {step.number}
                 </span>
                 <h3 className="mt-5 text-xl font-black">{step.title}</h3>
-                <p className="mt-3 leading-7 text-slate-400">{step.text}</p>
+                <p className="mt-3 text-base leading-7 text-slate-400">
+                  {step.text}
+                </p>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Pricing */}
+      {/* PRICING */}
       <section
         id="pakete"
         className="border-y border-white/10 bg-[#080d1e] px-6 py-20 lg:px-8 lg:py-28"
@@ -444,11 +512,11 @@ export default function PreisePage() {
             </p>
           </div>
 
-          <div className="mt-14 grid gap-6 lg:grid-cols-3">
+          <div className="mt-14 grid items-stretch gap-6 lg:grid-cols-3">
             {packages.map((item) => (
               <article
                 key={item.badge}
-                className={`relative flex flex-col rounded-[30px] border p-7 sm:p-8 ${
+                className={`relative flex min-h-[610px] flex-col rounded-[30px] border p-7 sm:p-8 ${
                   item.highlighted
                     ? "border-sky-400 bg-gradient-to-b from-sky-400/[0.12] to-[#0b1226] shadow-[0_24px_80px_rgba(14,165,233,0.18)]"
                     : "border-white/10 bg-[#0b1226]"
@@ -476,7 +544,7 @@ export default function PreisePage() {
                   {item.pricePerCredit}
                 </div>
 
-                <p className="mt-6 min-h-24 leading-7 text-slate-300">
+                <p className="mt-6 leading-7 text-slate-300">
                   {item.description}
                 </p>
 
@@ -494,7 +562,7 @@ export default function PreisePage() {
 
                 <Link
                   href="/anbieter-registrieren"
-                  className={`mt-9 inline-flex min-h-14 items-center justify-center rounded-2xl px-5 py-4 text-center font-black transition hover:-translate-y-0.5 ${
+                  className={`mt-auto inline-flex min-h-14 items-center justify-center rounded-2xl px-5 py-4 text-center font-black transition hover:-translate-y-0.5 ${
                     item.highlighted
                       ? "bg-gradient-to-r from-sky-400 to-indigo-500 text-white shadow-lg"
                       : "bg-white text-[#050816] hover:bg-slate-100"
@@ -514,7 +582,7 @@ export default function PreisePage() {
         </div>
       </section>
 
-      {/* Example calculation */}
+      {/* EXAMPLE CALCULATION */}
       <section className="px-6 py-20 lg:px-8 lg:py-28">
         <div className="mx-auto max-w-7xl">
           <div className="overflow-hidden rounded-[32px] border border-sky-400/20 bg-gradient-to-br from-sky-400/[0.12] via-[#0b1226] to-indigo-500/[0.1] p-7 sm:p-10 lg:p-12">
@@ -608,7 +676,7 @@ export default function PreisePage() {
         </div>
       </section>
 
-      {/* Final CTA */}
+      {/* FINAL CTA */}
       <section className="px-6 py-20 lg:px-8 lg:py-28">
         <div className="mx-auto max-w-6xl rounded-[36px] border border-sky-400/25 bg-gradient-to-br from-sky-400/20 via-indigo-500/10 to-[#0b1226] px-7 py-14 text-center shadow-[0_30px_100px_rgba(14,165,233,0.15)] sm:px-12">
           <span className="text-sm font-black uppercase tracking-[0.2em] text-sky-300">
