@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { createSession, type AuthUser } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,13 +10,18 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const email = String(body.email || "").trim().toLowerCase();
-    const password = String(body.password || "");
+    const email = String(body?.email || "").trim().toLowerCase();
+    const password = String(body?.password || "");
 
     if (!email || !password) {
       return NextResponse.json(
-        { ok: false, error: "E-Mail und Passwort erforderlich." },
-        { status: 400 }
+        {
+          ok: false,
+          error: "E-Mail und Passwort erforderlich.",
+        },
+        {
+          status: 400,
+        }
       );
     }
 
@@ -27,8 +33,13 @@ export async function POST(req: Request) {
 
     if (!provider) {
       return NextResponse.json(
-        { ok: false, error: "Login fehlgeschlagen." },
-        { status: 401 }
+        {
+          ok: false,
+          error: "E-Mail oder Passwort ist falsch.",
+        },
+        {
+          status: 401,
+        }
       );
     }
 
@@ -39,37 +50,56 @@ export async function POST(req: Request) {
 
     if (!passwordIsValid) {
       return NextResponse.json(
-        { ok: false, error: "Login fehlgeschlagen." },
-        { status: 401 }
+        {
+          ok: false,
+          error: "E-Mail oder Passwort ist falsch.",
+        },
+        {
+          status: 401,
+        }
       );
     }
 
-    const response = NextResponse.json({
+    if (provider.status === "BLOCKED") {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Dieses Anbieterkonto wurde gesperrt.",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
+    const user: AuthUser = {
+      id: provider.id,
+      email: provider.email,
+      name: provider.contactName,
+      companyName: provider.companyName,
+      contactName: provider.contactName,
+      role: "provider",
+      credits: provider.credits,
+      status: provider.status,
+    };
+
+    await createSession(user);
+
+    return NextResponse.json({
       ok: true,
-      provider: {
-        id: provider.id,
-        email: provider.email,
-        companyName: provider.companyName,
-        contactName: provider.contactName,
-        credits: provider.credits,
-      },
+      provider: user,
     });
-
-    response.cookies.set("auftrago_session", provider.id, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7,
-    });
-
-    return response;
   } catch (error) {
     console.error("LOGIN ERROR:", error);
 
     return NextResponse.json(
-      { ok: false, error: "Serverfehler." },
-      { status: 500 }
+      {
+        ok: false,
+        error: "Beim Login ist ein Serverfehler aufgetreten.",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }

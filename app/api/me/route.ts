@@ -11,8 +11,13 @@ export async function GET() {
 
     if (!user) {
       return NextResponse.json(
-        { ok: false, error: "Nicht eingeloggt." },
-        { status: 401 }
+        {
+          ok: false,
+          error: "Nicht eingeloggt.",
+        },
+        {
+          status: 401,
+        }
       );
     }
 
@@ -24,8 +29,13 @@ export async function GET() {
     console.error("ME ERROR:", error);
 
     return NextResponse.json(
-      { ok: false, error: "Serverfehler." },
-      { status: 500 }
+      {
+        ok: false,
+        error: "Beim Laden des Benutzerkontos ist ein Fehler aufgetreten.",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }
