@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useState } from "react";
 import {
-  Check,
-  Zap,
-  ShieldCheck,
-  CreditCard,
   ArrowRight,
+  Check,
+  CreditCard,
+  ShieldCheck,
   Sparkles,
+  Zap,
 } from "lucide-react";
 
 type PlanId =
@@ -37,7 +37,7 @@ const plans: CreditPlan[] = [
     price: 29,
     badge: null,
     description:
-      "Ideal für den Einstieg und erste Freischaltungen. Perfekt, wenn du Auftrago testen und erste regionale Kundenanfragen prüfen möchtest.",
+      "Ideal für den Einstieg und erste Freischaltungen. Perfekt, um Auftrago kennenzulernen und erste passende Kundenanfragen zu prüfen.",
     features: [
       "20 Credits sofort verfügbar",
       "Ideal für erste Freischaltungen",
@@ -46,15 +46,14 @@ const plans: CreditPlan[] = [
     ],
     featured: false,
   },
-
   {
     id: "pro",
     name: "Pro",
     credits: 50,
     price: 69,
-    badge: "Beliebt",
+    badge: "Beliebteste Wahl",
     description:
-      "Das passende Paket für Anbieter, die regelmässig neue Kundenanfragen freischalten und aktiv mit Auftrago arbeiten möchten.",
+      "Das passende Paket für aktive Anbieter, die regelmässig neue Kundenanfragen freischalten und ihr Auftragsvolumen steigern möchten.",
     features: [
       "50 Credits sofort verfügbar",
       "CHF 1.38 pro Credit",
@@ -63,7 +62,6 @@ const plans: CreditPlan[] = [
     ],
     featured: true,
   },
-
   {
     id: "business",
     name: "Business",
@@ -71,7 +69,7 @@ const plans: CreditPlan[] = [
     price: 129,
     badge: "Spare CHF 16",
     description:
-      "Für Unternehmen mit konstantem Leadbedarf, mehreren Einsatzgebieten und einem klaren Fokus auf Neukundengewinnung.",
+      "Für Unternehmen mit konstantem Leadbedarf, mehreren Einsatzgebieten und einem klaren Fokus auf nachhaltige Neukundengewinnung.",
     features: [
       "100 Credits sofort verfügbar",
       "CHF 1.29 pro Credit",
@@ -80,7 +78,6 @@ const plans: CreditPlan[] = [
     ],
     featured: false,
   },
-
   {
     id: "agency",
     name: "Agency",
@@ -88,7 +85,7 @@ const plans: CreditPlan[] = [
     price: 299,
     badge: "Starke Ersparnis",
     description:
-      "Für wachsende Unternehmen, Agenturen und Anbieter, die mehrere Regionen oder verschiedene Dienstleistungen bedienen.",
+      "Für wachsende Unternehmen und Anbieter, die mehrere Regionen oder verschiedene Dienstleistungen gleichzeitig bedienen.",
     features: [
       "250 Credits sofort verfügbar",
       "Nur rund CHF 1.20 pro Credit",
@@ -97,7 +94,6 @@ const plans: CreditPlan[] = [
     ],
     featured: false,
   },
-
   {
     id: "enterprise",
     name: "Enterprise",
@@ -113,6 +109,52 @@ const plans: CreditPlan[] = [
       "Ideal für professionelle Anbieter",
     ],
     featured: false,
+  },
+];
+
+const comparisonRows = [
+  {
+    label: "Credits",
+    values: ["20", "50", "100", "250", "500"],
+  },
+  {
+    label: "Paketpreis",
+    values: ["CHF 29", "CHF 69", "CHF 129", "CHF 299", "CHF 549"],
+  },
+  {
+    label: "Preis pro Credit",
+    values: ["CHF 1.45", "CHF 1.38", "CHF 1.29", "CHF 1.20", "CHF 1.10"],
+  },
+  {
+    label: "Abonnement",
+    values: ["Nein", "Nein", "Nein", "Nein", "Nein"],
+  },
+  {
+    label: "Sofort verfügbar",
+    values: ["Ja", "Ja", "Ja", "Ja", "Ja"],
+  },
+];
+
+const faqs = [
+  {
+    question: "Wie funktionieren Credits?",
+    answer:
+      "Mit Credits kannst du passende Kundenanfragen freischalten. Vor dem Kauf siehst du die Kategorie, die Region und wichtige Eckdaten des Auftrags.",
+  },
+  {
+    question: "Gibt es ein Abonnement?",
+    answer:
+      "Nein. Alle Credit-Pakete sind einmalige Käufe. Es gibt keine monatlichen Gebühren und keine automatische Verlängerung.",
+  },
+  {
+    question: "Wann werden die Credits gutgeschrieben?",
+    answer:
+      "Nach erfolgreicher Zahlung werden die gekauften Credits automatisch deinem Anbieterkonto gutgeschrieben.",
+  },
+  {
+    question: "Verfallen meine Credits?",
+    answer:
+      "Nein. Deine gekauften Credits bleiben in deinem Anbieterkonto verfügbar, bis du sie für passende Kundenanfragen einsetzt.",
   },
 ];
 
@@ -176,37 +218,19 @@ export default function CreditsPage() {
       </div>
 
       <section className="relative border-b border-white/10">
-        <div className="mx-auto max-w-7xl px-4 pb-10 pt-5 sm:px-6 sm:pb-14 sm:pt-8 lg:px-8">
-          <div className="mb-8 flex items-center justify-between gap-3 sm:mb-10">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 backdrop-blur transition hover:bg-white/10 sm:px-5 sm:py-3"
-            >
-              <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#7EC8FF]" />
+        <div className="mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-12 lg:px-8">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 backdrop-blur transition hover:bg-white/10 sm:px-5 sm:py-3"
+          >
+            <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#7EC8FF]" />
 
-              <span className="text-xs font-semibold uppercase tracking-[0.22em] text-white/80 sm:text-sm sm:tracking-[0.28em]">
-                AUFTRAGO
-              </span>
-            </Link>
+            <span className="text-xs font-semibold uppercase tracking-[0.22em] text-white/80 sm:text-sm sm:tracking-[0.28em]">
+              AUFTRAGO
+            </span>
+          </Link>
 
-            <div className="hidden items-center gap-3 md:flex">
-              <Link
-                href="/leads"
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white/80 transition hover:bg-white/10"
-              >
-                Leads ansehen
-              </Link>
-
-              <Link
-                href="/dashboard"
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white/80 transition hover:bg-white/10"
-              >
-                Dashboard
-              </Link>
-            </div>
-          </div>
-
-          <div className="max-w-4xl">
+          <div className="mt-10 max-w-4xl">
             <div className="inline-flex max-w-full items-start gap-3 rounded-[24px] border border-white/10 bg-white/5 px-4 py-3 text-left backdrop-blur sm:items-center sm:gap-2 sm:rounded-full sm:px-4 sm:py-2.5">
               <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-[#7EC8FF] sm:mt-0" />
 
@@ -215,30 +239,39 @@ export default function CreditsPage() {
               </span>
             </div>
 
-            <h1 className="mt-5 text-3xl font-semibold leading-[1.02] sm:mt-6 sm:text-4xl md:text-5xl xl:text-6xl">
+            <h1 className="mt-6 text-4xl font-semibold leading-[1.02] sm:text-5xl md:text-6xl xl:text-7xl">
               Das passende Paket für deine{" "}
               <span className="bg-gradient-to-r from-white via-[#d7f0ff] to-[#7EC8FF] bg-clip-text text-transparent">
                 Neukundengewinnung
               </span>
             </h1>
 
-            <p className="mt-5 max-w-3xl text-base leading-7 text-white/68 sm:text-lg sm:leading-8">
-              Kaufe Credits, schalte passende Leads frei und kontaktiere
-              potenzielle Kunden direkt. Du bezahlst nur für Anfragen, die für
-              dein Unternehmen wirklich interessant sind.
+            <p className="mt-6 max-w-3xl text-base leading-7 text-white/68 sm:text-lg sm:leading-8">
+              Kaufe Credits, schalte passende Kundenanfragen frei und
+              kontaktiere potenzielle Auftraggeber direkt. Du bezahlst nur für
+              Anfragen, die für dein Unternehmen wirklich interessant sind.
             </p>
 
-            <p className="mt-4 max-w-3xl text-sm leading-7 text-white/55 sm:text-base sm:leading-8">
-              Ohne Abonnement, ohne monatliche Fixkosten und mit voller
-              Kontrolle über dein Budget.
-            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/70">
+                ✓ Keine Abonnemente
+              </div>
+
+              <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/70">
+                ✓ Sichere Stripe-Zahlung
+              </div>
+
+              <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/70">
+                ✓ Credits verfallen nicht
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       <section className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-        <div className="mb-8 grid gap-4 sm:grid-cols-3">
-          <div className="rounded-[24px] border border-white/10 bg-white/5 p-4 backdrop-blur sm:p-5">
+        <div className="mb-10 grid gap-4 sm:grid-cols-3">
+          <div className="rounded-[24px] border border-white/10 bg-white/5 p-5 backdrop-blur">
             <CreditCard className="h-6 w-6 text-[#7EC8FF]" />
 
             <div className="mt-4 text-xs uppercase tracking-[0.16em] text-white/45">
@@ -254,7 +287,7 @@ export default function CreditsPage() {
             </div>
           </div>
 
-          <div className="rounded-[24px] border border-white/10 bg-white/5 p-4 backdrop-blur sm:p-5">
+          <div className="rounded-[24px] border border-white/10 bg-white/5 p-5 backdrop-blur">
             <Zap className="h-6 w-6 text-[#7EC8FF]" />
 
             <div className="mt-4 text-xs uppercase tracking-[0.16em] text-white/45">
@@ -270,7 +303,7 @@ export default function CreditsPage() {
             </div>
           </div>
 
-          <div className="rounded-[24px] border border-white/10 bg-white/5 p-4 backdrop-blur sm:p-5">
+          <div className="rounded-[24px] border border-white/10 bg-white/5 p-5 backdrop-blur">
             <ShieldCheck className="h-6 w-6 text-[#7EC8FF]" />
 
             <div className="mt-4 text-xs uppercase tracking-[0.16em] text-white/45">
@@ -301,13 +334,13 @@ export default function CreditsPage() {
             );
 
             return (
-              <div
+              <article
                 key={plan.id}
                 className={[
-                  "relative flex min-h-full flex-col justify-between overflow-hidden rounded-[28px] border p-5 backdrop-blur transition duration-300 sm:p-6",
+                  "relative flex min-h-full flex-col justify-between overflow-hidden rounded-[30px] border p-5 backdrop-blur transition duration-300 sm:p-6",
                   plan.featured
-                    ? "border-[#7EC8FF]/35 bg-[linear-gradient(180deg,rgba(126,200,255,0.16),rgba(255,255,255,0.05))] shadow-[0_20px_80px_rgba(126,200,255,0.12)]"
-                    : "border-white/10 bg-white/[0.04] hover:-translate-y-1 hover:bg-white/[0.06]",
+                    ? "border-[#7EC8FF]/40 bg-[linear-gradient(180deg,rgba(126,200,255,0.18),rgba(255,255,255,0.05))] shadow-[0_24px_90px_rgba(126,200,255,0.14)] xl:-translate-y-2"
+                    : "border-white/10 bg-white/[0.04] hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.06]",
                 ].join(" ")}
               >
                 {plan.featured ? (
@@ -391,48 +424,125 @@ export default function CreditsPage() {
                     </>
                   )}
                 </button>
-              </div>
+              </article>
             );
           })}
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 sm:pb-24 lg:px-8">
-        <div className="rounded-[28px] border border-white/10 bg-white/5 p-5 text-center backdrop-blur sm:rounded-[34px] sm:p-8 md:p-12">
-          <div className="text-xs uppercase tracking-[0.18em] text-white/45 sm:text-sm sm:tracking-[0.24em]">
-            Hinweis
+      <section className="relative mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+        <div className="rounded-[30px] border border-white/10 bg-white/[0.04] p-5 backdrop-blur sm:p-8">
+          <div className="max-w-3xl">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9fd8ff]">
+              Paketvergleich
+            </div>
+
+            <h2 className="mt-3 text-3xl font-semibold sm:text-4xl">
+              Welches Paket passt zu deinem Unternehmen?
+            </h2>
+
+            <p className="mt-4 text-sm leading-7 text-white/55 sm:text-base">
+              Je grösser das Paket, desto günstiger wird der Preis pro Credit.
+            </p>
           </div>
 
-          <h2 className="mt-4 text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl">
-            Credits werden für die Freischaltung von Leads verwendet
+          <div className="mt-8 overflow-x-auto">
+            <table className="min-w-[850px] w-full border-separate border-spacing-0">
+              <thead>
+                <tr>
+                  <th className="border-b border-white/10 px-4 py-4 text-left text-sm text-white/45">
+                    Vergleich
+                  </th>
+
+                  {plans.map((plan) => (
+                    <th
+                      key={plan.id}
+                      className="border-b border-white/10 px-4 py-4 text-left text-sm font-semibold text-white"
+                    >
+                      {plan.name}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody>
+                {comparisonRows.map((row) => (
+                  <tr key={row.label}>
+                    <td className="border-b border-white/[0.06] px-4 py-4 text-sm font-semibold text-white/60">
+                      {row.label}
+                    </td>
+
+                    {row.values.map((value, index) => (
+                      <td
+                        key={`${row.label}-${plans[index].id}`}
+                        className="border-b border-white/[0.06] px-4 py-4 text-sm text-white/75"
+                      >
+                        {value}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+        <div className="rounded-[30px] border border-white/10 bg-[#081122]/85 p-5 sm:p-8">
+          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9fd8ff]">
+            Häufige Fragen
+          </div>
+
+          <h2 className="mt-3 text-3xl font-semibold sm:text-4xl">
+            Alles Wichtige zum Credit-System
           </h2>
 
-          <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-white/66 sm:text-lg sm:leading-8">
-            Je nach Kategorie, Auftragsumfang und potentiellem Auftragswert
-            kostet eine Kundenanfrage unterschiedlich viele Credits.
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            {faqs.map((faq) => (
+              <article
+                key={faq.question}
+                className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5 sm:p-6"
+              >
+                <h3 className="text-lg font-semibold text-white">
+                  {faq.question}
+                </h3>
+
+                <p className="mt-3 text-sm leading-7 text-white/55">
+                  {faq.answer}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="relative mx-auto max-w-7xl px-4 pb-20 sm:px-6 sm:pb-28 lg:px-8">
+        <div className="overflow-hidden rounded-[34px] border border-[#7EC8FF]/20 bg-[linear-gradient(135deg,rgba(126,200,255,0.15),rgba(255,255,255,0.04))] p-6 text-center shadow-[0_24px_90px_rgba(126,200,255,0.10)] sm:p-10 md:p-14">
+          <ShieldCheck className="mx-auto h-9 w-9 text-[#7EC8FF]" />
+
+          <h2 className="mt-5 text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl">
+            Sicher bezahlen. Sofort starten.
+          </h2>
+
+          <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-white/60 sm:text-lg sm:leading-8">
+            Alle Zahlungen werden sicher über Stripe abgewickelt. Nach
+            erfolgreicher Zahlung werden deine Credits automatisch deinem
+            Anbieterkonto gutgeschrieben.
           </p>
 
-          <p className="mx-auto mt-4 max-w-3xl text-sm leading-7 text-white/55 sm:text-base sm:leading-8">
-            Vor der Freischaltung siehst du den Standort, die Kategorie und die
-            wichtigsten Eckdaten. Die vollständigen Kontaktinformationen werden
-            erst nach der Freischaltung sichtbar.
-          </p>
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-3 text-sm font-semibold text-white/65">
+            <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">
+              🔒 Sichere Zahlung
+            </span>
 
-          <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:gap-4">
-            <Link
-              href="/leads"
-              className="inline-flex min-h-[54px] w-full items-center justify-center gap-2 rounded-2xl bg-[#7EC8FF] px-6 py-4 text-base font-semibold text-[#04101d] shadow-[0_20px_80px_rgba(126,200,255,0.28)] transition hover:bg-[#91d2ff] sm:w-auto sm:px-7"
-            >
-              Leads ansehen
-              <ArrowRight size={18} />
-            </Link>
+            <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">
+              ⚡ Sofortige Gutschrift
+            </span>
 
-            <Link
-              href="/dashboard"
-              className="inline-flex min-h-[54px] w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-base font-semibold text-white/90 transition hover:bg-white/10 sm:w-auto sm:px-7"
-            >
-              Zum Dashboard
-            </Link>
+            <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">
+              ✓ Keine Laufzeit
+            </span>
           </div>
         </div>
       </section>
