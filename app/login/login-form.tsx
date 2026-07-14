@@ -3,21 +3,35 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+type LoginResponse = {
+  ok?: boolean;
+  error?: string;
+};
+
 export default function LoginForm() {
   const router = useRouter();
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function handleSubmit(
+    event: React.FormEvent<HTMLFormElement>
+  ) {
+    event.preventDefault();
+
+    if (loading) {
+      return;
+    }
 
     setError("");
     setLoading(true);
 
-    const formData = new FormData(e.currentTarget);
+    const formData = new FormData(event.currentTarget);
 
-    const email = String(formData.get("email") || "").trim().toLowerCase();
+    const email = String(formData.get("email") || "")
+      .trim()
+      .toLowerCase();
+
     const password = String(formData.get("password") || "");
 
     if (!email || !password) {
@@ -32,20 +46,27 @@ export default function LoginForm() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
+        cache: "no-store",
         body: JSON.stringify({
           email,
           password,
         }),
       });
 
-      if (!response.ok) {
-        setError("E-Mail oder Passwort ist falsch.");
+      const data =
+        (await response.json().catch(() => null)) as LoginResponse | null;
+
+      if (!response.ok || !data?.ok) {
+        setError(
+          data?.error || "E-Mail oder Passwort ist falsch."
+        );
         return;
       }
 
-      router.push("/portal");
-      router.refresh();
-    } catch {
+      window.location.href = "/dashboard";
+    } catch (error) {
+      console.error("LOGIN FORM ERROR:", error);
       setError("Login konnte nicht durchgeführt werden.");
     } finally {
       setLoading(false);
@@ -56,6 +77,7 @@ export default function LoginForm() {
     <form onSubmit={handleSubmit} className="auth-form">
       <div className="auth-field">
         <label htmlFor="email">E-Mail</label>
+
         <input
           id="email"
           name="email"
@@ -68,6 +90,7 @@ export default function LoginForm() {
 
       <div className="auth-field">
         <label htmlFor="password">Passwort</label>
+
         <input
           id="password"
           name="password"
@@ -78,7 +101,11 @@ export default function LoginForm() {
         />
       </div>
 
-      {error ? <p className="auth-error">{error}</p> : null}
+      {error ? (
+        <p className="auth-error" aria-live="polite">
+          {error}
+        </p>
+      ) : null}
 
       <button type="submit" disabled={loading}>
         {loading ? "Einloggen..." : "Einloggen"}

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { sendProviderApprovalMail } from "@/lib/provider-approval-mail";
+import SetProviderPassword from "./set-provider-password";
 
 type ProviderStatus = "PENDING" | "APPROVED" | "BLOCKED";
 
@@ -86,17 +88,75 @@ async function addCredits(formData: FormData) {
 async function setStatus(formData: FormData) {
   "use server";
 
-  const id = String(formData.get("id") || "");
-  const status = String(formData.get("status") || "PENDING") as ProviderStatus;
+  const id = String(formData.get("id") || "").trim();
+  const requestedStatus = String(
+    formData.get("status") || "PENDING"
+  ).trim();
 
-  await prisma.provider.update({
+  const allowedStatuses: ProviderStatus[] = [
+    "PENDING",
+    "APPROVED",
+    "BLOCKED",
+  ];
+
+  if (!id) {
+    throw new Error("Anbieter-ID fehlt.");
+  }
+
+  if (!allowedStatuses.includes(requestedStatus as ProviderStatus)) {
+    throw new Error("Ungültiger Anbieterstatus.");
+  }
+
+  const status = requestedStatus as ProviderStatus;
+
+  const existingProvider = await prisma.provider.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      companyName: true,
+      contactName: true,
+      email: true,
+      status: true,
+    },
+  });
+
+  if (!existingProvider) {
+    throw new Error("Anbieter wurde nicht gefunden.");
+  }
+
+  const provider = await prisma.provider.update({
     where: { id },
     data: { status },
+    select: {
+      id: true,
+      companyName: true,
+      contactName: true,
+      email: true,
+      status: true,
+    },
   });
+
+  const changedToApproved =
+    status === "APPROVED" && existingProvider.status !== "APPROVED";
+
+  if (changedToApproved) {
+    try {
+      await sendProviderApprovalMail({
+        companyName: provider.companyName,
+        contactName: provider.contactName,
+        email: provider.email,
+      });
+    } catch (error) {
+      console.error("PROVIDER APPROVAL MAIL ERROR:", error);
+    }
+  }
 
   revalidatePath("/admin/providers");
   revalidatePath("/admin");
   revalidatePath("/anbieter");
+  revalidatePath("/login");
+  revalidatePath("/leads");
+  revalidatePath("/credits");
 }
 
 async function resetCredits(formData: FormData) {
@@ -462,6 +522,7 @@ export default async function AdminProvidersPage({
                           </button>
                         </form>
                       </div>
+                      <SetProviderPassword providerId={provider.id} />
 
                       <div
                         style={{

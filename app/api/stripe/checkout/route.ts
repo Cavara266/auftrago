@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
+import { requireUser } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type PlanId =
   | "starter"
@@ -77,7 +79,40 @@ function getBaseUrl(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    /*
+     * Der Anbieter wird serverseitig aus der signierten Session geladen.
+     * Dadurch kann niemand im Browser eine fremde providerId mitschicken.
+     */
+    const user = await requireUser();
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Du musst eingeloggt sein, um Credits zu kaufen.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    if (user.status !== "APPROVED") {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            user.status === "PENDING"
+              ? "Dein Anbieterkonto wird noch geprüft."
+              : "Dein Anbieterkonto wurde gesperrt.",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
+    const body = await request.json().catch(() => null);
     const planId = body?.planId;
 
     if (!isValidPlanId(planId)) {
@@ -98,6 +133,13 @@ export async function POST(request: Request) {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
 
+      /*
+       * Interne Zuordnung des Stripe-Kaufs zum Anbieter.
+       */
+      client_reference_id: user.id,
+
+      customer_email: user.email,
+
       line_items: [
         {
           price: selectedPlan.priceId,
@@ -109,18 +151,36 @@ export async function POST(request: Request) {
 
       billing_address_collection: "auto",
 
-      success_url: `${baseUrl}/credits/success?session_id={CHECKOUT_SESSION_ID}`,
+      /*
+       * Nach erfolgreicher Zahlung zurück in den Anbieterbereich.
+       */
+      success_url:
+        `${baseUrl}/portal/guthaben` +
+        `?payment=success` +
+        `&session_id={CHECKOUT_SESSION_ID}`,
 
-      cancel_url: `${baseUrl}/credits/cancel`,
+      cancel_url:
+        `${baseUrl}/portal/guthaben` +
+        `?payment=cancelled`,
 
+      /*
+       * Diese Daten liest später der Webhook aus.
+       */
       metadata: {
+        providerId: user.id,
+        packageId: planId,
         planId,
         credits: String(selectedPlan.credits),
         packageName: selectedPlan.name,
       },
 
+      /*
+       * Metadaten zusätzlich am PaymentIntent speichern.
+       */
       payment_intent_data: {
         metadata: {
+          providerId: user.id,
+          packageId: planId,
           planId,
           credits: String(selectedPlan.credits),
           packageName: selectedPlan.name,
@@ -143,9 +203,10 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: true,
       url: session.url,
+      sessionId: session.id,
     });
   } catch (error) {
-    console.error("Stripe Checkout Fehler:", error);
+    console.error("STRIPE CHECKOUT ERROR:", error);
 
     return NextResponse.json(
       {
