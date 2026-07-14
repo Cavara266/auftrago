@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -41,7 +42,7 @@ export default function UnlockButton({
     if (insufficientCredits) {
       setMessageType("error");
       setMessage(
-        `Nicht genügend Credits. Du hast ${currentCredits}, benötigst aber ${cost}.`
+        `Nicht genügend Credits. Du hast ${currentCredits} Credits, benötigst aber ${cost} Credits.`
       );
       return;
     }
@@ -83,7 +84,7 @@ export default function UnlockButton({
         throw new Error(
           data?.message ||
             data?.error ||
-            "Die Freischaltung ist fehlgeschlagen."
+            "Die Kundenanfrage konnte nicht freigeschaltet werden."
         );
       }
 
@@ -91,7 +92,7 @@ export default function UnlockButton({
 
       setMessage(
         data.alreadyUnlocked
-          ? "Diese Kundenanfrage ist bereits freigeschaltet."
+          ? "Diese Kundenanfrage wurde bereits freigeschaltet."
           : "Kundenanfrage erfolgreich freigeschaltet."
       );
 
@@ -100,10 +101,11 @@ export default function UnlockButton({
       console.error("UNLOCK BUTTON ERROR:", error);
 
       setMessageType("error");
+
       setMessage(
         error instanceof Error
           ? error.message
-          : "Die Freischaltung ist fehlgeschlagen."
+          : "Die Kundenanfrage konnte nicht freigeschaltet werden."
       );
     } finally {
       setLoading(false);
@@ -154,12 +156,12 @@ export default function UnlockButton({
       </div>
 
       {insufficientCredits ? (
-        <a
-          href="/credits"
+        <Link
+          href="/portal/guthaben"
           className="mt-4 inline-flex text-sm font-semibold text-yellow-300 hover:text-yellow-200"
         >
           Credits kaufen →
-        </a>
+        </Link>
       ) : null}
 
       {message ? (
