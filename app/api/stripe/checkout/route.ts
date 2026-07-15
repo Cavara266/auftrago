@@ -74,14 +74,15 @@ function getBaseUrl(request: Request) {
     return origin.replace(/\/$/, "");
   }
 
-  return "https://auftrago.ch";
+  return "https://www.auftrago.ch";
 }
 
 export async function POST(request: Request) {
   try {
     /*
-     * Der Anbieter wird serverseitig aus der signierten Session geladen.
-     * Dadurch kann niemand im Browser eine fremde providerId mitschicken.
+     * Der eingeloggte Anbieter wird ausschliesslich serverseitig
+     * aus der Session geladen. Eine fremde providerId kann deshalb
+     * nicht über den Browser eingeschleust werden.
      */
     const user = await requireUser();
 
@@ -134,7 +135,7 @@ export async function POST(request: Request) {
       mode: "payment",
 
       /*
-       * Interne Zuordnung des Stripe-Kaufs zum Anbieter.
+       * Interne Zuordnung der Zahlung zum Anbieter.
        */
       client_reference_id: user.id,
 
@@ -152,19 +153,22 @@ export async function POST(request: Request) {
       billing_address_collection: "auto",
 
       /*
-       * Nach erfolgreicher Zahlung zurück in den Anbieterbereich.
+       * Nach erfolgreicher Zahlung direkt zurück ins Dashboard.
        */
       success_url:
-        `${baseUrl}/portal/guthaben` +
+        `${baseUrl}/portal` +
         `?payment=success` +
         `&session_id={CHECKOUT_SESSION_ID}`,
 
+      /*
+       * Bei abgebrochener Zahlung zurück zur Guthaben-Seite.
+       */
       cancel_url:
         `${baseUrl}/portal/guthaben` +
         `?payment=cancelled`,
 
       /*
-       * Diese Daten liest später der Webhook aus.
+       * Diese Angaben liest der Stripe-Webhook aus.
        */
       metadata: {
         providerId: user.id,
