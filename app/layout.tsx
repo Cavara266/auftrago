@@ -2,7 +2,6 @@ import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import Script from "next/script";
-import MobileBottomNav from "@/components/mobile-bottom-nav";
 
 import SiteHeader from "@/components/site-header";
 import Footer from "@/components/footer";
@@ -157,8 +156,6 @@ export default function RootLayout({
         {children}
 
         <Footer />
-
-        <MobileBottomNav />
 
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-7YJE35KZCX"
