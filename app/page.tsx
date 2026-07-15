@@ -556,9 +556,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-      <a href="#anfrage" className="sticky-mobile-cta">
-  Kostenlose Offerte anfragen
-</a>
     </main>
   );
 }
