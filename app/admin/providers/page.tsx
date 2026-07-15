@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { sendProviderApprovalMail } from "@/lib/provider-approval-mail";
 import SetProviderPassword from "./set-provider-password";
@@ -159,6 +160,53 @@ async function setStatus(formData: FormData) {
   revalidatePath("/credits");
 }
 
+async function resendApprovalMail(formData: FormData) {
+  "use server";
+
+  const id = String(formData.get("id") || "").trim();
+
+  if (!id) {
+    redirect("/admin/providers?error=approval-mail-failed");
+  }
+
+  const provider = await prisma.provider.findUnique({
+    where: { id },
+    select: {
+      companyName: true,
+      contactName: true,
+      email: true,
+    },
+  });
+
+  if (!provider) {
+    redirect("/admin/providers?error=provider-not-found");
+  }
+
+  try {
+    await sendProviderApprovalMail({
+      companyName: provider.companyName,
+      contactName: provider.contactName,
+      email: provider.email,
+    });
+
+    console.log("PROVIDER APPROVAL MAIL RESENT:", {
+      providerId: id,
+      to: provider.email,
+    });
+  } catch (error) {
+    console.error("PROVIDER APPROVAL MAIL RESEND ERROR:", {
+      providerId: id,
+      to: provider.email,
+      error,
+    });
+
+    redirect("/admin/providers?error=approval-mail-failed");
+  }
+
+  revalidatePath("/admin/providers");
+  redirect("/admin/providers?message=approval-mail-sent");
+}
+
 async function resetCredits(formData: FormData) {
   "use server";
 
@@ -193,10 +241,14 @@ export default async function AdminProvidersPage({
   searchParams?: {
     q?: string;
     status?: string;
+    message?: string;
+    error?: string;
   };
 }) {
   const q = String(searchParams?.q || "").trim();
   const statusFilter = String(searchParams?.status || "ALL").trim();
+  const message = String(searchParams?.message || "").trim();
+  const error = String(searchParams?.error || "").trim();
 
   const providers = await prisma.provider.findMany({
     where: {
@@ -265,6 +317,54 @@ export default async function AdminProvidersPage({
               </Link>
             </div>
           </div>
+
+          {message === "approval-mail-sent" ? (
+            <div
+              style={{
+                marginTop: 22,
+                padding: "16px 18px",
+                borderRadius: 18,
+                border: "1px solid rgba(34,197,94,0.25)",
+                background: "rgba(34,197,94,0.12)",
+                color: "#bbf7d0",
+                fontWeight: 800,
+              }}
+            >
+              ✅ Freigabe-Mail wurde erfolgreich erneut gesendet.
+            </div>
+          ) : null}
+
+          {error === "approval-mail-failed" ? (
+            <div
+              style={{
+                marginTop: 22,
+                padding: "16px 18px",
+                borderRadius: 18,
+                border: "1px solid rgba(239,68,68,0.25)",
+                background: "rgba(239,68,68,0.12)",
+                color: "#fecaca",
+                fontWeight: 800,
+              }}
+            >
+              ❌ Freigabe-Mail konnte nicht gesendet werden. Prüfe die Vercel-Logs.
+            </div>
+          ) : null}
+
+          {error === "provider-not-found" ? (
+            <div
+              style={{
+                marginTop: 22,
+                padding: "16px 18px",
+                borderRadius: 18,
+                border: "1px solid rgba(239,68,68,0.25)",
+                background: "rgba(239,68,68,0.12)",
+                color: "#fecaca",
+                fontWeight: 800,
+              }}
+            >
+              ❌ Anbieter wurde nicht gefunden.
+            </div>
+          ) : null}
 
           <div className="admin-stats">
             <div className="admin-stat-card">
@@ -514,6 +614,20 @@ export default async function AdminProvidersPage({
                           </button>
                         </form>
 
+                        <form action={resendApprovalMail}>
+                          <input type="hidden" name="id" value={provider.id} />
+                          <button
+                            className="btn btn-secondary"
+                            style={{
+                              width: "100%",
+                              borderColor: "rgba(56,189,248,0.30)",
+                              color: "#bae6fd",
+                            }}
+                          >
+                            📧 Freigabe-Mail erneut senden
+                          </button>
+                        </form>
+
                         <form action={setStatus}>
                           <input type="hidden" name="id" value={provider.id} />
                           <input type="hidden" name="status" value="BLOCKED" />
@@ -523,7 +637,6 @@ export default async function AdminProvidersPage({
                         </form>
                       </div>
                       <SetProviderPassword providerId={provider.id} />
-
                       <div
                         style={{
                           marginTop: 22,
