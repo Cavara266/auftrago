@@ -1,4 +1,5 @@
 import Link from "next/link";
+
 import { prisma } from "@/lib/prisma";
 import "./admin-dashboard.css";
 
@@ -33,31 +34,19 @@ function percentage(value: number, total: number) {
   return Math.round((value / total) * 100);
 }
 
-function providerStatus(status: string) {
-  if (status === "APPROVED") {
-    return {
-      label: "Genehmigt",
-      color: "#86efac",
-      background: "rgba(34,197,94,.12)",
-      border: "rgba(34,197,94,.26)",
-    };
-  }
+function growth(current: number, previous: number) {
+  if (previous <= 0) return current > 0 ? 100 : 0;
+  return Math.round(((current - previous) / previous) * 100);
+}
 
-  if (status === "BLOCKED") {
-    return {
-      label: "Gesperrt",
-      color: "#fca5a5",
-      background: "rgba(239,68,68,.12)",
-      border: "rgba(239,68,68,.26)",
-    };
-  }
+function startOfDay(date: Date) {
+  const value = new Date(date);
+  value.setHours(0, 0, 0, 0);
+  return value;
+}
 
-  return {
-    label: "Ausstehend",
-    color: "#fde68a",
-    background: "rgba(250,204,21,.10)",
-    border: "rgba(250,204,21,.26)",
-  };
+function startOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
 function initials(value: string) {
@@ -69,9 +58,43 @@ function initials(value: string) {
     .join("");
 }
 
+function providerStatus(status: string) {
+  if (status === "APPROVED") {
+    return {
+      label: "Genehmigt",
+      className: "status-approved",
+    };
+  }
+
+  if (status === "BLOCKED") {
+    return {
+      label: "Gesperrt",
+      className: "status-blocked",
+    };
+  }
+
+  return {
+    label: "Ausstehend",
+    className: "status-pending",
+  };
+}
+
+function activityIcon(type: string) {
+  if (type === "provider") return "P";
+  if (type === "lead") return "L";
+  if (type === "purchase") return "K";
+  if (type === "payment") return "CHF";
+  return "•";
+}
+
 export default async function AdminDashboardPage() {
   const now = new Date();
-  const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const today = startOfDay(now);
+  const monthStart = startOfMonth(now);
+  const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const previous7DaysStart = new Date(
+    now.getTime() - 14 * 24 * 60 * 60 * 1000
+  );
   const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
   const [
@@ -83,14 +106,26 @@ export default async function AdminDashboardPage() {
     pendingProviderCount,
     approvedProviderCount,
     blockedProviderCount,
-    providersLast24Hours,
+    providersToday,
+    providersLast7,
+    providersPrevious7,
     leadCount,
-    leadsLast24Hours,
+    leadsToday,
+    leadsLast7,
+    leadsPrevious7,
     leadPurchaseCount,
-    leadPurchasesLast24Hours,
-    creditPurchasesLast24Hours,
-    leadCreditsAggregate,
+    leadPurchasesToday,
+    leadPurchasesLast7,
+    leadPurchasesPrevious7,
     paidCreditAggregate,
+    revenueTodayAggregate,
+    revenueMonthAggregate,
+    revenueLast7Aggregate,
+    revenuePrevious7Aggregate,
+    leadCreditsAggregate,
+    wonCount,
+    contactedCount,
+    offerSentCount,
     topRegions,
     topCategories,
     topProviders,
@@ -102,7 +137,6 @@ export default async function AdminDashboardPage() {
         id: true,
         companyName: true,
         contactName: true,
-        email: true,
         region: true,
         credits: true,
         status: true,
@@ -120,35 +154,46 @@ export default async function AdminDashboardPage() {
         category: true,
         price: true,
         createdAt: true,
-        _count: { select: { purchases: true } },
+        _count: {
+          select: {
+            purchases: true,
+          },
+        },
       },
     }),
 
     prisma.leadPurchase.findMany({
       orderBy: { createdAt: "desc" },
-      take: 6,
+      take: 8,
       include: {
         provider: {
-          select: { id: true, companyName: true, email: true },
+          select: {
+            id: true,
+            companyName: true,
+          },
         },
         lead: {
           select: {
             id: true,
             title: true,
             region: true,
-            category: true,
           },
         },
       },
     }),
 
     prisma.creditPurchase.findMany({
-      where: { status: "paid" },
+      where: {
+        status: "paid",
+      },
       orderBy: { createdAt: "desc" },
-      take: 6,
+      take: 8,
       include: {
         provider: {
-          select: { id: true, companyName: true, email: true },
+          select: {
+            id: true,
+            companyName: true,
+          },
         },
       },
     }),
@@ -157,349 +202,726 @@ export default async function AdminDashboardPage() {
     prisma.provider.count({ where: { status: "PENDING" } }),
     prisma.provider.count({ where: { status: "APPROVED" } }),
     prisma.provider.count({ where: { status: "BLOCKED" } }),
-    prisma.provider.count({ where: { createdAt: { gte: last24Hours } } }),
-
-    prisma.lead.count(),
-    prisma.lead.count({ where: { createdAt: { gte: last24Hours } } }),
-    prisma.leadPurchase.count(),
-    prisma.leadPurchase.count({ where: { createdAt: { gte: last24Hours } } }),
-    prisma.creditPurchase.count({
-      where: { status: "paid", createdAt: { gte: last24Hours } },
+    prisma.provider.count({ where: { createdAt: { gte: today } } }),
+    prisma.provider.count({ where: { createdAt: { gte: last7Days } } }),
+    prisma.provider.count({
+      where: {
+        createdAt: {
+          gte: previous7DaysStart,
+          lt: last7Days,
+        },
+      },
     }),
 
-    prisma.leadPurchase.aggregate({ _sum: { price: true } }),
+    prisma.lead.count(),
+    prisma.lead.count({ where: { createdAt: { gte: today } } }),
+    prisma.lead.count({ where: { createdAt: { gte: last7Days } } }),
+    prisma.lead.count({
+      where: {
+        createdAt: {
+          gte: previous7DaysStart,
+          lt: last7Days,
+        },
+      },
+    }),
+
+    prisma.leadPurchase.count(),
+    prisma.leadPurchase.count({ where: { createdAt: { gte: today } } }),
+    prisma.leadPurchase.count({ where: { createdAt: { gte: last7Days } } }),
+    prisma.leadPurchase.count({
+      where: {
+        createdAt: {
+          gte: previous7DaysStart,
+          lt: last7Days,
+        },
+      },
+    }),
+
     prisma.creditPurchase.aggregate({
       where: { status: "paid" },
-      _sum: { amount: true, credits: true },
-      _count: { id: true },
+      _sum: {
+        amount: true,
+        credits: true,
+      },
+      _count: {
+        id: true,
+      },
+    }),
+
+    prisma.creditPurchase.aggregate({
+      where: {
+        status: "paid",
+        createdAt: {
+          gte: today,
+        },
+      },
+      _sum: {
+        amount: true,
+      },
+    }),
+
+    prisma.creditPurchase.aggregate({
+      where: {
+        status: "paid",
+        createdAt: {
+          gte: monthStart,
+        },
+      },
+      _sum: {
+        amount: true,
+      },
+    }),
+
+    prisma.creditPurchase.aggregate({
+      where: {
+        status: "paid",
+        createdAt: {
+          gte: last7Days,
+        },
+      },
+      _sum: {
+        amount: true,
+      },
+    }),
+
+    prisma.creditPurchase.aggregate({
+      where: {
+        status: "paid",
+        createdAt: {
+          gte: previous7DaysStart,
+          lt: last7Days,
+        },
+      },
+      _sum: {
+        amount: true,
+      },
+    }),
+
+    prisma.leadPurchase.aggregate({
+      _sum: {
+        price: true,
+      },
+    }),
+
+    prisma.leadPurchase.count({
+      where: {
+        status: "WON",
+      },
+    }),
+
+    prisma.leadPurchase.count({
+      where: {
+        status: {
+          in: ["CONTACTED", "APPOINTMENT_SET", "OFFER_SENT", "WON"],
+        },
+      },
+    }),
+
+    prisma.leadPurchase.count({
+      where: {
+        status: {
+          in: ["OFFER_SENT", "WON"],
+        },
+      },
     }),
 
     prisma.lead.groupBy({
       by: ["region"],
-      where: { createdAt: { gte: last30Days } },
-      _count: { _all: true },
-      orderBy: { _count: { region: "desc" } },
+      where: {
+        createdAt: {
+          gte: last30Days,
+        },
+      },
+      _count: {
+        _all: true,
+      },
+      orderBy: {
+        _count: {
+          region: "desc",
+        },
+      },
       take: 5,
     }),
 
     prisma.lead.groupBy({
       by: ["category"],
-      where: { createdAt: { gte: last30Days } },
-      _count: { _all: true },
-      orderBy: { _count: { category: "desc" } },
+      where: {
+        createdAt: {
+          gte: last30Days,
+        },
+      },
+      _count: {
+        _all: true,
+      },
+      orderBy: {
+        _count: {
+          category: "desc",
+        },
+      },
       take: 5,
     }),
 
     prisma.leadPurchase.groupBy({
       by: ["providerId"],
-      _count: { _all: true },
-      _sum: { price: true },
-      orderBy: { _count: { providerId: "desc" } },
+      _count: {
+        _all: true,
+      },
+      _sum: {
+        price: true,
+      },
+      orderBy: {
+        _count: {
+          providerId: "desc",
+        },
+      },
       take: 5,
     }),
   ]);
 
   const topProviderIds = topProviders.map((item) => item.providerId);
-  const topProviderDetails = topProviderIds.length
-    ? await prisma.provider.findMany({
-        where: { id: { in: topProviderIds } },
-        select: { id: true, companyName: true, region: true },
-      })
-    : [];
+
+  const topProviderDetails =
+    topProviderIds.length > 0
+      ? await prisma.provider.findMany({
+          where: {
+            id: {
+              in: topProviderIds,
+            },
+          },
+          select: {
+            id: true,
+            companyName: true,
+            region: true,
+          },
+        })
+      : [];
 
   const providerMap = new Map(
-    topProviderDetails.map((provider) => [provider.id, provider]),
+    topProviderDetails.map((provider) => [provider.id, provider])
   );
 
-  const totalLeadCreditsSpent = leadCreditsAggregate._sum.price ?? 0;
-  const totalStripeRevenue = paidCreditAggregate._sum.amount ?? 0;
+  const totalRevenue = paidCreditAggregate._sum.amount ?? 0;
+  const revenueToday = revenueTodayAggregate._sum.amount ?? 0;
+  const revenueMonth = revenueMonthAggregate._sum.amount ?? 0;
+  const revenueLast7 = revenueLast7Aggregate._sum.amount ?? 0;
+  const revenuePrevious7 = revenuePrevious7Aggregate._sum.amount ?? 0;
+  const revenueGrowth = growth(revenueLast7, revenuePrevious7);
+
   const totalCreditsSold = paidCreditAggregate._sum.credits ?? 0;
-  const totalStripePayments = paidCreditAggregate._count.id;
+  const totalPayments = paidCreditAggregate._count.id;
+  const totalLeadCreditsSpent = leadCreditsAggregate._sum.price ?? 0;
+
   const approvalRate = percentage(approvedProviderCount, providerCount);
-  const leadConversion = percentage(leadPurchaseCount, leadCount);
+  const purchaseRate = percentage(leadPurchaseCount, leadCount);
+  const contactedRate = percentage(contactedCount, leadPurchaseCount);
+  const offerRate = percentage(offerSentCount, leadPurchaseCount);
+  const wonRate = percentage(wonCount, leadPurchaseCount);
+
   const maxRegionCount = Math.max(
     ...topRegions.map((item) => item._count._all),
-    1,
+    1
   );
+
   const maxCategoryCount = Math.max(
     ...topCategories.map((item) => item._count._all),
-    1,
+    1
   );
 
   const activityFeed = [
     ...latestProviders.map((provider) => ({
       id: `provider-${provider.id}`,
+      type: "provider",
       date: provider.createdAt,
-      icon: "P",
       title: "Neue Anbieterregistrierung",
       text: `${provider.companyName} · ${provider.region || "Keine Region"}`,
       href: "/admin/providers",
-      tone: "violet",
     })),
     ...latestLeads.map((lead) => ({
       id: `lead-${lead.id}`,
+      type: "lead",
       date: lead.createdAt,
-      icon: "L",
       title: "Neuer Lead",
       text: `${lead.title} · ${lead.region}`,
       href: "/admin/leads",
-      tone: "blue",
     })),
     ...latestLeadPurchases.map((purchase) => ({
-      id: `lead-purchase-${purchase.id}`,
+      id: `purchase-${purchase.id}`,
+      type: "purchase",
       date: purchase.createdAt,
-      icon: "K",
       title: "Lead gekauft",
       text: `${purchase.provider.companyName} · ${purchase.lead.title}`,
-      href: `/portal/leads/${purchase.lead.id}`,
-      tone: "green",
+      href: `/leads/${purchase.lead.id}`,
     })),
     ...latestCreditPurchases.map((purchase) => ({
-      id: `credit-purchase-${purchase.id}`,
+      id: `payment-${purchase.id}`,
+      type: "payment",
       date: purchase.createdAt,
-      icon: "CHF",
       title: "Credit-Zahlung eingegangen",
       text: `${purchase.provider.companyName} · ${formatMoney(
         purchase.amount,
-        purchase.currency,
+        purchase.currency
       )}`,
-      href: "/portal/transaktionen",
-      tone: "gold",
+      href: "/admin/providers",
     })),
   ]
     .sort((a, b) => b.date.getTime() - a.date.getTime())
-    .slice(0, 8);
+    .slice(0, 10);
+
+  const kpis = [
+    {
+      label: "Umsatz heute",
+      value: formatMoney(revenueToday),
+      detail: `${revenueGrowth >= 0 ? "+" : ""}${revenueGrowth}% letzte 7 Tage`,
+      icon: "CHF",
+      tone: "emerald",
+    },
+    {
+      label: "Umsatz diesen Monat",
+      value: formatMoney(revenueMonth),
+      detail: `${formatMoney(totalRevenue)} Gesamtumsatz`,
+      icon: "↗",
+      tone: "blue",
+    },
+    {
+      label: "Anbieter",
+      value: formatNumber(providerCount),
+      detail: `+${providersToday} heute · ${pendingProviderCount} offen`,
+      icon: "P",
+      tone: "violet",
+    },
+    {
+      label: "Lead-Verkäufe",
+      value: formatNumber(leadPurchaseCount),
+      detail: `+${leadPurchasesToday} heute`,
+      icon: "K",
+      tone: "amber",
+    },
+  ];
 
   return (
-    <main className="page">
-      <section className="premium-admin">
-        <div className="container">
-          <header className="dashboard-hero">
-            <div>
-              <div className="hero-kicker">
-                <span className="live-dot" /> Auftrago Administration
-              </div>
-              <h1>Willkommen zurück, Dejan.</h1>
-              <p>
-                Alle wichtigen Zahlen, Verkäufe und Aktivitäten deiner
-                Plattform auf einen Blick.
-              </p>
+    <main className="admin-page">
+      <div className="admin-backdrop" />
+
+      <div className="admin-shell">
+        <header className="admin-hero">
+          <div>
+            <div className="admin-kicker">
+              <span className="admin-live-dot" />
+              Auftrago Administration
             </div>
 
-            <div className="hero-actions">
-              <Link href="/admin/leads" className="btn btn-primary">
-                + Neuer Lead
-              </Link>
-              <Link href="/admin/providers" className="btn btn-secondary">
-                Anbieter prüfen
-              </Link>
-              <Link href="/portal" className="btn btn-secondary">
-                Portal öffnen
-              </Link>
-              <Link href="/admin-logout" className="btn btn-secondary">
-                Abmelden
-              </Link>
-            </div>
-          </header>
+            <h1>Willkommen zurück, Dejan.</h1>
 
-          {pendingProviderCount > 0 ? (
-            <Link href="/admin/providers" className="review-banner">
-              <div>
-                <span>Handlungsbedarf</span>
-                <strong>
-                  {pendingProviderCount} neue
-                  {pendingProviderCount === 1 ? " Anbieter wartet" : " Anbieter warten"}{" "}
-                  auf Freigabe
-                </strong>
-              </div>
-              <b>Jetzt prüfen →</b>
+            <p>
+              Umsatz, Anbieter, Leads und Verkäufe in einer zentralen
+              Unternehmensansicht.
+            </p>
+          </div>
+
+          <div className="admin-actions">
+            <Link href="/admin/leads" className="admin-btn admin-btn-primary">
+              + Neuer Lead
             </Link>
-          ) : null}
 
-          <section className="kpi-grid">
-            <article className="kpi-card kpi-purple">
-              <div className="kpi-top"><span>Anbieter</span><b>👥</b></div>
-              <strong>{formatNumber(providerCount)}</strong>
-              <small>+{providersLast24Hours} in den letzten 24 Stunden</small>
-            </article>
+            <Link
+              href="/admin/providers"
+              className="admin-btn admin-btn-secondary"
+            >
+              Anbieter verwalten
+            </Link>
 
-            <article className="kpi-card kpi-blue">
-              <div className="kpi-top"><span>Leads</span><b>📋</b></div>
-              <strong>{formatNumber(leadCount)}</strong>
-              <small>+{leadsLast24Hours} neue Leads in 24 Stunden</small>
-            </article>
+            <Link href="/dashboard" className="admin-btn admin-btn-secondary">
+              Anbieterportal
+            </Link>
 
-            <article className="kpi-card kpi-green">
-              <div className="kpi-top"><span>Stripe-Umsatz</span><b>💳</b></div>
-              <strong>{formatMoney(totalStripeRevenue)}</strong>
-              <small>{creditPurchasesLast24Hours} Zahlungen in 24 Stunden</small>
-            </article>
+            <Link href="/admin-logout" className="admin-btn admin-btn-ghost">
+              Abmelden
+            </Link>
+          </div>
+        </header>
 
-            <article className="kpi-card kpi-gold">
-              <div className="kpi-top"><span>Credits verkauft</span><b>🪙</b></div>
-              <strong>{formatNumber(totalCreditsSold)}</strong>
-              <small>{formatNumber(totalStripePayments)} bezahlte Pakete</small>
-            </article>
+        {pendingProviderCount > 0 ? (
+          <Link href="/admin/providers" className="admin-alert">
+            <div>
+              <span>Handlungsbedarf</span>
+              <strong>
+                {pendingProviderCount}{" "}
+                {pendingProviderCount === 1
+                  ? "Anbieter wartet"
+                  : "Anbieter warten"}{" "}
+                auf Freigabe
+              </strong>
+            </div>
 
-            <article className="kpi-card">
-              <div className="kpi-top"><span>Lead-Verkäufe</span><b>⚡</b></div>
-              <strong>{formatNumber(leadPurchaseCount)}</strong>
-              <small>{leadPurchasesLast24Hours} Käufe in 24 Stunden</small>
-            </article>
+            <b>Jetzt prüfen →</b>
+          </Link>
+        ) : null}
 
-            <article className="kpi-card">
-              <div className="kpi-top"><span>Credits eingesetzt</span><b>↗</b></div>
-              <strong>{formatNumber(totalLeadCreditsSpent)}</strong>
-              <small>Für freigeschaltete Leads</small>
-            </article>
-          </section>
-
-          <section className="main-grid">
-            <article className="panel activity-panel">
-              <div className="panel-head">
-                <div><span>Live</span><h2>Aktivitäten</h2></div>
-                <small>Automatisch aktualisiert</small>
+        <section className="admin-kpi-grid">
+          {kpis.map((item) => (
+            <article
+              className={`admin-kpi admin-kpi-${item.tone}`}
+              key={item.label}
+            >
+              <div className="admin-kpi-head">
+                <span>{item.label}</span>
+                <b>{item.icon}</b>
               </div>
 
-              <div className="activity-list">
-                {activityFeed.length === 0 ? (
-                  <p className="empty-state">Noch keine Aktivitäten vorhanden.</p>
-                ) : (
-                  activityFeed.map((item) => (
-                    <Link href={item.href} key={item.id} className="activity-row">
-                      <div className={`activity-icon tone-${item.tone}`}>{item.icon}</div>
-                      <div className="activity-copy">
-                        <strong>{item.title}</strong>
-                        <span>{item.text}</span>
-                      </div>
-                      <time>{formatDate(item.date)}</time>
-                    </Link>
-                  ))
-                )}
-              </div>
+              <strong>{item.value}</strong>
+              <small>{item.detail}</small>
             </article>
+          ))}
+        </section>
 
-            <article className="panel funnel-panel">
-              <div className="panel-head">
-                <div><span>Performance</span><h2>Conversion-Funnel</h2></div>
+        <section className="admin-main-grid">
+          <article className="admin-panel admin-live-panel">
+            <div className="admin-panel-head">
+              <div>
+                <span>Live Feed</span>
+                <h2>Was gerade passiert</h2>
               </div>
 
-              <div className="funnel-list">
-                <div className="funnel-row">
-                  <div><span>Registriert</span><strong>{providerCount}</strong></div>
-                  <div className="funnel-track"><i style={{ width: "100%" }} /></div>
-                  <small>100%</small>
+              <small>Automatisch aktualisiert</small>
+            </div>
+
+            <div className="admin-activity-list">
+              {activityFeed.length === 0 ? (
+                <p className="admin-empty">Noch keine Aktivitäten vorhanden.</p>
+              ) : (
+                activityFeed.map((item) => (
+                  <Link
+                    href={item.href}
+                    key={item.id}
+                    className="admin-activity-row"
+                  >
+                    <div
+                      className={`admin-activity-icon activity-${item.type}`}
+                    >
+                      {activityIcon(item.type)}
+                    </div>
+
+                    <div className="admin-activity-copy">
+                      <strong>{item.title}</strong>
+                      <span>{item.text}</span>
+                    </div>
+
+                    <time>{formatDate(item.date)}</time>
+                  </Link>
+                ))
+              )}
+            </div>
+          </article>
+
+          <article className="admin-panel admin-funnel-panel">
+            <div className="admin-panel-head">
+              <div>
+                <span>Conversion</span>
+                <h2>Verkaufs-Funnel</h2>
+              </div>
+            </div>
+
+            <div className="admin-funnel">
+              {[
+                {
+                  label: "Leads",
+                  value: leadCount,
+                  percent: 100,
+                },
+                {
+                  label: "Gekauft",
+                  value: leadPurchaseCount,
+                  percent: purchaseRate,
+                },
+                {
+                  label: "Kontaktiert",
+                  value: contactedCount,
+                  percent: contactedRate,
+                },
+                {
+                  label: "Offerte",
+                  value: offerSentCount,
+                  percent: offerRate,
+                },
+                {
+                  label: "Gewonnen",
+                  value: wonCount,
+                  percent: wonRate,
+                },
+              ].map((item) => (
+                <div className="admin-funnel-row" key={item.label}>
+                  <div className="admin-funnel-title">
+                    <span>{item.label}</span>
+                    <strong>{formatNumber(item.value)}</strong>
+                  </div>
+
+                  <div className="admin-funnel-track">
+                    <i style={{ width: `${Math.max(item.percent, 3)}%` }} />
+                  </div>
+
+                  <small>{item.percent}%</small>
                 </div>
-                <div className="funnel-row">
-                  <div><span>Genehmigt</span><strong>{approvedProviderCount}</strong></div>
-                  <div className="funnel-track"><i style={{ width: `${approvalRate}%` }} /></div>
-                  <small>{approvalRate}%</small>
-                </div>
-                <div className="funnel-row">
-                  <div><span>Lead-Verkäufe</span><strong>{leadPurchaseCount}</strong></div>
-                  <div className="funnel-track"><i style={{ width: `${Math.min(100, leadConversion)}%` }} /></div>
-                  <small>{leadConversion}%</small>
-                </div>
+              ))}
+            </div>
+
+            <div className="admin-mini-stats">
+              <div>
+                <span>Genehmigt</span>
+                <strong>{approvedProviderCount}</strong>
               </div>
 
-              <div className="status-grid">
-                <div><span>Ausstehend</span><strong>{pendingProviderCount}</strong></div>
-                <div><span>Gesperrt</span><strong>{blockedProviderCount}</strong></div>
-                <div><span>Freigabequote</span><strong>{approvalRate}%</strong></div>
+              <div>
+                <span>Ausstehend</span>
+                <strong>{pendingProviderCount}</strong>
               </div>
-            </article>
-          </section>
 
-          <section className="triple-grid">
-            <article className="panel">
-              <div className="panel-head"><div><span>Letzte 30 Tage</span><h2>Top-Regionen</h2></div></div>
-              <div className="ranking-list">
-                {topRegions.length === 0 ? <p className="empty-state">Noch keine Daten.</p> : topRegions.map((item, index) => (
-                  <div className="ranking-row" key={`${item.region}-${index}`}>
-                    <div className="ranking-label"><b>{index + 1}</b><span>{item.region || "Ohne Region"}</span></div>
-                    <div className="ranking-bar"><i style={{ width: `${Math.round((item._count._all / maxRegionCount) * 100)}%` }} /></div>
+              <div>
+                <span>Freigabequote</span>
+                <strong>{approvalRate}%</strong>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section className="admin-metric-grid">
+          <article className="admin-panel admin-number-panel">
+            <span>Credits verkauft</span>
+            <strong>{formatNumber(totalCreditsSold)}</strong>
+            <small>{formatNumber(totalPayments)} bezahlte Pakete</small>
+          </article>
+
+          <article className="admin-panel admin-number-panel">
+            <span>Credits eingesetzt</span>
+            <strong>{formatNumber(totalLeadCreditsSpent)}</strong>
+            <small>Für freigeschaltete Leads</small>
+          </article>
+
+          <article className="admin-panel admin-number-panel">
+            <span>Neue Leads heute</span>
+            <strong>{formatNumber(leadsToday)}</strong>
+            <small>{formatNumber(leadCount)} Leads insgesamt</small>
+          </article>
+
+          <article className="admin-panel admin-number-panel">
+            <span>Neue Anbieter heute</span>
+            <strong>{formatNumber(providersToday)}</strong>
+            <small>{formatNumber(blockedProviderCount)} gesperrt</small>
+          </article>
+        </section>
+
+        <section className="admin-ranking-grid">
+          <article className="admin-panel">
+            <div className="admin-panel-head">
+              <div>
+                <span>Letzte 30 Tage</span>
+                <h2>Top-Regionen</h2>
+              </div>
+            </div>
+
+            <div className="admin-ranking-list">
+              {topRegions.length === 0 ? (
+                <p className="admin-empty">Noch keine Daten.</p>
+              ) : (
+                topRegions.map((item, index) => (
+                  <div className="admin-ranking-row" key={item.region}>
+                    <div className="admin-ranking-label">
+                      <b>{index + 1}</b>
+                      <span>{item.region || "Ohne Region"}</span>
+                    </div>
+
+                    <div className="admin-ranking-bar">
+                      <i
+                        style={{
+                          width: `${Math.round(
+                            (item._count._all / maxRegionCount) * 100
+                          )}%`,
+                        }}
+                      />
+                    </div>
+
                     <strong>{item._count._all}</strong>
                   </div>
-                ))}
-              </div>
-            </article>
+                ))
+              )}
+            </div>
+          </article>
 
-            <article className="panel">
-              <div className="panel-head"><div><span>Letzte 30 Tage</span><h2>Top-Kategorien</h2></div></div>
-              <div className="ranking-list">
-                {topCategories.length === 0 ? <p className="empty-state">Noch keine Daten.</p> : topCategories.map((item, index) => (
-                  <div className="ranking-row" key={`${item.category}-${index}`}>
-                    <div className="ranking-label"><b>{index + 1}</b><span>{item.category || "Ohne Kategorie"}</span></div>
-                    <div className="ranking-bar"><i style={{ width: `${Math.round((item._count._all / maxCategoryCount) * 100)}%` }} /></div>
+          <article className="admin-panel">
+            <div className="admin-panel-head">
+              <div>
+                <span>Letzte 30 Tage</span>
+                <h2>Top-Kategorien</h2>
+              </div>
+            </div>
+
+            <div className="admin-ranking-list">
+              {topCategories.length === 0 ? (
+                <p className="admin-empty">Noch keine Daten.</p>
+              ) : (
+                topCategories.map((item, index) => (
+                  <div className="admin-ranking-row" key={item.category}>
+                    <div className="admin-ranking-label">
+                      <b>{index + 1}</b>
+                      <span>{item.category || "Ohne Kategorie"}</span>
+                    </div>
+
+                    <div className="admin-ranking-bar">
+                      <i
+                        style={{
+                          width: `${Math.round(
+                            (item._count._all / maxCategoryCount) * 100
+                          )}%`,
+                        }}
+                      />
+                    </div>
+
                     <strong>{item._count._all}</strong>
                   </div>
-                ))}
-              </div>
-            </article>
+                ))
+              )}
+            </div>
+          </article>
 
-            <article className="panel">
-              <div className="panel-head"><div><span>Nach Käufen</span><h2>Top-Anbieter</h2></div></div>
-              <div className="provider-ranking">
-                {topProviders.length === 0 ? <p className="empty-state">Noch keine Käufe.</p> : topProviders.map((item, index) => {
+          <article className="admin-panel">
+            <div className="admin-panel-head">
+              <div>
+                <span>Nach Käufen</span>
+                <h2>Top-Anbieter</h2>
+              </div>
+            </div>
+
+            <div className="admin-provider-ranking">
+              {topProviders.length === 0 ? (
+                <p className="admin-empty">Noch keine Käufe.</p>
+              ) : (
+                topProviders.map((item, index) => {
                   const provider = providerMap.get(item.providerId);
-                  const name = provider?.companyName || "Unbekannter Anbieter";
+                  const name =
+                    provider?.companyName || "Unbekannter Anbieter";
+
                   return (
-                    <div className="provider-rank-row" key={item.providerId}>
-                      <div className="avatar">{initials(name)}</div>
-                      <div><strong>{name}</strong><span>{provider?.region || "Keine Region"}</span></div>
-                      <div className="rank-number"><strong>{item._count._all}</strong><span>Käufe</span></div>
+                    <div
+                      className="admin-provider-rank-row"
+                      key={item.providerId}
+                    >
+                      <div className="admin-rank-position">{index + 1}</div>
+                      <div className="admin-avatar">{initials(name)}</div>
+
+                      <div className="admin-provider-copy">
+                        <strong>{name}</strong>
+                        <span>{provider?.region || "Keine Region"}</span>
+                      </div>
+
+                      <div className="admin-rank-value">
+                        <strong>{item._count._all}</strong>
+                        <span>Käufe</span>
+                      </div>
                     </div>
                   );
-                })}
-              </div>
-            </article>
-          </section>
+                })
+              )}
+            </div>
+          </article>
+        </section>
 
-          <section className="double-grid">
-            <article className="panel">
-              <div className="panel-head">
-                <div><span>Neueste</span><h2>Anbieter</h2></div>
-                <Link href="/admin/providers">Alle anzeigen →</Link>
+        <section className="admin-double-grid">
+          <article className="admin-panel">
+            <div className="admin-panel-head">
+              <div>
+                <span>Neueste</span>
+                <h2>Anbieter</h2>
               </div>
-              <div className="compact-list">
-                {latestProviders.map((provider) => {
-                  const status = providerStatus(provider.status);
-                  return (
-                    <div className="compact-row" key={provider.id}>
-                      <div className="avatar">{initials(provider.companyName)}</div>
-                      <div className="compact-main"><strong>{provider.companyName}</strong><span>{provider.contactName} · {provider.region || "Keine Region"}</span></div>
-                      <span className="status-badge" style={{ color: status.color, background: status.background, borderColor: status.border }}>{status.label}</span>
+
+              <Link href="/admin/providers">Alle anzeigen →</Link>
+            </div>
+
+            <div className="admin-compact-list">
+              {latestProviders.map((provider) => {
+                const status = providerStatus(provider.status);
+
+                return (
+                  <div className="admin-compact-row" key={provider.id}>
+                    <div className="admin-avatar">
+                      {initials(provider.companyName)}
                     </div>
-                  );
-                })}
-              </div>
-            </article>
 
-            <article className="panel">
-              <div className="panel-head">
-                <div><span>Neueste</span><h2>Leads</h2></div>
-                <Link href="/admin/leads">Alle anzeigen →</Link>
-              </div>
-              <div className="compact-list">
-                {latestLeads.map((lead) => (
-                  <div className="compact-row" key={lead.id}>
-                    <div className="lead-price">{lead.price}</div>
-                    <div className="compact-main"><strong>{lead.title}</strong><span>{lead.region} · {lead.category}</span></div>
-                    <div className="sales-count"><strong>{lead._count.purchases}</strong><span>Verkäufe</span></div>
+                    <div className="admin-compact-main">
+                      <strong>{provider.companyName}</strong>
+                      <span>
+                        {provider.contactName} ·{" "}
+                        {provider.region || "Keine Region"}
+                      </span>
+                    </div>
+
+                    <span
+                      className={`admin-status ${status.className}`}
+                    >
+                      {status.label}
+                    </span>
                   </div>
-                ))}
-              </div>
-            </article>
-          </section>
+                );
+              })}
+            </div>
+          </article>
 
-          <section className="quick-actions">
-            <Link href="/admin/leads"><span>＋</span><strong>Neuen Lead erstellen</strong><small>Kundenanfrage erfassen</small></Link>
-            <Link href="/admin/providers"><span>✓</span><strong>Anbieter freigeben</strong><small>Profile prüfen und verwalten</small></Link>
-            <Link href="/portal/transaktionen"><span>↗</span><strong>Transaktionen</strong><small>Zahlungen und Credits prüfen</small></Link>
-            <Link href="/portal"><span>⌂</span><strong>Portal öffnen</strong><small>Anbieteransicht kontrollieren</small></Link>
-          </section>
-        </div>
-      </section>
+          <article className="admin-panel">
+            <div className="admin-panel-head">
+              <div>
+                <span>Neueste</span>
+                <h2>Leads</h2>
+              </div>
+
+              <Link href="/admin/leads">Alle anzeigen →</Link>
+            </div>
+
+            <div className="admin-compact-list">
+              {latestLeads.map((lead) => (
+                <div className="admin-compact-row" key={lead.id}>
+                  <div className="admin-lead-price">{lead.price}</div>
+
+                  <div className="admin-compact-main">
+                    <strong>{lead.title}</strong>
+                    <span>
+                      {lead.region} · {lead.category}
+                    </span>
+                  </div>
+
+                  <div className="admin-sales-count">
+                    <strong>{lead._count.purchases}</strong>
+                    <span>Verkäufe</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </article>
+        </section>
+
+        <section className="admin-quick-actions">
+          <Link href="/admin/leads">
+            <span>＋</span>
+            <strong>Neuen Lead erstellen</strong>
+            <small>Kundenanfrage erfassen</small>
+          </Link>
+
+          <Link href="/admin/providers">
+            <span>✓</span>
+            <strong>Anbieter freigeben</strong>
+            <small>Profile prüfen und verwalten</small>
+          </Link>
+
+          <Link href="/admin/activity">
+            <span>↗</span>
+            <strong>Aktivitäten prüfen</strong>
+            <small>Logins und Nutzung analysieren</small>
+          </Link>
+
+          <Link href="/dashboard">
+            <span>⌂</span>
+            <strong>Anbieterportal öffnen</strong>
+            <small>Live-Ansicht kontrollieren</small>
+          </Link>
+        </section>
+      </div>
     </main>
   );
 }
