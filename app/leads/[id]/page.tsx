@@ -7,6 +7,8 @@ import { requireUser } from "@/lib/auth";
 import { trackProviderActivity } from "@/lib/provider-activity";
 
 import UnlockButton from "./unlock-button";
+import LeadCrm from "./components/lead-crm";
+import LeadOffers from "./components/lead-offers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -215,6 +217,35 @@ export default async function LeadDetailPage({
         price: true,
         status: true,
         createdAt: true,
+        notes: {
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            content: true,
+            createdAt: true,
+          },
+        },
+        activities: {
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            type: true,
+            description: true,
+            createdAt: true,
+          },
+        },
+        offers: {
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            amount: true,
+            status: true,
+            pdfUrl: true,
+            createdAt: true,
+          },
+        },
       },
     }),
   ]);
@@ -353,7 +384,8 @@ export default async function LeadDetailPage({
               </div>
             </article>
 
-            {isUnlocked ? (
+            {isUnlocked && purchase ? (
+              <>
               <article className="rounded-[32px] border border-emerald-400/20 bg-[linear-gradient(145deg,rgba(16,185,129,0.14),rgba(255,255,255,0.04))] p-6 shadow-[0_24px_80px_rgba(16,185,129,0.08)] sm:p-8">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
@@ -435,6 +467,31 @@ export default async function LeadDetailPage({
                   </p>
                 ) : null}
               </article>
+
+              <LeadOffers
+                purchaseId={purchase.id}
+                leadTitle={lead.title}
+                customerName={lead.name}
+                initialOffers={purchase.offers.map((offer) => ({
+                  ...offer,
+                  createdAt: offer.createdAt.toISOString(),
+                }))}
+              />
+
+              <LeadCrm
+                purchaseId={purchase.id}
+                initialStatus={purchase.status}
+                purchaseCreatedAt={purchase.createdAt.toISOString()}
+                initialNotes={purchase.notes.map((note) => ({
+                  ...note,
+                  createdAt: note.createdAt.toISOString(),
+                }))}
+                initialActivities={purchase.activities.map((activity) => ({
+                  ...activity,
+                  createdAt: activity.createdAt.toISOString(),
+                }))}
+              />
+              </>
             ) : (
               <article className="rounded-[32px] border border-white/10 bg-[#0b1427]/95 p-6 sm:p-8">
                 <div className="flex items-start gap-4">
