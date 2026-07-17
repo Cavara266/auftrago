@@ -129,6 +129,7 @@ export default async function AdminDashboardPage() {
     topRegions,
     topCategories,
     topProviders,
+    revenueChartPurchases,
   ] = await Promise.all([
     prisma.provider.findMany({
       orderBy: { createdAt: "desc" },
@@ -376,6 +377,22 @@ export default async function AdminDashboardPage() {
       },
       take: 5,
     }),
+
+    prisma.creditPurchase.findMany({
+      where: {
+        status: "paid",
+        createdAt: {
+          gte: last7Days,
+        },
+      },
+      select: {
+        amount: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    }),
   ]);
 
   const topProviderIds = topProviders.map((item) => item.providerId);
@@ -426,6 +443,55 @@ export default async function AdminDashboardPage() {
     ...topCategories.map((item) => item._count._all),
     1
   );
+
+  const revenueByDay = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(now);
+    date.setDate(now.getDate() - (6 - index));
+    date.setHours(0, 0, 0, 0);
+
+    const nextDate = new Date(date);
+    nextDate.setDate(date.getDate() + 1);
+
+    const amount = revenueChartPurchases
+      .filter(
+        (purchase) =>
+          purchase.createdAt >= date && purchase.createdAt < nextDate
+      )
+      .reduce((sum, purchase) => sum + purchase.amount, 0);
+
+    return {
+      label: new Intl.DateTimeFormat("de-CH", { weekday: "short" }).format(date),
+      amount,
+    };
+  });
+
+  const maxRevenueDay = Math.max(...revenueByDay.map((item) => item.amount), 1);
+  const leadGrowth = growth(leadsLast7, leadsPrevious7);
+  const providerGrowth = growth(providersLast7, providersPrevious7);
+  const purchaseGrowth = growth(leadPurchasesLast7, leadPurchasesPrevious7);
+
+  const insights = [
+    {
+      tone: revenueGrowth >= 0 ? "positive" : "warning",
+      title: revenueGrowth >= 0 ? "Umsatz entwickelt sich positiv" : "Umsatz beobachten",
+      text: `Die letzten 7 Tage liegen ${Math.abs(revenueGrowth)}% ${
+        revenueGrowth >= 0 ? "über" : "unter"
+      } der Vorperiode.`,
+    },
+    {
+      tone: purchaseRate >= 25 ? "positive" : "info",
+      title: "Lead-Conversion",
+      text: `${purchaseRate}% aller Leads wurden mindestens einmal gekauft.`,
+    },
+    {
+      tone: pendingProviderCount > 0 ? "warning" : "positive",
+      title: pendingProviderCount > 0 ? "Anbieter warten auf Freigabe" : "Anbieterprüfung aktuell",
+      text:
+        pendingProviderCount > 0
+          ? `${pendingProviderCount} Anbieter sollten geprüft werden.`
+          : "Momentan sind keine Anbieterfreigaben offen.",
+    },
+  ];
 
   const activityFeed = [
     ...latestProviders.map((provider) => ({
@@ -530,8 +596,12 @@ export default async function AdminDashboardPage() {
               Anbieter verwalten
             </Link>
 
-            <Link href="/dashboard" className="admin-btn admin-btn-secondary">
-              Anbieterportal
+            <Link href="/admin/analytics" className="admin-btn admin-btn-secondary">
+              Analytics
+            </Link>
+
+            <Link href="/admin/activity" className="admin-btn admin-btn-secondary">
+              Activities
             </Link>
 
             <Link href="/admin-logout" className="admin-btn admin-btn-ghost">
@@ -572,6 +642,78 @@ export default async function AdminDashboardPage() {
               <small>{item.detail}</small>
             </article>
           ))}
+        </section>
+
+        <section className="admin-command-grid">
+          <article className="admin-panel admin-revenue-panel">
+            <div className="admin-panel-head">
+              <div>
+                <span>Umsatzverlauf</span>
+                <h2>Letzte 7 Tage</h2>
+              </div>
+              <Link href="/admin/analytics">Details →</Link>
+            </div>
+
+            <div className="admin-chart">
+              {revenueByDay.map((item) => (
+                <div className="admin-chart-column" key={item.label}>
+                  <div className="admin-chart-value">
+                    {item.amount > 0 ? formatMoney(item.amount) : "–"}
+                  </div>
+                  <div className="admin-chart-track">
+                    <i
+                      style={{
+                        height: `${Math.max((item.amount / maxRevenueDay) * 100, 5)}%`,
+                      }}
+                    />
+                  </div>
+                  <span>{item.label}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="admin-trend-strip">
+              <div>
+                <span>Leads</span>
+                <strong className={leadGrowth >= 0 ? "trend-up" : "trend-down"}>
+                  {leadGrowth >= 0 ? "+" : ""}{leadGrowth}%
+                </strong>
+              </div>
+              <div>
+                <span>Anbieter</span>
+                <strong className={providerGrowth >= 0 ? "trend-up" : "trend-down"}>
+                  {providerGrowth >= 0 ? "+" : ""}{providerGrowth}%
+                </strong>
+              </div>
+              <div>
+                <span>Lead-Käufe</span>
+                <strong className={purchaseGrowth >= 0 ? "trend-up" : "trend-down"}>
+                  {purchaseGrowth >= 0 ? "+" : ""}{purchaseGrowth}%
+                </strong>
+              </div>
+            </div>
+          </article>
+
+          <article className="admin-panel admin-insights-panel">
+            <div className="admin-panel-head">
+              <div>
+                <span>Business Intelligence</span>
+                <h2>Automatische Hinweise</h2>
+              </div>
+            </div>
+
+            <div className="admin-insight-list">
+              {insights.map((item) => (
+                <div className={`admin-insight insight-${item.tone}`} key={item.title}>
+                  <b />
+                  <div>
+                    <strong>{item.title}</strong>
+                    <span>{item.text}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </article>
         </section>
 
         <section className="admin-main-grid">
@@ -896,6 +1038,21 @@ export default async function AdminDashboardPage() {
           </article>
         </section>
 
+        <section className="admin-system-grid">
+          {[
+            { label: "Plattform", text: "Admin-Dashboard erreichbar", status: "Online" },
+            { label: "Datenbank", text: "Prisma-Abfragen erfolgreich", status: "Verbunden" },
+            { label: "Zahlungen", text: `${formatNumber(totalPayments)} bezahlte Pakete`, status: "Aktiv" },
+            { label: "CRM", text: `${formatNumber(contactedCount)} Kontakte bearbeitet`, status: "Aktiv" },
+          ].map((item) => (
+            <article className="admin-system-card" key={item.label}>
+              <div className="admin-system-status"><i />{item.status}</div>
+              <strong>{item.label}</strong>
+              <span>{item.text}</span>
+            </article>
+          ))}
+        </section>
+
         <section className="admin-quick-actions">
           <Link href="/admin/leads">
             <span>＋</span>
@@ -915,10 +1072,10 @@ export default async function AdminDashboardPage() {
             <small>Logins und Nutzung analysieren</small>
           </Link>
 
-          <Link href="/dashboard">
-            <span>⌂</span>
-            <strong>Anbieterportal öffnen</strong>
-            <small>Live-Ansicht kontrollieren</small>
+          <Link href="/admin/analytics">
+            <span>◎</span>
+            <strong>Analytics öffnen</strong>
+            <small>Entwicklung und Conversion prüfen</small>
           </Link>
         </section>
       </div>

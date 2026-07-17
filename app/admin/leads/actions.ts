@@ -1,7 +1,9 @@
 "use server";
 
 import { redirect } from "next/navigation";
+
 import { prisma } from "@/lib/prisma";
+import { sendNewLeadNotifications } from "@/lib/new-lead-notification";
 
 function cleanValue(value: FormDataEntryValue | null) {
   return String(value || "").trim();
@@ -64,7 +66,7 @@ export async function createLeadAction(formData: FormData) {
     redirect("/admin/leads?error=invalid-price");
   }
 
-  await prisma.lead.create({
+  const lead = await prisma.lead.create({
     data: {
       title,
       description,
@@ -75,7 +77,36 @@ export async function createLeadAction(formData: FormData) {
       category,
       price,
     },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      region: true,
+      category: true,
+      price: true,
+    },
   });
+
+  try {
+    const result = await sendNewLeadNotifications({
+      lead,
+      estimatedValue,
+    });
+
+    console.log("NEW LEAD NOTIFICATIONS COMPLETED:", {
+      leadId: lead.id,
+      matchedProviders: result.matchedProviders,
+      sent: result.sent,
+      failed: result.failed,
+      fallbackUsed: result.fallbackUsed,
+    });
+  } catch (error) {
+    // Der Lead bleibt gespeichert, auch falls der Mailversand vorübergehend fehlschlägt.
+    console.error("NEW LEAD NOTIFICATION ERROR:", {
+      leadId: lead.id,
+      error,
+    });
+  }
 
   redirect("/admin/leads?message=created");
 }
