@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { sendLeadPurchaseMail } from "@/lib/lead-purchase-mail";
+import { trackProviderActivity } from "@/lib/provider-activity";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,6 +32,20 @@ type PurchaseResult = {
   providerContactName: string;
   providerCompanyName: string;
 };
+
+function getClientIp(request: Request): string | undefined {
+  const forwardedFor = request.headers.get("x-forwarded-for");
+
+  if (forwardedFor) {
+    return forwardedFor.split(",")[0]?.trim() || undefined;
+  }
+
+  return (
+    request.headers.get("x-real-ip") ||
+    request.headers.get("cf-connecting-ip") ||
+    undefined
+  );
+}
 
 async function purchaseLead(
   providerId: string,
@@ -83,13 +99,16 @@ async function purchaseLead(
             throw new Error("ALREADY_UNLOCKED");
           }
 
-          const purchaseCount = await tx.leadPurchase.count({
-            where: {
-              leadId,
-            },
-          });
+          const purchaseCount =
+            await tx.leadPurchase.count({
+              where: {
+                leadId,
+              },
+            });
 
-          if (purchaseCount >= MAX_PROVIDERS_PER_LEAD) {
+          if (
+            purchaseCount >= MAX_PROVIDERS_PER_LEAD
+          ) {
             throw new Error("LEAD_SOLD_OUT");
           }
 
@@ -113,19 +132,20 @@ async function purchaseLead(
             throw new Error("NOT_ENOUGH_CREDITS");
           }
 
-          const purchase = await tx.leadPurchase.create({
-            data: {
-              providerId: provider.id,
-              leadId,
-              price: leadPrice,
-              status: "OPEN",
-            },
-            select: {
-              id: true,
-              price: true,
-              createdAt: true,
-            },
-          });
+          const purchase =
+            await tx.leadPurchase.create({
+              data: {
+                providerId: provider.id,
+                leadId,
+                price: leadPrice,
+                status: "OPEN",
+              },
+              select: {
+                id: true,
+                price: true,
+                createdAt: true,
+              },
+            });
 
           const providerAfterPurchase =
             await tx.provider.findUnique({
@@ -137,29 +157,36 @@ async function purchaseLead(
               },
             });
 
-          const newPurchaseCount = purchaseCount + 1;
+          const newPurchaseCount =
+            purchaseCount + 1;
 
           return {
             purchase,
-            credits: providerAfterPurchase?.credits ?? 0,
+            credits:
+              providerAfterPurchase?.credits ?? 0,
             purchaseCount: newPurchaseCount,
             remainingSlots: Math.max(
               0,
-              MAX_PROVIDERS_PER_LEAD - newPurchaseCount
+              MAX_PROVIDERS_PER_LEAD -
+                newPurchaseCount
             ),
             providerEmail: provider.email,
-            providerContactName: provider.contactName,
-            providerCompanyName: provider.companyName,
+            providerContactName:
+              provider.contactName,
+            providerCompanyName:
+              provider.companyName,
           };
         },
         {
           isolationLevel:
-            Prisma.TransactionIsolationLevel.Serializable,
+            Prisma.TransactionIsolationLevel
+              .Serializable,
         }
       );
     } catch (error) {
       const isRetryableTransactionError =
-        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error instanceof
+          Prisma.PrismaClientKnownRequestError &&
         error.code === "P2034";
 
       if (
@@ -177,7 +204,7 @@ async function purchaseLead(
 }
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: RouteContext
 ) {
   try {
@@ -212,7 +239,9 @@ export async function POST(
       );
     }
 
-    const leadId = String(params.id || "").trim();
+    const leadId = String(
+      params.id || ""
+    ).trim();
 
     if (!leadId) {
       return NextResponse.json(
@@ -258,7 +287,10 @@ export async function POST(
       );
     }
 
-    if (!Number.isInteger(lead.price) || lead.price <= 0) {
+    if (
+      !Number.isInteger(lead.price) ||
+      lead.price <= 0
+    ) {
       return NextResponse.json(
         {
           ok: false,
@@ -278,14 +310,48 @@ export async function POST(
       lead.price
     );
 
+    const ipAddress = getClientIp(request);
+    const userAgent =
+      request.headers.get("user-agent") ||
+      undefined;
+
+    await trackProviderActivity({
+      providerId: user.id,
+      event: "LEAD_PURCHASED",
+      description:
+        "Anbieter hat einen Lead erfolgreich freigeschaltet",
+      page: `/leads/${lead.id}`,
+      leadId: lead.id,
+      metadata: {
+        leadTitle: lead.title,
+        category: lead.category,
+        region: lead.region,
+        creditsSpent: lead.price,
+        remainingCredits: result.credits,
+        purchaseId: result.purchase.id,
+        purchaseCount:
+          result.purchaseCount,
+        remainingSlots:
+          result.remainingSlots,
+        maxProviders:
+          MAX_PROVIDERS_PER_LEAD,
+      },
+      ipAddress,
+      userAgent,
+    });
+
     try {
-      console.log("LEAD PURCHASE MAIL START:", {
-        to: result.providerEmail,
-        leadId: lead.id,
-      });
+      console.log(
+        "LEAD PURCHASE MAIL START:",
+        {
+          to: result.providerEmail,
+          leadId: lead.id,
+        }
+      );
 
       await sendLeadPurchaseMail({
-        providerEmail: result.providerEmail,
+        providerEmail:
+          result.providerEmail,
         providerContactName:
           result.providerContactName,
         providerCompanyName:
@@ -295,24 +361,30 @@ export async function POST(
         leadTitle: lead.title,
         leadCategory: lead.category,
         leadRegion: lead.region,
-        leadDescription: lead.description,
+        leadDescription:
+          lead.description,
 
         customerName: lead.name,
         customerPhone: lead.phone,
         customerEmail: lead.email,
 
         price: lead.price,
-        remainingCredits: result.credits,
+        remainingCredits:
+          result.credits,
       });
 
-      console.log("LEAD PURCHASE MAIL SENT:", {
-        to: result.providerEmail,
-        leadId: lead.id,
-      });
+      console.log(
+        "LEAD PURCHASE MAIL SENT:",
+        {
+          to: result.providerEmail,
+          leadId: lead.id,
+        }
+      );
     } catch (mailError) {
       /*
-       * Der Lead-Kauf bleibt erfolgreich, auch wenn der
-       * E-Mail-Versand vorübergehend fehlschlägt.
+       * Der Lead-Kauf bleibt erfolgreich,
+       * auch wenn der E-Mail-Versand
+       * vorübergehend fehlschlägt.
        */
       console.error(
         "LEAD PURCHASE MAIL ERROR:",
@@ -326,10 +398,14 @@ export async function POST(
       leadId: lead.id,
       credits: result.credits,
       purchase: result.purchase,
-      purchaseCount: result.purchaseCount,
-      maxPurchases: MAX_PROVIDERS_PER_LEAD,
-      remainingSlots: result.remainingSlots,
-      soldOut: result.remainingSlots === 0,
+      purchaseCount:
+        result.purchaseCount,
+      maxPurchases:
+        MAX_PROVIDERS_PER_LEAD,
+      remainingSlots:
+        result.remainingSlots,
+      soldOut:
+        result.remainingSlots === 0,
       message: `${lead.title} wurde erfolgreich freigeschaltet.`,
     });
   } catch (error) {
@@ -354,7 +430,8 @@ export async function POST(
           ok: false,
           error: "LEAD_SOLD_OUT",
           soldOut: true,
-          maxPurchases: MAX_PROVIDERS_PER_LEAD,
+          maxPurchases:
+            MAX_PROVIDERS_PER_LEAD,
           remainingSlots: 0,
           message:
             "Diese Kundenanfrage wurde bereits an vier Anbieter vergeben.",
@@ -367,25 +444,33 @@ export async function POST(
 
     if (
       error instanceof Error &&
-      error.message === "NOT_ENOUGH_CREDITS"
+      error.message ===
+        "NOT_ENOUGH_CREDITS"
     ) {
+      const currentUser =
+        await requireUser();
+
       const currentProvider =
-        await prisma.provider.findUnique({
-          where: {
-            id: (await requireUser())?.id || "",
-          },
-          select: {
-            credits: true,
-          },
-        });
+        currentUser
+          ? await prisma.provider.findUnique({
+              where: {
+                id: currentUser.id,
+              },
+              select: {
+                credits: true,
+              },
+            })
+          : null;
 
       return NextResponse.json(
         {
           ok: false,
-          error: "NOT_ENOUGH_CREDITS",
+          error:
+            "NOT_ENOUGH_CREDITS",
           message:
             "Du hast nicht genügend Credits für diese Kundenanfrage.",
-          credits: currentProvider?.credits ?? 0,
+          credits:
+            currentProvider?.credits ?? 0,
         },
         {
           status: 400,
@@ -395,12 +480,14 @@ export async function POST(
 
     if (
       error instanceof Error &&
-      error.message === "PROVIDER_NOT_FOUND"
+      error.message ===
+        "PROVIDER_NOT_FOUND"
     ) {
       return NextResponse.json(
         {
           ok: false,
-          error: "PROVIDER_NOT_FOUND",
+          error:
+            "PROVIDER_NOT_FOUND",
           message:
             "Das Anbieterkonto wurde nicht gefunden.",
         },
@@ -412,12 +499,14 @@ export async function POST(
 
     if (
       error instanceof Error &&
-      error.message === "PROVIDER_NOT_APPROVED"
+      error.message ===
+        "PROVIDER_NOT_APPROVED"
     ) {
       return NextResponse.json(
         {
           ok: false,
-          error: "PROVIDER_NOT_APPROVED",
+          error:
+            "PROVIDER_NOT_APPROVED",
           message:
             "Dein Anbieterkonto ist nicht freigeschaltet.",
         },
@@ -428,11 +517,13 @@ export async function POST(
     }
 
     /*
-     * Derselbe Anbieter kann denselben Lead aufgrund des
-     * Unique-Indexes nicht zweimal kaufen.
+     * Derselbe Anbieter kann denselben
+     * Lead aufgrund des Unique-Indexes
+     * nicht zweimal kaufen.
      */
     if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error instanceof
+        Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
       return NextResponse.json({
@@ -443,7 +534,10 @@ export async function POST(
       });
     }
 
-    console.error("LEAD UNLOCK ERROR:", error);
+    console.error(
+      "LEAD UNLOCK ERROR:",
+      error
+    );
 
     return NextResponse.json(
       {

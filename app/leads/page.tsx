@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import ProviderPageTracker from "@/components/provider-page-tracker";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,6 +39,17 @@ export default async function LeadsPage() {
 
   return (
     <main className="min-h-screen bg-[#030816] text-white">
+      <ProviderPageTracker
+        event="LEADS_VIEWED"
+        page="/leads"
+        description="Anbieter hat die Leadliste geöffnet"
+        metadata={{
+          availableLeads: leads.length,
+          purchasedLeads: purchases.length,
+          credits: user.credits,
+        }}
+      />
+
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
@@ -81,6 +94,15 @@ export default async function LeadsPage() {
           <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {leads.map((lead) => {
               const purchased = purchasedLeadIds.has(lead.id);
+              const category = lead.category.toLowerCase();
+
+              const categoryIcon = category.includes("reinigung")
+                ? "🧹"
+                : category.includes("umzug")
+                  ? "🏠"
+                  : category.includes("garten")
+                    ? "🌿"
+                    : "🛠️";
 
               return (
                 <article
@@ -90,15 +112,7 @@ export default async function LeadsPage() {
                   <div>
                     <div className="flex items-start justify-between gap-4">
                       <div className="text-2xl">
-                        {lead.category.toLowerCase().includes("reinigung")
-                          ? "🧹"
-                          : lead.category.toLowerCase().includes("umzug")
-                            ? "🏠"
-                            : lead.category
-                                  .toLowerCase()
-                                  .includes("garten")
-                              ? "🌿"
-                              : "🛠️"}
+                        {categoryIcon}
                       </div>
 
                       <div

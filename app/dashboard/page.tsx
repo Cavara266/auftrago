@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import ProviderPageTracker from "@/components/provider-page-tracker";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,6 +30,16 @@ export default async function DashboardPage() {
 
   return (
     <main className="min-h-screen bg-[#030816] text-white">
+      <ProviderPageTracker
+        event="DASHBOARD_VIEWED"
+        page="/dashboard"
+        description="Anbieter hat das Dashboard geöffnet"
+        metadata={{
+          credits: user.credits,
+          unlockedLeads: purchases.length,
+        }}
+      />
+
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
@@ -154,27 +166,38 @@ export default async function DashboardPage() {
 
                   <div className="mt-5 grid gap-3 text-sm text-white/70 sm:grid-cols-2">
                     <div>
-                      <span className="text-white/40">Kategorie:</span>{" "}
+                      <span className="text-white/40">
+                        Kategorie:
+                      </span>{" "}
                       {purchase.lead.category}
                     </div>
 
                     <div>
-                      <span className="text-white/40">Region:</span>{" "}
+                      <span className="text-white/40">
+                        Region:
+                      </span>{" "}
                       {purchase.lead.region}
                     </div>
 
                     <div>
-                      <span className="text-white/40">Name:</span>{" "}
+                      <span className="text-white/40">
+                        Name:
+                      </span>{" "}
                       {purchase.lead.name}
                     </div>
 
                     <div>
-                      <span className="text-white/40">Telefon:</span>{" "}
+                      <span className="text-white/40">
+                        Telefon:
+                      </span>{" "}
                       {purchase.lead.phone}
                     </div>
 
                     <div className="sm:col-span-2">
-                      <span className="text-white/40">E-Mail:</span>{" "}
+                      <span className="text-white/40">
+                        E-Mail:
+                      </span>{" "}
+
                       <a
                         href={`mailto:${purchase.lead.email}`}
                         className="text-sky-300 hover:underline"

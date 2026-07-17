@@ -1,12 +1,18 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
+
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import { trackProviderActivity } from "@/lib/provider-activity";
+
 import UnlockButton from "./unlock-button";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+const LEAD_VIEW_DEDUPLICATION_SECONDS = 15;
 
 type LeadDetailPageProps = {
   params: {
@@ -74,6 +80,91 @@ function formatDate(date: Date) {
   }).format(date);
 }
 
+function getClientIp(requestHeaders: Headers) {
+  const forwardedFor = requestHeaders.get("x-forwarded-for");
+
+  if (forwardedFor) {
+    return forwardedFor.split(",")[0]?.trim() || undefined;
+  }
+
+  return (
+    requestHeaders.get("x-real-ip") ||
+    requestHeaders.get("cf-connecting-ip") ||
+    undefined
+  );
+}
+
+async function trackLeadView({
+  providerId,
+  lead,
+  isUnlocked,
+}: {
+  providerId: string;
+  lead: {
+    id: string;
+    title: string;
+    category: string;
+    region: string;
+    price: number;
+  };
+  isUnlocked: boolean;
+}) {
+  try {
+    const requestHeaders = headers();
+    const userAgent =
+      requestHeaders.get("user-agent") || undefined;
+    const ipAddress = getClientIp(requestHeaders);
+
+    const duplicateThreshold = new Date(
+      Date.now() -
+        LEAD_VIEW_DEDUPLICATION_SECONDS * 1000
+    );
+
+    const existingActivity =
+      await prisma.providerActivity.findFirst({
+        where: {
+          providerId,
+          event: "LEAD_VIEWED",
+          leadId: lead.id,
+          createdAt: {
+            gte: duplicateThreshold,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+    if (existingActivity) {
+      return;
+    }
+
+    await trackProviderActivity({
+      providerId,
+      event: "LEAD_VIEWED",
+      description:
+        "Anbieter hat die Detailansicht eines Leads geöffnet",
+      page: `/leads/${lead.id}`,
+      leadId: lead.id,
+      metadata: {
+        leadTitle: lead.title,
+        category: lead.category,
+        region: lead.region,
+        price: lead.price,
+        isUnlocked,
+      },
+      ipAddress,
+      userAgent,
+    });
+  } catch (error) {
+    /*
+     * Ein Fehler im Analytics-System darf die eigentliche
+     * Lead-Seite niemals blockieren.
+     */
+    console.error("LEAD VIEW TRACKING ERROR:", error);
+  }
+}
+
 export default async function LeadDetailPage({
   params,
 }: LeadDetailPageProps) {
@@ -134,6 +225,18 @@ export default async function LeadDetailPage({
 
   const isUnlocked = Boolean(purchase);
   const categoryIcon = getCategoryIcon(lead.category);
+
+  await trackLeadView({
+    providerId: user.id,
+    lead: {
+      id: lead.id,
+      title: lead.title,
+      category: lead.category,
+      region: lead.region,
+      price: lead.price,
+    },
+    isUnlocked,
+  });
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#030816] text-white">
@@ -199,7 +302,8 @@ export default async function LeadDetailPage({
                       </h1>
 
                       <p className="mt-3 text-sm text-white/45">
-                        Eingegangen am {formatDate(lead.createdAt)}
+                        Eingegangen am{" "}
+                        {formatDate(lead.createdAt)}
                       </p>
                     </div>
                   </div>
@@ -325,7 +429,8 @@ export default async function LeadDetailPage({
 
                 {purchase ? (
                   <p className="mt-6 text-sm text-white/45">
-                    Freigeschaltet am {formatDate(purchase.createdAt)} für{" "}
+                    Freigeschaltet am{" "}
+                    {formatDate(purchase.createdAt)} für{" "}
                     {purchase.price} Credits.
                   </p>
                 ) : null}
@@ -343,9 +448,10 @@ export default async function LeadDetailPage({
                     </h2>
 
                     <p className="mt-3 max-w-3xl text-sm leading-7 text-white/55">
-                      Name, Telefonnummer und E-Mail-Adresse werden erst nach
-                      der Freischaltung angezeigt. Prüfe vorher Kategorie,
-                      Region und Auftragsbeschreibung.
+                      Name, Telefonnummer und E-Mail-Adresse
+                      werden erst nach der Freischaltung
+                      angezeigt. Prüfe vorher Kategorie, Region
+                      und Auftragsbeschreibung.
                     </p>
                   </div>
                 </div>
@@ -369,8 +475,8 @@ export default async function LeadDetailPage({
                 </h2>
 
                 <p className="mt-3 text-sm leading-7 text-emerald-50/70">
-                  Du kannst die Kundin oder den Kunden jetzt direkt
-                  kontaktieren.
+                  Du kannst die Kundin oder den Kunden jetzt
+                  direkt kontaktieren.
                 </p>
 
                 <Link
@@ -390,17 +496,23 @@ export default async function LeadDetailPage({
               <div className="mt-5 space-y-4 text-sm leading-6 text-white/60">
                 <div className="flex items-start gap-3">
                   <span>✓</span>
-                  <span>Keine monatliche Verpflichtung</span>
+                  <span>
+                    Keine monatliche Verpflichtung
+                  </span>
                 </div>
 
                 <div className="flex items-start gap-3">
                   <span>✓</span>
-                  <span>Kontaktdaten sofort nach Freischaltung</span>
+                  <span>
+                    Kontaktdaten sofort nach Freischaltung
+                  </span>
                 </div>
 
                 <div className="flex items-start gap-3">
                   <span>✓</span>
-                  <span>Nur passende Anfragen auswählen</span>
+                  <span>
+                    Nur passende Anfragen auswählen
+                  </span>
                 </div>
               </div>
             </div>

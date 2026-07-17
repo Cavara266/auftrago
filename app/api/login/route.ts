@@ -1,27 +1,37 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+
 import { prisma } from "@/lib/prisma";
 import { createSession, type AuthUser } from "@/lib/auth";
+import { trackProviderActivity } from "@/lib/provider-activity";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export async function POST(req: Request) {
+function getClientIp(request: Request): string | undefined {
+  const forwardedFor = request.headers.get("x-forwarded-for");
+
+  if (forwardedFor) {
+    return forwardedFor.split(",")[0]?.trim() || undefined;
+  }
+
+  return (
+    request.headers.get("x-real-ip") ||
+    request.headers.get("cf-connecting-ip") ||
+    undefined
+  );
+}
+
+export async function POST(request: Request) {
   try {
-    const body = await req.json().catch(() => null);
+    const body = await request.json().catch(() => null);
 
     const email = String(body?.email || "")
       .trim()
       .toLowerCase();
 
     const password = String(body?.password || "");
-
-    console.log("LOGIN TEST:", {
-      email,
-      passwordReceived: password.length > 0,
-      passwordLength: password.length,
-    });
 
     if (!email || !password) {
       return NextResponse.json(
@@ -41,17 +51,6 @@ export async function POST(req: Request) {
       },
     });
 
-    console.log("LOGIN PROVIDER:", {
-      found: Boolean(provider),
-      providerEmail: provider?.email || null,
-      status: provider?.status || null,
-      passwordIsBcryptHash:
-        provider?.password?.startsWith("$2a$") ||
-        provider?.password?.startsWith("$2b$") ||
-        provider?.password?.startsWith("$2y$") ||
-        false,
-    });
-
     if (!provider) {
       return NextResponse.json(
         {
@@ -64,19 +63,31 @@ export async function POST(req: Request) {
       );
     }
 
+    const ipAddress = getClientIp(request);
+    const userAgent = request.headers.get("user-agent") || undefined;
+
     const passwordIsValid = await bcrypt.compare(
       password,
       provider.password
     );
 
-    console.log("LOGIN PASSWORD VALID:", passwordIsValid);
-
     if (!passwordIsValid) {
+      await trackProviderActivity({
+        providerId: provider.id,
+        event: "LOGIN_FAILED",
+        description: "Fehlgeschlagener Login wegen falschem Passwort",
+        page: "/login",
+        ipAddress,
+        userAgent,
+        metadata: {
+          reason: "INVALID_PASSWORD",
+        },
+      });
+
       return NextResponse.json(
         {
           ok: false,
-          error:
-            "Das eingegebene Passwort stimmt nicht mit dem gespeicherten Passwort überein.",
+          error: "E-Mail oder Passwort ist falsch.",
         },
         {
           status: 401,
@@ -85,6 +96,20 @@ export async function POST(req: Request) {
     }
 
     if (provider.status === "PENDING") {
+      await trackProviderActivity({
+        providerId: provider.id,
+        event: "LOGIN_BLOCKED",
+        description:
+          "Login abgelehnt, weil das Anbieterkonto noch geprüft wird",
+        page: "/login",
+        ipAddress,
+        userAgent,
+        metadata: {
+          reason: "PENDING",
+          providerStatus: provider.status,
+        },
+      });
+
       return NextResponse.json(
         {
           ok: false,
@@ -99,6 +124,20 @@ export async function POST(req: Request) {
     }
 
     if (provider.status === "BLOCKED") {
+      await trackProviderActivity({
+        providerId: provider.id,
+        event: "LOGIN_BLOCKED",
+        description:
+          "Login abgelehnt, weil das Anbieterkonto gesperrt ist",
+        page: "/login",
+        ipAddress,
+        userAgent,
+        metadata: {
+          reason: "BLOCKED",
+          providerStatus: provider.status,
+        },
+      });
+
       return NextResponse.json(
         {
           ok: false,
@@ -125,9 +164,19 @@ export async function POST(req: Request) {
 
     await createSession(user);
 
-    console.log("LOGIN SUCCESS:", {
+    await trackProviderActivity({
       providerId: provider.id,
-      email: provider.email,
+      event: "LOGIN",
+      description: "Anbieter erfolgreich eingeloggt",
+      page: "/login",
+      ipAddress,
+      userAgent,
+      metadata: {
+        companyName: provider.companyName,
+        contactName: provider.contactName,
+        creditsAtLogin: provider.credits,
+        providerStatus: provider.status,
+      },
     });
 
     return NextResponse.json({

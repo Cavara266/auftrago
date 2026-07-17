@@ -52,6 +52,7 @@ model Provider {
 
   purchases       LeadPurchase[]
   creditPurchases CreditPurchase[]
+  activities      ProviderActivity[]
 }
 
 model Lead {
@@ -160,4 +161,26 @@ model CreditPurchase {
   updatedAt DateTime @updatedAt
 
   provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+}
+
+model ProviderActivity {
+  id         String @id @default(uuid())
+  providerId String
+
+  event       String
+  description String?
+  page        String?
+  leadId      String?
+  metadata    Json?
+
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId, createdAt])
+  @@index([event, createdAt])
+  @@index([createdAt])
 }
