@@ -95,13 +95,12 @@ export async function createLeadAction(formData: FormData) {
 
     console.log("NEW LEAD NOTIFICATIONS COMPLETED:", {
       leadId: lead.id,
-      matchedProviders: result.matchedProviders,
+      approvedProviders: result.approvedProviders,
       sent: result.sent,
       failed: result.failed,
-      fallbackUsed: result.fallbackUsed,
     });
   } catch (error) {
-    // Der Lead bleibt gespeichert, auch falls der Mailversand vorübergehend fehlschlägt.
+    // Der Lead bleibt gespeichert, auch wenn der Mailversand fehlschlägt.
     console.error("NEW LEAD NOTIFICATION ERROR:", {
       leadId: lead.id,
       error,
