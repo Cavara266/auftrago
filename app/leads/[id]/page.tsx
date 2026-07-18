@@ -5,6 +5,10 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { trackProviderActivity } from "@/lib/provider-activity";
+import {
+  calculateSmartPrice,
+  getSmartPricingSettings,
+} from "@/lib/smart-pricing";
 
 import UnlockButton from "./unlock-button";
 import LeadCrm from "./components/lead-crm";
@@ -186,7 +190,12 @@ export default async function LeadDetailPage({
     notFound();
   }
 
-  const [lead, purchase] = await Promise.all([
+  const [
+    lead,
+    purchase,
+    latestPurchase,
+    smartPricingSettings,
+  ] = await Promise.all([
     prisma.lead.findUnique({
       where: {
         id: leadId,
@@ -248,11 +257,32 @@ export default async function LeadDetailPage({
         },
       },
     }),
+
+    prisma.leadPurchase.findFirst({
+      where: {
+        leadId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        createdAt: true,
+      },
+    }),
+
+    getSmartPricingSettings(),
   ]);
 
   if (!lead) {
     notFound();
   }
+
+  const smartPrice = calculateSmartPrice({
+    originalPrice: lead.price,
+    createdAt: lead.createdAt,
+    lastPurchaseAt: latestPurchase?.createdAt ?? null,
+    settings: smartPricingSettings,
+  });
 
   const isUnlocked = Boolean(purchase);
   const categoryIcon = getCategoryIcon(lead.category);
@@ -340,13 +370,28 @@ export default async function LeadDetailPage({
                   </div>
 
                   <div className="rounded-[22px] border border-yellow-400/20 bg-yellow-400/10 px-5 py-4 text-right">
+                    {!isUnlocked && smartPrice.isDiscounted ? (
+                      <div className="mb-1 text-sm font-semibold text-white/40 line-through decoration-red-400 decoration-2">
+                        {smartPrice.originalPrice} Credits
+                      </div>
+                    ) : null}
+
                     <div className="text-3xl font-bold text-yellow-300">
-                      {lead.price}
+                      {isUnlocked && purchase
+                        ? purchase.price
+                        : smartPrice.currentPrice}
                     </div>
 
                     <div className="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-yellow-100/55">
                       Credits
                     </div>
+
+                    {!isUnlocked && smartPrice.isDiscounted ? (
+                      <div className="mt-3 inline-flex rounded-full border border-red-400/20 bg-red-400/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-red-200">
+                        {smartPrice.label || "Smart Deal"} ·{" "}
+                        {smartPrice.discountPercent}% Rabatt
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -520,8 +565,13 @@ export default async function LeadDetailPage({
             {!isUnlocked ? (
               <UnlockButton
                 leadId={lead.id}
-                cost={lead.price}
+                originalCost={smartPrice.originalPrice}
+                cost={smartPrice.currentPrice}
                 currentCredits={user.credits}
+                isDiscounted={smartPrice.isDiscounted}
+                discountPercent={smartPrice.discountPercent}
+                discountAmount={smartPrice.discountAmount}
+                discountLabel={smartPrice.label}
               />
             ) : (
               <div className="rounded-[28px] border border-emerald-400/20 bg-emerald-400/10 p-6">

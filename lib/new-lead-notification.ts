@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { sendMail } from "@/lib/mail/mail";
 import { newLeadMailTemplate } from "@/lib/mail/templates/new-lead";
-import { matchLeadToProvider } from "@/lib/provider-lead-matching";
 
 type LeadForNotification = {
   id: string;
@@ -63,14 +62,9 @@ async function runInBatches<T>(
     index < items.length;
     index += batchSize
   ) {
-    const batch = items.slice(
-      index,
-      index + batchSize
-    );
+    const batch = items.slice(index, index + batchSize);
 
-    await Promise.all(
-      batch.map(worker)
-    );
+    await Promise.all(batch.map(worker));
   }
 }
 
@@ -78,117 +72,61 @@ export async function sendNewLeadNotifications({
   lead,
   estimatedValue,
 }: SendNewLeadNotificationsInput): Promise<NotificationResult> {
-  const approvedProviders =
-    await prisma.provider.findMany({
-      where: {
-        status: "APPROVED",
-
-        email: {
-          not: "",
-        },
+  /*
+   * Jeder freigeschaltete Anbieter mit einer gültigen E-Mail-Adresse
+   * erhält jeden neu erstellten Lead.
+   *
+   * Folgende Einstellungen werden bewusst ignoriert:
+   * - receiveLeadEmails
+   * - receiveAllLeadEmails
+   * - serviceRegions
+   * - serviceCategories
+   * - serviceCities
+   * - servicePostalCodes
+   * - region
+   * - category
+   */
+  const approvedProviders = await prisma.provider.findMany({
+    where: {
+      status: "APPROVED",
+      email: {
+        not: "",
       },
+    },
 
-      select: {
-        id: true,
-        companyName: true,
-        contactName: true,
-        email: true,
+    select: {
+      id: true,
+      companyName: true,
+      contactName: true,
+      email: true,
+    },
 
-        region: true,
-        category: true,
-
-        serviceRegions: true,
-        serviceCategories: true,
-        serviceCities: true,
-        servicePostalCodes: true,
-
-        receiveLeadEmails: true,
-        receiveAllLeadEmails: true,
-      },
-
-      orderBy: {
-        updatedAt: "desc",
-      },
-    });
-
-  const providersWithEmailEnabled =
-    approvedProviders.filter(
-      (provider) =>
-        provider.receiveLeadEmails
-    );
-
-  const matchingProviders =
-    providersWithEmailEnabled.filter(
-      (provider) => {
-        const match =
-          matchLeadToProvider(
-            provider,
-            lead
-          );
-
-        if (!match.matches) {
-          console.log(
-            "NEW LEAD PROVIDER SKIPPED",
-            {
-              leadId: lead.id,
-              providerId:
-                provider.id,
-
-              categoryMatch:
-                match.categoryMatch,
-
-              locationMatch:
-                match.locationMatch,
-
-              regionMatch:
-                match.regionMatch,
-
-              cityMatch:
-                match.cityMatch,
-
-              postalCodeMatch:
-                match.postalCodeMatch,
-
-              reasons:
-                match.reasons,
-            }
-          );
-        }
-
-        return match.matches;
-      }
-    );
+    orderBy: {
+      updatedAt: "desc",
+    },
+  });
 
   /*
-   * Mehrere Provider-Datensätze können theoretisch dieselbe
-   * E-Mail-Adresse enthalten. Deshalb werden Empfänger hier
-   * nochmals dedupliziert.
+   * Falls mehrere Anbieter-Datensätze dieselbe E-Mail-Adresse
+   * verwenden, wird die Nachricht nur einmal an diese Adresse versendet.
    */
-  const uniqueRecipients =
-    Array.from(
-      new Map(
-        matchingProviders
-          .filter((provider) =>
-            Boolean(
-              provider.email.trim()
-            )
-          )
-          .map((provider) => {
-            const email =
-              normalizeEmail(
-                provider.email
-              );
+  const uniqueRecipients = Array.from(
+    new Map(
+      approvedProviders
+        .filter((provider) => Boolean(provider.email?.trim()))
+        .map((provider) => {
+          const email = normalizeEmail(provider.email);
 
-            return [
+          return [
+            email,
+            {
+              ...provider,
               email,
-              {
-                ...provider,
-                email,
-              },
-            ];
-          })
-      ).values()
-    );
+            },
+          ];
+        })
+    ).values()
+  );
 
   const leadUrl = `${getAppUrl()}/leads/${encodeURIComponent(
     lead.id
@@ -197,107 +135,72 @@ export async function sendNewLeadNotifications({
   let sent = 0;
   let failed = 0;
 
+  console.log("NEW LEAD NOTIFICATION STARTED", {
+    leadId: lead.id,
+    approvedProviders: approvedProviders.length,
+    uniqueRecipients: uniqueRecipients.length,
+  });
+
   await runInBatches(
     uniqueRecipients,
-
     async (provider) => {
-      const match =
-        matchLeadToProvider(
-          provider,
-          lead
-        );
-
-      const template =
-        newLeadMailTemplate({
-          companyName:
-            provider.companyName,
-
-          contactName:
-            provider.contactName,
-
-          lead,
-          estimatedValue,
-          leadUrl,
-        });
+      const template = newLeadMailTemplate({
+        companyName: provider.companyName,
+        contactName: provider.contactName,
+        lead,
+        estimatedValue,
+        leadUrl,
+      });
 
       try {
-        const result =
-          await sendMail({
-            to: provider.email,
-            subject:
-              template.subject,
-            html: template.html,
-            text: template.text,
-          });
+        const mailResult = await sendMail({
+          to: provider.email,
+          subject: template.subject,
+          html: template.html,
+          text: template.text,
+        });
 
         sent += 1;
 
-        console.log(
-          "NEW LEAD MAIL SENT",
-          {
-            leadId: lead.id,
-            providerId:
-              provider.id,
-
-            to:
-              provider.email,
-
-            messageId:
-              result.messageId,
-
-            matchScore:
-              match.score,
-
-            matchReasons:
-              match.reasons,
-          }
-        );
+        console.log("NEW LEAD MAIL SENT", {
+          leadId: lead.id,
+          providerId: provider.id,
+          to: provider.email,
+          messageId: mailResult.messageId,
+        });
       } catch (error) {
         failed += 1;
 
-        console.error(
-          "NEW LEAD MAIL FAILED",
-          {
-            leadId: lead.id,
-            providerId:
-              provider.id,
-
-            to:
-              provider.email,
-
-            matchScore:
-              match.score,
-
-            error,
-          }
-        );
+        console.error("NEW LEAD MAIL FAILED", {
+          leadId: lead.id,
+          providerId: provider.id,
+          to: provider.email,
+          error,
+        });
       }
     },
-
     MAX_CONCURRENT_SENDS
   );
 
   const result: NotificationResult = {
-    approvedProviders:
-      approvedProviders.length,
+    approvedProviders: approvedProviders.length,
 
-    emailEnabledProviders:
-      providersWithEmailEnabled.length,
-
-    matchingProviders:
-      uniqueRecipients.length,
+    /*
+     * Diese Werte bleiben für die Kompatibilität mit deiner
+     * bestehenden actions.ts bestehen. Da Einstellungen und
+     * Matching ignoriert werden, entsprechen sie den Empfängern.
+     */
+    emailEnabledProviders: uniqueRecipients.length,
+    matchingProviders: uniqueRecipients.length,
 
     sent,
     failed,
   };
 
-  console.log(
-    "NEW LEAD NOTIFICATION RESULT",
-    {
-      leadId: lead.id,
-      ...result,
-    }
-  );
+  console.log("NEW LEAD NOTIFICATION RESULT", {
+    leadId: lead.id,
+    ...result,
+  });
 
   return result;
 }

@@ -1,7 +1,8 @@
 import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
-import { createLeadAction, deleteLeadAction } from "./actions";
+import DeleteLeadButton from "./DeleteLeadButton";
+import { createLeadAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -853,24 +854,11 @@ export default async function AdminLeadsPage({
                           </p>
                         )}
 
-                        <form
-                          action={
-                            deleteLeadAction
-                          }
-                        >
-                          <input
-                            type="hidden"
-                            name="leadId"
-                            value={lead.id}
-                          />
-
-                          <button
-                            type="submit"
-                            className="btn btn-secondary delete-button"
-                          >
-                            Lead löschen
-                          </button>
-                        </form>
+                        <DeleteLeadButton
+                          leadId={lead.id}
+                          label="Lead löschen"
+                          className="btn btn-secondary delete-button"
+                        />
                       </div>
                     </details>
                   </div>

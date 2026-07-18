@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
+import DeleteLeadButton from "../DeleteLeadButton";
 import {
   archiveLeadAction,
   duplicateLeadAction,
@@ -999,6 +1000,10 @@ export default async function AdminLeadDetailPage({
                 </form>
               </div>
 
+              <DeleteLeadButton
+                leadId={lead.id}
+                label="🗑 Lead endgültig löschen"
+              />
               <p
                 style={{
                   margin: "16px 0 0",

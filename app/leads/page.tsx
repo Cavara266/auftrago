@@ -22,6 +22,10 @@ import {
 
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import {
+  calculateSmartPrice,
+  getSmartPricingSettings,
+} from "@/lib/smart-pricing";
 import ProviderPageTracker from "@/components/provider-page-tracker";
 
 export const runtime = "nodejs";
@@ -42,7 +46,9 @@ function formatRelativeDate(date: Date) {
   const now = new Date();
   const difference = now.getTime() - date.getTime();
   const hours = Math.floor(difference / (1000 * 60 * 60));
-  const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+  const days = Math.floor(
+    difference / (1000 * 60 * 60 * 24),
+  );
 
   if (hours < 1) return "Gerade eingegangen";
   if (hours < 24) return `Vor ${hours} Std.`;
@@ -66,7 +72,8 @@ function getEffectiveExpiryDate({
   const fallbackExpiryDate = new Date(createdAt);
 
   fallbackExpiryDate.setDate(
-    fallbackExpiryDate.getDate() + DEFAULT_LEAD_LIFETIME_DAYS
+    fallbackExpiryDate.getDate() +
+      DEFAULT_LEAD_LIFETIME_DAYS,
   );
 
   return fallbackExpiryDate;
@@ -82,9 +89,17 @@ function formatTimeRemaining(expiryDate: Date) {
     };
   }
 
-  const totalMinutes = Math.ceil(difference / (1000 * 60));
-  const totalHours = Math.ceil(difference / (1000 * 60 * 60));
-  const totalDays = Math.ceil(difference / (1000 * 60 * 60 * 24));
+  const totalMinutes = Math.ceil(
+    difference / (1000 * 60),
+  );
+
+  const totalHours = Math.ceil(
+    difference / (1000 * 60 * 60),
+  );
+
+  const totalDays = Math.ceil(
+    difference / (1000 * 60 * 60 * 24),
+  );
 
   if (totalMinutes <= 60) {
     return {
@@ -116,8 +131,13 @@ function formatTimeRemaining(expiryDate: Date) {
 function getCategoryIcon(category: string) {
   const normalizedCategory = category.toLowerCase();
 
-  if (normalizedCategory.includes("fenster")) return "🪟";
-  if (normalizedCategory.includes("reinigung")) return "🧹";
+  if (normalizedCategory.includes("fenster")) {
+    return "🪟";
+  }
+
+  if (normalizedCategory.includes("reinigung")) {
+    return "🧹";
+  }
 
   if (
     normalizedCategory.includes("umzug") ||
@@ -148,7 +168,9 @@ function getCategoryIcon(category: string) {
     return "🏢";
   }
 
-  if (normalizedCategory.includes("maler")) return "🎨";
+  if (normalizedCategory.includes("maler")) {
+    return "🎨";
+  }
 
   return "🛠️";
 }
@@ -168,7 +190,9 @@ function getLeadQuality({
 }) {
   let score = 55;
 
-  if (title.trim().length >= 12) score += 8;
+  if (title.trim().length >= 12) {
+    score += 8;
+  }
 
   if (description.trim().length >= 120) {
     score += 15;
@@ -176,11 +200,17 @@ function getLeadQuality({
     score += 8;
   }
 
-  if (region.trim().length >= 2) score += 7;
-  if (category.trim().length >= 3) score += 7;
+  if (region.trim().length >= 2) {
+    score += 7;
+  }
+
+  if (category.trim().length >= 3) {
+    score += 7;
+  }
 
   const ageInHours =
-    (Date.now() - createdAt.getTime()) / (1000 * 60 * 60);
+    (Date.now() - createdAt.getTime()) /
+    (1000 * 60 * 60);
 
   if (ageInHours <= 24) {
     score += 8;
@@ -211,7 +241,8 @@ function getQualityReason({
   const reasons: string[] = [];
 
   const ageInHours =
-    (Date.now() - createdAt.getTime()) / (1000 * 60 * 60);
+    (Date.now() - createdAt.getTime()) /
+    (1000 * 60 * 60);
 
   if (ageInHours <= 24) {
     reasons.push("Neu eingegangen");
@@ -235,15 +266,20 @@ function getDemandStatus({
   purchaseCount: number;
   maxPurchases: number;
 }) {
-  const remainingPlaces = Math.max(0, maxPurchases - purchaseCount);
+  const remainingPlaces = Math.max(
+    0,
+    maxPurchases - purchaseCount,
+  );
 
   if (remainingPlaces === 1) {
     return {
       label: "Letzter Platz",
-      description: "Nur noch ein Anbieter kann diesen Lead freischalten.",
+      description:
+        "Nur noch ein Anbieter kann diesen Lead freischalten.",
       className:
         "border-red-400/25 bg-red-400/10 text-red-100",
-      progressClassName: "bg-gradient-to-r from-orange-300 to-red-400",
+      progressClassName:
+        "bg-gradient-to-r from-orange-300 to-red-400",
     };
   }
 
@@ -275,67 +311,92 @@ export default async function LeadsPage() {
     redirect("/login");
   }
 
-  const [allLeads, purchases] = await Promise.all([
-    prisma.lead.findMany({
-      include: {
-        _count: {
-          select: {
-            purchases: true,
+  const [allLeads, purchases, smartPricingSettings] =
+    await Promise.all([
+      prisma.lead.findMany({
+        include: {
+          _count: {
+            select: {
+              purchases: true,
+            },
+          },
+
+          purchases: {
+            orderBy: {
+              createdAt: "desc",
+            },
+
+            take: 1,
+
+            select: {
+              createdAt: true,
+            },
           },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    }),
 
-    prisma.leadPurchase.findMany({
-      where: {
-        providerId: user.id,
-      },
-      select: {
-        leadId: true,
-      },
-    }),
-  ]);
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+
+      prisma.leadPurchase.findMany({
+        where: {
+          providerId: user.id,
+        },
+
+        select: {
+          leadId: true,
+        },
+      }),
+
+      getSmartPricingSettings(),
+    ]);
 
   const purchasedLeadIds = new Set(
-    purchases.map((purchase) => purchase.leadId)
+    purchases.map((purchase) => purchase.leadId),
   );
 
   const now = new Date();
 
   const leads = allLeads.filter((lead) => {
     const expiryDate = getEffectiveExpiryDate(lead);
-    const expired = expiryDate.getTime() <= now.getTime();
-    const soldOut = lead._count.purchases >= lead.maxPurchases;
+    const expired =
+      expiryDate.getTime() <= now.getTime();
+
+    const soldOut =
+      lead._count.purchases >= lead.maxPurchases;
 
     return !expired && !soldOut;
   });
 
   const availableLeads = leads.filter(
-    (lead) => !purchasedLeadIds.has(lead.id)
+    (lead) => !purchasedLeadIds.has(lead.id),
   );
 
   const newLeads = availableLeads.filter((lead) => {
     const hours =
-      (Date.now() - lead.createdAt.getTime()) / (1000 * 60 * 60);
+      (Date.now() - lead.createdAt.getTime()) /
+      (1000 * 60 * 60);
 
     return hours <= 48;
   });
 
-  const premiumLeads = availableLeads.filter((lead) => {
-    const quality = getLeadQuality(lead);
+  const premiumLeads = availableLeads.filter(
+    (lead) => {
+      const quality = getLeadQuality(lead);
 
-    return quality >= 88;
-  });
+      return quality >= 88;
+    },
+  );
 
-  const almostSoldOutLeads = availableLeads.filter((lead) => {
-    const remainingPlaces =
-      lead.maxPurchases - lead._count.purchases;
+  const almostSoldOutLeads = availableLeads.filter(
+    (lead) => {
+      const remainingPlaces =
+        lead.maxPurchases - lead._count.purchases;
 
-    return remainingPlaces === 1;
-  });
+      return remainingPlaces === 1;
+    },
+  );
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#030816] text-white">
@@ -346,16 +407,21 @@ export default async function LeadsPage() {
         metadata={{
           availableLeads: availableLeads.length,
           purchasedLeads: purchases.length,
-          almostSoldOutLeads: almostSoldOutLeads.length,
-          expiredOrSoldOutLeads: allLeads.length - leads.length,
+          almostSoldOutLeads:
+            almostSoldOutLeads.length,
+          expiredOrSoldOutLeads:
+            allLeads.length - leads.length,
           credits: user.credits,
         }}
       />
 
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-[-14%] top-[-8%] h-[460px] w-[460px] rounded-full bg-sky-400/10 blur-3xl" />
+
         <div className="absolute right-[-14%] top-[15%] h-[500px] w-[500px] rounded-full bg-indigo-500/10 blur-3xl" />
+
         <div className="absolute bottom-[-20%] left-[30%] h-[420px] w-[420px] rounded-full bg-cyan-400/5 blur-3xl" />
+
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(126,200,255,0.06),transparent_34%)]" />
       </div>
 
@@ -403,8 +469,9 @@ export default async function LeadsPage() {
               </h1>
 
               <p className="mt-5 max-w-3xl text-base leading-8 text-white/60 sm:text-lg">
-                Jeder Lead ist zeitlich begrenzt und kann nur von einer
-                bestimmten Anzahl Anbieter freigeschaltet werden.
+                Jeder Lead ist zeitlich begrenzt und kann
+                nur von einer bestimmten Anzahl Anbieter
+                freigeschaltet werden.
               </p>
 
               <div className="mt-7 flex flex-wrap gap-3">
@@ -487,7 +554,8 @@ export default async function LeadsPage() {
             </div>
 
             <h2 className="mt-2 text-2xl font-semibold">
-              {availableLeads.length} offene Kundenanfragen
+              {availableLeads.length} offene
+              Kundenanfragen
             </h2>
           </div>
 
@@ -511,33 +579,65 @@ export default async function LeadsPage() {
             </h2>
 
             <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-white/50">
-              Ausverkaufte und abgelaufene Anfragen werden automatisch
-              ausgeblendet. Neue Kundenanfragen erscheinen sofort hier.
+              Ausverkaufte und abgelaufene Anfragen
+              werden automatisch ausgeblendet. Neue
+              Kundenanfragen erscheinen sofort hier.
             </p>
           </div>
         ) : (
           <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {leads.map((lead) => {
-              const purchased = purchasedLeadIds.has(lead.id);
-              const categoryIcon = getCategoryIcon(lead.category);
-              const qualityScore = getLeadQuality(lead);
-              const qualityLabel = getQualityLabel(qualityScore);
-              const qualityReasons = getQualityReason(lead);
+              const purchased =
+                purchasedLeadIds.has(lead.id);
 
-              const purchaseCount = lead._count.purchases;
-              const maxPurchases = Math.max(1, lead.maxPurchases);
+              const categoryIcon = getCategoryIcon(
+                lead.category,
+              );
+
+              const qualityScore =
+                getLeadQuality(lead);
+
+              const qualityLabel =
+                getQualityLabel(qualityScore);
+
+              const qualityReasons =
+                getQualityReason(lead);
+
+              const purchaseCount =
+                lead._count.purchases;
+
+              const maxPurchases = Math.max(
+                1,
+                lead.maxPurchases,
+              );
+
               const remainingPlaces = Math.max(
                 0,
-                maxPurchases - purchaseCount
+                maxPurchases - purchaseCount,
               );
 
               const purchaseProgress = Math.min(
                 100,
-                Math.round((purchaseCount / maxPurchases) * 100)
+                Math.round(
+                  (purchaseCount / maxPurchases) * 100,
+                ),
               );
 
-              const expiryDate = getEffectiveExpiryDate(lead);
-              const expiryStatus = formatTimeRemaining(expiryDate);
+              const expiryDate =
+                getEffectiveExpiryDate(lead);
+
+              const expiryStatus =
+                formatTimeRemaining(expiryDate);
+
+              const latestPurchaseAt =
+                lead.purchases[0]?.createdAt ?? null;
+
+              const smartPrice = calculateSmartPrice({
+                originalPrice: lead.price,
+                createdAt: lead.createdAt,
+                lastPurchaseAt: latestPurchaseAt,
+                settings: smartPricingSettings,
+              });
 
               const demandStatus = getDemandStatus({
                 purchaseCount,
@@ -577,9 +677,28 @@ export default async function LeadsPage() {
 
                         {purchased
                           ? "Freigeschaltet"
-                          : formatRelativeDate(lead.createdAt)}
+                          : formatRelativeDate(
+                              lead.createdAt,
+                            )}
                       </div>
                     </div>
+
+                    {!purchased &&
+                    smartPrice.isDiscounted ? (
+                      <div className="mt-5 flex flex-wrap items-center gap-2">
+                        <span className="inline-flex items-center gap-2 rounded-full border border-red-400/25 bg-red-400/10 px-3 py-2 text-xs font-black text-red-100">
+                          <Flame className="h-4 w-4" />
+
+                          {smartPrice.label ||
+                            "Smart Deal"}
+                        </span>
+
+                        <span className="rounded-full border border-yellow-400/25 bg-yellow-400/10 px-3 py-2 text-xs font-black text-yellow-200">
+                          {smartPrice.discountPercent}%
+                          Rabatt
+                        </span>
+                      </div>
+                    ) : null}
 
                     <div className="mt-6 grid gap-3 sm:grid-cols-2">
                       <div className="rounded-[22px] border border-violet-400/15 bg-violet-400/[0.08] p-4">
@@ -594,6 +713,7 @@ export default async function LeadsPage() {
 
                           <div className="flex items-center gap-1 text-sm font-black text-violet-100">
                             <TrendingUp className="h-4 w-4" />
+
                             {qualityScore}/100
                           </div>
                         </div>
@@ -658,7 +778,8 @@ export default async function LeadsPage() {
                           </div>
 
                           <div className="mt-2 text-lg font-black">
-                            {purchaseCount} von {maxPurchases} Anbietern
+                            {purchaseCount} von{" "}
+                            {maxPurchases} Anbietern
                           </div>
                         </div>
 
@@ -678,8 +799,10 @@ export default async function LeadsPage() {
                           className={`h-full rounded-full transition-all ${demandStatus.progressClassName}`}
                           style={{
                             width: `${Math.max(
-                              purchaseCount > 0 ? 8 : 0,
-                              purchaseProgress
+                              purchaseCount > 0
+                                ? 8
+                                : 0,
+                              purchaseProgress,
                             )}%`,
                           }}
                         />
@@ -721,6 +844,7 @@ export default async function LeadsPage() {
 
                       <div className="text-right text-xs text-white/40">
                         bis
+
                         <div className="mt-1 font-bold text-white/65">
                           {formatDate(expiryDate)}
                         </div>
@@ -767,15 +891,55 @@ export default async function LeadsPage() {
                             Freischaltung
                           </div>
 
-                          <div className="mt-1 flex items-end gap-2">
-                            <span className="text-4xl font-black leading-none text-yellow-300">
-                              {lead.price}
-                            </span>
+                          {!purchased &&
+                          smartPrice.isDiscounted ? (
+                            <div className="mt-2">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-sm font-bold text-white/35 line-through decoration-red-400 decoration-2">
+                                  {
+                                    smartPrice.originalPrice
+                                  }{" "}
+                                  Credits
+                                </span>
 
-                            <span className="pb-1 text-sm font-bold text-yellow-100/60">
-                              Credits
-                            </span>
-                          </div>
+                                <span className="rounded-full border border-red-400/20 bg-red-400/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-red-200">
+                                  Spare{" "}
+                                  {
+                                    smartPrice.discountAmount
+                                  }
+                                </span>
+                              </div>
+
+                              <div className="mt-2 flex items-end gap-2">
+                                <span className="text-4xl font-black leading-none text-yellow-300">
+                                  {
+                                    smartPrice.currentPrice
+                                  }
+                                </span>
+
+                                <span className="pb-1 text-sm font-bold text-yellow-100/60">
+                                  Credits
+                                </span>
+                              </div>
+                            </div>
+                          ) : purchased ? (
+                            <div className="mt-2">
+                              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-sm font-black text-emerald-200">
+                                <BadgeCheck className="h-4 w-4" />
+                                Bereits freigeschaltet
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="mt-1 flex items-end gap-2">
+                              <span className="text-4xl font-black leading-none text-yellow-300">
+                                {smartPrice.currentPrice}
+                              </span>
+
+                              <span className="pb-1 text-sm font-bold text-yellow-100/60">
+                                Credits
+                              </span>
+                            </div>
+                          )}
                         </div>
 
                         <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-white/45">
@@ -791,14 +955,18 @@ export default async function LeadsPage() {
                             ? "border border-emerald-400/20 bg-emerald-400/10 text-emerald-100 hover:bg-emerald-400/15"
                             : remainingPlaces === 1
                               ? "bg-gradient-to-r from-orange-300 to-red-400 text-[#190705] shadow-[0_18px_50px_rgba(248,113,113,0.18)] hover:scale-[1.01]"
-                              : "bg-[#7EC8FF] text-[#04101d] shadow-[0_18px_50px_rgba(126,200,255,0.18)] hover:bg-[#91d2ff]",
+                              : smartPrice.isDiscounted
+                                ? "bg-gradient-to-r from-yellow-300 to-orange-400 text-[#171006] shadow-[0_18px_50px_rgba(250,204,21,0.18)] hover:scale-[1.01]"
+                                : "bg-[#7EC8FF] text-[#04101d] shadow-[0_18px_50px_rgba(126,200,255,0.18)] hover:bg-[#91d2ff]",
                         ].join(" ")}
                       >
                         {purchased
                           ? "Kundendaten ansehen"
                           : remainingPlaces === 1
                             ? "Letzten Platz sichern"
-                            : "Diese Chance ansehen"}
+                            : smartPrice.isDiscounted
+                              ? "Smart Deal ansehen"
+                              : "Diese Chance ansehen"}
 
                         <ArrowRight className="h-5 w-5 transition group-hover:translate-x-0.5" />
                       </Link>
@@ -818,12 +986,14 @@ export default async function LeadsPage() {
               </div>
 
               <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-                Genügend Credits für den nächsten Auftrag?
+                Genügend Credits für den nächsten
+                Auftrag?
               </h2>
 
               <p className="mt-3 max-w-2xl text-sm leading-7 text-white/55 sm:text-base">
-                Besonders gefragte Leads können jederzeit ausverkauft sein.
-                Credits stehen nach erfolgreicher Zahlung sofort zur Verfügung.
+                Besonders gefragte Leads können jederzeit
+                ausverkauft sein. Credits stehen nach
+                erfolgreicher Zahlung sofort zur Verfügung.
               </p>
             </div>
 

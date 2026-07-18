@@ -5,6 +5,11 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { sendLeadPurchaseMail } from "@/lib/lead-purchase-mail";
 import { trackProviderActivity } from "@/lib/provider-activity";
+import {
+  calculateSmartPrice,
+  getSmartPricingSettings,
+  type SmartPricingSettings,
+} from "@/lib/smart-pricing";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,7 +41,14 @@ type PurchaseResult = {
     name: string;
     phone: string;
     email: string;
-    price: number;
+
+    originalPrice: number;
+    currentPrice: number;
+    discountPercent: number;
+    discountAmount: number;
+    isDiscounted: boolean;
+    discountLabel: string | null;
+
     maxPurchases: number;
     expiresAt: Date;
   };
@@ -77,15 +89,12 @@ function getEffectiveExpiryDate({
 
   return new Date(
     createdAt.getTime() +
-      DEFAULT_LEAD_LIFETIME_DAYS * 24 * 60 * 60 * 1000
+      DEFAULT_LEAD_LIFETIME_DAYS * 24 * 60 * 60 * 1000,
   );
 }
 
 function getEffectiveMaxPurchases(maxPurchases: number) {
-  if (
-    !Number.isInteger(maxPurchases) ||
-    maxPurchases <= 0
-  ) {
+  if (!Number.isInteger(maxPurchases) || maxPurchases <= 0) {
     return DEFAULT_MAX_PURCHASES;
   }
 
@@ -94,7 +103,8 @@ function getEffectiveMaxPurchases(maxPurchases: number) {
 
 async function purchaseLead(
   providerId: string,
-  leadId: string
+  leadId: string,
+  smartPricingSettings: SmartPricingSettings,
 ): Promise<PurchaseResult> {
   for (
     let attempt = 1;
@@ -108,6 +118,7 @@ async function purchaseLead(
             where: {
               id: providerId,
             },
+
             select: {
               id: true,
               email: true,
@@ -130,6 +141,7 @@ async function purchaseLead(
             where: {
               id: leadId,
             },
+
             select: {
               id: true,
               title: true,
@@ -150,30 +162,27 @@ async function purchaseLead(
             throw new Error("LEAD_NOT_FOUND");
           }
 
-          if (
-            !Number.isInteger(lead.price) ||
-            lead.price <= 0
-          ) {
+          if (!Number.isInteger(lead.price) || lead.price <= 0) {
             throw new Error("INVALID_LEAD_PRICE");
           }
 
-          const effectiveExpiryDate =
-            getEffectiveExpiryDate({
-              createdAt: lead.createdAt,
-              expiresAt: lead.expiresAt,
-            });
+          const effectiveExpiryDate = getEffectiveExpiryDate({
+            createdAt: lead.createdAt,
+            expiresAt: lead.expiresAt,
+          });
 
-          if (
-            effectiveExpiryDate.getTime() <= Date.now()
-          ) {
+          if (effectiveExpiryDate.getTime() <= Date.now()) {
             throw new Error("LEAD_EXPIRED");
           }
 
-          const maxPurchases =
-            getEffectiveMaxPurchases(
-              lead.maxPurchases
-            );
+          const maxPurchases = getEffectiveMaxPurchases(
+            lead.maxPurchases,
+          );
 
+          /*
+           * Prüfen, ob dieser Anbieter den Lead
+           * bereits freigeschaltet hat.
+           */
           const existingPurchase =
             await tx.leadPurchase.findUnique({
               where: {
@@ -182,6 +191,7 @@ async function purchaseLead(
                   leadId: lead.id,
                 },
               },
+
               select: {
                 id: true,
               },
@@ -191,29 +201,78 @@ async function purchaseLead(
             throw new Error("ALREADY_UNLOCKED");
           }
 
-          const purchaseCount =
-            await tx.leadPurchase.count({
-              where: {
-                leadId: lead.id,
-              },
-            });
+          /*
+           * Anzahl bisheriger Freischaltungen ermitteln.
+           */
+          const purchaseCount = await tx.leadPurchase.count({
+            where: {
+              leadId: lead.id,
+            },
+          });
 
           if (purchaseCount >= maxPurchases) {
             throw new Error("LEAD_SOLD_OUT");
           }
 
+          /*
+           * Der letzte Kauf kann den Rabatt-Zähler
+           * zurücksetzen, sofern dies im Admin
+           * eingeschaltet wurde.
+           */
+          const latestPurchase =
+            await tx.leadPurchase.findFirst({
+              where: {
+                leadId: lead.id,
+              },
+
+              orderBy: {
+                createdAt: "desc",
+              },
+
+              select: {
+                createdAt: true,
+              },
+            });
+
+          /*
+           * Den endgültigen Kaufpreis mit den aktuell
+           * im Smart-Pricing-Admin gespeicherten
+           * Einstellungen berechnen.
+           */
+          const smartPrice = calculateSmartPrice({
+            originalPrice: lead.price,
+            createdAt: lead.createdAt,
+            lastPurchaseAt: latestPurchase?.createdAt ?? null,
+            settings: smartPricingSettings,
+          });
+
+          const purchasePrice = smartPrice.currentPrice;
+
+          if (
+            !Number.isInteger(purchasePrice) ||
+            purchasePrice <= 0
+          ) {
+            throw new Error("INVALID_LEAD_PRICE");
+          }
+
+          /*
+           * Credits werden nur abgezogen, wenn das
+           * verfügbare Guthaben ausreicht.
+           */
           const updatedProvider =
             await tx.provider.updateMany({
               where: {
                 id: provider.id,
                 status: "APPROVED",
+
                 credits: {
-                  gte: lead.price,
+                  gte: purchasePrice,
                 },
               },
+
               data: {
                 credits: {
-                  decrement: lead.price,
+                  decrement: purchasePrice,
                 },
               },
             });
@@ -222,33 +281,37 @@ async function purchaseLead(
             throw new Error("NOT_ENOUGH_CREDITS");
           }
 
-          const purchase =
-            await tx.leadPurchase.create({
-              data: {
-                providerId: provider.id,
-                leadId: lead.id,
-                price: lead.price,
-                status: "OPEN",
-              },
-              select: {
-                id: true,
-                price: true,
-                createdAt: true,
-              },
-            });
+          /*
+           * Den tatsächlich bezahlten Smart-Preis
+           * in der Kaufhistorie speichern.
+           */
+          const purchase = await tx.leadPurchase.create({
+            data: {
+              providerId: provider.id,
+              leadId: lead.id,
+              price: purchasePrice,
+              status: "OPEN",
+            },
+
+            select: {
+              id: true,
+              price: true,
+              createdAt: true,
+            },
+          });
 
           const providerAfterPurchase =
             await tx.provider.findUnique({
               where: {
                 id: provider.id,
               },
+
               select: {
                 credits: true,
               },
             });
 
-          const newPurchaseCount =
-            purchaseCount + 1;
+          const newPurchaseCount = purchaseCount + 1;
 
           return {
             purchase,
@@ -262,35 +325,37 @@ async function purchaseLead(
               name: lead.name,
               phone: lead.phone,
               email: lead.email,
-              price: lead.price,
+
+              originalPrice: smartPrice.originalPrice,
+              currentPrice: purchasePrice,
+              discountPercent: smartPrice.discountPercent,
+              discountAmount: smartPrice.discountAmount,
+              isDiscounted: smartPrice.isDiscounted,
+              discountLabel: smartPrice.label,
+
               maxPurchases,
               expiresAt: effectiveExpiryDate,
             },
 
-            credits:
-              providerAfterPurchase?.credits ?? 0,
+            credits: providerAfterPurchase?.credits ?? 0,
 
             purchaseCount: newPurchaseCount,
 
             remainingSlots: Math.max(
               0,
-              maxPurchases - newPurchaseCount
+              maxPurchases - newPurchaseCount,
             ),
 
             providerEmail: provider.email,
-
-            providerContactName:
-              provider.contactName,
-
-            providerCompanyName:
-              provider.companyName,
+            providerContactName: provider.contactName,
+            providerCompanyName: provider.companyName,
           };
         },
+
         {
           isolationLevel:
-            Prisma.TransactionIsolationLevel
-              .Serializable,
-        }
+            Prisma.TransactionIsolationLevel.Serializable,
+        },
       );
     } catch (error) {
       const isRetryableTransactionError =
@@ -314,7 +379,7 @@ async function purchaseLead(
 
 export async function POST(
   request: Request,
-  { params }: RouteContext
+  { params }: RouteContext,
 ) {
   try {
     const user = await requireUser();
@@ -328,7 +393,7 @@ export async function POST(
         },
         {
           status: 401,
-        }
+        },
       );
     }
 
@@ -337,6 +402,7 @@ export async function POST(
         {
           ok: false,
           error: "PROVIDER_NOT_APPROVED",
+
           message:
             user.status === "PENDING"
               ? "Dein Anbieterkonto wird noch geprüft."
@@ -344,13 +410,11 @@ export async function POST(
         },
         {
           status: 403,
-        }
+        },
       );
     }
 
-    const leadId = String(
-      params.id || ""
-    ).trim();
+    const leadId = String(params.id || "").trim();
 
     if (!leadId) {
       return NextResponse.json(
@@ -361,65 +425,91 @@ export async function POST(
         },
         {
           status: 400,
-        }
+        },
       );
     }
 
+    /*
+     * Smart-Pricing-Einstellungen unmittelbar vor
+     * dem Kauf aus der Datenbank laden.
+     *
+     * Dadurch wird der aktuell im Admin gespeicherte
+     * Preis verwendet.
+     */
+    const smartPricingSettings =
+      await getSmartPricingSettings();
+
     const result = await purchaseLead(
       user.id,
-      leadId
+      leadId,
+      smartPricingSettings,
     );
 
     const ipAddress = getClientIp(request);
 
     const userAgent =
-      request.headers.get("user-agent") ||
-      undefined;
+      request.headers.get("user-agent") || undefined;
 
     try {
       await trackProviderActivity({
         providerId: user.id,
         event: "LEAD_PURCHASED",
-        description:
-          "Anbieter hat einen Lead erfolgreich freigeschaltet",
+
+        description: result.lead.isDiscounted
+          ? `Anbieter hat einen rabattierten Lead mit ${result.lead.discountPercent}% Rabatt freigeschaltet`
+          : "Anbieter hat einen Lead erfolgreich freigeschaltet",
+
         page: `/leads/${result.lead.id}`,
         leadId: result.lead.id,
+
         metadata: {
           leadTitle: result.lead.title,
           category: result.lead.category,
           region: result.lead.region,
-          creditsSpent: result.lead.price,
+
+          originalPrice: result.lead.originalPrice,
+          creditsSpent: result.lead.currentPrice,
+
+          discountPercent: result.lead.discountPercent,
+          discountAmount: result.lead.discountAmount,
+          discountLabel: result.lead.discountLabel,
+          isDiscounted: result.lead.isDiscounted,
+
+          smartPricingEnabled:
+            smartPricingSettings.enabled,
+
           remainingCredits: result.credits,
           purchaseId: result.purchase.id,
           purchaseCount: result.purchaseCount,
           remainingSlots: result.remainingSlots,
-          maxProviders:
-            result.lead.maxPurchases,
+
+          maxProviders: result.lead.maxPurchases,
+
           expiresAt:
             result.lead.expiresAt.toISOString(),
         },
+
         ipAddress,
         userAgent,
       });
     } catch (activityError) {
       console.error(
         "LEAD PURCHASE ACTIVITY ERROR:",
-        activityError
+        activityError,
       );
     }
 
     try {
-      console.log(
-        "LEAD PURCHASE MAIL START:",
-        {
-          to: result.providerEmail,
-          leadId: result.lead.id,
-        }
-      );
+      console.log("LEAD PURCHASE MAIL START:", {
+        to: result.providerEmail,
+        leadId: result.lead.id,
+        originalPrice: result.lead.originalPrice,
+        purchasePrice: result.lead.currentPrice,
+        discountPercent: result.lead.discountPercent,
+      });
 
       await sendLeadPurchaseMail({
-        providerEmail:
-          result.providerEmail,
+        providerEmail: result.providerEmail,
 
         providerContactName:
           result.providerContactName,
@@ -431,36 +521,29 @@ export async function POST(
         leadTitle: result.lead.title,
         leadCategory: result.lead.category,
         leadRegion: result.lead.region,
+        leadDescription: result.lead.description,
 
-        leadDescription:
-          result.lead.description,
+        customerName: result.lead.name,
+        customerPhone: result.lead.phone,
+        customerEmail: result.lead.email,
 
-        customerName:
-          result.lead.name,
+        /*
+         * In der E-Mail wird der tatsächlich
+         * bezahlte Smart-Preis angezeigt.
+         */
+        price: result.lead.currentPrice,
 
-        customerPhone:
-          result.lead.phone,
-
-        customerEmail:
-          result.lead.email,
-
-        price: result.lead.price,
-
-        remainingCredits:
-          result.credits,
+        remainingCredits: result.credits,
       });
 
-      console.log(
-        "LEAD PURCHASE MAIL SENT:",
-        {
-          to: result.providerEmail,
-          leadId: result.lead.id,
-        }
-      );
+      console.log("LEAD PURCHASE MAIL SENT:", {
+        to: result.providerEmail,
+        leadId: result.lead.id,
+      });
     } catch (mailError) {
       console.error(
         "LEAD PURCHASE MAIL ERROR:",
-        mailError
+        mailError,
       );
     }
 
@@ -469,27 +552,28 @@ export async function POST(
       unlocked: true,
 
       leadId: result.lead.id,
-
       credits: result.credits,
-
       purchase: result.purchase,
 
-      purchaseCount:
-        result.purchaseCount,
+      originalPrice: result.lead.originalPrice,
+      currentPrice: result.lead.currentPrice,
+      paidPrice: result.lead.currentPrice,
 
-      maxPurchases:
-        result.lead.maxPurchases,
+      discountPercent: result.lead.discountPercent,
+      discountAmount: result.lead.discountAmount,
+      discountLabel: result.lead.discountLabel,
+      isDiscounted: result.lead.isDiscounted,
 
-      remainingSlots:
-        result.remainingSlots,
+      purchaseCount: result.purchaseCount,
+      maxPurchases: result.lead.maxPurchases,
+      remainingSlots: result.remainingSlots,
 
-      expiresAt:
-        result.lead.expiresAt.toISOString(),
+      expiresAt: result.lead.expiresAt.toISOString(),
+      soldOut: result.remainingSlots === 0,
 
-      soldOut:
-        result.remainingSlots === 0,
-
-      message: `${result.lead.title} wurde erfolgreich freigeschaltet.`,
+      message: result.lead.isDiscounted
+        ? `${result.lead.title} wurde mit ${result.lead.discountPercent}% Rabatt für ${result.lead.currentPrice} Credits freigeschaltet.`
+        : `${result.lead.title} wurde erfolgreich für ${result.lead.currentPrice} Credits freigeschaltet.`,
     });
   } catch (error) {
     if (
@@ -499,6 +583,7 @@ export async function POST(
       return NextResponse.json({
         ok: true,
         alreadyUnlocked: true,
+
         message:
           "Diese Kundenanfrage wurde von dir bereits freigeschaltet.",
       });
@@ -513,12 +598,13 @@ export async function POST(
           ok: false,
           error: "LEAD_EXPIRED",
           expired: true,
+
           message:
             "Diese Kundenanfrage ist bereits abgelaufen und kann nicht mehr freigeschaltet werden.",
         },
         {
           status: 410,
-        }
+        },
       );
     }
 
@@ -532,47 +618,47 @@ export async function POST(
           error: "LEAD_SOLD_OUT",
           soldOut: true,
           remainingSlots: 0,
+
           message:
             "Diese Kundenanfrage wurde bereits vollständig vergeben.",
         },
         {
           status: 409,
-        }
+        },
       );
     }
 
     if (
       error instanceof Error &&
-      error.message ===
-        "NOT_ENOUGH_CREDITS"
+      error.message === "NOT_ENOUGH_CREDITS"
     ) {
-      const currentUser =
-        await requireUser();
+      const currentUser = await requireUser();
 
-      const currentProvider =
-        currentUser
-          ? await prisma.provider.findUnique({
-              where: {
-                id: currentUser.id,
-              },
-              select: {
-                credits: true,
-              },
-            })
-          : null;
+      const currentProvider = currentUser
+        ? await prisma.provider.findUnique({
+            where: {
+              id: currentUser.id,
+            },
+
+            select: {
+              credits: true,
+            },
+          })
+        : null;
 
       return NextResponse.json(
         {
           ok: false,
           error: "NOT_ENOUGH_CREDITS",
+
           message:
             "Du hast nicht genügend Credits für diese Kundenanfrage.",
-          credits:
-            currentProvider?.credits ?? 0,
+
+          credits: currentProvider?.credits ?? 0,
         },
         {
           status: 400,
-        }
+        },
       );
     }
 
@@ -584,66 +670,67 @@ export async function POST(
         {
           ok: false,
           error: "LEAD_NOT_FOUND",
+
           message:
             "Die Kundenanfrage wurde nicht gefunden.",
         },
         {
           status: 404,
-        }
+        },
       );
     }
 
     if (
       error instanceof Error &&
-      error.message ===
-        "INVALID_LEAD_PRICE"
+      error.message === "INVALID_LEAD_PRICE"
     ) {
       return NextResponse.json(
         {
           ok: false,
           error: "INVALID_LEAD_PRICE",
+
           message:
             "Für diese Anfrage wurde kein gültiger Preis festgelegt.",
         },
         {
           status: 400,
-        }
+        },
       );
     }
 
     if (
       error instanceof Error &&
-      error.message ===
-        "PROVIDER_NOT_FOUND"
+      error.message === "PROVIDER_NOT_FOUND"
     ) {
       return NextResponse.json(
         {
           ok: false,
           error: "PROVIDER_NOT_FOUND",
+
           message:
             "Das Anbieterkonto wurde nicht gefunden.",
         },
         {
           status: 404,
-        }
+        },
       );
     }
 
     if (
       error instanceof Error &&
-      error.message ===
-        "PROVIDER_NOT_APPROVED"
+      error.message === "PROVIDER_NOT_APPROVED"
     ) {
       return NextResponse.json(
         {
           ok: false,
           error: "PROVIDER_NOT_APPROVED",
+
           message:
             "Dein Anbieterkonto ist nicht freigeschaltet.",
         },
         {
           status: 403,
-        }
+        },
       );
     }
 
@@ -655,6 +742,7 @@ export async function POST(
       return NextResponse.json({
         ok: true,
         alreadyUnlocked: true,
+
         message:
           "Diese Kundenanfrage wurde von dir bereits freigeschaltet.",
       });
@@ -668,30 +756,29 @@ export async function POST(
         {
           ok: false,
           error: "TRANSACTION_FAILED",
+
           message:
             "Der Kauf konnte aufgrund einer gleichzeitigen Anfrage nicht abgeschlossen werden. Bitte versuche es erneut.",
         },
         {
           status: 409,
-        }
+        },
       );
     }
 
-    console.error(
-      "LEAD UNLOCK ERROR:",
-      error
-    );
+    console.error("LEAD UNLOCK ERROR:", error);
 
     return NextResponse.json(
       {
         ok: false,
         error: "SERVER_ERROR",
+
         message:
           "Die Kundenanfrage konnte nicht freigeschaltet werden.",
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }

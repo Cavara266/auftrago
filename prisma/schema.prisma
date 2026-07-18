@@ -84,7 +84,7 @@ model Lead {
   postalCode String?
   city       String?
 
-  maxPurchases Int      @default(4)
+  maxPurchases Int       @default(4)
   expiresAt    DateTime?
 
   createdAt DateTime @default(now())
@@ -192,14 +192,14 @@ model LeadOffer {
 }
 
 model CreditPurchase {
-  id              String @id @default(uuid())
+  id              String  @id @default(uuid())
   providerId      String
-  stripeSessionId String @unique
+  stripeSessionId String  @unique
   packageId       String?
   credits         Int
   amount          Int
-  currency        String @default("chf")
-  status          String @default("paid")
+  currency        String  @default("chf")
+  status          String  @default("paid")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -213,7 +213,7 @@ model CreditPurchase {
 }
 
 model ProviderActivity {
-  id          String @id @default(uuid())
+  id          String  @id @default(uuid())
   providerId  String
   event       String
   description String?
@@ -232,4 +232,27 @@ model ProviderActivity {
   @@index([event, createdAt])
   @@index([leadId])
   @@index([createdAt])
+}
+
+model SmartPricingSettings {
+  id String @id @default("default")
+
+  enabled Boolean @default(true)
+
+  firstAfterDays       Int @default(3)
+  firstDiscountPercent Int @default(15)
+
+  secondAfterDays       Int @default(5)
+  secondDiscountPercent Int @default(30)
+
+  thirdAfterDays       Int @default(6)
+  thirdDiscountPercent Int @default(50)
+
+  minimumPrice       Int     @default(10)
+  resetAfterPurchase Boolean @default(true)
+  label              String  @default("Smart Deal")
+  showCountdown      Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
