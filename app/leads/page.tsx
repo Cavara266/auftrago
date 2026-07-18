@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
+  AlertTriangle,
   ArrowRight,
   BadgeCheck,
   BriefcaseBusiness,
   CalendarDays,
   Check,
+  Clock3,
   Coins,
   Flame,
   LockKeyhole,
@@ -14,6 +16,7 @@ import {
   Sparkles,
   Star,
   TrendingUp,
+  Users,
   Zap,
 } from "lucide-react";
 
@@ -24,6 +27,8 @@ import ProviderPageTracker from "@/components/provider-page-tracker";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+const DEFAULT_LEAD_LIFETIME_DAYS = 7;
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("de-CH", {
@@ -47,17 +52,80 @@ function formatRelativeDate(date: Date) {
   return formatDate(date);
 }
 
+function getEffectiveExpiryDate({
+  createdAt,
+  expiresAt,
+}: {
+  createdAt: Date;
+  expiresAt: Date | null;
+}) {
+  if (expiresAt) {
+    return expiresAt;
+  }
+
+  const fallbackExpiryDate = new Date(createdAt);
+
+  fallbackExpiryDate.setDate(
+    fallbackExpiryDate.getDate() + DEFAULT_LEAD_LIFETIME_DAYS
+  );
+
+  return fallbackExpiryDate;
+}
+
+function formatTimeRemaining(expiryDate: Date) {
+  const difference = expiryDate.getTime() - Date.now();
+
+  if (difference <= 0) {
+    return {
+      label: "Abgelaufen",
+      urgent: true,
+    };
+  }
+
+  const totalMinutes = Math.ceil(difference / (1000 * 60));
+  const totalHours = Math.ceil(difference / (1000 * 60 * 60));
+  const totalDays = Math.ceil(difference / (1000 * 60 * 60 * 24));
+
+  if (totalMinutes <= 60) {
+    return {
+      label: `Noch ${totalMinutes} Min.`,
+      urgent: true,
+    };
+  }
+
+  if (totalHours <= 24) {
+    return {
+      label: `Noch ${totalHours} Std.`,
+      urgent: true,
+    };
+  }
+
+  if (totalDays === 1) {
+    return {
+      label: "Läuft morgen ab",
+      urgent: true,
+    };
+  }
+
+  return {
+    label: `Noch ${totalDays} Tage`,
+    urgent: totalDays <= 2,
+  };
+}
+
 function getCategoryIcon(category: string) {
   const normalizedCategory = category.toLowerCase();
 
   if (normalizedCategory.includes("fenster")) return "🪟";
   if (normalizedCategory.includes("reinigung")) return "🧹";
+
   if (
     normalizedCategory.includes("umzug") ||
     normalizedCategory.includes("transport")
   ) {
     return "🚚";
   }
+
   if (
     normalizedCategory.includes("garten") ||
     normalizedCategory.includes("hecke") ||
@@ -65,18 +133,21 @@ function getCategoryIcon(category: string) {
   ) {
     return "🌿";
   }
+
   if (
     normalizedCategory.includes("entsorgung") ||
     normalizedCategory.includes("räumung")
   ) {
     return "♻️";
   }
+
   if (
     normalizedCategory.includes("hauswartung") ||
     normalizedCategory.includes("liegenschaft")
   ) {
     return "🏢";
   }
+
   if (normalizedCategory.includes("maler")) return "🎨";
 
   return "🛠️";
@@ -98,16 +169,24 @@ function getLeadQuality({
   let score = 55;
 
   if (title.trim().length >= 12) score += 8;
-  if (description.trim().length >= 120) score += 15;
-  else if (description.trim().length >= 60) score += 8;
+
+  if (description.trim().length >= 120) {
+    score += 15;
+  } else if (description.trim().length >= 60) {
+    score += 8;
+  }
+
   if (region.trim().length >= 2) score += 7;
   if (category.trim().length >= 3) score += 7;
 
   const ageInHours =
     (Date.now() - createdAt.getTime()) / (1000 * 60 * 60);
 
-  if (ageInHours <= 24) score += 8;
-  else if (ageInHours <= 72) score += 4;
+  if (ageInHours <= 24) {
+    score += 8;
+  } else if (ageInHours <= 72) {
+    score += 4;
+  }
 
   return Math.min(score, 98);
 }
@@ -116,6 +195,7 @@ function getQualityLabel(score: number) {
   if (score >= 88) return "Top-Anfrage";
   if (score >= 78) return "Sehr interessant";
   if (score >= 68) return "Gute Chance";
+
   return "Neue Anfrage";
 }
 
@@ -129,14 +209,63 @@ function getQualityReason({
   createdAt: Date;
 }) {
   const reasons: string[] = [];
+
   const ageInHours =
     (Date.now() - createdAt.getTime()) / (1000 * 60 * 60);
 
-  if (ageInHours <= 24) reasons.push("Neu eingegangen");
-  if (description.trim().length >= 100) reasons.push("Ausführliche Angaben");
-  if (region.trim().length >= 2) reasons.push("Region klar angegeben");
+  if (ageInHours <= 24) {
+    reasons.push("Neu eingegangen");
+  }
+
+  if (description.trim().length >= 100) {
+    reasons.push("Ausführliche Angaben");
+  }
+
+  if (region.trim().length >= 2) {
+    reasons.push("Region klar angegeben");
+  }
 
   return reasons.slice(0, 2);
+}
+
+function getDemandStatus({
+  purchaseCount,
+  maxPurchases,
+}: {
+  purchaseCount: number;
+  maxPurchases: number;
+}) {
+  const remainingPlaces = Math.max(0, maxPurchases - purchaseCount);
+
+  if (remainingPlaces === 1) {
+    return {
+      label: "Letzter Platz",
+      description: "Nur noch ein Anbieter kann diesen Lead freischalten.",
+      className:
+        "border-red-400/25 bg-red-400/10 text-red-100",
+      progressClassName: "bg-gradient-to-r from-orange-300 to-red-400",
+    };
+  }
+
+  if (remainingPlaces === 2) {
+    return {
+      label: "Hohe Nachfrage",
+      description: "Nur noch zwei Plätze verfügbar.",
+      className:
+        "border-orange-400/25 bg-orange-400/10 text-orange-100",
+      progressClassName:
+        "bg-gradient-to-r from-yellow-300 to-orange-400",
+    };
+  }
+
+  return {
+    label: "Verfügbar",
+    description: `${remainingPlaces} Plätze verfügbar.`,
+    className:
+      "border-emerald-400/20 bg-emerald-400/10 text-emerald-100",
+    progressClassName:
+      "bg-gradient-to-r from-emerald-300 to-sky-400",
+  };
 }
 
 export default async function LeadsPage() {
@@ -146,8 +275,15 @@ export default async function LeadsPage() {
     redirect("/login");
   }
 
-  const [leads, purchases] = await Promise.all([
+  const [allLeads, purchases] = await Promise.all([
     prisma.lead.findMany({
+      include: {
+        _count: {
+          select: {
+            purchases: true,
+          },
+        },
+      },
       orderBy: {
         createdAt: "desc",
       },
@@ -167,17 +303,38 @@ export default async function LeadsPage() {
     purchases.map((purchase) => purchase.leadId)
   );
 
+  const now = new Date();
+
+  const leads = allLeads.filter((lead) => {
+    const expiryDate = getEffectiveExpiryDate(lead);
+    const expired = expiryDate.getTime() <= now.getTime();
+    const soldOut = lead._count.purchases >= lead.maxPurchases;
+
+    return !expired && !soldOut;
+  });
+
   const availableLeads = leads.filter(
     (lead) => !purchasedLeadIds.has(lead.id)
   );
+
   const newLeads = availableLeads.filter((lead) => {
     const hours =
       (Date.now() - lead.createdAt.getTime()) / (1000 * 60 * 60);
+
     return hours <= 48;
   });
+
   const premiumLeads = availableLeads.filter((lead) => {
     const quality = getLeadQuality(lead);
+
     return quality >= 88;
+  });
+
+  const almostSoldOutLeads = availableLeads.filter((lead) => {
+    const remainingPlaces =
+      lead.maxPurchases - lead._count.purchases;
+
+    return remainingPlaces === 1;
   });
 
   return (
@@ -187,8 +344,10 @@ export default async function LeadsPage() {
         page="/leads"
         description="Anbieter hat die Leadliste geöffnet"
         metadata={{
-          availableLeads: leads.length,
+          availableLeads: availableLeads.length,
           purchasedLeads: purchases.length,
+          almostSoldOutLeads: almostSoldOutLeads.length,
+          expiredOrSoldOutLeads: allLeads.length - leads.length,
           credits: user.credits,
         }}
       />
@@ -214,10 +373,12 @@ export default async function LeadsPage() {
             className="inline-flex min-h-[48px] items-center gap-3 rounded-2xl border border-yellow-400/20 bg-yellow-400/10 px-5 py-3 transition hover:bg-yellow-400/15"
           >
             <Coins className="h-5 w-5 text-yellow-300" />
+
             <div>
               <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-yellow-100/55">
                 Dein Guthaben
               </div>
+
               <div className="text-base font-black text-yellow-200">
                 {user.credits} Credits
               </div>
@@ -235,39 +396,56 @@ export default async function LeadsPage() {
 
               <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[1.02] tracking-tight sm:text-5xl lg:text-6xl">
                 Finde den nächsten Auftrag,
+
                 <span className="block bg-gradient-to-r from-white via-sky-100 to-[#7EC8FF] bg-clip-text text-transparent">
                   bevor es jemand anderes tut.
                 </span>
               </h1>
 
               <p className="mt-5 max-w-3xl text-base leading-8 text-white/60 sm:text-lg">
-                Prüfe neue Anfragen, vergleiche Region und Auftragsdetails und
-                schalte nur jene Kundenkontakte frei, die wirklich zu deinem
-                Unternehmen passen.
+                Jeder Lead ist zeitlich begrenzt und kann nur von einer
+                bestimmten Anzahl Anbieter freigeschaltet werden.
               </p>
 
               <div className="mt-7 flex flex-wrap gap-3">
                 <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-sm font-semibold text-white/70">
                   <Check className="h-4 w-4 text-emerald-300" />
-                  Keine monatliche Verpflichtung
+                  Maximal vier Anbieter
                 </span>
+
                 <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-sm font-semibold text-white/70">
-                  <ShieldCheck className="h-4 w-4 text-sky-300" />
-                  Kontakt sofort nach Freischaltung
+                  <Clock3 className="h-4 w-4 text-orange-300" />
+                  Leads laufen automatisch ab
                 </span>
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
               <div className="rounded-[24px] border border-sky-400/20 bg-sky-400/10 p-5">
                 <div className="flex items-center justify-between gap-3">
                   <div className="text-xs font-bold uppercase tracking-[0.14em] text-sky-100/55">
                     Verfügbare Chancen
                   </div>
+
                   <BriefcaseBusiness className="h-5 w-5 text-sky-200" />
                 </div>
+
                 <div className="mt-3 text-4xl font-black text-white">
                   {availableLeads.length}
+                </div>
+              </div>
+
+              <div className="rounded-[24px] border border-red-400/20 bg-red-400/10 p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-xs font-bold uppercase tracking-[0.14em] text-red-100/55">
+                    Letzter Platz
+                  </div>
+
+                  <AlertTriangle className="h-5 w-5 text-red-200" />
+                </div>
+
+                <div className="mt-3 text-4xl font-black text-white">
+                  {almostSoldOutLeads.length}
                 </div>
               </div>
 
@@ -276,8 +454,10 @@ export default async function LeadsPage() {
                   <div className="text-xs font-bold uppercase tracking-[0.14em] text-orange-100/55">
                     Neu in 48 Stunden
                   </div>
+
                   <Flame className="h-5 w-5 text-orange-200" />
                 </div>
+
                 <div className="mt-3 text-4xl font-black text-white">
                   {newLeads.length}
                 </div>
@@ -288,8 +468,10 @@ export default async function LeadsPage() {
                   <div className="text-xs font-bold uppercase tracking-[0.14em] text-violet-100/55">
                     Top-Anfragen
                   </div>
+
                   <Star className="h-5 w-5 text-violet-200" />
                 </div>
+
                 <div className="mt-3 text-4xl font-black text-white">
                   {premiumLeads.length}
                 </div>
@@ -303,6 +485,7 @@ export default async function LeadsPage() {
             <div className="text-xs font-bold uppercase tracking-[0.14em] text-white/35">
               Aktuelle Übersicht
             </div>
+
             <h2 className="mt-2 text-2xl font-semibold">
               {availableLeads.length} offene Kundenanfragen
             </h2>
@@ -312,6 +495,7 @@ export default async function LeadsPage() {
             <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-4 py-2 text-xs font-bold text-sky-200">
               Neueste zuerst
             </span>
+
             <span className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-xs font-bold text-white/55">
               {purchases.length} bereits freigeschaltet
             </span>
@@ -321,12 +505,14 @@ export default async function LeadsPage() {
         {leads.length === 0 ? (
           <div className="mt-8 rounded-[30px] border border-dashed border-white/15 bg-white/[0.03] p-12 text-center">
             <div className="text-5xl">📭</div>
+
             <h2 className="mt-5 text-2xl font-semibold">
               Aktuell keine offenen Aufträge
             </h2>
+
             <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-white/50">
-              Neue Kundenanfragen werden hier automatisch angezeigt. Schau bald
-              wieder vorbei.
+              Ausverkaufte und abgelaufene Anfragen werden automatisch
+              ausgeblendet. Neue Kundenanfragen erscheinen sofort hier.
             </p>
           </div>
         ) : (
@@ -338,11 +524,31 @@ export default async function LeadsPage() {
               const qualityLabel = getQualityLabel(qualityScore);
               const qualityReasons = getQualityReason(lead);
 
+              const purchaseCount = lead._count.purchases;
+              const maxPurchases = Math.max(1, lead.maxPurchases);
+              const remainingPlaces = Math.max(
+                0,
+                maxPurchases - purchaseCount
+              );
+
+              const purchaseProgress = Math.min(
+                100,
+                Math.round((purchaseCount / maxPurchases) * 100)
+              );
+
+              const expiryDate = getEffectiveExpiryDate(lead);
+              const expiryStatus = formatTimeRemaining(expiryDate);
+
+              const demandStatus = getDemandStatus({
+                purchaseCount,
+                maxPurchases,
+              });
+
               return (
                 <article
                   key={lead.id}
                   className={[
-                    "group relative flex min-h-[560px] flex-col overflow-hidden rounded-[30px] border p-6 transition duration-300",
+                    "group relative flex min-h-[680px] flex-col overflow-hidden rounded-[30px] border p-6 transition duration-300",
                     purchased
                       ? "border-emerald-400/20 bg-[linear-gradient(160deg,rgba(16,185,129,0.12),rgba(11,20,39,0.96))]"
                       : "border-white/10 bg-[linear-gradient(160deg,rgba(14,27,51,0.98),rgba(8,16,32,0.98))] hover:-translate-y-1.5 hover:border-sky-300/25 hover:shadow-[0_30px_90px_rgba(56,189,248,0.10)]",
@@ -368,23 +574,46 @@ export default async function LeadsPage() {
                         ) : (
                           <Zap className="h-4 w-4" />
                         )}
-                        {purchased ? "Freigeschaltet" : formatRelativeDate(lead.createdAt)}
+
+                        {purchased
+                          ? "Freigeschaltet"
+                          : formatRelativeDate(lead.createdAt)}
                       </div>
                     </div>
 
-                    <div className="mt-6 rounded-[22px] border border-violet-400/15 bg-violet-400/[0.08] p-4">
-                      <div className="flex items-center justify-between gap-4">
-                        <div>
-                          <div className="text-[10px] font-black uppercase tracking-[0.16em] text-violet-100/50">
-                            Qualitätsindikator
-                          </div>
-                          <div className="mt-1 text-sm font-bold text-violet-100">
+                    <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-[22px] border border-violet-400/15 bg-violet-400/[0.08] p-4">
+                        <div className="text-[10px] font-black uppercase tracking-[0.16em] text-violet-100/50">
+                          Qualitätsindikator
+                        </div>
+
+                        <div className="mt-2 flex items-center justify-between gap-3">
+                          <div className="text-sm font-bold text-violet-100">
                             {qualityLabel}
                           </div>
+
+                          <div className="flex items-center gap-1 text-sm font-black text-violet-100">
+                            <TrendingUp className="h-4 w-4" />
+                            {qualityScore}/100
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1 rounded-full border border-violet-300/15 bg-violet-300/10 px-3 py-2 text-sm font-black text-violet-100">
-                          <TrendingUp className="h-4 w-4" />
-                          {qualityScore}/100
+                      </div>
+
+                      <div
+                        className={`rounded-[22px] border p-4 ${demandStatus.className}`}
+                      >
+                        <div className="text-[10px] font-black uppercase tracking-[0.16em] opacity-55">
+                          Nachfrage
+                        </div>
+
+                        <div className="mt-2 flex items-center gap-2 text-sm font-black">
+                          {remainingPlaces === 1 ? (
+                            <AlertTriangle className="h-4 w-4" />
+                          ) : (
+                            <Users className="h-4 w-4" />
+                          )}
+
+                          {demandStatus.label}
                         </div>
                       </div>
                     </div>
@@ -393,7 +622,7 @@ export default async function LeadsPage() {
                       {lead.title}
                     </h2>
 
-                    <p className="mt-4 line-clamp-5 text-sm leading-7 text-white/58">
+                    <p className="mt-4 line-clamp-5 text-sm leading-7 text-white/60">
                       {lead.description}
                     </p>
 
@@ -403,6 +632,7 @@ export default async function LeadsPage() {
                           <MapPin className="h-4 w-4" />
                           Region
                         </div>
+
                         <div className="mt-2 font-semibold text-white/85">
                           {lead.region}
                         </div>
@@ -413,8 +643,86 @@ export default async function LeadsPage() {
                           <CalendarDays className="h-4 w-4" />
                           Eingegangen
                         </div>
+
                         <div className="mt-2 font-semibold text-white/85">
                           {formatDate(lead.createdAt)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 rounded-[22px] border border-white/10 bg-black/20 p-5">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <div className="text-[10px] font-black uppercase tracking-[0.15em] text-white/35">
+                            Bereits gekauft
+                          </div>
+
+                          <div className="mt-2 text-lg font-black">
+                            {purchaseCount} von {maxPurchases} Anbietern
+                          </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-white/10 bg-white/[0.05] px-3 py-2 text-right">
+                          <div className="text-xl font-black">
+                            {remainingPlaces}
+                          </div>
+
+                          <div className="text-[9px] font-bold uppercase tracking-[0.12em] text-white/40">
+                            Plätze frei
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-white/10">
+                        <div
+                          className={`h-full rounded-full transition-all ${demandStatus.progressClassName}`}
+                          style={{
+                            width: `${Math.max(
+                              purchaseCount > 0 ? 8 : 0,
+                              purchaseProgress
+                            )}%`,
+                          }}
+                        />
+                      </div>
+
+                      <p className="mt-3 text-xs leading-5 text-white/45">
+                        {demandStatus.description}
+                      </p>
+                    </div>
+
+                    <div
+                      className={[
+                        "mt-4 flex items-center justify-between gap-4 rounded-[20px] border p-4",
+                        expiryStatus.urgent
+                          ? "border-red-400/20 bg-red-400/[0.08]"
+                          : "border-orange-400/20 bg-orange-400/[0.07]",
+                      ].join(" ")}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Clock3
+                          className={[
+                            "h-5 w-5",
+                            expiryStatus.urgent
+                              ? "text-red-300"
+                              : "text-orange-300",
+                          ].join(" ")}
+                        />
+
+                        <div>
+                          <div className="text-[10px] font-black uppercase tracking-[0.14em] text-white/35">
+                            Verfügbarkeit
+                          </div>
+
+                          <div className="mt-1 text-sm font-bold">
+                            {expiryStatus.label}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-right text-xs text-white/40">
+                        bis
+                        <div className="mt-1 font-bold text-white/65">
+                          {formatDate(expiryDate)}
                         </div>
                       </div>
                     </div>
@@ -429,6 +737,7 @@ export default async function LeadsPage() {
                             <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-400/10 text-emerald-300">
                               <Check className="h-3 w-3" />
                             </span>
+
                             {reason}
                           </div>
                         ))}
@@ -442,6 +751,7 @@ export default async function LeadsPage() {
                         ) : (
                           <LockKeyhole className="mt-0.5 h-5 w-5 shrink-0 text-sky-300" />
                         )}
+
                         <p className="text-sm leading-6 text-white/50">
                           {purchased
                             ? "Der Kundenkontakt wurde bereits freigeschaltet und ist in der Detailansicht sichtbar."
@@ -456,10 +766,12 @@ export default async function LeadsPage() {
                           <div className="text-xs font-bold uppercase tracking-[0.14em] text-yellow-100/45">
                             Freischaltung
                           </div>
+
                           <div className="mt-1 flex items-end gap-2">
                             <span className="text-4xl font-black leading-none text-yellow-300">
                               {lead.price}
                             </span>
+
                             <span className="pb-1 text-sm font-bold text-yellow-100/60">
                               Credits
                             </span>
@@ -477,10 +789,17 @@ export default async function LeadsPage() {
                           "inline-flex min-h-[56px] w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 text-base font-black transition",
                           purchased
                             ? "border border-emerald-400/20 bg-emerald-400/10 text-emerald-100 hover:bg-emerald-400/15"
-                            : "bg-[#7EC8FF] text-[#04101d] shadow-[0_18px_50px_rgba(126,200,255,0.18)] hover:bg-[#91d2ff]",
+                            : remainingPlaces === 1
+                              ? "bg-gradient-to-r from-orange-300 to-red-400 text-[#190705] shadow-[0_18px_50px_rgba(248,113,113,0.18)] hover:scale-[1.01]"
+                              : "bg-[#7EC8FF] text-[#04101d] shadow-[0_18px_50px_rgba(126,200,255,0.18)] hover:bg-[#91d2ff]",
                         ].join(" ")}
                       >
-                        {purchased ? "Kundendaten ansehen" : "Diese Chance ansehen"}
+                        {purchased
+                          ? "Kundendaten ansehen"
+                          : remainingPlaces === 1
+                            ? "Letzten Platz sichern"
+                            : "Diese Chance ansehen"}
+
                         <ArrowRight className="h-5 w-5 transition group-hover:translate-x-0.5" />
                       </Link>
                     </div>
@@ -497,12 +816,14 @@ export default async function LeadsPage() {
               <div className="text-xs font-black uppercase tracking-[0.16em] text-yellow-100/55">
                 Keine passende Chance verpassen
               </div>
+
               <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
                 Genügend Credits für den nächsten Auftrag?
               </h2>
+
               <p className="mt-3 max-w-2xl text-sm leading-7 text-white/55 sm:text-base">
-                Credits stehen nach erfolgreicher Zahlung sofort zur Verfügung
-                und verfallen nicht.
+                Besonders gefragte Leads können jederzeit ausverkauft sein.
+                Credits stehen nach erfolgreicher Zahlung sofort zur Verfügung.
               </p>
             </div>
 

@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import { filterMatchingLeads } from "@/lib/provider-lead-matching";
+
 import ProviderPageTracker from "@/components/provider-page-tracker";
 import ProviderNotificationBell from "@/components/provider-notification-bell";
 import OpenLeadButton from "./open-lead-button";
@@ -14,16 +16,30 @@ export const revalidate = 0;
 function getGreeting() {
   const hour = new Date().getHours();
 
-  if (hour < 11) return "Guten Morgen";
-  if (hour < 17) return "Guten Tag";
+  if (hour < 11) {
+    return "Guten Morgen";
+  }
+
+  if (hour < 17) {
+    return "Guten Tag";
+  }
+
   return "Guten Abend";
 }
 
 function getCategoryIcon(category: string) {
   const value = category.toLowerCase();
 
-  if (value.includes("reinigung")) return "🧹";
-  if (value.includes("umzug") || value.includes("transport")) return "🚚";
+  if (value.includes("reinigung")) {
+    return "🧹";
+  }
+
+  if (
+    value.includes("umzug") ||
+    value.includes("transport")
+  ) {
+    return "🚚";
+  }
 
   if (
     value.includes("garten") ||
@@ -33,14 +49,27 @@ function getCategoryIcon(category: string) {
     return "🌿";
   }
 
-  if (value.includes("fenster") || value.includes("storen")) return "🪟";
-  if (value.includes("maler")) return "🎨";
+  if (
+    value.includes("fenster") ||
+    value.includes("storen")
+  ) {
+    return "🪟";
+  }
 
-  if (value.includes("entsorgung") || value.includes("räumung")) {
+  if (value.includes("maler")) {
+    return "🎨";
+  }
+
+  if (
+    value.includes("entsorgung") ||
+    value.includes("räumung")
+  ) {
     return "♻️";
   }
 
-  if (value.includes("hauswartung")) return "🏢";
+  if (value.includes("hauswartung")) {
+    return "🏢";
+  }
 
   return "🛠️";
 }
@@ -49,50 +78,70 @@ function getCreditStatus(credits: number) {
   if (credits <= 0) {
     return {
       label: "Keine Credits",
-      text: "Lade Credits auf, um neue Kundenanfragen freizuschalten.",
-      className: "border-red-400/20 bg-red-400/10 text-red-100",
-      barClassName: "bg-red-300",
+      text:
+        "Lade Credits auf, um neue Kundenanfragen freizuschalten.",
+      className:
+        "border-red-400/20 bg-red-400/10 text-red-100",
     };
   }
 
   if (credits <= 20) {
     return {
       label: "Guthaben wird knapp",
-      text: "Dein Guthaben reicht nur noch für wenige Kundenanfragen.",
-      className: "border-amber-400/20 bg-amber-400/10 text-amber-100",
-      barClassName: "bg-amber-300",
+      text:
+        "Dein Guthaben reicht nur noch für wenige Kundenanfragen.",
+      className:
+        "border-amber-400/20 bg-amber-400/10 text-amber-100",
     };
   }
 
   return {
     label: "Bereit für neue Aufträge",
-    text: "Du kannst passende Kundenanfragen sofort freischalten.",
-    className: "border-emerald-400/20 bg-emerald-400/10 text-emerald-100",
-    barClassName: "bg-emerald-300",
+    text:
+      "Du kannst passende Kundenanfragen sofort freischalten.",
+    className:
+      "border-emerald-400/20 bg-emerald-400/10 text-emerald-100",
   };
 }
 
 function formatRelativeTime(date: Date) {
   const diffMinutes = Math.max(
     0,
-    Math.floor((Date.now() - date.getTime()) / 60000)
+    Math.floor(
+      (Date.now() - date.getTime()) / 60000
+    )
   );
 
-  if (diffMinutes < 1) return "Gerade eingetroffen";
-  if (diffMinutes < 60) return `Vor ${diffMinutes} Min.`;
+  if (diffMinutes < 1) {
+    return "Gerade eingetroffen";
+  }
 
-  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffMinutes < 60) {
+    return `Vor ${diffMinutes} Min.`;
+  }
 
-  if (diffHours < 24) return `Vor ${diffHours} Std.`;
+  const diffHours = Math.floor(
+    diffMinutes / 60
+  );
 
-  const diffDays = Math.floor(diffHours / 24);
+  if (diffHours < 24) {
+    return `Vor ${diffHours} Std.`;
+  }
 
-  if (diffDays === 1) return "Gestern";
+  const diffDays = Math.floor(
+    diffHours / 24
+  );
+
+  if (diffDays === 1) {
+    return "Gestern";
+  }
 
   return `Vor ${diffDays} Tagen`;
 }
 
-function getProviderLevel(purchaseCount: number) {
+function getProviderLevel(
+  purchaseCount: number
+) {
   if (purchaseCount >= 100) {
     return {
       name: "Platin Partner",
@@ -124,35 +173,6 @@ function getProviderLevel(purchaseCount: number) {
   };
 }
 
-function getRecommendationScore(
-  category: string,
-  region: string,
-  preferredCategories: Set<string>,
-  preferredRegions: Set<string>,
-  createdAt: Date
-) {
-  let score = 62;
-
-  if (preferredCategories.has(category)) {
-    score += 16;
-  }
-
-  if (preferredRegions.has(region)) {
-    score += 14;
-  }
-
-  const ageHours =
-    (Date.now() - createdAt.getTime()) / 3_600_000;
-
-  if (ageHours <= 6) {
-    score += 8;
-  } else if (ageHours <= 24) {
-    score += 4;
-  }
-
-  return Math.min(98, score);
-}
-
 export default async function DashboardPage() {
   const user = await requireUser();
 
@@ -160,114 +180,164 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
+  const provider =
+    await prisma.provider.findUnique({
+      where: {
+        id: user.id,
+      },
+
+      select: {
+        region: true,
+        category: true,
+
+        serviceRegions: true,
+        serviceCategories: true,
+        serviceCities: true,
+        servicePostalCodes: true,
+
+        receiveAllLeadEmails: true,
+      },
+    });
+
+  if (!provider) {
+    redirect("/login");
+  }
+
   const startOfMonth = new Date();
 
   startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
-
-  const purchases = await prisma.leadPurchase.findMany({
-    where: {
-      providerId: user.id,
-    },
-    include: {
-      lead: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  const purchasedLeadIds = purchases.map(
-    (purchase) => purchase.leadId
+  startOfMonth.setHours(
+    0,
+    0,
+    0,
+    0
   );
 
-  const [latestLeads, totalLeads, monthlyPurchases] =
-    await Promise.all([
-      prisma.lead.findMany({
-        where:
-          purchasedLeadIds.length > 0
-            ? {
-                id: {
-                  notIn: purchasedLeadIds,
-                },
-              }
-            : undefined,
-        take: 8,
-        orderBy: {
-          createdAt: "desc",
+  const purchases =
+    await prisma.leadPurchase.findMany({
+      where: {
+        providerId: user.id,
+      },
+
+      include: {
+        lead: true,
+      },
+
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+  const purchasedLeadIds =
+    purchases.map(
+      (purchase) =>
+        purchase.leadId
+    );
+
+  const [
+    candidateLeads,
+    totalLeads,
+    monthlyPurchases,
+  ] = await Promise.all([
+    prisma.lead.findMany({
+      where:
+        purchasedLeadIds.length > 0
+          ? {
+              id: {
+                notIn:
+                  purchasedLeadIds,
+              },
+            }
+          : undefined,
+
+      take: 150,
+
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
+
+    prisma.lead.count(),
+
+    prisma.leadPurchase.count({
+      where: {
+        providerId: user.id,
+
+        createdAt: {
+          gte: startOfMonth,
         },
-      }),
+      },
+    }),
+  ]);
 
-      prisma.lead.count(),
+  const matchingLeadResults =
+    filterMatchingLeads(
+      provider,
+      candidateLeads
+    );
 
-      prisma.leadPurchase.count({
-        where: {
-          providerId: user.id,
-          createdAt: {
-            gte: startOfMonth,
-          },
-        },
-      }),
-    ]);
+  const latestLeads =
+    matchingLeadResults
+      .slice(0, 8)
+      .map(({ lead }) => lead);
 
-  const preferredCategories = new Set(
-    purchases
-      .slice(0, 20)
-      .map((purchase) => purchase.lead.category)
-  );
+  const totalMatchingLeads =
+    matchingLeadResults.length;
 
-  const preferredRegions = new Set(
-    purchases
-      .slice(0, 20)
-      .map((purchase) => purchase.lead.region)
-  );
+  const recommendedLeads =
+    matchingLeadResults
+      .slice(0, 3)
+      .map(({ lead, match }) => ({
+        ...lead,
+        recommendationScore:
+          match.score,
+        recommendationReasons:
+          match.reasons,
+      }));
 
-  const recommendedLeads = latestLeads
-    .map((lead) => ({
-      ...lead,
-      recommendationScore: getRecommendationScore(
-        lead.category,
-        lead.region,
-        preferredCategories,
-        preferredRegions,
-        lead.createdAt
-      ),
-    }))
-    .sort(
-      (a, b) =>
-        b.recommendationScore - a.recommendationScore
-    )
-    .slice(0, 3);
+  const creditStatus =
+    getCreditStatus(
+      user.credits
+    );
 
-  const creditStatus = getCreditStatus(user.credits);
-  const providerLevel = getProviderLevel(purchases.length);
+  const providerLevel =
+    getProviderLevel(
+      purchases.length
+    );
 
-  const levelProgress = Math.min(
-    100,
-    Math.round(
-      (purchases.length / providerLevel.nextTarget) * 100
-    )
-  );
+  const levelProgress =
+    Math.min(
+      100,
+      Math.round(
+        (purchases.length /
+          providerLevel.nextTarget) *
+          100
+      )
+    );
 
   const monthlyTarget = 20;
 
-  const monthlyProgress = Math.min(
-    100,
-    Math.round(
-      (monthlyPurchases / monthlyTarget) * 100
-    )
-  );
+  const monthlyProgress =
+    Math.min(
+      100,
+      Math.round(
+        (monthlyPurchases /
+          monthlyTarget) *
+          100
+      )
+    );
 
-  const initialNotificationLeads = latestLeads.map(
-    (lead) => ({
+  const initialNotificationLeads =
+    latestLeads.map((lead) => ({
       id: lead.id,
       title: lead.title,
       region: lead.region,
       category: lead.category,
       price: lead.price,
-      createdAt: lead.createdAt.toISOString(),
-    })
-  );
+
+      createdAt:
+        lead.createdAt.toISOString(),
+    }));
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#030816] text-white">
@@ -277,15 +347,21 @@ export default async function DashboardPage() {
         description="Anbieter hat das Dashboard geöffnet"
         metadata={{
           credits: user.credits,
-          unlockedLeads: purchases.length,
-          availableLeads: totalLeads,
+          unlockedLeads:
+            purchases.length,
+          availableLeads:
+            totalMatchingLeads,
+          allAvailableLeads:
+            totalLeads,
           monthlyPurchases,
         }}
       />
 
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-[-12%] top-[-10%] h-[480px] w-[480px] rounded-full bg-sky-400/10 blur-3xl" />
+
         <div className="absolute right-[-10%] top-[10%] h-[520px] w-[520px] rounded-full bg-indigo-500/10 blur-3xl" />
+
         <div className="absolute bottom-[-20%] left-[30%] h-[460px] w-[460px] rounded-full bg-cyan-400/5 blur-3xl" />
       </div>
 
@@ -295,20 +371,24 @@ export default async function DashboardPage() {
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-sky-400/20 bg-sky-400/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-sky-200">
                 <span className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_18px_rgba(110,231,183,0.9)]" />
+
                 Anbieterportal live
               </div>
 
               <h1 className="mt-6 max-w-4xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
                 {getGreeting()},{" "}
+
                 <span className="bg-gradient-to-r from-white via-sky-100 to-sky-300 bg-clip-text text-transparent">
                   {user.companyName}
                 </span>
               </h1>
 
               <p className="mt-5 max-w-2xl text-base leading-8 text-white/60 sm:text-lg">
-                Heute warten {latestLeads.length} neue
-                Kundenchancen auf dich. Wähle die passenden
-                Anfragen aus und reagiere frühzeitig.
+                Aktuell warten{" "}
+                {totalMatchingLeads} passende
+                Kundenchancen auf dich. Prüfe
+                die neuen Anfragen und reagiere
+                frühzeitig.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
@@ -316,7 +396,7 @@ export default async function DashboardPage() {
                   href="/leads"
                   className="inline-flex min-h-[54px] items-center justify-center rounded-2xl bg-gradient-to-r from-sky-400 to-indigo-500 px-6 py-3 text-sm font-black text-white shadow-[0_18px_50px_rgba(59,130,246,0.28)] transition hover:-translate-y-0.5"
                 >
-                  🔥 Neue Leads ansehen
+                  🔥 Passende Leads ansehen
                 </Link>
 
                 <Link
@@ -331,7 +411,9 @@ export default async function DashboardPage() {
             <aside className="relative rounded-[28px] border border-white/10 bg-black/20 p-6 backdrop-blur-xl">
               <div className="mb-5 flex justify-end">
                 <ProviderNotificationBell
-                  initialLeads={initialNotificationLeads}
+                  initialLeads={
+                    initialNotificationLeads
+                  }
                 />
               </div>
 
@@ -360,7 +442,10 @@ export default async function DashboardPage() {
 
               <div className="mt-6">
                 <div className="flex items-center justify-between text-xs text-white/45">
-                  <span>Level-Fortschritt</span>
+                  <span>
+                    Level-Fortschritt
+                  </span>
+
                   <span>
                     {purchases.length}/
                     {providerLevel.nextTarget}
@@ -398,23 +483,33 @@ export default async function DashboardPage() {
               label: "Neue Chancen",
               value: latestLeads.length,
               icon: "🔥",
-              text: "Noch nicht freigeschaltet",
+              text:
+                "Neueste passende Anfragen",
             },
+
             {
-              label: "Aktive Leads",
-              value: totalLeads,
-              icon: "📡",
-              text: "Aktuell auf Auftrago",
+              label: "Passende Leads",
+              value:
+                totalMatchingLeads,
+              icon: "🎯",
+              text:
+                "Für deine Einstellungen",
             },
+
             {
-              label: "Freigeschaltet",
-              value: purchases.length,
+              label:
+                "Freigeschaltet",
+              value:
+                purchases.length,
               icon: "🔓",
-              text: "Gesamte Kundenkontakte",
+              text:
+                "Gesamte Kundenkontakte",
             },
+
             {
               label: "Diesen Monat",
-              value: monthlyPurchases,
+              value:
+                monthlyPurchases,
               icon: "📈",
               text: `Ziel: ${monthlyTarget} Kontakte`,
             },
@@ -457,8 +552,10 @@ export default async function DashboardPage() {
                 </h2>
 
                 <p className="mt-2 text-sm leading-6 text-white/45">
-                  Die Reihenfolge berücksichtigt deine
-                  bisher gekauften Kategorien und Regionen.
+                  Die Reihenfolge berücksichtigt
+                  deine gewählten Kategorien,
+                  Regionen, Städte und
+                  Postleitzahlen.
                 </p>
               </div>
 
@@ -466,84 +563,113 @@ export default async function DashboardPage() {
                 href="/leads"
                 className="text-sm font-bold text-sky-200 hover:text-sky-100"
               >
-                Alle Leads ansehen →
+                Alle passenden Leads →
               </Link>
             </div>
 
             <div className="mt-7 grid gap-4 xl:grid-cols-3">
-              {recommendedLeads.length > 0 ? (
-                recommendedLeads.map((lead) => (
-                  <article
-                    key={lead.id}
-                    className="group flex min-h-[330px] flex-col justify-between rounded-[24px] border border-white/10 bg-white/[0.035] p-5 transition hover:-translate-y-1 hover:border-sky-300/25 hover:bg-white/[0.06]"
-                  >
-                    <div>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] text-2xl">
-                          {getCategoryIcon(
-                            lead.category
+              {recommendedLeads.length >
+              0 ? (
+                recommendedLeads.map(
+                  (lead) => (
+                    <article
+                      key={lead.id}
+                      className="group flex min-h-[330px] flex-col justify-between rounded-[24px] border border-white/10 bg-white/[0.035] p-5 transition hover:-translate-y-1 hover:border-sky-300/25 hover:bg-white/[0.06]"
+                    >
+                      <div>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] text-2xl">
+                            {getCategoryIcon(
+                              lead.category
+                            )}
+                          </div>
+
+                          <div className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-200">
+                            {
+                              lead.recommendationScore
+                            }
+                            % Match
+                          </div>
+                        </div>
+
+                        <div className="mt-5 text-xs font-bold uppercase tracking-[0.13em] text-sky-200/70">
+                          {formatRelativeTime(
+                            lead.createdAt
                           )}
                         </div>
 
-                        <div className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-200">
-                          {lead.recommendationScore}%
-                          Match
+                        <h3 className="mt-3 text-xl font-semibold leading-snug">
+                          {lead.title}
+                        </h3>
+
+                        <div className="mt-5 flex flex-wrap gap-2">
+                          <span className="rounded-full bg-white/[0.06] px-3 py-2 text-xs text-white/60">
+                            📍 {lead.region}
+                          </span>
+
+                          <span className="rounded-full bg-white/[0.06] px-3 py-2 text-xs text-white/60">
+                            🏷️{" "}
+                            {lead.category}
+                          </span>
+
+                          {lead.city ? (
+                            <span className="rounded-full bg-white/[0.06] px-3 py-2 text-xs text-white/60">
+                              🏙️ {lead.city}
+                            </span>
+                          ) : null}
+
+                          {lead.postalCode ? (
+                            <span className="rounded-full bg-white/[0.06] px-3 py-2 text-xs text-white/60">
+                              📮{" "}
+                              {lead.postalCode}
+                            </span>
+                          ) : null}
                         </div>
                       </div>
 
-                      <div className="mt-5 text-xs font-bold uppercase tracking-[0.13em] text-sky-200/70">
-                        {formatRelativeTime(
-                          lead.createdAt
-                        )}
-                      </div>
+                      <div className="mt-6 flex items-end justify-between gap-4">
+                        <div>
+                          <div className="text-2xl font-black text-yellow-200">
+                            {lead.price}
+                          </div>
 
-                      <h3 className="mt-3 text-xl font-semibold leading-snug">
-                        {lead.title}
-                      </h3>
-
-                      <div className="mt-5 flex flex-wrap gap-2">
-                        <span className="rounded-full bg-white/[0.06] px-3 py-2 text-xs text-white/60">
-                          📍 {lead.region}
-                        </span>
-
-                        <span className="rounded-full bg-white/[0.06] px-3 py-2 text-xs text-white/60">
-                          🏷️ {lead.category}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="mt-6 flex items-end justify-between gap-4">
-                      <div>
-                        <div className="text-2xl font-black text-yellow-200">
-                          {lead.price}
+                          <div className="text-[10px] font-bold uppercase tracking-[0.13em] text-yellow-100/45">
+                            Credits
+                          </div>
                         </div>
 
-                        <div className="text-[10px] font-bold uppercase tracking-[0.13em] text-yellow-100/45">
-                          Credits
-                        </div>
+                        <Link
+                          href={`/leads/${lead.id}`}
+                          className="inline-flex min-h-[46px] items-center justify-center rounded-xl bg-white px-4 py-2 text-sm font-black text-[#04101d] transition group-hover:bg-sky-100"
+                        >
+                          Öffnen →
+                        </Link>
                       </div>
-
-                      <Link
-                        href={`/leads/${lead.id}`}
-                        className="inline-flex min-h-[46px] items-center justify-center rounded-xl bg-white px-4 py-2 text-sm font-black text-[#04101d] transition group-hover:bg-sky-100"
-                      >
-                        Öffnen →
-                      </Link>
-                    </div>
-                  </article>
-                ))
+                    </article>
+                  )
+                )
               ) : (
                 <div className="rounded-[24px] border border-dashed border-white/10 bg-white/[0.025] p-10 text-center xl:col-span-3">
-                  <div className="text-4xl">✅</div>
+                  <div className="text-4xl">
+                    ✅
+                  </div>
 
                   <h3 className="mt-4 text-xl font-semibold">
-                    Du bist auf dem neuesten Stand
+                    Keine neuen passenden Leads
                   </h3>
 
                   <p className="mt-2 text-sm text-white/45">
-                    Neue Kundenanfragen erscheinen
+                    Neue passende
+                    Kundenanfragen erscheinen
                     automatisch hier.
                   </p>
+
+                  <Link
+                    href="/settings/leads"
+                    className="mt-5 inline-flex min-h-[46px] items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10"
+                  >
+                    Einstellungen prüfen
+                  </Link>
                 </div>
               )}
             </div>
@@ -558,45 +684,53 @@ export default async function DashboardPage() {
                   </div>
 
                   <h2 className="mt-2 text-xl font-semibold">
-                    Was gerade passiert
+                    Passende neue Leads
                   </h2>
                 </div>
 
                 <span className="flex items-center gap-2 rounded-full border border-red-400/20 bg-red-400/10 px-3 py-1 text-xs font-bold text-red-200">
                   <span className="h-2 w-2 animate-pulse rounded-full bg-red-300" />
+
                   LIVE
                 </span>
               </div>
 
               <div className="mt-6 space-y-4">
-                {latestLeads
-                  .slice(0, 5)
-                  .map((lead) => (
-                    <Link
-                      key={lead.id}
-                      href={`/leads/${lead.id}`}
-                      className="flex items-start gap-3 rounded-2xl border border-white/5 bg-black/10 p-3 transition hover:border-sky-300/20 hover:bg-white/[0.04]"
-                    >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] text-lg">
-                        {getCategoryIcon(
-                          lead.category
-                        )}
-                      </div>
-
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-semibold">
-                          {lead.title}
-                        </div>
-
-                        <div className="mt-1 text-xs text-white/40">
-                          {lead.region} ·{" "}
-                          {formatRelativeTime(
-                            lead.createdAt
+                {latestLeads.length > 0 ? (
+                  latestLeads
+                    .slice(0, 5)
+                    .map((lead) => (
+                      <Link
+                        key={lead.id}
+                        href={`/leads/${lead.id}`}
+                        className="flex items-start gap-3 rounded-2xl border border-white/5 bg-black/10 p-3 transition hover:border-sky-300/20 hover:bg-white/[0.04]"
+                      >
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] text-lg">
+                          {getCategoryIcon(
+                            lead.category
                           )}
                         </div>
-                      </div>
-                    </Link>
-                  ))}
+
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-semibold">
+                            {lead.title}
+                          </div>
+
+                          <div className="mt-1 text-xs text-white/40">
+                            {lead.region} ·{" "}
+                            {formatRelativeTime(
+                              lead.createdAt
+                            )}
+                          </div>
+                        </div>
+                      </Link>
+                    ))
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-white/10 p-5 text-center text-sm text-white/45">
+                    Aktuell keine passenden
+                    neuen Anfragen.
+                  </div>
+                )}
               </div>
             </section>
 
@@ -629,8 +763,9 @@ export default async function DashboardPage() {
               </div>
 
               <p className="mt-4 text-sm leading-6 text-white/45">
-                Bleib aktiv und prüfe täglich neue
-                Anfragen in deinen Regionen.
+                Bleib aktiv und prüfe täglich
+                neue Anfragen in deinen
+                gewählten Einsatzgebieten.
               </p>
             </section>
 
@@ -665,15 +800,19 @@ export default async function DashboardPage() {
 
           {purchases.length === 0 ? (
             <div className="mt-7 rounded-[24px] border border-dashed border-white/10 bg-white/[0.025] p-10 text-center">
-              <div className="text-4xl">🔎</div>
+              <div className="text-4xl">
+                🔎
+              </div>
 
               <h3 className="mt-4 text-xl font-semibold">
-                Noch keine Leads freigeschaltet
+                Noch keine Leads
+                freigeschaltet
               </h3>
 
               <p className="mt-2 text-sm text-white/45">
-                Öffne die aktuellen Kundenanfragen und
-                sichere dir passende Kontakte.
+                Öffne die passenden
+                Kundenanfragen und sichere dir
+                interessante Kontakte.
               </p>
 
               <Link
@@ -695,7 +834,8 @@ export default async function DashboardPage() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="text-2xl">
                         {getCategoryIcon(
-                          purchase.lead.category
+                          purchase.lead
+                            .category
                         )}
                       </div>
 
@@ -705,11 +845,18 @@ export default async function DashboardPage() {
                     </div>
 
                     <h3 className="mt-4 text-lg font-semibold">
-                      {purchase.lead.title}
+                      {
+                        purchase.lead
+                          .title
+                      }
                     </h3>
 
                     <div className="mt-3 text-sm text-white/45">
-                      📍 {purchase.lead.region}
+                      📍{" "}
+                      {
+                        purchase.lead
+                          .region
+                      }
                     </div>
 
                     <div className="mt-5 flex gap-2">
@@ -721,7 +868,9 @@ export default async function DashboardPage() {
                       </a>
 
                       <OpenLeadButton
-                        leadId={purchase.lead.id}
+                        leadId={
+                          purchase.lead.id
+                        }
                       />
                     </div>
                   </article>

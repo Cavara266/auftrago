@@ -36,10 +36,11 @@ model Provider {
   companyName String
   contactName String
   phone       String?
-  region      String?
-  category    String?
   credits     Int            @default(0)
   status      ProviderStatus @default(PENDING)
+
+  region   String?
+  category String?
 
   website     String?
   description String?
@@ -47,12 +48,24 @@ model Provider {
   postalCode  String?
   city        String?
 
+  serviceCategories  String[] @default([])
+  serviceRegions     String[] @default([])
+  serviceCities      String[] @default([])
+  servicePostalCodes String[] @default([])
+
+  receiveLeadEmails    Boolean @default(true)
+  receiveAllLeadEmails Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   purchases       LeadPurchase[]
   creditPurchases CreditPurchase[]
   activities      ProviderActivity[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([updatedAt])
 }
 
 model Lead {
@@ -68,10 +81,25 @@ model Lead {
   category String
   price    Int
 
+  postalCode String?
+  city       String?
+
+  maxPurchases Int      @default(4)
+  expiresAt    DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   purchases LeadPurchase[]
+
+  @@index([createdAt])
+  @@index([expiresAt])
+  @@index([category])
+  @@index([region])
+  @@index([postalCode])
+  @@index([city])
+  @@index([category, region])
+  @@index([expiresAt, createdAt])
 }
 
 model LeadPurchase {
@@ -93,6 +121,11 @@ model LeadPurchase {
   offers     LeadOffer[]
 
   @@unique([providerId, leadId])
+  @@index([providerId])
+  @@index([leadId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([providerId, createdAt])
 }
 
 model LeadNote {
@@ -104,83 +137,99 @@ model LeadNote {
   updatedAt DateTime @updatedAt
 
   leadPurchase LeadPurchase @relation(fields: [leadPurchaseId], references: [id], onDelete: Cascade)
+
+  @@index([leadPurchaseId])
+  @@index([createdAt])
 }
 
 model LeadMessage {
   id             String @id @default(uuid())
   leadPurchaseId String
-
-  sender  String
-  message String
+  sender         String
+  message        String
 
   createdAt DateTime @default(now())
 
   leadPurchase LeadPurchase @relation(fields: [leadPurchaseId], references: [id], onDelete: Cascade)
+
+  @@index([leadPurchaseId])
+  @@index([createdAt])
 }
 
 model LeadActivity {
   id             String @id @default(uuid())
   leadPurchaseId String
-
-  type        String
-  description String
+  type           String
+  description    String
 
   createdAt DateTime @default(now())
 
   leadPurchase LeadPurchase @relation(fields: [leadPurchaseId], references: [id], onDelete: Cascade)
+
+  @@index([leadPurchaseId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([leadPurchaseId, createdAt])
 }
 
 model LeadOffer {
-  id             String @id @default(uuid())
+  id             String      @id @default(uuid())
   leadPurchaseId String
-
-  title       String
-  description String?
-  amount      Float
-  status      OfferStatus @default(SENT)
-  pdfUrl      String?
+  title          String
+  description    String?
+  amount         Float
+  status         OfferStatus @default(SENT)
+  pdfUrl         String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   leadPurchase LeadPurchase @relation(fields: [leadPurchaseId], references: [id], onDelete: Cascade)
+
+  @@index([leadPurchaseId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model CreditPurchase {
-  id              String  @id @default(uuid())
+  id              String @id @default(uuid())
   providerId      String
-  stripeSessionId String  @unique
+  stripeSessionId String @unique
   packageId       String?
-
-  credits  Int
-  amount   Int
-  currency String @default("chf")
-  status   String @default("paid")
+  credits         Int
+  amount          Int
+  currency        String @default("chf")
+  status          String @default("paid")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([providerId, createdAt])
 }
 
 model ProviderActivity {
-  id         String @id @default(uuid())
-  providerId String
-
+  id          String @id @default(uuid())
+  providerId  String
   event       String
   description String?
   page        String?
   leadId      String?
   metadata    Json?
-
-  ipAddress String?
-  userAgent String?
+  ipAddress   String?
+  userAgent   String?
 
   createdAt DateTime @default(now())
 
   provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
 
+  @@index([providerId])
   @@index([providerId, createdAt])
   @@index([event, createdAt])
+  @@index([leadId])
   @@index([createdAt])
 }

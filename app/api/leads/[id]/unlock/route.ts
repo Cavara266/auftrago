@@ -10,7 +10,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const MAX_PROVIDERS_PER_LEAD = 4;
+const DEFAULT_LEAD_LIFETIME_DAYS = 7;
+const DEFAULT_MAX_PURCHASES = 4;
 const MAX_TRANSACTION_ATTEMPTS = 3;
 
 type RouteContext = {
@@ -25,9 +26,25 @@ type PurchaseResult = {
     price: number;
     createdAt: Date;
   };
+
+  lead: {
+    id: string;
+    title: string;
+    category: string;
+    region: string;
+    description: string;
+    name: string;
+    phone: string;
+    email: string;
+    price: number;
+    maxPurchases: number;
+    expiresAt: Date;
+  };
+
   credits: number;
   purchaseCount: number;
   remainingSlots: number;
+
   providerEmail: string;
   providerContactName: string;
   providerCompanyName: string;
@@ -47,10 +64,37 @@ function getClientIp(request: Request): string | undefined {
   );
 }
 
+function getEffectiveExpiryDate({
+  createdAt,
+  expiresAt,
+}: {
+  createdAt: Date;
+  expiresAt: Date | null;
+}) {
+  if (expiresAt) {
+    return expiresAt;
+  }
+
+  return new Date(
+    createdAt.getTime() +
+      DEFAULT_LEAD_LIFETIME_DAYS * 24 * 60 * 60 * 1000
+  );
+}
+
+function getEffectiveMaxPurchases(maxPurchases: number) {
+  if (
+    !Number.isInteger(maxPurchases) ||
+    maxPurchases <= 0
+  ) {
+    return DEFAULT_MAX_PURCHASES;
+  }
+
+  return maxPurchases;
+}
+
 async function purchaseLead(
   providerId: string,
-  leadId: string,
-  leadPrice: number
+  leadId: string
 ): Promise<PurchaseResult> {
   for (
     let attempt = 1;
@@ -82,12 +126,60 @@ async function purchaseLead(
             throw new Error("PROVIDER_NOT_APPROVED");
           }
 
+          const lead = await tx.lead.findUnique({
+            where: {
+              id: leadId,
+            },
+            select: {
+              id: true,
+              title: true,
+              category: true,
+              region: true,
+              description: true,
+              name: true,
+              phone: true,
+              email: true,
+              price: true,
+              maxPurchases: true,
+              expiresAt: true,
+              createdAt: true,
+            },
+          });
+
+          if (!lead) {
+            throw new Error("LEAD_NOT_FOUND");
+          }
+
+          if (
+            !Number.isInteger(lead.price) ||
+            lead.price <= 0
+          ) {
+            throw new Error("INVALID_LEAD_PRICE");
+          }
+
+          const effectiveExpiryDate =
+            getEffectiveExpiryDate({
+              createdAt: lead.createdAt,
+              expiresAt: lead.expiresAt,
+            });
+
+          if (
+            effectiveExpiryDate.getTime() <= Date.now()
+          ) {
+            throw new Error("LEAD_EXPIRED");
+          }
+
+          const maxPurchases =
+            getEffectiveMaxPurchases(
+              lead.maxPurchases
+            );
+
           const existingPurchase =
             await tx.leadPurchase.findUnique({
               where: {
                 providerId_leadId: {
                   providerId: provider.id,
-                  leadId,
+                  leadId: lead.id,
                 },
               },
               select: {
@@ -102,13 +194,11 @@ async function purchaseLead(
           const purchaseCount =
             await tx.leadPurchase.count({
               where: {
-                leadId,
+                leadId: lead.id,
               },
             });
 
-          if (
-            purchaseCount >= MAX_PROVIDERS_PER_LEAD
-          ) {
+          if (purchaseCount >= maxPurchases) {
             throw new Error("LEAD_SOLD_OUT");
           }
 
@@ -118,12 +208,12 @@ async function purchaseLead(
                 id: provider.id,
                 status: "APPROVED",
                 credits: {
-                  gte: leadPrice,
+                  gte: lead.price,
                 },
               },
               data: {
                 credits: {
-                  decrement: leadPrice,
+                  decrement: lead.price,
                 },
               },
             });
@@ -136,8 +226,8 @@ async function purchaseLead(
             await tx.leadPurchase.create({
               data: {
                 providerId: provider.id,
-                leadId,
-                price: leadPrice,
+                leadId: lead.id,
+                price: lead.price,
                 status: "OPEN",
               },
               select: {
@@ -162,17 +252,36 @@ async function purchaseLead(
 
           return {
             purchase,
+
+            lead: {
+              id: lead.id,
+              title: lead.title,
+              category: lead.category,
+              region: lead.region,
+              description: lead.description,
+              name: lead.name,
+              phone: lead.phone,
+              email: lead.email,
+              price: lead.price,
+              maxPurchases,
+              expiresAt: effectiveExpiryDate,
+            },
+
             credits:
               providerAfterPurchase?.credits ?? 0,
+
             purchaseCount: newPurchaseCount,
+
             remainingSlots: Math.max(
               0,
-              MAX_PROVIDERS_PER_LEAD -
-                newPurchaseCount
+              maxPurchases - newPurchaseCount
             ),
+
             providerEmail: provider.email,
+
             providerContactName:
               provider.contactName,
+
             providerCompanyName:
               provider.companyName,
           };
@@ -256,119 +365,87 @@ export async function POST(
       );
     }
 
-    const lead = await prisma.lead.findUnique({
-      where: {
-        id: leadId,
-      },
-      select: {
-        id: true,
-        title: true,
-        category: true,
-        region: true,
-        description: true,
-        name: true,
-        phone: true,
-        email: true,
-        price: true,
-      },
-    });
-
-    if (!lead) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "LEAD_NOT_FOUND",
-          message:
-            "Die Kundenanfrage wurde nicht gefunden.",
-        },
-        {
-          status: 404,
-        }
-      );
-    }
-
-    if (
-      !Number.isInteger(lead.price) ||
-      lead.price <= 0
-    ) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "INVALID_LEAD_PRICE",
-          message:
-            "Für diese Anfrage wurde kein gültiger Preis festgelegt.",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
     const result = await purchaseLead(
       user.id,
-      lead.id,
-      lead.price
+      leadId
     );
 
     const ipAddress = getClientIp(request);
+
     const userAgent =
       request.headers.get("user-agent") ||
       undefined;
 
-    await trackProviderActivity({
-      providerId: user.id,
-      event: "LEAD_PURCHASED",
-      description:
-        "Anbieter hat einen Lead erfolgreich freigeschaltet",
-      page: `/leads/${lead.id}`,
-      leadId: lead.id,
-      metadata: {
-        leadTitle: lead.title,
-        category: lead.category,
-        region: lead.region,
-        creditsSpent: lead.price,
-        remainingCredits: result.credits,
-        purchaseId: result.purchase.id,
-        purchaseCount:
-          result.purchaseCount,
-        remainingSlots:
-          result.remainingSlots,
-        maxProviders:
-          MAX_PROVIDERS_PER_LEAD,
-      },
-      ipAddress,
-      userAgent,
-    });
+    try {
+      await trackProviderActivity({
+        providerId: user.id,
+        event: "LEAD_PURCHASED",
+        description:
+          "Anbieter hat einen Lead erfolgreich freigeschaltet",
+        page: `/leads/${result.lead.id}`,
+        leadId: result.lead.id,
+        metadata: {
+          leadTitle: result.lead.title,
+          category: result.lead.category,
+          region: result.lead.region,
+          creditsSpent: result.lead.price,
+          remainingCredits: result.credits,
+          purchaseId: result.purchase.id,
+          purchaseCount: result.purchaseCount,
+          remainingSlots: result.remainingSlots,
+          maxProviders:
+            result.lead.maxPurchases,
+          expiresAt:
+            result.lead.expiresAt.toISOString(),
+        },
+        ipAddress,
+        userAgent,
+      });
+    } catch (activityError) {
+      console.error(
+        "LEAD PURCHASE ACTIVITY ERROR:",
+        activityError
+      );
+    }
 
     try {
       console.log(
         "LEAD PURCHASE MAIL START:",
         {
           to: result.providerEmail,
-          leadId: lead.id,
+          leadId: result.lead.id,
         }
       );
 
       await sendLeadPurchaseMail({
         providerEmail:
           result.providerEmail,
+
         providerContactName:
           result.providerContactName,
+
         providerCompanyName:
           result.providerCompanyName,
 
-        leadId: lead.id,
-        leadTitle: lead.title,
-        leadCategory: lead.category,
-        leadRegion: lead.region,
+        leadId: result.lead.id,
+        leadTitle: result.lead.title,
+        leadCategory: result.lead.category,
+        leadRegion: result.lead.region,
+
         leadDescription:
-          lead.description,
+          result.lead.description,
 
-        customerName: lead.name,
-        customerPhone: lead.phone,
-        customerEmail: lead.email,
+        customerName:
+          result.lead.name,
 
-        price: lead.price,
+        customerPhone:
+          result.lead.phone,
+
+        customerEmail:
+          result.lead.email,
+
+        price: result.lead.price,
+
         remainingCredits:
           result.credits,
       });
@@ -377,15 +454,10 @@ export async function POST(
         "LEAD PURCHASE MAIL SENT:",
         {
           to: result.providerEmail,
-          leadId: lead.id,
+          leadId: result.lead.id,
         }
       );
     } catch (mailError) {
-      /*
-       * Der Lead-Kauf bleibt erfolgreich,
-       * auch wenn der E-Mail-Versand
-       * vorübergehend fehlschlägt.
-       */
       console.error(
         "LEAD PURCHASE MAIL ERROR:",
         mailError
@@ -395,18 +467,29 @@ export async function POST(
     return NextResponse.json({
       ok: true,
       unlocked: true,
-      leadId: lead.id,
+
+      leadId: result.lead.id,
+
       credits: result.credits,
+
       purchase: result.purchase,
+
       purchaseCount:
         result.purchaseCount,
+
       maxPurchases:
-        MAX_PROVIDERS_PER_LEAD,
+        result.lead.maxPurchases,
+
       remainingSlots:
         result.remainingSlots,
+
+      expiresAt:
+        result.lead.expiresAt.toISOString(),
+
       soldOut:
         result.remainingSlots === 0,
-      message: `${lead.title} wurde erfolgreich freigeschaltet.`,
+
+      message: `${result.lead.title} wurde erfolgreich freigeschaltet.`,
     });
   } catch (error) {
     if (
@@ -423,6 +506,24 @@ export async function POST(
 
     if (
       error instanceof Error &&
+      error.message === "LEAD_EXPIRED"
+    ) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "LEAD_EXPIRED",
+          expired: true,
+          message:
+            "Diese Kundenanfrage ist bereits abgelaufen und kann nicht mehr freigeschaltet werden.",
+        },
+        {
+          status: 410,
+        }
+      );
+    }
+
+    if (
+      error instanceof Error &&
       error.message === "LEAD_SOLD_OUT"
     ) {
       return NextResponse.json(
@@ -430,11 +531,9 @@ export async function POST(
           ok: false,
           error: "LEAD_SOLD_OUT",
           soldOut: true,
-          maxPurchases:
-            MAX_PROVIDERS_PER_LEAD,
           remainingSlots: 0,
           message:
-            "Diese Kundenanfrage wurde bereits an vier Anbieter vergeben.",
+            "Diese Kundenanfrage wurde bereits vollständig vergeben.",
         },
         {
           status: 409,
@@ -465,12 +564,46 @@ export async function POST(
       return NextResponse.json(
         {
           ok: false,
-          error:
-            "NOT_ENOUGH_CREDITS",
+          error: "NOT_ENOUGH_CREDITS",
           message:
             "Du hast nicht genügend Credits für diese Kundenanfrage.",
           credits:
             currentProvider?.credits ?? 0,
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (
+      error instanceof Error &&
+      error.message === "LEAD_NOT_FOUND"
+    ) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "LEAD_NOT_FOUND",
+          message:
+            "Die Kundenanfrage wurde nicht gefunden.",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+    if (
+      error instanceof Error &&
+      error.message ===
+        "INVALID_LEAD_PRICE"
+    ) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "INVALID_LEAD_PRICE",
+          message:
+            "Für diese Anfrage wurde kein gültiger Preis festgelegt.",
         },
         {
           status: 400,
@@ -486,8 +619,7 @@ export async function POST(
       return NextResponse.json(
         {
           ok: false,
-          error:
-            "PROVIDER_NOT_FOUND",
+          error: "PROVIDER_NOT_FOUND",
           message:
             "Das Anbieterkonto wurde nicht gefunden.",
         },
@@ -505,8 +637,7 @@ export async function POST(
       return NextResponse.json(
         {
           ok: false,
-          error:
-            "PROVIDER_NOT_APPROVED",
+          error: "PROVIDER_NOT_APPROVED",
           message:
             "Dein Anbieterkonto ist nicht freigeschaltet.",
         },
@@ -516,11 +647,6 @@ export async function POST(
       );
     }
 
-    /*
-     * Derselbe Anbieter kann denselben
-     * Lead aufgrund des Unique-Indexes
-     * nicht zweimal kaufen.
-     */
     if (
       error instanceof
         Prisma.PrismaClientKnownRequestError &&
@@ -532,6 +658,23 @@ export async function POST(
         message:
           "Diese Kundenanfrage wurde von dir bereits freigeschaltet.",
       });
+    }
+
+    if (
+      error instanceof Error &&
+      error.message === "TRANSACTION_FAILED"
+    ) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "TRANSACTION_FAILED",
+          message:
+            "Der Kauf konnte aufgrund einer gleichzeitigen Anfrage nicht abgeschlossen werden. Bitte versuche es erneut.",
+        },
+        {
+          status: 409,
+        }
+      );
     }
 
     console.error(
