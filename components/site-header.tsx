@@ -15,11 +15,6 @@ const navigation = [
     label: "Anbieter",
   },
   {
-    href: "/settings/leads",
-    label: "Regionen & Kategorien",
-    icon: "📍",
-  },
-  {
     href: "/preisrechner",
     label: "Preisrechner",
     icon: "💰",
@@ -152,7 +147,9 @@ export default function SiteHeader() {
 
           <button
             type="button"
-            onClick={() => setMobileMenuOpen((current) => !current)}
+            onClick={() =>
+              setMobileMenuOpen((current) => !current)
+            }
             aria-label={
               mobileMenuOpen
                 ? "Navigation schliessen"
@@ -185,6 +182,7 @@ export default function SiteHeader() {
                   ].join(" ")}
                 >
                   {item.icon ? <span>{item.icon}</span> : null}
+
                   <span>{item.label}</span>
                 </Link>
               );
