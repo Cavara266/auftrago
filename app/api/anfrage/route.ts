@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+
 import { prisma } from "@/lib/db";
+import { sendNewLeadNotifications } from "@/lib/new-lead-notification";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function clean(value: unknown) {
-  return String(value || "").trim();
+  return String(value ?? "").trim();
 }
 
 function fallback(value: string, fallbackText = "Nicht angegeben") {
@@ -45,6 +47,30 @@ function calculateLeadPrice(service: string, budget: string) {
   return 20;
 }
 
+function parseEstimatedValue(budget: string, fallbackPrice: number) {
+  const numbers = budget
+    .replace(/[’']/g, "")
+    .replace(/,/g, ".")
+    .match(/\d+(?:\.\d+)?/g);
+
+  if (!numbers?.length) {
+    return fallbackPrice;
+  }
+
+  const parsedNumbers = numbers
+    .map(Number)
+    .filter((value) => Number.isFinite(value) && value > 0);
+
+  if (!parsedNumbers.length) {
+    return fallbackPrice;
+  }
+
+  return Math.round(
+    parsedNumbers.reduce((sum, value) => sum + value, 0) /
+      parsedNumbers.length
+  );
+}
+
 function isProviderText(text: string) {
   const value = text.toLowerCase();
 
@@ -69,7 +95,7 @@ export async function POST(req: Request) {
 
     const name = clean(data.name || data.firma);
     const phone = clean(data.phone || data.telefon);
-    const email = clean(data.email);
+    const email = clean(data.email).toLowerCase();
 
     const salutation = clean(data.salutation);
     const street = clean(data.street);
@@ -102,7 +128,9 @@ export async function POST(req: Request) {
     const carpetCleaning = clean(data.carpetCleaning);
 
     const budget = clean(data.budget);
-    const offersWanted = clean(data.offersWanted || data.haeufigkeit);
+    const offersWanted = clean(
+      data.offersWanted || data.haeufigkeit
+    );
     const important = clean(data.important);
     const message = clean(data.message || data.beschreibung);
 
@@ -121,7 +149,11 @@ export async function POST(req: Request) {
 
     if (!name || !phone || !region || !service || !message) {
       return NextResponse.json(
-        { ok: false, success: false, error: "Bitte alle Pflichtfelder ausfüllen." },
+        {
+          ok: false,
+          success: false,
+          error: "Bitte alle Pflichtfelder ausfüllen.",
+        },
         { status: 400 }
       );
     }
@@ -141,6 +173,7 @@ export async function POST(req: Request) {
     const safeCity = city || region || "Schweiz";
     const title = `${service} in ${safeCity}`;
     const price = calculateLeadPrice(service, budget);
+    const estimatedValue = parseEstimatedValue(budget, price);
 
     const trackingText = `
 TRACKING
@@ -207,12 +240,60 @@ ${trackingText}
         phone,
         region,
         category: service,
+        postalCode: postalCode || null,
+        city: city || null,
         price,
+      },
+
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        region: true,
+        category: true,
+        postalCode: true,
+        city: true,
+        price: true,
       },
     });
 
-    let mailSent = false;
-    let mailError = "";
+    /*
+     * Anbieter über das bestehende Infomaniak-SMTP-System
+     * benachrichtigen.
+     */
+    let providerNotifications = {
+      approvedProviders: 0,
+      emailEnabledProviders: 0,
+      matchingProviders: 0,
+      sent: 0,
+      failed: 0,
+    };
+
+    try {
+      providerNotifications =
+        await sendNewLeadNotifications({
+          lead,
+          estimatedValue,
+        });
+
+      console.log("PUBLIC LEAD NOTIFICATIONS COMPLETED:", {
+        leadId: lead.id,
+        ...providerNotifications,
+      });
+    } catch (error) {
+      console.error("PUBLIC LEAD NOTIFICATION ERROR:", {
+        leadId: lead.id,
+        error,
+      });
+    }
+
+    /*
+     * Zusätzliche interne Benachrichtigung an Auftrago.
+     * Ein Fehler hier verhindert nicht die Speicherung des Leads
+     * und nicht die Anbieter-Benachrichtigung.
+     */
+    let internalMailSent = false;
+    let internalMailError = "";
 
     try {
       const apiKey = process.env.RESEND_API_KEY;
@@ -223,9 +304,12 @@ ${trackingText}
 
       const resend = new Resend(apiKey);
 
-      const mailTo = process.env.CONTACT_EMAIL || "info@auftrago.ch";
+      const mailTo =
+        process.env.CONTACT_EMAIL || "info@auftrago.ch";
+
       const mailFrom =
-        process.env.FROM_EMAIL || "Auftrago <info@auftrago.ch>";
+        process.env.FROM_EMAIL ||
+        "Auftrago <info@auftrago.ch>";
 
       const info = await resend.emails.send({
         from: mailFrom,
@@ -254,21 +338,31 @@ Lead-ID: ${lead.id}
         `.trim(),
       });
 
-      console.log("ANFRAGE RESEND INFO:", info);
-      mailSent = true;
+      console.log("INTERNAL RESEND INFO:", info);
+      internalMailSent = true;
     } catch (error) {
-      mailError = error instanceof Error ? error.message : "Mailfehler";
-      console.error("ANFRAGE RESEND ERROR:", error);
+      internalMailError =
+        error instanceof Error ? error.message : "Mailfehler";
+
+      console.error("INTERNAL RESEND ERROR:", error);
     }
 
     return NextResponse.json({
       ok: true,
       success: true,
       leadId: lead.id,
-      mailSent,
-      warning: mailSent
-        ? null
-        : `Lead gespeichert, aber Mail nicht gesendet: ${mailError}`,
+
+      notifications: providerNotifications,
+
+      internalMail: {
+        sent: internalMailSent,
+        error: internalMailSent ? null : internalMailError,
+      },
+
+      warning:
+        providerNotifications.failed > 0
+          ? `${providerNotifications.failed} Anbieter-Mail(s) konnten nicht gesendet werden.`
+          : null,
     });
   } catch (error) {
     console.error("ANFRAGE ERROR:", error);
