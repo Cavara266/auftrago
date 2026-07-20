@@ -28,20 +28,9 @@ function getTransporter() {
   const user = env("SMTP_USER");
   const pass = env("SMTP_PASS");
 
-  if (!Number.isFinite(port)) {
+  if (!Number.isInteger(port) || port <= 0) {
     throw new Error("SMTP_PORT ist ungültig.");
   }
-
-  console.log("====================================");
-  console.log("SMTP DEBUG");
-  console.log("====================================");
-  console.log("HOST:", host);
-  console.log("PORT:", port);
-  console.log("SECURE:", secure);
-  console.log("USER:", user);
-  console.log("PASS LENGTH:", pass.length);
-  console.log("PASS EXISTS:", !!pass);
-  console.log("====================================");
 
   return nodemailer.createTransport({
     host,
@@ -54,8 +43,8 @@ function getTransporter() {
     pool: true,
     maxConnections: 3,
     maxMessages: 50,
-    logger: true,
-    debug: true,
+    logger: process.env.NODE_ENV !== "production",
+    debug: process.env.NODE_ENV !== "production",
   });
 }
 
@@ -93,12 +82,33 @@ export async function sendMail({
     text,
   });
 
-  console.log("Mail erfolgreich versendet:", result.messageId);
+  const accepted = result.accepted.map(String);
+  const rejected = result.rejected.map(String);
+
+  if (accepted.length === 0) {
+    throw new Error(
+      `E-Mail wurde von SMTP nicht akzeptiert. Empfänger: ${to}`
+    );
+  }
+
+  if (rejected.length > 0) {
+    throw new Error(
+      `E-Mail wurde teilweise oder vollständig abgelehnt. Empfänger: ${to}, abgelehnt: ${rejected.join(
+        ", "
+      )}`
+    );
+  }
+
+  console.log("Mail erfolgreich akzeptiert:", {
+    to,
+    messageId: result.messageId,
+    accepted,
+  });
 
   return {
     messageId: result.messageId,
-    accepted: result.accepted,
-    rejected: result.rejected,
+    accepted,
+    rejected,
     response: result.response,
   };
 }

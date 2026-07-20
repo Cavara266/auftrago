@@ -10,6 +10,7 @@ export default function Page() {
             <div className="auth-copy">
               <div className="auth-kicker-wrap">
                 <span className="auth-kicker-dot" />
+
                 <span className="auth-kicker-text">
                   Anbieter Login für Leads, Credits und Auftragschancen
                 </span>
@@ -28,6 +29,7 @@ export default function Page() {
               <div className="auth-feature-grid">
                 <div className="auth-feature-card">
                   <strong>Leads</strong>
+
                   <span>
                     Neue Anfragen in deinen passenden Kategorien und Regionen.
                   </span>
@@ -35,6 +37,7 @@ export default function Page() {
 
                 <div className="auth-feature-card">
                   <strong>Credits</strong>
+
                   <span>
                     Kontakte nur dann freischalten, wenn ein Lead wirklich
                     interessant ist.
@@ -43,6 +46,7 @@ export default function Page() {
 
                 <div className="auth-feature-card">
                   <strong>Übersicht</strong>
+
                   <span>
                     Alles zentral im Dashboard prüfen und verwalten.
                   </span>
@@ -62,6 +66,15 @@ export default function Page() {
 
               <div className="auth-form-wrap">
                 <LoginForm />
+
+                <div className="forgot-password-wrap">
+                  <Link
+                    href="/passwort-vergessen"
+                    className="forgot-password-link"
+                  >
+                    Passwort vergessen?
+                  </Link>
+                </div>
               </div>
 
               <div className="auth-info-box">
@@ -84,6 +97,36 @@ export default function Page() {
           </div>
         </div>
       </section>
+
+      <style>{`
+        .forgot-password-wrap {
+          display: flex;
+          justify-content: flex-end;
+          margin-top: 14px;
+        }
+
+        .forgot-password-link {
+          color: #8bbcff;
+          font-size: 14px;
+          font-weight: 750;
+          text-decoration: none;
+          transition:
+            color 160ms ease,
+            opacity 160ms ease;
+        }
+
+        .forgot-password-link:hover {
+          color: #ffffff;
+          text-decoration: underline;
+          text-underline-offset: 4px;
+        }
+
+        .forgot-password-link:focus-visible {
+          border-radius: 6px;
+          outline: 2px solid #60a5fa;
+          outline-offset: 4px;
+        }
+      `}</style>
     </main>
   );
 }

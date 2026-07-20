@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useState } from "react";
 
 type LoginResponse = {
@@ -9,8 +9,6 @@ type LoginResponse = {
 };
 
 export default function LoginForm() {
-  const router = useRouter();
-
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -32,7 +30,9 @@ export default function LoginForm() {
       .trim()
       .toLowerCase();
 
-    const password = String(formData.get("password") || "");
+    const password = String(
+      formData.get("password") || ""
+    );
 
     if (!email || !password) {
       setError("Bitte E-Mail und Passwort eingeben.");
@@ -55,11 +55,14 @@ export default function LoginForm() {
       });
 
       const data =
-        (await response.json().catch(() => null)) as LoginResponse | null;
+        (await response.json().catch(() => null)) as
+          | LoginResponse
+          | null;
 
       if (!response.ok || !data?.ok) {
         setError(
-          data?.error || "E-Mail oder Passwort ist falsch."
+          data?.error ||
+            "E-Mail oder Passwort ist falsch."
         );
         return;
       }
@@ -67,7 +70,10 @@ export default function LoginForm() {
       window.location.href = "/dashboard";
     } catch (error) {
       console.error("LOGIN FORM ERROR:", error);
-      setError("Login konnte nicht durchgeführt werden.");
+
+      setError(
+        "Login konnte nicht durchgeführt werden."
+      );
     } finally {
       setLoading(false);
     }
@@ -99,6 +105,25 @@ export default function LoginForm() {
           autoComplete="current-password"
           required
         />
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          marginTop: "-4px",
+        }}
+      >
+        <Link
+          href="/passwort-vergessen"
+          style={{
+            fontSize: "14px",
+            fontWeight: 700,
+            textDecoration: "none",
+          }}
+        >
+          Passwort vergessen?
+        </Link>
       </div>
 
       {error ? (

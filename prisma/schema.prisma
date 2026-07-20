@@ -39,9 +39,12 @@ model Provider {
   credits     Int            @default(0)
   status      ProviderStatus @default(PENDING)
 
+  slug String? @unique
+
   region   String?
   category String?
 
+  logoUrl     String?
   website     String?
   description String?
   address     String?
@@ -64,6 +67,7 @@ model Provider {
   activities      ProviderActivity[]
 
   @@index([status])
+  @@index([slug])
   @@index([createdAt])
   @@index([updatedAt])
 }
@@ -255,4 +259,19 @@ model SmartPricingSettings {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model PasswordResetToken {
+  id String @id @default(uuid())
+
+  email     String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([expiresAt])
+  @@index([email, expiresAt])
 }
