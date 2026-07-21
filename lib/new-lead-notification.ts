@@ -72,20 +72,6 @@ export async function sendNewLeadNotifications({
   lead,
   estimatedValue,
 }: SendNewLeadNotificationsInput): Promise<NotificationResult> {
-  /*
-   * Jeder freigeschaltete Anbieter mit einer gültigen E-Mail-Adresse
-   * erhält jeden neu erstellten Lead.
-   *
-   * Folgende Einstellungen werden bewusst ignoriert:
-   * - receiveLeadEmails
-   * - receiveAllLeadEmails
-   * - serviceRegions
-   * - serviceCategories
-   * - serviceCities
-   * - servicePostalCodes
-   * - region
-   * - category
-   */
   const approvedProviders = await prisma.provider.findMany({
     where: {
       status: "APPROVED",
@@ -106,10 +92,6 @@ export async function sendNewLeadNotifications({
     },
   });
 
-  /*
-   * Falls mehrere Anbieter-Datensätze dieselbe E-Mail-Adresse
-   * verwenden, wird die Nachricht nur einmal an diese Adresse versendet.
-   */
   const uniqueRecipients = Array.from(
     new Map(
       approvedProviders
@@ -134,6 +116,12 @@ export async function sendNewLeadNotifications({
 
   let sent = 0;
   let failed = 0;
+
+  const successfulRecipients: string[] = [];
+  const failedRecipients: Array<{
+    email: string;
+    error: string;
+  }> = [];
 
   console.log("NEW LEAD NOTIFICATION STARTED", {
     leadId: lead.id,
@@ -161,21 +149,36 @@ export async function sendNewLeadNotifications({
         });
 
         sent += 1;
+        successfulRecipients.push(provider.email);
 
         console.log("NEW LEAD MAIL SENT", {
           leadId: lead.id,
           providerId: provider.id,
+          companyName: provider.companyName,
           to: provider.email,
           messageId: mailResult.messageId,
+          accepted: mailResult.accepted,
+          rejected: mailResult.rejected,
         });
       } catch (error) {
         failed += 1;
 
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : String(error);
+
+        failedRecipients.push({
+          email: provider.email,
+          error: errorMessage,
+        });
+
         console.error("NEW LEAD MAIL FAILED", {
           leadId: lead.id,
           providerId: provider.id,
+          companyName: provider.companyName,
           to: provider.email,
-          error,
+          error: errorMessage,
         });
       }
     },
@@ -184,22 +187,48 @@ export async function sendNewLeadNotifications({
 
   const result: NotificationResult = {
     approvedProviders: approvedProviders.length,
-
-    /*
-     * Diese Werte bleiben für die Kompatibilität mit deiner
-     * bestehenden actions.ts bestehen. Da Einstellungen und
-     * Matching ignoriert werden, entsprechen sie den Empfängern.
-     */
     emailEnabledProviders: uniqueRecipients.length,
     matchingProviders: uniqueRecipients.length,
-
     sent,
     failed,
   };
 
+  console.log("==========================================");
+  console.log("LEAD MAIL SUMMARY");
+  console.log("Lead-ID:", lead.id);
+  console.log("Titel:", lead.title);
+  console.log("Freigeschaltete Anbieter:", approvedProviders.length);
+  console.log("Eindeutige Empfänger:", uniqueRecipients.length);
+  console.log("");
+
+  console.log(`ERFOLGREICH (${successfulRecipients.length})`);
+
+  successfulRecipients.forEach((email) => {
+    console.log("OK:", email);
+  });
+
+  console.log("");
+  console.log(`FEHLER (${failedRecipients.length})`);
+
+  failedRecipients.forEach((recipient) => {
+    console.error(
+      "FEHLER:",
+      recipient.email,
+      "-",
+      recipient.error
+    );
+  });
+
+  console.log("");
+  console.log("Gesendet:", sent);
+  console.log("Fehlgeschlagen:", failed);
+  console.log("==========================================");
+
   console.log("NEW LEAD NOTIFICATION RESULT", {
     leadId: lead.id,
     ...result,
+    successfulRecipients,
+    failedRecipients,
   });
 
   return result;
