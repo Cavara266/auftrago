@@ -74,7 +74,6 @@ model Provider {
   creditPurchases CreditPurchase[]
   activities      ProviderActivity[]
   fixedOrders     FixedOrder[]
-  invoices        Invoice[]
 
   @@index([status])
   @@index([slug])
@@ -326,8 +325,6 @@ model FixedOrder {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  invoice Invoice?
-
   @@index([status])
   @@index([category])
   @@index([region])
@@ -336,31 +333,4 @@ model FixedOrder {
   @@index([buyerId])
   @@index([executionDate])
   @@index([createdAt])
-}
-
-model Invoice {
-  id String @id @default(uuid())
-
-  invoiceNumber String @unique
-
-  providerId String
-  provider   Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
-
-  fixedOrderId String     @unique
-  fixedOrder   FixedOrder @relation(fields: [fixedOrderId], references: [id], onDelete: Cascade)
-
-  stripePaymentIntentId String?
-
-  amountCents Int
-  status      String  @default("PAID")
-  pdfUrl      String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([providerId])
-  @@index([fixedOrderId])
-  @@index([status])
-  @@index([createdAt])
-  @@index([providerId, createdAt])
 }
