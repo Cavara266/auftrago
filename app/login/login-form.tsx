@@ -67,7 +67,7 @@ export default function LoginForm() {
         return;
       }
 
-      window.location.href = "/dashboard";
+      window.location.href = "/portal";
     } catch (error) {
       console.error("LOGIN FORM ERROR:", error);
 

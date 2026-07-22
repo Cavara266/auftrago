@@ -130,6 +130,15 @@ export default async function AdminDashboardPage() {
     topCategories,
     topProviders,
     revenueChartPurchases,
+    latestFixedOrders,
+    fixedOrderCount,
+    openFixedOrderCount,
+    reservedFixedOrderCount,
+    soldFixedOrderCount,
+    completedFixedOrderCount,
+    fixedOrderRevenueAggregate,
+    fixedOrderRevenueTodayAggregate,
+    fixedOrderRevenueMonthAggregate,
   ] = await Promise.all([
     prisma.provider.findMany({
       orderBy: { createdAt: "desc" },
@@ -393,6 +402,86 @@ export default async function AdminDashboardPage() {
         createdAt: "asc",
       },
     }),
+
+    prisma.fixedOrder.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 6,
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        postalCode: true,
+        city: true,
+        status: true,
+        orderValueCents: true,
+        commissionAmountCents: true,
+        createdAt: true,
+        soldAt: true,
+      },
+    }),
+
+    prisma.fixedOrder.count(),
+    prisma.fixedOrder.count({
+      where: {
+        status: "OPEN",
+      },
+    }),
+    prisma.fixedOrder.count({
+      where: {
+        status: "RESERVED",
+      },
+    }),
+    prisma.fixedOrder.count({
+      where: {
+        status: "SOLD",
+      },
+    }),
+    prisma.fixedOrder.count({
+      where: {
+        status: "COMPLETED",
+      },
+    }),
+
+    prisma.fixedOrder.aggregate({
+      where: {
+        status: {
+          in: ["SOLD", "COMPLETED"],
+        },
+      },
+      _sum: {
+        commissionAmountCents: true,
+      },
+    }),
+
+    prisma.fixedOrder.aggregate({
+      where: {
+        status: {
+          in: ["SOLD", "COMPLETED"],
+        },
+        soldAt: {
+          gte: today,
+        },
+      },
+      _sum: {
+        commissionAmountCents: true,
+      },
+    }),
+
+    prisma.fixedOrder.aggregate({
+      where: {
+        status: {
+          in: ["SOLD", "COMPLETED"],
+        },
+        soldAt: {
+          gte: monthStart,
+        },
+      },
+      _sum: {
+        commissionAmountCents: true,
+      },
+    }),
   ]);
 
   const topProviderIds = topProviders.map((item) => item.providerId);
@@ -423,6 +512,13 @@ export default async function AdminDashboardPage() {
   const revenueLast7 = revenueLast7Aggregate._sum.amount ?? 0;
   const revenuePrevious7 = revenuePrevious7Aggregate._sum.amount ?? 0;
   const revenueGrowth = growth(revenueLast7, revenuePrevious7);
+
+  const fixedOrderRevenue =
+    fixedOrderRevenueAggregate._sum.commissionAmountCents ?? 0;
+  const fixedOrderRevenueToday =
+    fixedOrderRevenueTodayAggregate._sum.commissionAmountCents ?? 0;
+  const fixedOrderRevenueMonth =
+    fixedOrderRevenueMonthAggregate._sum.commissionAmountCents ?? 0;
 
   const totalCreditsSold = paidCreditAggregate._sum.credits ?? 0;
   const totalPayments = paidCreditAggregate._count.id;
@@ -529,6 +625,21 @@ export default async function AdminDashboardPage() {
       )}`,
       href: "/admin/providers",
     })),
+    ...latestFixedOrders.map((order) => ({
+      id: `fixed-order-${order.id}`,
+      type: order.status === "SOLD" || order.status === "COMPLETED"
+        ? "payment"
+        : "lead",
+      date: order.soldAt || order.createdAt,
+      title:
+        order.status === "SOLD" || order.status === "COMPLETED"
+          ? "Fixauftrag verkauft"
+          : "Neuer Fixauftrag",
+      text: `${order.title} · ${order.postalCode} ${order.city} · ${formatMoney(
+        order.commissionAmountCents
+      )}`,
+      href: `/admin/fixed-orders/${order.id}`,
+    })),
   ]
     .sort((a, b) => b.date.getTime() - a.date.getTime())
     .slice(0, 10);
@@ -562,6 +673,13 @@ export default async function AdminDashboardPage() {
       icon: "K",
       tone: "amber",
     },
+    {
+      label: "Fixaufträge",
+      value: formatNumber(fixedOrderCount),
+      detail: `${openFixedOrderCount} offen · ${soldFixedOrderCount + completedFixedOrderCount} verkauft`,
+      icon: "F",
+      tone: "emerald",
+    },
   ];
 
   return (
@@ -587,6 +705,13 @@ export default async function AdminDashboardPage() {
           <div className="admin-actions">
             <Link href="/admin/leads" className="admin-btn admin-btn-primary">
               + Neuer Lead
+            </Link>
+
+            <Link
+              href="/admin/fixed-orders/new"
+              className="admin-btn admin-btn-primary"
+            >
+              + Neuer Fixauftrag
             </Link>
 
             <Link
@@ -825,6 +950,90 @@ export default async function AdminDashboardPage() {
           </article>
         </section>
 
+        <section className="admin-panel" style={{ marginBottom: 24 }}>
+          <div className="admin-panel-head">
+            <div>
+              <span>Fixaufträge</span>
+              <h2>Bestätigte Aufträge im Überblick</h2>
+            </div>
+
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <Link href="/admin/fixed-orders/analytics">Analytics →</Link>
+              <Link href="/admin/fixed-orders">Alle anzeigen →</Link>
+            </div>
+          </div>
+
+          <div className="admin-mini-stats">
+            <div>
+              <span>Offen</span>
+              <strong>{openFixedOrderCount}</strong>
+            </div>
+
+            <div>
+              <span>Reserviert</span>
+              <strong>{reservedFixedOrderCount}</strong>
+            </div>
+
+            <div>
+              <span>Verkauft</span>
+              <strong>{soldFixedOrderCount}</strong>
+            </div>
+
+            <div>
+              <span>Erledigt</span>
+              <strong>{completedFixedOrderCount}</strong>
+            </div>
+
+            <div>
+              <span>Provision heute</span>
+              <strong>{formatMoney(fixedOrderRevenueToday)}</strong>
+            </div>
+
+            <div>
+              <span>Provision Monat</span>
+              <strong>{formatMoney(fixedOrderRevenueMonth)}</strong>
+            </div>
+          </div>
+
+          <div className="admin-compact-list" style={{ marginTop: 20 }}>
+            {latestFixedOrders.length === 0 ? (
+              <p className="admin-empty">Noch keine Fixaufträge vorhanden.</p>
+            ) : (
+              latestFixedOrders.map((order) => (
+                <Link
+                  href={`/admin/fixed-orders/${order.id}`}
+                  className="admin-compact-row"
+                  key={order.id}
+                >
+                  <div className="admin-lead-price">
+                    {order.status === "OPEN"
+                      ? "OFFEN"
+                      : order.status === "RESERVED"
+                        ? "RES."
+                        : order.status === "SOLD"
+                          ? "SOLD"
+                          : order.status === "COMPLETED"
+                            ? "DONE"
+                            : "STOP"}
+                  </div>
+
+                  <div className="admin-compact-main">
+                    <strong>{order.title}</strong>
+                    <span>
+                      {order.category} · {order.postalCode} {order.city}
+                    </span>
+                  </div>
+
+                  <div className="admin-sales-count">
+                    <strong>{formatMoney(order.commissionAmountCents)}</strong>
+                    <span>{formatMoney(order.orderValueCents)} Auftrag</span>
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+        </section>
+
         <section className="admin-metric-grid">
           <article className="admin-panel admin-number-panel">
             <span>Credits verkauft</span>
@@ -848,6 +1057,12 @@ export default async function AdminDashboardPage() {
             <span>Neue Anbieter heute</span>
             <strong>{formatNumber(providersToday)}</strong>
             <small>{formatNumber(blockedProviderCount)} gesperrt</small>
+          </article>
+
+          <article className="admin-panel admin-number-panel">
+            <span>Fixauftrag-Provision</span>
+            <strong>{formatMoney(fixedOrderRevenue)}</strong>
+            <small>{formatNumber(soldFixedOrderCount + completedFixedOrderCount)} Verkäufe</small>
           </article>
         </section>
 
@@ -1054,6 +1269,12 @@ export default async function AdminDashboardPage() {
         </section>
 
         <section className="admin-quick-actions">
+          <Link href="/admin/fixed-orders/new">
+            <span>🔥</span>
+            <strong>Fixauftrag erstellen</strong>
+            <small>Bestätigten Auftrag veröffentlichen</small>
+          </Link>
+
           <Link href="/admin/leads">
             <span>＋</span>
             <strong>Neuen Lead erstellen</strong>
