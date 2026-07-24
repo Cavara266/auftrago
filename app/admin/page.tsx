@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AdminAutoRefresh from "@/components/admin/admin-auto-refresh";
 
 import { prisma } from "@/lib/prisma";
 import "./admin-dashboard.css";
@@ -728,6 +729,8 @@ export default async function AdminDashboardPage() {
             <Link href="/admin/activity" className="admin-btn admin-btn-secondary">
               Activities
             </Link>
+
+            <AdminAutoRefresh intervalSeconds={15} />
 
             <Link href="/admin-logout" className="admin-btn admin-btn-ghost">
               Abmelden

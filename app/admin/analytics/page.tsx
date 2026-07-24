@@ -1,18 +1,25 @@
 import Link from "next/link";
+import AdminAutoRefresh from "@/components/admin/admin-auto-refresh";
+import ActivityChart from "@/components/admin/analytics/ActivityChart";
+import ConversionFunnel from "@/components/admin/analytics/ConversionFunnel";
+import Forecast from "@/components/admin/analytics/Forecast";
+import KPICards from "@/components/admin/analytics/KPICards";
+import LiveFeed from "@/components/admin/analytics/LiveFeed";
+import RevenueChart from "@/components/admin/analytics/RevenueChart";
+import TopCategories from "@/components/admin/analytics/TopCategories";
+import TopProviders from "@/components/admin/analytics/TopProviders";
+import TopRegions from "@/components/admin/analytics/TopRegions";
+import type {
+  DailyPoint,
+  ForecastData,
+  LiveFeedItem,
+  RankingItem,
+} from "@/components/admin/analytics/types";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-
-type DailyPoint = {
-  key: string;
-  label: string;
-  leads: number;
-  registrations: number;
-  leadPurchases: number;
-  creditRevenue: number;
-};
 
 function startOfDay(date: Date) {
   const value = new Date(date);
@@ -70,11 +77,6 @@ function percent(value: number, total: number) {
 function growth(current: number, previous: number) {
   if (previous <= 0) return current > 0 ? 100 : 0;
   return Math.round(((current - previous) / previous) * 100);
-}
-
-function safeWidth(value: number, max: number) {
-  if (max <= 0) return 0;
-  return Math.max(6, Math.round((value / max) * 100));
 }
 
 export default async function AdminAnalyticsPage() {
@@ -172,12 +174,8 @@ export default async function AdminAnalyticsPage() {
       orderBy: { createdAt: "desc" },
       take: 6,
       include: {
-        provider: {
-          select: { companyName: true },
-        },
-        lead: {
-          select: { title: true, region: true, category: true },
-        },
+        provider: { select: { companyName: true } },
+        lead: { select: { title: true, region: true, category: true } },
       },
     }),
     prisma.creditPurchase.findMany({
@@ -185,9 +183,7 @@ export default async function AdminAnalyticsPage() {
       orderBy: { createdAt: "desc" },
       take: 6,
       include: {
-        provider: {
-          select: { companyName: true },
-        },
+        provider: { select: { companyName: true } },
       },
     }),
     prisma.provider.findMany({
@@ -237,19 +233,20 @@ export default async function AdminAnalyticsPage() {
   const soldLeadCount = new Set(
     leadPurchasesForRanking.map((item) => item.leadId),
   ).size;
-  const leadConversionRate = percent(
-    new Set(leadPurchasesForRanking.map((item) => item.leadId)).size,
-    leadCount,
-  );
+  const leadConversionRate = percent(soldLeadCount, leadCount);
+
   const averageLeadPrice =
-    leadPurchaseCount > 0
+    leadPurchasesForRanking.length > 0
       ? Math.round(
-          leadPurchasesForChart.reduce((sum, item) => sum + item.price, 0) /
-            Math.max(leadPurchasesForChart.length, 1),
+          leadPurchasesForRanking.reduce(
+            (sum, purchase) => sum + purchase.price,
+            0,
+          ) / leadPurchasesForRanking.length,
         )
       : 0;
 
   const dailyMap = new Map<string, DailyPoint>();
+
   for (let index = 0; index < 7; index += 1) {
     const date = addDays(sevenDaysAgo, index);
     dailyMap.set(dateKey(date), {
@@ -283,16 +280,6 @@ export default async function AdminAnalyticsPage() {
   });
 
   const dailyPoints = Array.from(dailyMap.values());
-  const maxDailyActivity = Math.max(
-    ...dailyPoints.map(
-      (point) => point.leads + point.registrations + point.leadPurchases,
-    ),
-    1,
-  );
-  const maxDailyRevenue = Math.max(
-    ...dailyPoints.map((point) => point.creditRevenue),
-    1,
-  );
 
   const regionMap = new Map<string, number>();
   const categoryMap = new Map<string, number>();
@@ -300,16 +287,20 @@ export default async function AdminAnalyticsPage() {
   leadsForRanking.forEach((lead) => {
     const region = lead.region || "Unbekannt";
     const category = lead.category || "Unbekannt";
+
     regionMap.set(region, (regionMap.get(region) ?? 0) + 1);
     categoryMap.set(category, (categoryMap.get(category) ?? 0) + 1);
   });
 
-  const topRegions = Array.from(regionMap.entries())
+  const topRegions: RankingItem[] = Array.from(regionMap.entries())
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 6);
-  const topCategories = Array.from(categoryMap.entries())
+    .slice(0, 6)
+    .map(([label, value]) => ({ label, value }));
+
+  const topCategories: RankingItem[] = Array.from(categoryMap.entries())
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 6);
+    .slice(0, 6)
+    .map(([label, value]) => ({ label, value }));
 
   const providerStats = new Map<
     string,
@@ -322,19 +313,26 @@ export default async function AdminAnalyticsPage() {
       purchases: 0,
       creditsSpent: 0,
     };
+
     existing.purchases += 1;
     existing.creditsSpent += purchase.price;
     providerStats.set(purchase.provider.id, existing);
   });
 
-  const topProviders = Array.from(providerStats.values())
+  const topProviders: RankingItem[] = Array.from(providerStats.values())
     .sort((a, b) => b.purchases - a.purchases)
-    .slice(0, 6);
+    .slice(0, 6)
+    .map((provider) => ({
+      label: provider.companyName,
+      value: provider.purchases,
+      detail: `${provider.creditsSpent} Credits eingesetzt`,
+    }));
 
-  const liveFeed = [
+  const liveFeed: LiveFeedItem[] = [
     ...recentLeadPurchases.map((purchase) => ({
       id: `lead-purchase-${purchase.id}`,
       date: purchase.createdAt,
+      dateLabel: formatDate(purchase.createdAt),
       icon: "⚡",
       title: "Lead gekauft",
       description: `${purchase.provider.companyName} · ${purchase.lead.title}`,
@@ -343,6 +341,7 @@ export default async function AdminAnalyticsPage() {
     ...recentCreditPurchases.map((purchase) => ({
       id: `credit-purchase-${purchase.id}`,
       date: purchase.createdAt,
+      dateLabel: formatDate(purchase.createdAt),
       icon: "💳",
       title: "Credits gekauft",
       description: purchase.provider.companyName,
@@ -351,6 +350,7 @@ export default async function AdminAnalyticsPage() {
     ...recentProviders.map((provider) => ({
       id: `provider-${provider.id}`,
       date: provider.createdAt,
+      dateLabel: formatDate(provider.createdAt),
       icon: "👥",
       title: "Neuer Anbieter",
       description: provider.companyName,
@@ -359,6 +359,7 @@ export default async function AdminAnalyticsPage() {
     ...recentLeads.map((lead) => ({
       id: `lead-${lead.id}`,
       date: lead.createdAt,
+      dateLabel: formatDate(lead.createdAt),
       icon: "📋",
       title: "Neuer Lead",
       description: lead.title,
@@ -366,44 +367,92 @@ export default async function AdminAnalyticsPage() {
     })),
   ]
     .sort((a, b) => b.date.getTime() - a.date.getTime())
-    .slice(0, 10);
-
-  const maxRegion = Math.max(...topRegions.map(([, value]) => value), 1);
-  const maxCategory = Math.max(...topCategories.map(([, value]) => value), 1);
-  const maxProviderPurchases = Math.max(
-    ...topProviders.map((provider) => provider.purchases),
-    1,
-  );
+    .slice(0, 10)
+    .map(({ date: _date, ...item }) => item);
 
   const creditRevenueLast7 = creditRevenueLast7Days._sum.amount ?? 0;
   const creditRevenuePrevious7 = creditRevenuePrevious7Days._sum.amount ?? 0;
+
+  const forecast: ForecastData = {
+    projectedRevenue: totalStripeRevenue > 0
+      ? Math.round(
+          creditPurchasesForChart.reduce(
+            (sum, purchase) => sum + purchase.amount,
+            0,
+          ),
+        )
+      : 0,
+    projectedLeads: leadsForChart.length,
+    projectedProviders: providersForChart.length,
+    confidence:
+      leadsForChart.length + providersForChart.length + creditPurchasesForChart.length >= 20
+        ? 82
+        : leadsForChart.length + providersForChart.length >= 8
+          ? 68
+          : 52,
+  };
+
+  const kpis = [
+    {
+      label: "Stripe-Umsatz",
+      value: formatMoney(totalStripeRevenue),
+      sub: `${totalStripePayments} bezahlte Pakete`,
+      trend: growth(creditRevenueLast7, creditRevenuePrevious7),
+    },
+    {
+      label: "Leads",
+      value: leadCount,
+      sub: `+${leadsLast7Days} in 7 Tagen`,
+      trend: growth(leadsLast7Days, leadsPrevious7Days),
+    },
+    {
+      label: "Anbieter",
+      value: providerCount,
+      sub: `+${providersLast7Days} in 7 Tagen`,
+      trend: growth(providersLast7Days, providersPrevious7Days),
+    },
+    {
+      label: "Lead-Verkäufe",
+      value: leadPurchaseCount,
+      sub: `+${leadPurchasesLast7Days} in 7 Tagen`,
+      trend: growth(leadPurchasesLast7Days, leadPurchasesPrevious7Days),
+    },
+    {
+      label: "Credits verkauft",
+      value: totalCreditsSold,
+      sub: "Bezahlte Creditpakete",
+      trend: null,
+    },
+    {
+      label: "Lead-Conversion",
+      value: `${leadConversionRate}%`,
+      sub: `${soldLeadCount} Leads mit Verkauf`,
+      trend: null,
+    },
+    {
+      label: "Ø Leadpreis",
+      value: averageLeadPrice,
+      sub: "Credits pro Kauf",
+      trend: null,
+    },
+  ];
 
   return (
     <main className="page">
       <section className="admin-dashboard">
         <div className="container">
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-end",
-              gap: 24,
-              flexWrap: "wrap",
-            }}
-          >
+          <header className="analytics-header">
             <div>
               <span className="eyebrow">🟢 Auftrago Business Intelligence</span>
-              <h1 style={{ marginTop: 14 }}>Analytics-Zentrale.</h1>
-              <p style={{ maxWidth: 780, marginTop: 14 }}>
+              <h1>Analytics-Zentrale.</h1>
+              <p>
                 Umsatz, Nachfrage, Anbieter und Verkäufe auf einen Blick – mit
                 echten Daten aus deiner Plattform.
               </p>
             </div>
 
-            <div
-              className="admin-actions"
-              style={{ display: "flex", gap: 12, flexWrap: "wrap" }}
-            >
+            <div className="admin-actions analytics-actions">
+              <AdminAutoRefresh intervalSeconds={15} />
               <Link href="/admin" className="btn btn-secondary">
                 ← Dashboard
               </Link>
@@ -414,581 +463,231 @@ export default async function AdminAnalyticsPage() {
                 Leads verwalten
               </Link>
             </div>
+          </header>
+
+          <KPICards cards={kpis} />
+
+          <div className="analytics-main-grid">
+            <ActivityChart points={dailyPoints} />
+            <ConversionFunnel
+              items={[
+                {
+                  label: "Registrierte Anbieter",
+                  value: providerCount,
+                  base: providerCount,
+                },
+                {
+                  label: "Credit-Käufer",
+                  value: Math.min(totalStripePayments, providerCount),
+                  base: Math.max(providerCount, 1),
+                },
+                {
+                  label: "Aktive Käufer",
+                  value: topProviders.length,
+                  base: Math.max(providerCount, 1),
+                },
+                {
+                  label: "Verkaufte Leads",
+                  value: soldLeadCount,
+                  base: Math.max(leadCount, 1),
+                },
+              ]}
+            />
           </div>
 
-          <div
-            style={{
-              marginTop: 34,
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-              gap: 14,
-            }}
-          >
-            {[
-              {
-                label: "Stripe-Umsatz",
-                value: formatMoney(totalStripeRevenue),
-                sub: `${totalStripePayments} bezahlte Pakete`,
-                trend: growth(creditRevenueLast7, creditRevenuePrevious7),
-              },
-              {
-                label: "Leads",
-                value: leadCount,
-                sub: `+${leadsLast7Days} in 7 Tagen`,
-                trend: growth(leadsLast7Days, leadsPrevious7Days),
-              },
-              {
-                label: "Anbieter",
-                value: providerCount,
-                sub: `+${providersLast7Days} in 7 Tagen`,
-                trend: growth(providersLast7Days, providersPrevious7Days),
-              },
-              {
-                label: "Lead-Verkäufe",
-                value: leadPurchaseCount,
-                sub: `+${leadPurchasesLast7Days} in 7 Tagen`,
-                trend: growth(
-                  leadPurchasesLast7Days,
-                  leadPurchasesPrevious7Days,
-                ),
-              },
-              {
-                label: "Credits verkauft",
-                value: totalCreditsSold,
-                sub: "Bezahlte Creditpakete",
-                trend: null,
-              },
-              {
-                label: "Lead-Conversion",
-                value: `${leadConversionRate}%`,
-                sub: `${soldLeadCount} Leads mit Verkauf`,
-                trend: null,
-              },
-              {
-                label: "Ø Leadpreis",
-                value: averageLeadPrice,
-                sub: "Credits pro Kauf",
-                trend: null,
-              },
-            ].map((card) => (
-              <div
-                key={card.label}
-                style={{
-                  position: "relative",
-                  overflow: "hidden",
-                  minHeight: 156,
-                  padding: 22,
-                  borderRadius: 26,
-                  border: "1px solid rgba(255,255,255,0.10)",
-                  background:
-                    "radial-gradient(circle at 100% 100%, rgba(99,102,241,0.18), transparent 34%), linear-gradient(145deg, rgba(16,39,61,0.96), rgba(30,38,83,0.92))",
-                  boxShadow: "0 22px 60px rgba(0,0,0,0.22)",
-                }}
-              >
-                <small
-                  style={{
-                    opacity: 0.62,
-                    fontWeight: 900,
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {card.label}
-                </small>
-                <strong
-                  style={{
-                    display: "block",
-                    marginTop: 24,
-                    fontSize: 34,
-                    lineHeight: 1,
-                  }}
-                >
-                  {card.value}
-                </strong>
-                <span
-                  style={{
-                    display: "block",
-                    marginTop: 12,
-                    fontSize: 13,
-                    opacity: 0.6,
-                  }}
-                >
-                  {card.sub}
-                </span>
-                {typeof card.trend === "number" ? (
-                  <span
-                    style={{
-                      position: "absolute",
-                      top: 18,
-                      right: 18,
-                      padding: "6px 9px",
-                      borderRadius: 999,
-                      background:
-                        card.trend >= 0
-                          ? "rgba(34,197,94,0.12)"
-                          : "rgba(239,68,68,0.12)",
-                      color: card.trend >= 0 ? "#86efac" : "#fca5a5",
-                      fontSize: 12,
-                      fontWeight: 900,
-                    }}
-                  >
-                    {card.trend >= 0 ? "▲" : "▼"} {Math.abs(card.trend)}%
-                  </span>
-                ) : null}
-              </div>
-            ))}
+          <div className="analytics-double-grid">
+            <RevenueChart points={dailyPoints} formatMoney={formatMoney} />
+            <LiveFeed items={liveFeed} />
           </div>
 
-          <div
-            style={{
-              marginTop: 26,
-              display: "grid",
-              gridTemplateColumns: "minmax(0, 1.55fr) minmax(320px, 0.85fr)",
-              gap: 18,
-            }}
-          >
-            <section
-              style={{
-                padding: 26,
-                borderRadius: 30,
-                border: "1px solid rgba(255,255,255,0.10)",
-                background: "rgba(8,20,39,0.84)",
-                boxShadow: "0 28px 80px rgba(0,0,0,0.28)",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 18,
-                  flexWrap: "wrap",
-                }}
-              >
-                <div>
-                  <small style={{ color: "#c4b5fd", fontWeight: 900 }}>
-                    LETZTE 7 TAGE
-                  </small>
-                  <h2 style={{ marginTop: 6 }}>Plattform-Aktivität</h2>
-                </div>
-                <span style={{ opacity: 0.55, fontSize: 13 }}>
-                  Leads · Anbieter · Leadkäufe
-                </span>
-              </div>
-
-              <div
-                style={{
-                  marginTop: 28,
-                  height: 280,
-                  display: "grid",
-                  gridTemplateColumns: "repeat(7, minmax(38px, 1fr))",
-                  gap: 12,
-                  alignItems: "end",
-                }}
-              >
-                {dailyPoints.map((point) => {
-                  const activity =
-                    point.leads + point.registrations + point.leadPurchases;
-                  return (
-                    <div
-                      key={point.key}
-                      style={{
-                        height: "100%",
-                        display: "grid",
-                        gridTemplateRows: "1fr auto",
-                        gap: 10,
-                        alignItems: "end",
-                      }}
-                    >
-                      <div
-                        title={`${point.leads} Leads, ${point.registrations} Anbieter, ${point.leadPurchases} Käufe`}
-                        style={{
-                          width: "100%",
-                          height: `${safeWidth(activity, maxDailyActivity)}%`,
-                          minHeight: 10,
-                          borderRadius: "14px 14px 5px 5px",
-                          background:
-                            "linear-gradient(180deg, #38bdf8, #6366f1)",
-                          boxShadow: "0 10px 28px rgba(56,189,248,0.20)",
-                        }}
-                      />
-                      <div style={{ textAlign: "center" }}>
-                        <strong style={{ display: "block", fontSize: 13 }}>
-                          {activity}
-                        </strong>
-                        <small style={{ opacity: 0.5, fontSize: 11 }}>
-                          {point.label}
-                        </small>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-
-            <section
-              style={{
-                padding: 26,
-                borderRadius: 30,
-                border: "1px solid rgba(255,255,255,0.10)",
-                background: "rgba(8,20,39,0.84)",
-                boxShadow: "0 28px 80px rgba(0,0,0,0.28)",
-              }}
-            >
-              <small style={{ color: "#c4b5fd", fontWeight: 900 }}>
-                PERFORMANCE
-              </small>
-              <h2 style={{ marginTop: 6 }}>Conversion-Funnel</h2>
-
-              <div style={{ display: "grid", gap: 18, marginTop: 28 }}>
-                {[
-                  ["Registrierte Anbieter", providerCount, providerCount],
-                  ["Credits gekauft", totalStripePayments, providerCount],
-                  ["Lead gekauft", topProviders.length, providerCount],
-                  ["Lead-Verkäufe", leadPurchaseCount, Math.max(leadCount, 1)],
-                ].map(([label, value, base]) => {
-                  const ratio = percent(Number(value), Number(base));
-                  return (
-                    <div key={String(label)}>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          gap: 12,
-                          marginBottom: 8,
-                        }}
-                      >
-                        <span style={{ opacity: 0.7 }}>{label}</span>
-                        <strong>{value}</strong>
-                      </div>
-                      <div
-                        style={{
-                          height: 10,
-                          borderRadius: 999,
-                          background: "rgba(255,255,255,0.07)",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: `${Math.max(ratio, value ? 5 : 0)}%`,
-                            height: "100%",
-                            borderRadius: 999,
-                            background:
-                              "linear-gradient(90deg, #9333ea, #38bdf8)",
-                          }}
-                        />
-                      </div>
-                      <small
-                        style={{ display: "block", marginTop: 6, opacity: 0.4 }}
-                      >
-                        {ratio}%
-                      </small>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
+          <div className="analytics-ranking-grid">
+            <TopRegions items={topRegions} />
+            <TopCategories items={topCategories} />
+            <TopProviders items={topProviders} />
           </div>
 
-          <div
-            style={{
-              marginTop: 18,
-              display: "grid",
-              gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-              gap: 18,
-            }}
-          >
-            <section
-              style={{
-                padding: 26,
-                borderRadius: 30,
-                border: "1px solid rgba(255,255,255,0.10)",
-                background: "rgba(8,20,39,0.84)",
-              }}
-            >
-              <small style={{ color: "#67e8f9", fontWeight: 900 }}>
-                UMSATZ
-              </small>
-              <h2 style={{ marginTop: 6 }}>Credit-Umsatz nach Tag</h2>
-              <div style={{ display: "grid", gap: 14, marginTop: 24 }}>
-                {dailyPoints.map((point) => (
-                  <div
-                    key={point.key}
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "80px 1fr 100px",
-                      gap: 12,
-                      alignItems: "center",
-                    }}
-                  >
-                    <span style={{ opacity: 0.58, fontSize: 13 }}>
-                      {point.label}
-                    </span>
-                    <div
-                      style={{
-                        height: 10,
-                        borderRadius: 999,
-                        background: "rgba(255,255,255,0.07)",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: `${safeWidth(
-                            point.creditRevenue,
-                            maxDailyRevenue,
-                          )}%`,
-                          height: "100%",
-                          borderRadius: 999,
-                          background:
-                            "linear-gradient(90deg, #22c55e, #38bdf8)",
-                        }}
-                      />
-                    </div>
-                    <strong style={{ textAlign: "right", fontSize: 13 }}>
-                      {formatMoney(point.creditRevenue)}
-                    </strong>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section
-              style={{
-                padding: 26,
-                borderRadius: 30,
-                border: "1px solid rgba(255,255,255,0.10)",
-                background: "rgba(8,20,39,0.84)",
-              }}
-            >
-              <small style={{ color: "#c4b5fd", fontWeight: 900 }}>LIVE</small>
-              <h2 style={{ marginTop: 6 }}>Neueste Aktivitäten</h2>
-              <div style={{ display: "grid", gap: 6, marginTop: 18 }}>
-                {liveFeed.length === 0 ? (
-                  <p style={{ opacity: 0.55 }}>
-                    Noch keine Aktivitäten vorhanden.
-                  </p>
-                ) : (
-                  liveFeed.map((item) => (
-                    <div
-                      key={item.id}
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "44px 1fr auto",
-                        gap: 12,
-                        alignItems: "center",
-                        padding: "13px 0",
-                        borderBottom: "1px solid rgba(255,255,255,0.07)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 40,
-                          height: 40,
-                          display: "grid",
-                          placeItems: "center",
-                          borderRadius: 14,
-                          background: "rgba(56,189,248,0.11)",
-                        }}
-                      >
-                        {item.icon}
-                      </div>
-                      <div style={{ minWidth: 0 }}>
-                        <strong style={{ display: "block", fontSize: 14 }}>
-                          {item.title}
-                        </strong>
-                        <span
-                          style={{
-                            display: "block",
-                            marginTop: 3,
-                            opacity: 0.58,
-                            fontSize: 12,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {item.description}
-                        </span>
-                      </div>
-                      <div style={{ textAlign: "right" }}>
-                        <strong style={{ display: "block", fontSize: 12 }}>
-                          {item.detail}
-                        </strong>
-                        <small style={{ opacity: 0.4, fontSize: 10 }}>
-                          {formatDate(item.date)}
-                        </small>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </section>
-          </div>
-
-          <div
-            style={{
-              marginTop: 18,
-              display: "grid",
-              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-              gap: 18,
-            }}
-          >
-            {[
-              {
-                eyebrow: "🌍 NACHFRAGE",
-                title: "Top-Regionen",
-                rows: topRegions,
-                max: maxRegion,
-              },
-              {
-                eyebrow: "🧹 KATEGORIEN",
-                title: "Top-Kategorien",
-                rows: topCategories,
-                max: maxCategory,
-              },
-            ].map((section) => (
-              <section
-                key={section.title}
-                style={{
-                  padding: 24,
-                  borderRadius: 28,
-                  border: "1px solid rgba(255,255,255,0.10)",
-                  background: "rgba(8,20,39,0.84)",
-                }}
-              >
-                <small style={{ color: "#c4b5fd", fontWeight: 900 }}>
-                  {section.eyebrow}
-                </small>
-                <h2 style={{ marginTop: 6 }}>{section.title}</h2>
-                <div style={{ display: "grid", gap: 15, marginTop: 22 }}>
-                  {section.rows.length === 0 ? (
-                    <p style={{ opacity: 0.55 }}>Noch keine Daten vorhanden.</p>
-                  ) : (
-                    section.rows.map(([label, value], index) => (
-                      <div key={label}>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            gap: 12,
-                            marginBottom: 7,
-                          }}
-                        >
-                          <span style={{ fontWeight: 750 }}>
-                            {index < 3 ? ["🥇", "🥈", "🥉"][index] : "•"}{" "}
-                            {label}
-                          </span>
-                          <strong>{value}</strong>
-                        </div>
-                        <div
-                          style={{
-                            height: 8,
-                            borderRadius: 999,
-                            background: "rgba(255,255,255,0.07)",
-                            overflow: "hidden",
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: `${safeWidth(value, section.max)}%`,
-                              height: "100%",
-                              borderRadius: 999,
-                              background:
-                                "linear-gradient(90deg, #6366f1, #38bdf8)",
-                            }}
-                          />
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </section>
-            ))}
-
-            <section
-              style={{
-                padding: 24,
-                borderRadius: 28,
-                border: "1px solid rgba(255,255,255,0.10)",
-                background: "rgba(8,20,39,0.84)",
-              }}
-            >
-              <small style={{ color: "#fde68a", fontWeight: 900 }}>
-                🏆 ANBIETER
-              </small>
-              <h2 style={{ marginTop: 6 }}>Top-Anbieter</h2>
-              <div style={{ display: "grid", gap: 15, marginTop: 22 }}>
-                {topProviders.length === 0 ? (
-                  <p style={{ opacity: 0.55 }}>
-                    Noch keine Leadkäufe vorhanden.
-                  </p>
-                ) : (
-                  topProviders.map((provider, index) => (
-                    <div key={provider.companyName}>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          gap: 12,
-                          marginBottom: 7,
-                        }}
-                      >
-                        <span style={{ fontWeight: 750 }}>
-                          {index < 3 ? ["🥇", "🥈", "🥉"][index] : "•"}{" "}
-                          {provider.companyName}
-                        </span>
-                        <strong>{provider.purchases}</strong>
-                      </div>
-                      <div
-                        style={{
-                          height: 8,
-                          borderRadius: 999,
-                          background: "rgba(255,255,255,0.07)",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: `${safeWidth(
-                              provider.purchases,
-                              maxProviderPurchases,
-                            )}%`,
-                            height: "100%",
-                            borderRadius: 999,
-                            background:
-                              "linear-gradient(90deg, #eab308, #38bdf8)",
-                          }}
-                        />
-                      </div>
-                      <small
-                        style={{
-                          display: "block",
-                          marginTop: 5,
-                          opacity: 0.45,
-                        }}
-                      >
-                        {provider.creditsSpent} Credits eingesetzt
-                      </small>
-                    </div>
-                  ))
-                )}
-              </div>
-            </section>
-          </div>
+          <Forecast data={forecast} formatMoney={formatMoney} />
 
           <style>{`
+            .analytics-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-end;
+              gap: 24px;
+              flex-wrap: wrap;
+            }
+
+            .analytics-header h1 {
+              margin-top: 14px;
+            }
+
+            .analytics-header p {
+              max-width: 780px;
+              margin-top: 14px;
+            }
+
+            .analytics-actions {
+              display: flex;
+              gap: 12px;
+              flex-wrap: wrap;
+              align-items: center;
+            }
+
+            .analytics-main-grid {
+              margin-top: 26px;
+              display: grid;
+              grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.85fr);
+              gap: 18px;
+            }
+
+            .analytics-double-grid {
+              margin-top: 18px;
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 18px;
+            }
+
+            .analytics-ranking-grid {
+              margin-top: 18px;
+              display: grid;
+              grid-template-columns: repeat(3, minmax(0, 1fr));
+              gap: 18px;
+            }
+
+            .analytics-ranking-card {
+              padding: 24px;
+              border-radius: 28px;
+              border: 1px solid rgba(255,255,255,0.10);
+              background: rgba(8,20,39,0.84);
+            }
+
+            .analytics-ranking-card > small {
+              color: #c4b5fd;
+              font-weight: 900;
+            }
+
+            .analytics-ranking-card h2 {
+              margin-top: 6px;
+            }
+
+            .analytics-ranking-list {
+              display: grid;
+              gap: 15px;
+              margin-top: 22px;
+            }
+
+            .analytics-ranking-head {
+              display: flex;
+              justify-content: space-between;
+              gap: 12px;
+              margin-bottom: 7px;
+            }
+
+            .analytics-ranking-head span {
+              font-weight: 750;
+            }
+
+            .analytics-ranking-track {
+              height: 8px;
+              border-radius: 999px;
+              background: rgba(255,255,255,0.07);
+              overflow: hidden;
+            }
+
+            .analytics-ranking-track i {
+              display: block;
+              height: 100%;
+              border-radius: 999px;
+              background: linear-gradient(90deg, #6366f1, #38bdf8);
+            }
+
+            .analytics-ranking-track-gold i {
+              background: linear-gradient(90deg, #eab308, #38bdf8);
+            }
+
+            .analytics-ranking-detail {
+              display: block;
+              margin-top: 5px;
+              opacity: 0.45;
+            }
+
+            .analytics-empty {
+              opacity: 0.55;
+            }
+
+            .analytics-forecast {
+              margin-top: 18px;
+              padding: 28px;
+              border-radius: 30px;
+              border: 1px solid rgba(255,255,255,0.10);
+              background:
+                radial-gradient(circle at 90% 20%, rgba(34,197,94,0.14), transparent 28%),
+                linear-gradient(145deg, rgba(8,20,39,0.94), rgba(25,37,73,0.92));
+              display: grid;
+              grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr);
+              gap: 26px;
+              align-items: center;
+            }
+
+            .analytics-forecast small {
+              color: #86efac;
+              font-weight: 900;
+            }
+
+            .analytics-forecast h2 {
+              margin-top: 8px;
+            }
+
+            .analytics-forecast p {
+              margin-top: 10px;
+              opacity: 0.58;
+              max-width: 560px;
+            }
+
+            .analytics-forecast-grid {
+              display: grid;
+              grid-template-columns: repeat(4, minmax(120px, 1fr));
+              gap: 12px;
+            }
+
+            .analytics-forecast-grid > div {
+              padding: 18px;
+              border-radius: 20px;
+              background: rgba(255,255,255,0.05);
+              border: 1px solid rgba(255,255,255,0.07);
+            }
+
+            .analytics-forecast-grid span {
+              display: block;
+              opacity: 0.52;
+              font-size: 12px;
+              text-transform: uppercase;
+              letter-spacing: 0.06em;
+              font-weight: 800;
+            }
+
+            .analytics-forecast-grid strong {
+              display: block;
+              margin-top: 10px;
+              font-size: 24px;
+            }
+
             @media (max-width: 1050px) {
-              .analytics-two-column {
-                grid-template-columns: 1fr !important;
+              .analytics-main-grid,
+              .analytics-double-grid,
+              .analytics-ranking-grid,
+              .analytics-forecast {
+                grid-template-columns: 1fr;
+              }
+
+              .analytics-forecast-grid {
+                grid-template-columns: repeat(2, minmax(120px, 1fr));
               }
             }
-            @media (max-width: 900px) {
-              section[style*="grid-template-columns: repeat(3"] {
-                grid-template-columns: 1fr !important;
-              }
-              section[style*="grid-template-columns: repeat(2"] {
-                grid-template-columns: 1fr !important;
+
+            @media (max-width: 640px) {
+              .analytics-forecast-grid {
+                grid-template-columns: 1fr;
               }
             }
           `}</style>

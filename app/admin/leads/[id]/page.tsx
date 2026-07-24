@@ -1,14 +1,12 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import {
+  LeadStatus as PrismaLeadStatus,
+  OfferStatus,
+} from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
-import DeleteLeadButton from "../DeleteLeadButton";
-import {
-  archiveLeadAction,
-  duplicateLeadAction,
-  extendLeadAction,
-  updateLeadAction,
-} from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -22,61 +20,33 @@ type PageProps = {
   }>;
 };
 
-const regions = [
-  "Aargau",
-  "Zürich",
-  "Bern",
-  "Luzern",
-  "Basel",
-  "Solothurn",
-  "Zug",
-  "St. Gallen",
+type AvailabilityStatus =
+  | "ACTIVE"
+  | "ENDING"
+  | "SOLD_OUT"
+  | "EXPIRED";
+
+const purchaseStatuses: Array<{
+  value: PrismaLeadStatus;
+  label: string;
+}> = [
+  { value: "OPEN", label: "Offen" },
+  { value: "CONTACTED", label: "Kontaktiert" },
+  { value: "APPOINTMENT_SET", label: "Termin vereinbart" },
+  { value: "OFFER_SENT", label: "Offerte gesendet" },
+  { value: "WON", label: "Gewonnen" },
+  { value: "LOST", label: "Verloren" },
+  { value: "NO_OFFER", label: "Keine Offerte" },
 ];
 
-const categories = [
-  "Hauswartung",
-  "Reinigung",
-  "Fensterreinigung",
-  "Gartenpflege",
-  "Maler",
-  "Gipser",
-  "Sanitär",
-  "Elektriker",
-  "Umzug",
-  "Entsorgung",
+const offerStatuses: Array<{
+  value: OfferStatus;
+  label: string;
+}> = [
+  { value: "SENT", label: "Gesendet" },
+  { value: "ACCEPTED", label: "Angenommen" },
+  { value: "DECLINED", label: "Abgelehnt" },
 ];
-
-function getMessage(message?: string) {
-  switch (message) {
-    case "updated":
-      return "Lead wurde erfolgreich aktualisiert.";
-    case "duplicated":
-      return "Lead wurde erfolgreich dupliziert.";
-    case "extended":
-      return "Lead wurde erfolgreich um 7 Tage verlängert.";
-    default:
-      return "";
-  }
-}
-
-function getError(error?: string) {
-  switch (error) {
-    case "missing-fields":
-      return "Bitte alle Pflichtfelder vollständig ausfüllen.";
-    case "invalid-price":
-      return "Der Leadpreis muss mindestens 1 Credit betragen.";
-    case "invalid-max-purchases":
-      return "Die maximale Anzahl Käufer muss mindestens 1 betragen.";
-    case "invalid-expiry":
-      return "Bitte ein gültiges Ablaufdatum angeben.";
-    case "max-purchases-below-sales":
-      return "Das Kauflimit darf nicht kleiner als die bisherigen Verkäufe sein.";
-    case "invalid-lead":
-      return "Der Lead wurde nicht gefunden.";
-    default:
-      return "";
-  }
-}
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("de-CH", {
@@ -96,39 +66,28 @@ function formatDateTime(date: Date) {
   }).format(date);
 }
 
-function toDateTimeLocal(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
+function formatMoney(amount: number) {
+  return new Intl.NumberFormat("de-CH", {
+    style: "currency",
+    currency: "CHF",
+    minimumFractionDigits: 2,
+  }).format(amount);
 }
 
-function getCountdown(expiresAt: Date) {
-  const difference = expiresAt.getTime() - Date.now();
-
-  if (difference <= 0) {
-    return "Abgelaufen";
+function getExpiryDate(
+  createdAt: Date,
+  expiresAt: Date | null,
+) {
+  if (expiresAt) {
+    return expiresAt;
   }
 
-  const minutes = Math.floor(difference / (1000 * 60));
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-
-  if (days >= 1) {
-    return days === 1 ? "Noch 1 Tag" : `Noch ${days} Tage`;
-  }
-
-  if (hours >= 1) {
-    return hours === 1 ? "Noch 1 Stunde" : `Noch ${hours} Stunden`;
-  }
-
-  return minutes <= 1 ? "Weniger als 1 Minute" : `Noch ${minutes} Minuten`;
+  return new Date(
+    createdAt.getTime() + 7 * 24 * 60 * 60 * 1000,
+  );
 }
 
-function getLeadStatus({
+function getAvailabilityStatus({
   expiresAt,
   purchaseCount,
   maxPurchases,
@@ -136,44 +95,122 @@ function getLeadStatus({
   expiresAt: Date;
   purchaseCount: number;
   maxPurchases: number;
-}) {
-  const now = Date.now();
-  const remainingTime = expiresAt.getTime() - now;
+}): AvailabilityStatus {
+  const remaining = expiresAt.getTime() - Date.now();
   const oneDay = 24 * 60 * 60 * 1000;
 
   if (purchaseCount >= maxPurchases) {
-    return {
-      label: "Ausverkauft",
-      color: "#e5e7eb",
-      background: "rgba(148,163,184,0.14)",
-      border: "rgba(148,163,184,0.28)",
-    };
+    return "SOLD_OUT";
   }
 
-  if (remainingTime <= 0) {
-    return {
-      label: "Abgelaufen",
-      color: "#fecaca",
-      background: "rgba(239,68,68,0.12)",
-      border: "rgba(239,68,68,0.28)",
-    };
+  if (remaining <= 0) {
+    return "EXPIRED";
   }
 
-  if (remainingTime <= oneDay) {
-    return {
-      label: "Läuft bald ab",
-      color: "#fde68a",
-      background: "rgba(245,158,11,0.12)",
-      border: "rgba(245,158,11,0.28)",
-    };
+  if (remaining <= oneDay) {
+    return "ENDING";
   }
 
-  return {
-    label: "Aktiv",
-    color: "#bbf7d0",
-    background: "rgba(34,197,94,0.12)",
-    border: "rgba(34,197,94,0.28)",
-  };
+  return "ACTIVE";
+}
+
+function availabilityLabel(status: AvailabilityStatus) {
+  if (status === "SOLD_OUT") return "Ausverkauft";
+  if (status === "EXPIRED") return "Abgelaufen";
+  if (status === "ENDING") return "Läuft bald ab";
+  return "Aktiv";
+}
+
+function availabilityClass(status: AvailabilityStatus) {
+  if (status === "SOLD_OUT") return "status status-sold";
+  if (status === "EXPIRED") return "status status-expired";
+  if (status === "ENDING") return "status status-ending";
+  return "status status-active";
+}
+
+function purchaseStatusLabel(status: PrismaLeadStatus) {
+  return (
+    purchaseStatuses.find((item) => item.value === status)
+      ?.label ?? status
+  );
+}
+
+function purchaseStatusClass(status: PrismaLeadStatus) {
+  if (status === "WON") return "purchase-status won";
+  if (status === "LOST" || status === "NO_OFFER") {
+    return "purchase-status lost";
+  }
+
+  if (
+    status === "CONTACTED" ||
+    status === "APPOINTMENT_SET" ||
+    status === "OFFER_SENT"
+  ) {
+    return "purchase-status progress";
+  }
+
+  return "purchase-status open";
+}
+
+function offerStatusLabel(status: OfferStatus) {
+  return (
+    offerStatuses.find((item) => item.value === status)
+      ?.label ?? status
+  );
+}
+
+function offerStatusClass(status: OfferStatus) {
+  if (status === "ACCEPTED") return "offer-status accepted";
+  if (status === "DECLINED") return "offer-status declined";
+  return "offer-status sent";
+}
+
+function getMessage(message?: string) {
+  if (message === "lead-updated") {
+    return "Lead wurde erfolgreich aktualisiert.";
+  }
+
+  if (message === "extended") {
+    return "Lead wurde um 7 Tage verlängert.";
+  }
+
+  if (message === "purchase-updated") {
+    return "Anbieterstatus wurde aktualisiert.";
+  }
+
+  if (message === "note-created") {
+    return "Notiz wurde gespeichert.";
+  }
+
+  if (message === "message-created") {
+    return "Nachricht wurde gespeichert.";
+  }
+
+  if (message === "offer-created") {
+    return "Offerte wurde erstellt.";
+  }
+
+  if (message === "offer-updated") {
+    return "Offertenstatus wurde aktualisiert.";
+  }
+
+  return "";
+}
+
+function getError(error?: string) {
+  if (error === "invalid-data") {
+    return "Bitte prüfe die eingegebenen Daten.";
+  }
+
+  if (error === "purchase-not-found") {
+    return "Der Leadkauf wurde nicht gefunden.";
+  }
+
+  if (error === "duplicate-email") {
+    return "Diese E-Mail-Adresse wird bereits verwendet.";
+  }
+
+  return "";
 }
 
 export default async function AdminLeadDetailPage({
@@ -181,7 +218,9 @@ export default async function AdminLeadDetailPage({
   searchParams,
 }: PageProps) {
   const { id } = await params;
-  const query = searchParams ? await searchParams : undefined;
+  const query = searchParams
+    ? await searchParams
+    : undefined;
 
   const lead = await prisma.lead.findUnique({
     where: {
@@ -192,11 +231,7 @@ export default async function AdminLeadDetailPage({
         orderBy: {
           createdAt: "desc",
         },
-        select: {
-          id: true,
-          price: true,
-          status: true,
-          createdAt: true,
+        include: {
           provider: {
             select: {
               id: true,
@@ -205,6 +240,28 @@ export default async function AdminLeadDetailPage({
               email: true,
               phone: true,
               status: true,
+              credits: true,
+              city: true,
+            },
+          },
+          notes: {
+            orderBy: {
+              createdAt: "desc",
+            },
+          },
+          messages: {
+            orderBy: {
+              createdAt: "desc",
+            },
+          },
+          activities: {
+            orderBy: {
+              createdAt: "desc",
+            },
+          },
+          offers: {
+            orderBy: {
+              createdAt: "desc",
             },
           },
         },
@@ -216,415 +273,731 @@ export default async function AdminLeadDetailPage({
     notFound();
   }
 
-  const successMessage = getMessage(query?.message);
-  const errorMessage = getError(query?.error);
+  async function updateLead(formData: FormData) {
+    "use server";
 
-  const expiresAt =
-    lead.expiresAt ??
-    new Date(lead.createdAt.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const leadId = String(formData.get("leadId") || "");
+    const title = String(formData.get("title") || "").trim();
+    const description = String(
+      formData.get("description") || "",
+    ).trim();
+    const name = String(formData.get("name") || "").trim();
+    const email = String(formData.get("email") || "")
+      .trim()
+      .toLowerCase();
+    const phone = String(formData.get("phone") || "").trim();
+    const region = String(formData.get("region") || "").trim();
+    const category = String(
+      formData.get("category") || "",
+    ).trim();
+    const postalCode = String(
+      formData.get("postalCode") || "",
+    ).trim();
+    const city = String(formData.get("city") || "").trim();
+
+    const price = Number(formData.get("price"));
+    const maxPurchases = Number(
+      formData.get("maxPurchases"),
+    );
+
+    const expiresAtValue = String(
+      formData.get("expiresAt") || "",
+    );
+
+    if (
+      !leadId ||
+      !title ||
+      !description ||
+      !name ||
+      !email ||
+      !phone ||
+      !region ||
+      !category ||
+      !Number.isInteger(price) ||
+      price < 1 ||
+      !Number.isInteger(maxPurchases) ||
+      maxPurchases < 1
+    ) {
+      redirect(
+        `/admin/leads/${leadId || id}?error=invalid-data`,
+      );
+    }
+
+    await prisma.lead.update({
+      where: {
+        id: leadId,
+      },
+      data: {
+        title,
+        description,
+        name,
+        email,
+        phone,
+        region,
+        category,
+        postalCode: postalCode || null,
+        city: city || null,
+        price,
+        maxPurchases,
+        expiresAt: expiresAtValue
+          ? new Date(expiresAtValue)
+          : null,
+      },
+    });
+
+    revalidatePath(`/admin/leads/${leadId}`);
+    revalidatePath("/admin/leads");
+    revalidatePath("/leads");
+
+    redirect(
+      `/admin/leads/${leadId}?message=lead-updated`,
+    );
+  }
+
+  async function extendLead(formData: FormData) {
+    "use server";
+
+    const leadId = String(formData.get("leadId") || "");
+
+    const currentLead = await prisma.lead.findUnique({
+      where: {
+        id: leadId,
+      },
+      select: {
+        createdAt: true,
+        expiresAt: true,
+      },
+    });
+
+    if (!currentLead) {
+      redirect("/admin/leads");
+    }
+
+    const currentExpiry = getExpiryDate(
+      currentLead.createdAt,
+      currentLead.expiresAt,
+    );
+
+    const baseDate =
+      currentExpiry.getTime() > Date.now()
+        ? currentExpiry
+        : new Date();
+
+    const newExpiry = new Date(
+      baseDate.getTime() + 7 * 24 * 60 * 60 * 1000,
+    );
+
+    await prisma.lead.update({
+      where: {
+        id: leadId,
+      },
+      data: {
+        expiresAt: newExpiry,
+      },
+    });
+
+    revalidatePath(`/admin/leads/${leadId}`);
+    revalidatePath("/admin/leads");
+    revalidatePath("/leads");
+
+    redirect(`/admin/leads/${leadId}?message=extended`);
+  }
+
+  async function updatePurchaseStatus(
+    formData: FormData,
+  ) {
+    "use server";
+
+    const leadId = String(formData.get("leadId") || "");
+    const purchaseId = String(
+      formData.get("purchaseId") || "",
+    );
+    const requestedStatus = String(
+      formData.get("status") || "",
+    );
+
+    const validStatus = purchaseStatuses.find(
+      (item) => item.value === requestedStatus,
+    );
+
+    if (!leadId || !purchaseId || !validStatus) {
+      redirect(
+        `/admin/leads/${leadId || id}?error=invalid-data`,
+      );
+    }
+
+    const purchase =
+      await prisma.leadPurchase.findUnique({
+        where: {
+          id: purchaseId,
+        },
+        select: {
+          id: true,
+          status: true,
+          providerId: true,
+        },
+      });
+
+    if (!purchase) {
+      redirect(
+        `/admin/leads/${leadId}?error=purchase-not-found`,
+      );
+    }
+
+    await prisma.$transaction([
+      prisma.leadPurchase.update({
+        where: {
+          id: purchaseId,
+        },
+        data: {
+          status: validStatus.value,
+        },
+      }),
+
+      prisma.leadActivity.create({
+        data: {
+          leadPurchaseId: purchaseId,
+          type: "STATUS_CHANGED",
+          description: `Status von ${purchaseStatusLabel(
+            purchase.status,
+          )} auf ${purchaseStatusLabel(
+            validStatus.value,
+          )} geändert.`,
+        },
+      }),
+
+      prisma.providerActivity.create({
+        data: {
+          providerId: purchase.providerId,
+          event: "LEAD_STATUS_CHANGED",
+          leadId,
+          page: `/admin/leads/${leadId}`,
+          description: `Leadstatus auf ${purchaseStatusLabel(
+            validStatus.value,
+          )} geändert.`,
+          metadata: {
+            purchaseId,
+            previousStatus: purchase.status,
+            newStatus: validStatus.value,
+          },
+        },
+      }),
+    ]);
+
+    revalidatePath(`/admin/leads/${leadId}`);
+    revalidatePath("/admin/leads");
+
+    redirect(
+      `/admin/leads/${leadId}?message=purchase-updated`,
+    );
+  }
+
+  async function createNote(formData: FormData) {
+    "use server";
+
+    const leadId = String(formData.get("leadId") || "");
+    const purchaseId = String(
+      formData.get("purchaseId") || "",
+    );
+    const content = String(
+      formData.get("content") || "",
+    ).trim();
+
+    if (!leadId || !purchaseId || !content) {
+      redirect(
+        `/admin/leads/${leadId || id}?error=invalid-data`,
+      );
+    }
+
+    await prisma.$transaction([
+      prisma.leadNote.create({
+        data: {
+          leadPurchaseId: purchaseId,
+          content,
+        },
+      }),
+
+      prisma.leadActivity.create({
+        data: {
+          leadPurchaseId: purchaseId,
+          type: "NOTE_CREATED",
+          description: "Eine interne Notiz wurde erstellt.",
+        },
+      }),
+    ]);
+
+    revalidatePath(`/admin/leads/${leadId}`);
+
+    redirect(
+      `/admin/leads/${leadId}?message=note-created`,
+    );
+  }
+
+  async function createMessage(formData: FormData) {
+    "use server";
+
+    const leadId = String(formData.get("leadId") || "");
+    const purchaseId = String(
+      formData.get("purchaseId") || "",
+    );
+    const sender = String(
+      formData.get("sender") || "",
+    ).trim();
+    const message = String(
+      formData.get("message") || "",
+    ).trim();
+
+    if (!leadId || !purchaseId || !sender || !message) {
+      redirect(
+        `/admin/leads/${leadId || id}?error=invalid-data`,
+      );
+    }
+
+    await prisma.$transaction([
+      prisma.leadMessage.create({
+        data: {
+          leadPurchaseId: purchaseId,
+          sender,
+          message,
+        },
+      }),
+
+      prisma.leadActivity.create({
+        data: {
+          leadPurchaseId: purchaseId,
+          type: "MESSAGE_CREATED",
+          description: `Nachricht von ${sender} gespeichert.`,
+        },
+      }),
+    ]);
+
+    revalidatePath(`/admin/leads/${leadId}`);
+
+    redirect(
+      `/admin/leads/${leadId}?message=message-created`,
+    );
+  }
+
+  async function createOffer(formData: FormData) {
+    "use server";
+
+    const leadId = String(formData.get("leadId") || "");
+    const purchaseId = String(
+      formData.get("purchaseId") || "",
+    );
+    const title = String(formData.get("title") || "").trim();
+    const description = String(
+      formData.get("description") || "",
+    ).trim();
+    const pdfUrl = String(
+      formData.get("pdfUrl") || "",
+    ).trim();
+    const amount = Number(formData.get("amount"));
+
+    if (
+      !leadId ||
+      !purchaseId ||
+      !title ||
+      !Number.isFinite(amount) ||
+      amount <= 0
+    ) {
+      redirect(
+        `/admin/leads/${leadId || id}?error=invalid-data`,
+      );
+    }
+
+    await prisma.$transaction([
+      prisma.leadOffer.create({
+        data: {
+          leadPurchaseId: purchaseId,
+          title,
+          description: description || null,
+          amount,
+          pdfUrl: pdfUrl || null,
+          status: "SENT",
+        },
+      }),
+
+      prisma.leadPurchase.update({
+        where: {
+          id: purchaseId,
+        },
+        data: {
+          status: "OFFER_SENT",
+        },
+      }),
+
+      prisma.leadActivity.create({
+        data: {
+          leadPurchaseId: purchaseId,
+          type: "OFFER_CREATED",
+          description: `Offerte über ${formatMoney(
+            amount,
+          )} wurde erstellt.`,
+        },
+      }),
+    ]);
+
+    revalidatePath(`/admin/leads/${leadId}`);
+    revalidatePath("/admin/leads");
+
+    redirect(
+      `/admin/leads/${leadId}?message=offer-created`,
+    );
+  }
+
+  async function updateOfferStatus(
+    formData: FormData,
+  ) {
+    "use server";
+
+    const leadId = String(formData.get("leadId") || "");
+    const offerId = String(formData.get("offerId") || "");
+    const requestedStatus = String(
+      formData.get("status") || "",
+    );
+
+    const validStatus = offerStatuses.find(
+      (item) => item.value === requestedStatus,
+    );
+
+    if (!leadId || !offerId || !validStatus) {
+      redirect(
+        `/admin/leads/${leadId || id}?error=invalid-data`,
+      );
+    }
+
+    const offer = await prisma.leadOffer.findUnique({
+      where: {
+        id: offerId,
+      },
+      select: {
+        leadPurchaseId: true,
+      },
+    });
+
+    if (!offer) {
+      redirect(
+        `/admin/leads/${leadId}?error=invalid-data`,
+      );
+    }
+
+    const purchaseStatus =
+      validStatus.value === "ACCEPTED"
+        ? PrismaLeadStatus.WON
+        : validStatus.value === "DECLINED"
+          ? PrismaLeadStatus.LOST
+          : PrismaLeadStatus.OFFER_SENT;
+
+    await prisma.$transaction([
+      prisma.leadOffer.update({
+        where: {
+          id: offerId,
+        },
+        data: {
+          status: validStatus.value,
+        },
+      }),
+
+      prisma.leadPurchase.update({
+        where: {
+          id: offer.leadPurchaseId,
+        },
+        data: {
+          status: purchaseStatus,
+        },
+      }),
+
+      prisma.leadActivity.create({
+        data: {
+          leadPurchaseId: offer.leadPurchaseId,
+          type: "OFFER_STATUS_CHANGED",
+          description: `Offertenstatus auf ${offerStatusLabel(
+            validStatus.value,
+          )} geändert.`,
+        },
+      }),
+    ]);
+
+    revalidatePath(`/admin/leads/${leadId}`);
+    revalidatePath("/admin/leads");
+
+    redirect(
+      `/admin/leads/${leadId}?message=offer-updated`,
+    );
+  }
 
   const maxPurchases =
-    Number.isInteger(lead.maxPurchases) && lead.maxPurchases > 0
-      ? lead.maxPurchases
-      : 4;
+    lead.maxPurchases > 0 ? lead.maxPurchases : 4;
 
-  const purchaseCount = lead.purchases.length;
-  const remainingSlots = Math.max(0, maxPurchases - purchaseCount);
-  const totalCreditRevenue = lead.purchases.reduce(
-    (sum, purchase) => sum + purchase.price,
-    0
+  const expiryDate = getExpiryDate(
+    lead.createdAt,
+    lead.expiresAt,
   );
 
-  const progress = Math.min(
-    100,
-    Math.round((purchaseCount / maxPurchases) * 100)
-  );
-
-  const status = getLeadStatus({
-    expiresAt,
-    purchaseCount,
+  const availabilityStatus = getAvailabilityStatus({
+    expiresAt: expiryDate,
+    purchaseCount: lead.purchases.length,
     maxPurchases,
   });
 
+  const remainingSlots = Math.max(
+    0,
+    maxPurchases - lead.purchases.length,
+  );
+
+  const totalCreditRevenue = lead.purchases.reduce(
+    (sum, purchase) => sum + purchase.price,
+    0,
+  );
+
+  const totalOffers = lead.purchases.reduce(
+    (sum, purchase) => sum + purchase.offers.length,
+    0,
+  );
+
+  const acceptedOffers = lead.purchases.reduce(
+    (sum, purchase) =>
+      sum +
+      purchase.offers.filter(
+        (offer) => offer.status === "ACCEPTED",
+      ).length,
+    0,
+  );
+
+  const totalOfferValue = lead.purchases.reduce(
+    (sum, purchase) =>
+      sum +
+      purchase.offers.reduce(
+        (offerSum, offer) => offerSum + offer.amount,
+        0,
+      ),
+    0,
+  );
+
+  const timeline = lead.purchases
+    .flatMap((purchase) => [
+      {
+        id: `purchase-${purchase.id}`,
+        createdAt: purchase.createdAt,
+        type: "PURCHASE",
+        title: "Lead gekauft",
+        description: `${purchase.provider.companyName} kaufte den Lead für ${purchase.price} Credits.`,
+        provider: purchase.provider.companyName,
+      },
+
+      ...purchase.activities.map((activity) => ({
+        id: `activity-${activity.id}`,
+        createdAt: activity.createdAt,
+        type: activity.type,
+        title: "Aktivität",
+        description: activity.description,
+        provider: purchase.provider.companyName,
+      })),
+
+      ...purchase.notes.map((note) => ({
+        id: `note-${note.id}`,
+        createdAt: note.createdAt,
+        type: "NOTE",
+        title: "Interne Notiz",
+        description: note.content,
+        provider: purchase.provider.companyName,
+      })),
+
+      ...purchase.messages.map((message) => ({
+        id: `message-${message.id}`,
+        createdAt: message.createdAt,
+        type: "MESSAGE",
+        title: `Nachricht von ${message.sender}`,
+        description: message.message,
+        provider: purchase.provider.companyName,
+      })),
+
+      ...purchase.offers.map((offer) => ({
+        id: `offer-${offer.id}`,
+        createdAt: offer.createdAt,
+        type: "OFFER",
+        title: `Offerte: ${offer.title}`,
+        description: `${formatMoney(
+          offer.amount,
+        )} · ${offerStatusLabel(offer.status)}`,
+        provider: purchase.provider.companyName,
+      })),
+    ])
+    .sort(
+      (a, b) =>
+        b.createdAt.getTime() - a.createdAt.getTime(),
+    );
+
+  const successMessage = getMessage(query?.message);
+  const errorMessage = getError(query?.error);
+
+  const dateTimeValue = lead.expiresAt
+    ? new Date(
+        lead.expiresAt.getTime() -
+          lead.expiresAt.getTimezoneOffset() * 60 * 1000,
+      )
+        .toISOString()
+        .slice(0, 16)
+    : "";
+
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        padding: "32px 0 72px",
-        background:
-          "radial-gradient(circle at 10% 0%, rgba(14,165,233,0.18), transparent 32%), radial-gradient(circle at 88% 6%, rgba(99,102,241,0.22), transparent 34%), #071426",
-      }}
-    >
-      <div className="container">
-        <header
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-end",
-            gap: 24,
-            flexWrap: "wrap",
-          }}
-        >
+    <main className="crm-page">
+      <div className="crm-shell">
+        <header className="crm-header">
           <div>
             <Link
               href="/admin/leads"
-              style={{
-                color: "#93c5fd",
-                textDecoration: "none",
-                fontWeight: 800,
-                fontSize: 14,
-              }}
+              className="back-link"
             >
               ← Zurück zur Lead-Zentrale
             </Link>
 
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                marginTop: 20,
-                flexWrap: "wrap",
-              }}
-            >
-              <span
-                style={{
-                  display: "inline-flex",
-                  padding: "9px 13px",
-                  borderRadius: 999,
-                  border: `1px solid ${status.border}`,
-                  background: status.background,
-                  color: status.color,
-                  fontSize: 12,
-                  fontWeight: 900,
-                  letterSpacing: ".08em",
-                }}
-              >
-                {status.label.toUpperCase()}
-              </span>
-
-              {remainingSlots === 1 ? (
-                <span
-                  style={{
-                    display: "inline-flex",
-                    padding: "9px 13px",
-                    borderRadius: 999,
-                    border: "1px solid rgba(249,115,22,0.35)",
-                    background: "rgba(249,115,22,0.13)",
-                    color: "#fed7aa",
-                    fontSize: 12,
-                    fontWeight: 900,
-                  }}
-                >
-                  🔥 LETZTER PLATZ
-                </span>
-              ) : null}
+            <div className="header-label">
+              <span className="online-dot" />
+              AUFTRAGO LEAD CRM
             </div>
 
-            <h1
-              style={{
-                margin: "17px 0 0",
-                fontSize: "clamp(36px, 5vw, 66px)",
-                lineHeight: 1,
-                letterSpacing: "-.045em",
-              }}
-            >
-              {lead.title}
-            </h1>
+            <div className="title-row">
+              <h1>{lead.title}</h1>
 
-            <p
-              style={{
-                margin: "14px 0 0",
-                opacity: 0.58,
-                fontSize: 16,
-              }}
-            >
-              Lead bearbeiten, verlängern, duplizieren oder archivieren.
+              <span
+                className={availabilityClass(
+                  availabilityStatus,
+                )}
+              >
+                {availabilityLabel(availabilityStatus)}
+              </span>
+            </div>
+
+            <p>
+              Lead-ID: <strong>{lead.id}</strong>
             </p>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              gap: 10,
-              flexWrap: "wrap",
-            }}
-          >
-            <form action={extendLeadAction}>
-              <input type="hidden" name="leadId" value={lead.id} />
-              <button type="submit" className="btn btn-secondary">
-                + 7 Tage verlängern
-              </button>
-            </form>
+          <div className="header-actions">
+            <a
+              href={`tel:${lead.phone}`}
+              className="button button-secondary"
+            >
+              📞 Anrufen
+            </a>
 
-            <form action={duplicateLeadAction}>
-              <input type="hidden" name="leadId" value={lead.id} />
-              <button type="submit" className="btn btn-secondary">
-                Lead duplizieren
+            <a
+              href={`mailto:${lead.email}`}
+              className="button button-secondary"
+            >
+              ✉️ E-Mail
+            </a>
+
+            <form action={extendLead}>
+              <input
+                type="hidden"
+                name="leadId"
+                value={lead.id}
+              />
+
+              <button className="button button-primary">
+                + 7 Tage verlängern
               </button>
             </form>
           </div>
         </header>
 
         {successMessage ? (
-          <div
-            style={{
-              marginTop: 24,
-              padding: "16px 18px",
-              borderRadius: 18,
-              border: "1px solid rgba(34,197,94,0.28)",
-              background: "rgba(34,197,94,0.12)",
-              color: "#bbf7d0",
-              fontWeight: 800,
-            }}
-          >
-            ✓ {successMessage}
+          <div className="notice notice-success">
+            ✅ {successMessage}
           </div>
         ) : null}
 
         {errorMessage ? (
-          <div
-            style={{
-              marginTop: 24,
-              padding: "16px 18px",
-              borderRadius: 18,
-              border: "1px solid rgba(239,68,68,0.28)",
-              background: "rgba(239,68,68,0.12)",
-              color: "#fecaca",
-              fontWeight: 800,
-            }}
-          >
-            {errorMessage}
+          <div className="notice notice-error">
+            ❌ {errorMessage}
           </div>
         ) : null}
 
-        <section
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-            gap: 14,
-            marginTop: 30,
-          }}
-        >
-          {[
-            ["STATUS", status.label, getCountdown(expiresAt)],
-            [
-              "VERKÄUFE",
-              `${purchaseCount} / ${maxPurchases}`,
-              remainingSlots === 0
-                ? "Keine Plätze mehr frei"
-                : `${remainingSlots} Plätze frei`,
-            ],
-            ["LEADPREIS", lead.price, "Credits pro Freischaltung"],
-            ["CREDITS-UMSATZ", totalCreditRevenue, "Bisheriger Gesamtumsatz"],
-            ["ERSTELLT", formatDate(lead.createdAt), "Erstellungsdatum"],
-            ["ABLAUF", formatDateTime(expiresAt), getCountdown(expiresAt)],
-          ].map(([label, value, sub]) => (
-            <div
-              key={String(label)}
-              style={{
-                minHeight: 142,
-                padding: 22,
-                borderRadius: 24,
-                border: "1px solid rgba(255,255,255,0.10)",
-                background:
-                  "radial-gradient(circle at 100% 100%, rgba(255,255,255,0.08), transparent 34%), linear-gradient(135deg, rgba(20,38,64,0.96), rgba(37,45,92,0.82))",
-                boxShadow: "0 22px 55px rgba(0,0,0,0.22)",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 900,
-                  letterSpacing: ".12em",
-                  opacity: 0.55,
-                }}
-              >
-                {label}
-              </span>
+        <section className="stats-grid">
+          <StatCard
+            label="LEADPREIS"
+            value={lead.price}
+            description="Credits pro Anbieter"
+          />
 
-              <strong
-                style={{
-                  display: "block",
-                  marginTop: 20,
-                  fontSize: 28,
-                  lineHeight: 1.05,
-                }}
-              >
-                {value}
-              </strong>
+          <StatCard
+            label="VERKAUFT"
+            value={`${lead.purchases.length}/${maxPurchases}`}
+            description={`${remainingSlots} Plätze verfügbar`}
+          />
 
-              <small
-                style={{
-                  display: "block",
-                  marginTop: 12,
-                  opacity: 0.48,
-                }}
-              >
-                {sub}
-              </small>
-            </div>
-          ))}
+          <StatCard
+            label="UMSATZ"
+            value={totalCreditRevenue}
+            description="Credits eingenommen"
+          />
+
+          <StatCard
+            label="OFFERTEN"
+            value={totalOffers}
+            description={`${acceptedOffers} angenommen`}
+          />
+
+          <StatCard
+            label="OFFERTENVOLUMEN"
+            value={formatMoney(totalOfferValue)}
+            description="Gesamter Offertenwert"
+          />
+
+          <StatCard
+            label="ABLAUF"
+            value={formatDate(expiryDate)}
+            description={formatDateTime(expiryDate)}
+          />
         </section>
 
-        <section
-          style={{
-            marginTop: 22,
-            padding: 22,
-            borderRadius: 24,
-            border: "1px solid rgba(255,255,255,0.09)",
-            background: "rgba(10,23,43,0.78)",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              gap: 16,
-              alignItems: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <div>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 900,
-                  letterSpacing: ".12em",
-                  opacity: 0.48,
-                }}
-              >
-                VERKAUFSFORTSCHRITT
-              </span>
-
-              <strong
-                style={{
-                  display: "block",
-                  marginTop: 8,
-                  fontSize: 20,
-                }}
-              >
-                {purchaseCount} von {maxPurchases} Plätzen verkauft
-              </strong>
-            </div>
-
-            <strong
-              style={{
-                color: remainingSlots === 1 ? "#fdba74" : "#c4b5fd",
-              }}
-            >
-              {progress} %
-            </strong>
-          </div>
-
-          <div
-            style={{
-              height: 12,
-              marginTop: 18,
-              borderRadius: 999,
-              overflow: "hidden",
-              background: "rgba(255,255,255,0.08)",
-            }}
-          >
-            <div
-              style={{
-                width: `${progress}%`,
-                height: "100%",
-                borderRadius: 999,
-                background:
-                  remainingSlots === 0
-                    ? "linear-gradient(90deg, #94a3b8, #e2e8f0)"
-                    : remainingSlots === 1
-                      ? "linear-gradient(90deg, #f97316, #facc15)"
-                      : "linear-gradient(90deg, #0ea5e9, #6366f1)",
-                transition: "width .3s ease",
-              }}
-            />
-          </div>
-        </section>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "minmax(0, 1.5fr) minmax(320px, .8fr)",
-            gap: 22,
-            marginTop: 24,
-            alignItems: "start",
-          }}
-        >
-          <section
-            style={{
-              padding: 28,
-              borderRadius: 30,
-              border: "1px solid rgba(255,255,255,0.10)",
-              background:
-                "radial-gradient(circle at top left, rgba(56,189,248,0.12), transparent 34%), linear-gradient(135deg, rgba(15,23,42,0.98), rgba(30,41,80,0.90))",
-              boxShadow: "0 30px 80px rgba(0,0,0,0.28)",
-            }}
-          >
-            <span
-              style={{
-                fontSize: 12,
-                fontWeight: 900,
-                letterSpacing: ".12em",
-                color: "#c4b5fd",
-              }}
-            >
-              LEAD BEARBEITEN
-            </span>
-
-            <h2
-              style={{
-                margin: "8px 0 0",
-                fontSize: 30,
-              }}
-            >
-              Angaben aktualisieren
-            </h2>
-
-            <form
-              action={updateLeadAction}
-              style={{
-                display: "grid",
-                gap: 15,
-                marginTop: 24,
-              }}
-            >
-              <input type="hidden" name="leadId" value={lead.id} />
-
-              <label style={{ display: "grid", gap: 8 }}>
-                <span style={{ fontSize: 13, fontWeight: 800 }}>
-                  Titel
-                </span>
-                <input
-                  name="title"
-                  defaultValue={lead.title}
-                  placeholder="Titel des Leads"
-                  required
-                />
-              </label>
-
-              <label style={{ display: "grid", gap: 8 }}>
-                <span style={{ fontSize: 13, fontWeight: 800 }}>
-                  Beschreibung
-                </span>
-                <textarea
-                  name="description"
-                  defaultValue={lead.description}
-                  placeholder="Beschreibung des Auftrags"
-                  required
-                  style={{
-                    minHeight: 170,
-                    resize: "vertical",
-                  }}
-                />
-              </label>
-
-              <div className="form-row">
-                <label style={{ display: "grid", gap: 8 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800 }}>
-                    Kundenname
+        <section className="main-grid">
+          <div className="main-column">
+            <section className="panel">
+              <div className="panel-header">
+                <div>
+                  <span className="eyebrow">
+                    KUNDENDATEN
                   </span>
+                  <h2>Lead bearbeiten</h2>
+                </div>
+
+                <span className="panel-icon">✏️</span>
+              </div>
+
+              <form
+                action={updateLead}
+                className="edit-form"
+              >
+                <input
+                  type="hidden"
+                  name="leadId"
+                  value={lead.id}
+                />
+
+                <label className="field-group full">
+                  <span>Titel</span>
+                  <input
+                    name="title"
+                    defaultValue={lead.title}
+                    required
+                  />
+                </label>
+
+                <label className="field-group full">
+                  <span>Beschreibung</span>
+                  <textarea
+                    name="description"
+                    defaultValue={lead.description}
+                    required
+                  />
+                </label>
+
+                <label className="field-group">
+                  <span>Kundenname</span>
                   <input
                     name="name"
                     defaultValue={lead.name}
@@ -632,515 +1005,1485 @@ export default async function AdminLeadDetailPage({
                   />
                 </label>
 
-                <label style={{ display: "grid", gap: 8 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800 }}>
-                    Telefonnummer
-                  </span>
+                <label className="field-group">
+                  <span>Telefon</span>
                   <input
                     name="phone"
                     defaultValue={lead.phone}
                     required
                   />
                 </label>
-              </div>
 
-              <label style={{ display: "grid", gap: 8 }}>
-                <span style={{ fontSize: 13, fontWeight: 800 }}>
-                  E-Mail-Adresse
-                </span>
-                <input
-                  name="email"
-                  type="email"
-                  defaultValue={lead.email}
-                  required
-                />
-              </label>
+                <label className="field-group full">
+                  <span>E-Mail-Adresse</span>
+                  <input
+                    name="email"
+                    type="email"
+                    defaultValue={lead.email}
+                    required
+                  />
+                </label>
 
-              <div className="form-row">
-                <label style={{ display: "grid", gap: 8 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800 }}>
-                    Postleitzahl
-                  </span>
+                <label className="field-group">
+                  <span>Postleitzahl</span>
                   <input
                     name="postalCode"
-                    defaultValue={lead.postalCode ?? ""}
-                    placeholder="z. B. 8001"
+                    defaultValue={lead.postalCode || ""}
                   />
                 </label>
 
-                <label style={{ display: "grid", gap: 8 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800 }}>
-                    Ort
-                  </span>
+                <label className="field-group">
+                  <span>Ort</span>
                   <input
                     name="city"
-                    defaultValue={lead.city ?? ""}
-                    placeholder="z. B. Zürich"
+                    defaultValue={lead.city || ""}
                   />
                 </label>
-              </div>
 
-              <div className="form-row">
-                <label style={{ display: "grid", gap: 8 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800 }}>
-                    Region
-                  </span>
-                  <select
+                <label className="field-group">
+                  <span>Region</span>
+                  <input
                     name="region"
                     defaultValue={lead.region}
                     required
-                  >
-                    {!regions.includes(lead.region) ? (
-                      <option value={lead.region}>{lead.region}</option>
-                    ) : null}
-
-                    {regions.map((region) => (
-                      <option key={region} value={region}>
-                        {region}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </label>
 
-                <label style={{ display: "grid", gap: 8 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800 }}>
-                    Kategorie
-                  </span>
-                  <select
+                <label className="field-group">
+                  <span>Kategorie</span>
+                  <input
                     name="category"
                     defaultValue={lead.category}
                     required
-                  >
-                    {!categories.includes(lead.category) ? (
-                      <option value={lead.category}>{lead.category}</option>
-                    ) : null}
-
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </label>
-              </div>
 
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                  gap: 14,
-                }}
-              >
-                <label style={{ display: "grid", gap: 8 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800 }}>
-                    Preis in Credits
-                  </span>
+                <label className="field-group">
+                  <span>Leadpreis in Credits</span>
                   <input
                     name="price"
                     type="number"
                     min="1"
-                    step="1"
                     defaultValue={lead.price}
                     required
                   />
                 </label>
 
-                <label style={{ display: "grid", gap: 8 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800 }}>
-                    Max. Käufer
-                  </span>
+                <label className="field-group">
+                  <span>Maximale Käufer</span>
                   <input
                     name="maxPurchases"
                     type="number"
-                    min={Math.max(1, purchaseCount)}
-                    step="1"
+                    min="1"
                     defaultValue={maxPurchases}
                     required
                   />
                 </label>
 
-                <label style={{ display: "grid", gap: 8 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800 }}>
-                    Ablaufdatum
-                  </span>
+                <label className="field-group full">
+                  <span>Ablaufdatum</span>
                   <input
                     name="expiresAt"
                     type="datetime-local"
-                    defaultValue={toDateTimeLocal(expiresAt)}
-                    required
+                    defaultValue={dateTimeValue}
                   />
                 </label>
+
+                <button className="button button-primary full">
+                  💾 Lead speichern
+                </button>
+              </form>
+            </section>
+
+            <section className="panel">
+              <div className="panel-header">
+                <div>
+                  <span className="eyebrow">
+                    ANBIETER
+                  </span>
+                  <h2>Käufer und Verkaufsprozess</h2>
+                </div>
+
+                <strong className="panel-count">
+                  {lead.purchases.length}
+                </strong>
               </div>
-
-              <div
-                style={{
-                  padding: 16,
-                  borderRadius: 18,
-                  border: "1px solid rgba(56,189,248,0.18)",
-                  background: "rgba(14,165,233,0.08)",
-                  color: "#bae6fd",
-                  fontSize: 13,
-                  lineHeight: 1.6,
-                }}
-              >
-                Das Kauflimit kann nicht unter die bisherige Anzahl Verkäufe
-                gesetzt werden. Aktuell wurden {purchaseCount} Freischaltungen
-                verkauft.
-              </div>
-
-              <button
-                type="submit"
-                className="btn btn-primary"
-                style={{
-                  width: "100%",
-                  marginTop: 4,
-                }}
-              >
-                Änderungen speichern
-              </button>
-            </form>
-          </section>
-
-          <aside
-            style={{
-              display: "grid",
-              gap: 20,
-            }}
-          >
-            <section
-              style={{
-                padding: 24,
-                borderRadius: 26,
-                border: "1px solid rgba(255,255,255,0.10)",
-                background: "rgba(10,23,43,0.84)",
-                boxShadow: "0 24px 65px rgba(0,0,0,0.22)",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 900,
-                  letterSpacing: ".12em",
-                  opacity: 0.48,
-                }}
-              >
-                KÄUFER
-              </span>
-
-              <h2
-                style={{
-                  margin: "8px 0 0",
-                  fontSize: 25,
-                }}
-              >
-                {purchaseCount} Freischaltungen
-              </h2>
 
               {lead.purchases.length === 0 ? (
-                <div
-                  style={{
-                    marginTop: 18,
-                    padding: 18,
-                    borderRadius: 16,
-                    background: "rgba(255,255,255,0.045)",
-                    color: "rgba(255,255,255,0.58)",
-                    fontSize: 14,
-                  }}
-                >
-                  Dieser Lead wurde noch von keinem Anbieter gekauft.
+                <div className="empty-state">
+                  <span>📭</span>
+                  <strong>Noch keine Käufer</strong>
+                  <p>
+                    Sobald ein Anbieter den Lead kauft,
+                    erscheint er hier.
+                  </p>
                 </div>
               ) : (
-                <div
-                  style={{
-                    display: "grid",
-                    gap: 11,
-                    marginTop: 18,
-                  }}
-                >
+                <div className="purchase-list">
                   {lead.purchases.map((purchase) => (
-                    <div
+                    <article
+                      className="purchase-card"
                       key={purchase.id}
-                      style={{
-                        padding: 16,
-                        borderRadius: 17,
-                        border: "1px solid rgba(255,255,255,0.08)",
-                        background: "rgba(255,255,255,0.045)",
-                      }}
                     >
-                      <strong
-                        style={{
-                          display: "block",
-                          fontSize: 15,
-                        }}
-                      >
-                        {purchase.provider.companyName}
-                      </strong>
+                      <div className="purchase-top">
+                        <div className="provider-profile">
+                          <div className="provider-avatar">
+                            {purchase.provider.companyName
+                              .split(" ")
+                              .filter(Boolean)
+                              .slice(0, 2)
+                              .map((part) => part[0])
+                              .join("")
+                              .toUpperCase()}
+                          </div>
 
-                      <span
-                        style={{
-                          display: "block",
-                          marginTop: 5,
-                          fontSize: 13,
-                          opacity: 0.64,
-                        }}
-                      >
-                        {purchase.provider.contactName}
-                      </span>
+                          <div>
+                            <Link
+                              href={`/admin/providers/${purchase.provider.id}`}
+                            >
+                              {
+                                purchase.provider
+                                  .companyName
+                              }
+                            </Link>
 
-                      <div
-                        style={{
-                          display: "grid",
-                          gap: 4,
-                          marginTop: 12,
-                          fontSize: 12,
-                          opacity: 0.52,
-                        }}
-                      >
-                        <span>{purchase.provider.email}</span>
+                            <span>
+                              {
+                                purchase.provider
+                                  .contactName
+                              }{" "}
+                              · {purchase.provider.email}
+                            </span>
+                          </div>
+                        </div>
 
-                        {purchase.provider.phone ? (
-                          <span>{purchase.provider.phone}</span>
-                        ) : null}
-
-                        <span>
-                          Gekauft: {formatDateTime(purchase.createdAt)}
+                        <span
+                          className={purchaseStatusClass(
+                            purchase.status,
+                          )}
+                        >
+                          {purchaseStatusLabel(
+                            purchase.status,
+                          )}
                         </span>
                       </div>
 
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          gap: 12,
-                          marginTop: 13,
-                          paddingTop: 12,
-                          borderTop: "1px solid rgba(255,255,255,0.07)",
-                          fontSize: 13,
-                        }}
-                      >
-                        <span style={{ opacity: 0.55 }}>
-                          {purchase.status}
-                        </span>
+                      <div className="purchase-metrics">
+                        <div>
+                          <span>Kaufpreis</span>
+                          <strong>
+                            {purchase.price} Credits
+                          </strong>
+                        </div>
 
-                        <strong style={{ color: "#fde68a" }}>
-                          {purchase.price} Credits
-                        </strong>
+                        <div>
+                          <span>Gekauft</span>
+                          <strong>
+                            {formatDateTime(
+                              purchase.createdAt,
+                            )}
+                          </strong>
+                        </div>
+
+                        <div>
+                          <span>Offerten</span>
+                          <strong>
+                            {purchase.offers.length}
+                          </strong>
+                        </div>
+
+                        <div>
+                          <span>Notizen</span>
+                          <strong>
+                            {purchase.notes.length}
+                          </strong>
+                        </div>
+                      </div>
+
+                      <form
+                        action={updatePurchaseStatus}
+                        className="inline-form"
+                      >
+                        <input
+                          type="hidden"
+                          name="leadId"
+                          value={lead.id}
+                        />
+
+                        <input
+                          type="hidden"
+                          name="purchaseId"
+                          value={purchase.id}
+                        />
+
+                        <select
+                          name="status"
+                          defaultValue={purchase.status}
+                        >
+                          {purchaseStatuses.map(
+                            (status) => (
+                              <option
+                                key={status.value}
+                                value={status.value}
+                              >
+                                {status.label}
+                              </option>
+                            ),
+                          )}
+                        </select>
+
+                        <button className="button button-secondary">
+                          Status speichern
+                        </button>
+                      </form>
+
+                      <details className="workspace">
+                        <summary>
+                          CRM-Arbeitsbereich öffnen ↓
+                        </summary>
+
+                        <div className="workspace-grid">
+                          <section className="workspace-panel">
+                            <h3>Interne Notiz</h3>
+
+                            <form action={createNote}>
+                              <input
+                                type="hidden"
+                                name="leadId"
+                                value={lead.id}
+                              />
+
+                              <input
+                                type="hidden"
+                                name="purchaseId"
+                                value={purchase.id}
+                              />
+
+                              <textarea
+                                name="content"
+                                placeholder="Interne Notiz zum Anbieter oder Verkaufsprozess"
+                                required
+                              />
+
+                              <button className="button button-primary">
+                                Notiz speichern
+                              </button>
+                            </form>
+
+                            <div className="mini-list">
+                              {purchase.notes.length ===
+                              0 ? (
+                                <p className="muted">
+                                  Noch keine Notizen.
+                                </p>
+                              ) : (
+                                purchase.notes.map(
+                                  (note) => (
+                                    <div
+                                      className="mini-card"
+                                      key={note.id}
+                                    >
+                                      <p>
+                                        {note.content}
+                                      </p>
+                                      <time>
+                                        {formatDateTime(
+                                          note.createdAt,
+                                        )}
+                                      </time>
+                                    </div>
+                                  ),
+                                )
+                              )}
+                            </div>
+                          </section>
+
+                          <section className="workspace-panel">
+                            <h3>Nachricht speichern</h3>
+
+                            <form action={createMessage}>
+                              <input
+                                type="hidden"
+                                name="leadId"
+                                value={lead.id}
+                              />
+
+                              <input
+                                type="hidden"
+                                name="purchaseId"
+                                value={purchase.id}
+                              />
+
+                              <input
+                                name="sender"
+                                placeholder="Absender, z. B. Anbieter"
+                                required
+                              />
+
+                              <textarea
+                                name="message"
+                                placeholder="Nachricht oder Gesprächsnotiz"
+                                required
+                              />
+
+                              <button className="button button-primary">
+                                Nachricht speichern
+                              </button>
+                            </form>
+
+                            <div className="mini-list">
+                              {purchase.messages.length ===
+                              0 ? (
+                                <p className="muted">
+                                  Noch keine Nachrichten.
+                                </p>
+                              ) : (
+                                purchase.messages.map(
+                                  (message) => (
+                                    <div
+                                      className="mini-card"
+                                      key={message.id}
+                                    >
+                                      <strong>
+                                        {message.sender}
+                                      </strong>
+
+                                      <p>
+                                        {message.message}
+                                      </p>
+
+                                      <time>
+                                        {formatDateTime(
+                                          message.createdAt,
+                                        )}
+                                      </time>
+                                    </div>
+                                  ),
+                                )
+                              )}
+                            </div>
+                          </section>
+
+                          <section className="workspace-panel full-workspace">
+                            <h3>Neue Offerte</h3>
+
+                            <form
+                              action={createOffer}
+                              className="offer-form"
+                            >
+                              <input
+                                type="hidden"
+                                name="leadId"
+                                value={lead.id}
+                              />
+
+                              <input
+                                type="hidden"
+                                name="purchaseId"
+                                value={purchase.id}
+                              />
+
+                              <input
+                                name="title"
+                                placeholder="Titel der Offerte"
+                                required
+                              />
+
+                              <input
+                                name="amount"
+                                type="number"
+                                min="0.01"
+                                step="0.01"
+                                placeholder="Betrag in CHF"
+                                required
+                              />
+
+                              <input
+                                name="pdfUrl"
+                                placeholder="PDF-URL optional"
+                              />
+
+                              <textarea
+                                name="description"
+                                placeholder="Beschreibung optional"
+                              />
+
+                              <button className="button button-primary">
+                                Offerte erstellen
+                              </button>
+                            </form>
+
+                            <div className="offer-list">
+                              {purchase.offers.length ===
+                              0 ? (
+                                <p className="muted">
+                                  Noch keine Offerten.
+                                </p>
+                              ) : (
+                                purchase.offers.map(
+                                  (offer) => (
+                                    <article
+                                      className="offer-card"
+                                      key={offer.id}
+                                    >
+                                      <div>
+                                        <span
+                                          className={offerStatusClass(
+                                            offer.status,
+                                          )}
+                                        >
+                                          {offerStatusLabel(
+                                            offer.status,
+                                          )}
+                                        </span>
+
+                                        <h4>
+                                          {offer.title}
+                                        </h4>
+
+                                        <strong>
+                                          {formatMoney(
+                                            offer.amount,
+                                          )}
+                                        </strong>
+
+                                        {offer.description ? (
+                                          <p>
+                                            {
+                                              offer.description
+                                            }
+                                          </p>
+                                        ) : null}
+
+                                        <time>
+                                          {formatDateTime(
+                                            offer.createdAt,
+                                          )}
+                                        </time>
+                                      </div>
+
+                                      <div className="offer-actions">
+                                        {offer.pdfUrl ? (
+                                          <a
+                                            href={offer.pdfUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="button button-secondary"
+                                          >
+                                            PDF öffnen
+                                          </a>
+                                        ) : null}
+
+                                        <form
+                                          action={
+                                            updateOfferStatus
+                                          }
+                                        >
+                                          <input
+                                            type="hidden"
+                                            name="leadId"
+                                            value={lead.id}
+                                          />
+
+                                          <input
+                                            type="hidden"
+                                            name="offerId"
+                                            value={offer.id}
+                                          />
+
+                                          <select
+                                            name="status"
+                                            defaultValue={
+                                              offer.status
+                                            }
+                                          >
+                                            {offerStatuses.map(
+                                              (
+                                                status,
+                                              ) => (
+                                                <option
+                                                  key={
+                                                    status.value
+                                                  }
+                                                  value={
+                                                    status.value
+                                                  }
+                                                >
+                                                  {
+                                                    status.label
+                                                  }
+                                                </option>
+                                              ),
+                                            )}
+                                          </select>
+
+                                          <button className="button button-secondary">
+                                            Aktualisieren
+                                          </button>
+                                        </form>
+                                      </div>
+                                    </article>
+                                  ),
+                                )
+                              )}
+                            </div>
+                          </section>
+                        </div>
+                      </details>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+
+          <aside className="sidebar">
+            <section className="panel customer-panel">
+              <div className="panel-header">
+                <div>
+                  <span className="eyebrow">
+                    KONTAKT
+                  </span>
+                  <h2>Kunde</h2>
+                </div>
+              </div>
+
+              <div className="customer-avatar">
+                {lead.name
+                  .split(" ")
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .map((part) => part[0])
+                  .join("")
+                  .toUpperCase()}
+              </div>
+
+              <strong className="customer-name">
+                {lead.name}
+              </strong>
+
+              <div className="info-list">
+                <a href={`tel:${lead.phone}`}>
+                  <span>Telefon</span>
+                  <strong>{lead.phone}</strong>
+                </a>
+
+                <a href={`mailto:${lead.email}`}>
+                  <span>E-Mail</span>
+                  <strong>{lead.email}</strong>
+                </a>
+
+                <div>
+                  <span>Standort</span>
+                  <strong>
+                    {[lead.postalCode, lead.city]
+                      .filter(Boolean)
+                      .join(" ") || "Nicht angegeben"}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Region</span>
+                  <strong>{lead.region}</strong>
+                </div>
+
+                <div>
+                  <span>Kategorie</span>
+                  <strong>{lead.category}</strong>
+                </div>
+
+                <div>
+                  <span>Erstellt</span>
+                  <strong>
+                    {formatDateTime(lead.createdAt)}
+                  </strong>
+                </div>
+              </div>
+            </section>
+
+            <section className="panel">
+              <div className="panel-header">
+                <div>
+                  <span className="eyebrow">
+                    TIMELINE
+                  </span>
+                  <h2>Aktivitäten</h2>
+                </div>
+
+                <strong className="panel-count">
+                  {timeline.length}
+                </strong>
+              </div>
+
+              {timeline.length === 0 ? (
+                <div className="empty-state compact">
+                  <span>⚡</span>
+                  <strong>Keine Aktivitäten</strong>
+                </div>
+              ) : (
+                <div className="timeline">
+                  {timeline.map((item) => (
+                    <div
+                      className="timeline-item"
+                      key={item.id}
+                    >
+                      <div className="timeline-dot" />
+
+                      <div>
+                        <strong>{item.title}</strong>
+
+                        <span>{item.provider}</span>
+
+                        <p>{item.description}</p>
+
+                        <time>
+                          {formatDateTime(
+                            item.createdAt,
+                          )}
+                        </time>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
             </section>
-
-            <section
-              style={{
-                padding: 24,
-                borderRadius: 26,
-                border: "1px solid rgba(255,255,255,0.10)",
-                background: "rgba(10,23,43,0.84)",
-                boxShadow: "0 24px 65px rgba(0,0,0,0.22)",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 900,
-                  letterSpacing: ".12em",
-                  opacity: 0.48,
-                }}
-              >
-                SCHNELLAKTIONEN
-              </span>
-
-              <div
-                style={{
-                  display: "grid",
-                  gap: 10,
-                  marginTop: 17,
-                }}
-              >
-                <form action={extendLeadAction}>
-                  <input type="hidden" name="leadId" value={lead.id} />
-
-                  <button
-                    type="submit"
-                    className="btn btn-secondary"
-                    style={{ width: "100%" }}
-                  >
-                    Ablauf um 7 Tage verlängern
-                  </button>
-                </form>
-
-                <form action={duplicateLeadAction}>
-                  <input type="hidden" name="leadId" value={lead.id} />
-
-                  <button
-                    type="submit"
-                    className="btn btn-secondary"
-                    style={{ width: "100%" }}
-                  >
-                    Lead duplizieren
-                  </button>
-                </form>
-
-                <form action={archiveLeadAction}>
-                  <input type="hidden" name="leadId" value={lead.id} />
-
-                  <button
-                    type="submit"
-                    className="btn btn-secondary"
-                    style={{
-                      width: "100%",
-                      borderColor: "rgba(245,158,11,0.32)",
-                      color: "#fde68a",
-                    }}
-                  >
-                    Lead archivieren
-                  </button>
-                </form>
-              </div>
-
-              <DeleteLeadButton
-                leadId={lead.id}
-                label="🗑 Lead endgültig löschen"
-              />
-              <p
-                style={{
-                  margin: "16px 0 0",
-                  opacity: 0.46,
-                  fontSize: 12,
-                  lineHeight: 1.55,
-                }}
-              >
-                Beim Archivieren wird das Ablaufdatum auf jetzt gesetzt. Der
-                Lead bleibt mit seiner Kaufhistorie im Adminbereich erhalten,
-                kann von Anbietern aber nicht mehr gekauft werden.
-              </p>
-            </section>
-
-            <section
-              style={{
-                padding: 24,
-                borderRadius: 26,
-                border: "1px solid rgba(255,255,255,0.10)",
-                background: "rgba(10,23,43,0.84)",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 900,
-                  letterSpacing: ".12em",
-                  opacity: 0.48,
-                }}
-              >
-                LEAD-INFORMATIONEN
-              </span>
-
-              <div
-                style={{
-                  display: "grid",
-                  gap: 12,
-                  marginTop: 17,
-                  fontSize: 13,
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 14,
-                  }}
-                >
-                  <span style={{ opacity: 0.48 }}>Lead-ID</span>
-                  <strong
-                    style={{
-                      maxWidth: 190,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {lead.id}
-                  </strong>
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 14,
-                  }}
-                >
-                  <span style={{ opacity: 0.48 }}>Erstellt</span>
-                  <strong>{formatDateTime(lead.createdAt)}</strong>
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 14,
-                  }}
-                >
-                  <span style={{ opacity: 0.48 }}>Aktualisiert</span>
-                  <strong>{formatDateTime(lead.updatedAt)}</strong>
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 14,
-                  }}
-                >
-                  <span style={{ opacity: 0.48 }}>Region</span>
-                  <strong>{lead.region}</strong>
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 14,
-                  }}
-                >
-                  <span style={{ opacity: 0.48 }}>Kategorie</span>
-                  <strong>{lead.category}</strong>
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 14,
-                  }}
-                >
-                  <span style={{ opacity: 0.48 }}>Ablauf</span>
-                  <strong>{formatDateTime(expiresAt)}</strong>
-                </div>
-              </div>
-            </section>
           </aside>
-        </div>
-
-        <style>{`
-          @media (max-width: 980px) {
-            main .container > div[style*="grid-template-columns: minmax(0, 1.5fr)"] {
-              grid-template-columns: 1fr !important;
-            }
-          }
-
-          @media (max-width: 720px) {
-            .form-row {
-              grid-template-columns: 1fr !important;
-            }
-
-            main form > div[style*="repeat(3, minmax(0, 1fr))"] {
-              grid-template-columns: 1fr !important;
-            }
-          }
-        `}</style>
+        </section>
       </div>
+
+      <style>{`
+        * {
+          box-sizing: border-box;
+        }
+
+        .crm-page {
+          min-height: 100vh;
+          padding: 38px 0 80px;
+          color: #f8fafc;
+          background:
+            radial-gradient(
+              circle at 8% 0%,
+              rgba(14, 165, 233, 0.18),
+              transparent 30%
+            ),
+            radial-gradient(
+              circle at 92% 7%,
+              rgba(99, 102, 241, 0.22),
+              transparent 34%
+            ),
+            linear-gradient(
+              180deg,
+              #071426,
+              #07101d
+            );
+        }
+
+        .crm-shell {
+          width: min(1480px, calc(100% - 40px));
+          margin: 0 auto;
+        }
+
+        .crm-header {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 24px;
+          flex-wrap: wrap;
+        }
+
+        .back-link {
+          display: inline-block;
+          margin-bottom: 18px;
+          color: #94a3b8;
+          font-size: 13px;
+          font-weight: 800;
+          text-decoration: none;
+        }
+
+        .header-label {
+          display: inline-flex;
+          align-items: center;
+          gap: 9px;
+          color: #c4b5fd;
+          font-size: 11px;
+          font-weight: 900;
+          letter-spacing: 0.15em;
+        }
+
+        .online-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 999px;
+          background: #22c55e;
+          box-shadow: 0 0 15px rgba(34, 197, 94, 0.8);
+        }
+
+        .title-row {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          flex-wrap: wrap;
+          margin-top: 13px;
+        }
+
+        .title-row h1 {
+          margin: 0;
+          font-size: clamp(36px, 5vw, 62px);
+          line-height: 1;
+          letter-spacing: -0.05em;
+        }
+
+        .crm-header p {
+          margin: 12px 0 0;
+          color: #64748b;
+          font-size: 12px;
+          overflow-wrap: anywhere;
+        }
+
+        .header-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+
+        .button {
+          appearance: none;
+          min-height: 45px;
+          padding: 0 16px;
+          border: 0;
+          border-radius: 14px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          color: inherit;
+          font: inherit;
+          font-size: 13px;
+          font-weight: 900;
+          text-decoration: none;
+          cursor: pointer;
+          transition: 0.2s ease;
+        }
+
+        .button:hover {
+          transform: translateY(-1px);
+        }
+
+        .button-primary {
+          color: white;
+          background: linear-gradient(
+            135deg,
+            #0ea5e9,
+            #6366f1
+          );
+          box-shadow: 0 14px 35px rgba(14, 165, 233, 0.18);
+        }
+
+        .button-secondary {
+          color: #e2e8f0;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.055);
+        }
+
+        .notice {
+          margin-top: 24px;
+          padding: 16px 18px;
+          border-radius: 17px;
+          font-size: 13px;
+          font-weight: 800;
+        }
+
+        .notice-success {
+          color: #bbf7d0;
+          border: 1px solid rgba(34, 197, 94, 0.28);
+          background: rgba(34, 197, 94, 0.11);
+        }
+
+        .notice-error {
+          color: #fecaca;
+          border: 1px solid rgba(239, 68, 68, 0.28);
+          background: rgba(239, 68, 68, 0.11);
+        }
+
+        .status,
+        .purchase-status,
+        .offer-status {
+          display: inline-flex;
+          align-items: center;
+          padding: 7px 10px;
+          border-radius: 999px;
+          border: 1px solid;
+          font-size: 11px;
+          font-weight: 900;
+          white-space: nowrap;
+        }
+
+        .status-active {
+          color: #bbf7d0;
+          border-color: rgba(34, 197, 94, 0.27);
+          background: rgba(34, 197, 94, 0.11);
+        }
+
+        .status-ending {
+          color: #fde68a;
+          border-color: rgba(245, 158, 11, 0.3);
+          background: rgba(245, 158, 11, 0.11);
+        }
+
+        .status-sold {
+          color: #e2e8f0;
+          border-color: rgba(148, 163, 184, 0.3);
+          background: rgba(148, 163, 184, 0.1);
+        }
+
+        .status-expired {
+          color: #fecaca;
+          border-color: rgba(239, 68, 68, 0.3);
+          background: rgba(239, 68, 68, 0.1);
+        }
+
+        .stats-grid {
+          display: grid;
+          grid-template-columns:
+            repeat(6, minmax(0, 1fr));
+          gap: 13px;
+          margin-top: 30px;
+        }
+
+        .stat-card {
+          min-height: 130px;
+          padding: 19px;
+          border-radius: 22px;
+          border: 1px solid rgba(255, 255, 255, 0.09);
+          background:
+            radial-gradient(
+              circle at 100% 100%,
+              rgba(255, 255, 255, 0.07),
+              transparent 36%
+            ),
+            rgba(15, 31, 54, 0.85);
+        }
+
+        .stat-card span {
+          color: #94a3b8;
+          font-size: 10px;
+          font-weight: 900;
+          letter-spacing: 0.1em;
+        }
+
+        .stat-card strong {
+          display: block;
+          margin-top: 21px;
+          font-size: 25px;
+          line-height: 1;
+          letter-spacing: -0.035em;
+        }
+
+        .stat-card small {
+          display: block;
+          margin-top: 9px;
+          color: #64748b;
+          font-size: 11px;
+        }
+
+        .main-grid {
+          display: grid;
+          grid-template-columns:
+            minmax(0, 1fr) 380px;
+          gap: 20px;
+          align-items: start;
+          margin-top: 20px;
+        }
+
+        .main-column,
+        .sidebar {
+          display: grid;
+          gap: 20px;
+        }
+
+        .panel {
+          min-width: 0;
+          padding: 23px;
+          border-radius: 25px;
+          border: 1px solid rgba(255, 255, 255, 0.09);
+          background: rgba(8, 23, 42, 0.88);
+          box-shadow: 0 25px 70px rgba(0, 0, 0, 0.2);
+        }
+
+        .panel-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          margin-bottom: 21px;
+        }
+
+        .eyebrow {
+          display: block;
+          color: #818cf8;
+          font-size: 10px;
+          font-weight: 900;
+          letter-spacing: 0.12em;
+        }
+
+        .panel-header h2 {
+          margin: 5px 0 0;
+          font-size: 21px;
+          letter-spacing: -0.025em;
+        }
+
+        .panel-icon,
+        .panel-count {
+          min-width: 44px;
+          height: 44px;
+          padding: 0 12px;
+          display: grid;
+          place-items: center;
+          border-radius: 13px;
+          background: rgba(255, 255, 255, 0.055);
+        }
+
+        .edit-form {
+          display: grid;
+          grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+          gap: 13px;
+        }
+
+        .field-group {
+          min-width: 0;
+          display: grid;
+          gap: 7px;
+        }
+
+        .field-group.full,
+        .edit-form .full {
+          grid-column: 1 / -1;
+        }
+
+        .field-group > span {
+          color: #94a3b8;
+          font-size: 11px;
+          font-weight: 800;
+        }
+
+        input,
+        select,
+        textarea {
+          width: 100%;
+          min-height: 46px;
+          padding: 0 13px;
+          color: #f8fafc;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 13px;
+          outline: none;
+          background: rgba(255, 255, 255, 0.05);
+          font: inherit;
+        }
+
+        textarea {
+          min-height: 110px;
+          padding: 13px;
+          resize: vertical;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+          border-color: rgba(56, 189, 248, 0.62);
+          box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.08);
+        }
+
+        select option {
+          color: #0f172a;
+        }
+
+        .purchase-list {
+          display: grid;
+          gap: 14px;
+        }
+
+        .purchase-card {
+          padding: 18px;
+          border-radius: 20px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          background: rgba(255, 255, 255, 0.025);
+        }
+
+        .purchase-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 15px;
+          flex-wrap: wrap;
+        }
+
+        .provider-profile {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          min-width: 0;
+        }
+
+        .provider-avatar {
+          width: 46px;
+          height: 46px;
+          flex: 0 0 46px;
+          display: grid;
+          place-items: center;
+          border-radius: 14px;
+          background: linear-gradient(
+            135deg,
+            #0ea5e9,
+            #6366f1
+          );
+          font-weight: 950;
+        }
+
+        .provider-profile a,
+        .provider-profile span {
+          display: block;
+        }
+
+        .provider-profile a {
+          color: white;
+          font-weight: 900;
+          text-decoration: none;
+        }
+
+        .provider-profile span {
+          margin-top: 4px;
+          color: #64748b;
+          font-size: 11px;
+        }
+
+        .purchase-status.won,
+        .offer-status.accepted {
+          color: #bbf7d0;
+          border-color: rgba(34, 197, 94, 0.25);
+          background: rgba(34, 197, 94, 0.1);
+        }
+
+        .purchase-status.lost,
+        .offer-status.declined {
+          color: #fecaca;
+          border-color: rgba(239, 68, 68, 0.25);
+          background: rgba(239, 68, 68, 0.1);
+        }
+
+        .purchase-status.progress,
+        .offer-status.sent {
+          color: #bae6fd;
+          border-color: rgba(14, 165, 233, 0.25);
+          background: rgba(14, 165, 233, 0.1);
+        }
+
+        .purchase-status.open {
+          color: #fde68a;
+          border-color: rgba(245, 158, 11, 0.25);
+          background: rgba(245, 158, 11, 0.1);
+        }
+
+        .purchase-metrics {
+          display: grid;
+          grid-template-columns:
+            repeat(4, minmax(0, 1fr));
+          gap: 9px;
+          margin-top: 16px;
+        }
+
+        .purchase-metrics > div {
+          padding: 11px;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.035);
+        }
+
+        .purchase-metrics span,
+        .purchase-metrics strong {
+          display: block;
+        }
+
+        .purchase-metrics span {
+          color: #64748b;
+          font-size: 9px;
+          font-weight: 900;
+          letter-spacing: 0.07em;
+          text-transform: uppercase;
+        }
+
+        .purchase-metrics strong {
+          margin-top: 6px;
+          font-size: 11px;
+        }
+
+        .inline-form {
+          display: grid;
+          grid-template-columns: 1fr auto;
+          gap: 10px;
+          margin-top: 13px;
+        }
+
+        .workspace {
+          margin-top: 14px;
+          border-radius: 15px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          overflow: hidden;
+        }
+
+        .workspace summary {
+          padding: 14px;
+          color: #bae6fd;
+          list-style: none;
+          text-align: center;
+          font-size: 12px;
+          font-weight: 900;
+          cursor: pointer;
+          background: rgba(14, 165, 233, 0.045);
+        }
+
+        .workspace summary::-webkit-details-marker {
+          display: none;
+        }
+
+        .workspace-grid {
+          display: grid;
+          grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+          gap: 13px;
+          padding: 14px;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .workspace-panel {
+          min-width: 0;
+          padding: 15px;
+          border-radius: 15px;
+          background: rgba(255, 255, 255, 0.03);
+        }
+
+        .workspace-panel h3 {
+          margin: 0 0 13px;
+          font-size: 15px;
+        }
+
+        .workspace-panel form {
+          display: grid;
+          gap: 9px;
+        }
+
+        .full-workspace {
+          grid-column: 1 / -1;
+        }
+
+        .mini-list,
+        .offer-list {
+          display: grid;
+          gap: 8px;
+          margin-top: 13px;
+        }
+
+        .mini-card {
+          padding: 11px;
+          border-radius: 11px;
+          background: rgba(255, 255, 255, 0.04);
+        }
+
+        .mini-card p {
+          margin: 0;
+          color: #cbd5e1;
+          font-size: 12px;
+          line-height: 1.55;
+        }
+
+        .mini-card strong {
+          display: block;
+          margin-bottom: 5px;
+          font-size: 11px;
+        }
+
+        .mini-card time,
+        .offer-card time {
+          display: block;
+          margin-top: 7px;
+          color: #64748b;
+          font-size: 9px;
+        }
+
+        .offer-form {
+          grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+        }
+
+        .offer-form textarea,
+        .offer-form button {
+          grid-column: 1 / -1;
+        }
+
+        .offer-card {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 15px;
+          padding: 14px;
+          border-radius: 14px;
+          background: rgba(255, 255, 255, 0.04);
+        }
+
+        .offer-card h4 {
+          margin: 10px 0 5px;
+        }
+
+        .offer-card p {
+          color: #94a3b8;
+          font-size: 11px;
+          line-height: 1.5;
+        }
+
+        .offer-actions {
+          min-width: 190px;
+          display: grid;
+          gap: 8px;
+        }
+
+        .offer-actions form {
+          display: grid;
+          gap: 8px;
+        }
+
+        .customer-avatar {
+          width: 70px;
+          height: 70px;
+          display: grid;
+          place-items: center;
+          margin: 0 auto;
+          border-radius: 22px;
+          background: linear-gradient(
+            135deg,
+            #0ea5e9,
+            #6366f1
+          );
+          font-size: 23px;
+          font-weight: 950;
+        }
+
+        .customer-name {
+          display: block;
+          margin-top: 12px;
+          text-align: center;
+          font-size: 18px;
+        }
+
+        .info-list {
+          display: grid;
+          gap: 9px;
+          margin-top: 18px;
+        }
+
+        .info-list > a,
+        .info-list > div {
+          display: block;
+          padding: 12px;
+          color: inherit;
+          border-radius: 13px;
+          background: rgba(255, 255, 255, 0.035);
+          text-decoration: none;
+        }
+
+        .info-list span,
+        .info-list strong {
+          display: block;
+        }
+
+        .info-list span {
+          color: #64748b;
+          font-size: 9px;
+          font-weight: 900;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+
+        .info-list strong {
+          margin-top: 5px;
+          overflow-wrap: anywhere;
+          font-size: 11px;
+        }
+
+        .timeline {
+          display: grid;
+        }
+
+        .timeline-item {
+          position: relative;
+          display: grid;
+          grid-template-columns: 14px 1fr;
+          gap: 10px;
+          padding-bottom: 18px;
+        }
+
+        .timeline-item:not(:last-child)::before {
+          content: "";
+          position: absolute;
+          top: 12px;
+          bottom: 0;
+          left: 5px;
+          width: 1px;
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        .timeline-dot {
+          position: relative;
+          z-index: 1;
+          width: 11px;
+          height: 11px;
+          margin-top: 3px;
+          border-radius: 999px;
+          background: #38bdf8;
+          box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1);
+        }
+
+        .timeline-item strong,
+        .timeline-item span,
+        .timeline-item time {
+          display: block;
+        }
+
+        .timeline-item strong {
+          font-size: 12px;
+        }
+
+        .timeline-item span {
+          margin-top: 3px;
+          color: #818cf8;
+          font-size: 10px;
+          font-weight: 800;
+        }
+
+        .timeline-item p {
+          margin: 6px 0 0;
+          color: #94a3b8;
+          font-size: 11px;
+          line-height: 1.5;
+        }
+
+        .timeline-item time {
+          margin-top: 6px;
+          color: #475569;
+          font-size: 9px;
+        }
+
+        .empty-state {
+          padding: 35px 20px;
+          text-align: center;
+          border-radius: 16px;
+          border: 1px dashed rgba(255, 255, 255, 0.13);
+          background: rgba(255, 255, 255, 0.025);
+        }
+
+        .empty-state span {
+          display: block;
+          margin-bottom: 8px;
+          font-size: 26px;
+        }
+
+        .empty-state strong {
+          display: block;
+        }
+
+        .empty-state p,
+        .muted {
+          color: #64748b;
+          font-size: 11px;
+        }
+
+        .empty-state.compact {
+          padding: 22px;
+        }
+
+        @media (max-width: 1220px) {
+          .stats-grid {
+            grid-template-columns:
+              repeat(3, minmax(0, 1fr));
+          }
+
+          .main-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .sidebar {
+            grid-template-columns:
+              repeat(2, minmax(0, 1fr));
+          }
+        }
+
+        @media (max-width: 760px) {
+          .crm-page {
+            padding-top: 22px;
+          }
+
+          .crm-shell {
+            width: min(100% - 22px, 1480px);
+          }
+
+          .header-actions,
+          .header-actions form,
+          .header-actions .button {
+            width: 100%;
+          }
+
+          .stats-grid,
+          .edit-form,
+          .purchase-metrics,
+          .workspace-grid,
+          .offer-form,
+          .sidebar {
+            grid-template-columns: 1fr;
+          }
+
+          .field-group.full,
+          .edit-form .full,
+          .full-workspace,
+          .offer-form textarea,
+          .offer-form button {
+            grid-column: auto;
+          }
+
+          .panel {
+            padding: 17px;
+          }
+
+          .inline-form {
+            grid-template-columns: 1fr;
+          }
+
+          .offer-card {
+            flex-direction: column;
+          }
+
+          .offer-actions {
+            width: 100%;
+            min-width: 0;
+          }
+        }
+      `}</style>
     </main>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  description,
+}: {
+  label: string;
+  value: string | number;
+  description: string;
+}) {
+  return (
+    <article className="stat-card">
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <small>{description}</small>
+    </article>
   );
 }
