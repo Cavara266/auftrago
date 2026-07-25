@@ -1090,7 +1090,7 @@
   }
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1280px) {
   .heroGrid {
     grid-template-columns: 1fr;
     gap: 42px;
@@ -1123,7 +1123,7 @@
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   .hero {
     padding: 42px 0 30px;
   }
@@ -1216,8 +1216,91 @@
 
   .ratingBlock {
     grid-column: 1 / -1;
+    text-align: center;
+  }
+
+  .heroGrid {
+    gap: 28px;
+  }
+
+  .matchPanel {
+    width: 100%;
+  }
+
+  .panel {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .requestMapCard {
+    min-height: auto;
+  }
+
+  .categoryHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .categoryHeader span {
+    margin-top: 4px;
+  }
+
+  .statsBar {
+    gap: 20px;
+  }
+
+  .ratingBlock small {
+    text-align: center;
   }
 }
+
+@media (max-width: 480px) {
+  .hero {
+    padding-top: 24px;
+  }
+
+  .title {
+    font-size: 42px;
+  }
+
+  .searchInput {
+    font-size: 15px;
+  }
+
+  .categoryCard {
+    min-height: 95px;
+  }
+
+  .categoryCard > span:last-child {
+    font-size: 11px;
+  }
+
+  .statsBar {
+    grid-template-columns: 1fr;
+  }
+
+  .ratingBlock {
+    grid-column: auto;
+  }
+
+  .requestText strong {
+    font-size: 13px;
+  }
+
+  .panelHeader {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .liveBadge {
+    justify-self: center;
+  }
+
+  .botIcon {
+    margin: auto;
+  }
+}
+
 /* === Versicherungen Highlight === */
 
 .insurancePopular {
