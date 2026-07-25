@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Metadata } from "next";
+import type { Metadata } from "next";
+
 import {
   cities,
   formatText,
@@ -15,20 +16,29 @@ type Props = {
   };
 };
 
-export async function generateStaticParams() {
+export function generateStaticParams() {
   return services.map((service) => ({
     service,
   }));
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const serviceLabel = formatText(params.service);
+export function generateMetadata({ params }: Props): Metadata {
+  const service = params.service;
+  const serviceLabel = formatText(service);
 
   return {
-    title: `${serviceLabel} Schweiz | Anbieter vergleichen | Auftrago`,
-    description: `Finde regionale Anbieter für ${serviceLabel} in der Schweiz. Kostenlos Anfrage senden und passende Offerten vergleichen.`,
+    title: `${serviceLabel} Schweiz | Anbieter vergleichen`,
+    description: `Finde regionale Anbieter für ${serviceLabel} in der Schweiz. Sende kostenlos eine Anfrage und vergleiche passende Offerten.`,
     alternates: {
-      canonical: `https://www.auftrago.ch/leistungen/${params.service}`,
+      canonical: `https://www.auftrago.ch/leistungen/${service}`,
+    },
+    openGraph: {
+      title: `${serviceLabel} Schweiz | Anbieter vergleichen`,
+      description: `Regionale Anbieter für ${serviceLabel} in der Schweiz finden und kostenlos Offerten vergleichen.`,
+      url: `https://www.auftrago.ch/leistungen/${service}`,
+      siteName: "Auftrago",
+      locale: "de_CH",
+      type: "website",
     },
   };
 }
@@ -38,24 +48,28 @@ export default function ServiceHubPage({ params }: Props) {
   const serviceLabel = formatText(service);
 
   const serviceText =
-    serviceContent[service] ||
-    `${serviceLabel} ist eine gefragte Dienstleistung. Über Auftrago kannst du passende regionale Anbieter vergleichen.`;
+    serviceContent[service] ??
+    `${serviceLabel} ist eine gefragte Dienstleistung. Über Auftrago kannst du passende regionale Anbieter finden und unverbindlich vergleichen.`;
 
-  const keywords = serviceKeywords[service] || [serviceLabel];
+  const keywords = serviceKeywords[service] ?? [serviceLabel];
+
   const faqs =
-    serviceFaqs[service] || [
+    serviceFaqs[service] ??
+    [
       {
         question: `Was kostet ${serviceLabel}?`,
         answer:
-          "Die Kosten hängen von Region, Umfang, Objektgrösse und Termin ab.",
+          "Die Kosten hängen von der Region, dem Umfang, der Objektgrösse und dem gewünschten Termin ab.",
       },
       {
         question: "Ist die Anfrage kostenlos?",
-        answer: "Ja. Die Anfrage über Auftrago ist kostenlos und unverbindlich.",
+        answer:
+          "Ja. Die Anfrage über Auftrago ist kostenlos und unverbindlich.",
       },
       {
         question: "Kann ich mehrere Offerten vergleichen?",
-        answer: "Ja. Du kannst regionale Anbieter einfacher vergleichen.",
+        answer:
+          "Ja. Je nach Verfügbarkeit können passende regionale Anbieter auf deine Anfrage reagieren.",
       },
     ];
 
@@ -74,11 +88,70 @@ export default function ServiceHubPage({ params }: Props) {
     })),
   };
 
+  const serviceSchema = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: `${serviceLabel} Schweiz`,
+    description: serviceText,
+    url: `https://www.auftrago.ch/leistungen/${service}`,
+    provider: {
+      "@type": "Organization",
+      name: "Auftrago",
+      url: "https://www.auftrago.ch",
+    },
+    areaServed: {
+      "@type": "Country",
+      name: "Schweiz",
+    },
+    serviceType: serviceLabel,
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Startseite",
+        item: "https://www.auftrago.ch",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Leistungen",
+        item: "https://www.auftrago.ch/leistungen",
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: serviceLabel,
+        item: `https://www.auftrago.ch/leistungen/${service}`,
+      },
+    ],
+  };
+
   return (
     <main className="seo-page">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqSchema),
+        }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(serviceSchema),
+        }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema),
+        }}
       />
 
       <section className="provider-hero">
@@ -98,7 +171,10 @@ export default function ServiceHubPage({ params }: Props) {
             </p>
 
             <div className="seo-hero-actions">
-              <Link href="/offerte-anfragen" className="btn btn-primary">
+              <Link
+                href={`/offerte-anfragen?service=${encodeURIComponent(service)}`}
+                className="btn btn-primary"
+              >
                 Kostenlose Anfrage senden
               </Link>
 
@@ -110,6 +186,7 @@ export default function ServiceHubPage({ params }: Props) {
 
           <aside className="provider-hero-card">
             <span>Beliebte Orte</span>
+
             <h2>{serviceLabel} nach Region</h2>
 
             <div className="seo-small-links">
@@ -135,7 +212,7 @@ export default function ServiceHubPage({ params }: Props) {
             <p>
               Über Auftrago kannst du deinen Auftrag einmal erfassen und
               passende Anbieter aus deiner Region erreichen. Das spart Zeit und
-              macht den Vergleich einfacher.
+              erleichtert den Vergleich.
             </p>
           </div>
 
@@ -143,6 +220,7 @@ export default function ServiceHubPage({ params }: Props) {
             {keywords.map((keyword) => (
               <div key={keyword}>
                 <strong>{keyword}</strong>
+
                 <p>
                   Anbieter für {keyword} finden und passende Offerten
                   vergleichen.
@@ -174,10 +252,11 @@ export default function ServiceHubPage({ params }: Props) {
               >
                 <div>
                   <span>Stadt</span>
+
                   <h3>{formatText(city)}</h3>
+
                   <p>
-                    Anbieter für {serviceLabel} in {formatText(city)}
-                    vergleichen.
+                    Anbieter für {serviceLabel} in {formatText(city)} vergleichen.
                   </p>
                 </div>
 
@@ -190,7 +269,11 @@ export default function ServiceHubPage({ params }: Props) {
 
       <section className="provider-section">
         <div className="container">
-          <h2>Häufige Fragen zu {serviceLabel}</h2>
+          <div className="provider-section-head">
+            <span className="seo-pill">FAQ</span>
+
+            <h2>Häufige Fragen zu {serviceLabel}</h2>
+          </div>
 
           <div className="quote-faq">
             {faqs.map((faq) => (
@@ -215,7 +298,10 @@ export default function ServiceHubPage({ params }: Props) {
           </p>
 
           <div className="seo-hero-actions">
-            <Link href="/offerte-anfragen" className="btn btn-primary">
+            <Link
+              href={`/offerte-anfragen?service=${encodeURIComponent(service)}`}
+              className="btn btn-primary"
+            >
               Kostenlose Anfrage senden
             </Link>
 

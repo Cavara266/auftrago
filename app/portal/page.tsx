@@ -305,6 +305,57 @@ export default async function PortalDashboardPage() {
       0
     );
 
+  const purchasesLast30Days = provider.purchases.filter(
+    (purchase) =>
+      Date.now() -
+        new Date(purchase.createdAt).getTime() <=
+      30 * 24 * 60 * 60 * 1000
+  ).length;
+
+  const averageLeadPrice =
+    latestLeads.length > 0
+      ? Math.round(
+          latestLeads.reduce(
+            (total, lead) => total + lead.price,
+            0
+          ) / latestLeads.length
+        )
+      : 0;
+
+  const regionalLeadMatches = latestLeads.filter(
+    (lead) =>
+      provider.region &&
+      lead.region &&
+      lead.region
+        .toLowerCase()
+        .includes(provider.region.toLowerCase())
+  ).length;
+
+  const dashboardRecommendation =
+    provider.credits <= 10
+      ? {
+          badge: "Credits optimieren",
+          title: "Lade dein Guthaben auf, bevor neue Chancen verloren gehen.",
+          text: "Dein aktueller Creditstand ist sehr niedrig. Mit einem neuen Paket kannst du passende Leads wieder direkt freischalten.",
+          href: "/portal/guthaben",
+          cta: "Credits aufladen",
+        }
+      : availableFixedOrderCount > 0
+      ? {
+          badge: "Neue Umsatzchance",
+          title: `${availableFixedOrderCount} bestätigte Fixaufträge warten auf Anbieter.`,
+          text: "Fixaufträge haben bereits einen bestätigten Kunden und Auftragswert. Prüfe die aktuell verfügbaren Aufträge möglichst früh.",
+          href: "/portal/fixed-orders",
+          cta: "Fixaufträge prüfen",
+        }
+      : {
+          badge: "Profil aktiv halten",
+          title: "Prüfe regelmässig neue Leads in deiner Region.",
+          text: "Schnelles Reagieren erhöht die Chance, dass du den Kunden vor anderen Anbietern erreichst.",
+          href: "/portal/leads",
+          cta: "Neue Leads ansehen",
+        };
+
   return (
     <main className="provider-dashboard">
       <div className="provider-dashboard__glow provider-dashboard__glow--one" />
@@ -365,6 +416,260 @@ export default async function PortalDashboardPage() {
             <Link href="/portal/fixed-orders">
               Jetzt Fixaufträge ansehen
               <span aria-hidden="true">↗</span>
+            </Link>
+          </div>
+        </section>
+
+        <section
+          aria-label="Unternehmensübersicht"
+          style={{
+            marginBottom: "28px",
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(210px, 1fr))",
+            gap: "14px",
+          }}
+        >
+          <article
+            style={{
+              border: "1px solid rgba(56, 189, 248, 0.16)",
+              borderRadius: "22px",
+              background:
+                "linear-gradient(145deg, rgba(14, 165, 233, 0.1), rgba(7, 11, 20, 0.94))",
+              padding: "22px",
+            }}
+          >
+            <span
+              style={{
+                color: "#7dd3fc",
+                fontSize: "11px",
+                fontWeight: 900,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+              }}
+            >
+              Käufe · 30 Tage
+            </span>
+            <strong
+              style={{
+                display: "block",
+                marginTop: "14px",
+                color: "#ffffff",
+                fontSize: "32px",
+                lineHeight: 1,
+              }}
+            >
+              {purchasesLast30Days}
+            </strong>
+            <p
+              style={{
+                marginTop: "10px",
+                color: "#94a3b8",
+                fontSize: "13px",
+                lineHeight: 1.6,
+              }}
+            >
+              Freigeschaltete Leads innerhalb der letzten 30 Tage.
+            </p>
+          </article>
+
+          <article
+            style={{
+              border: "1px solid rgba(167, 139, 250, 0.16)",
+              borderRadius: "22px",
+              background:
+                "linear-gradient(145deg, rgba(139, 92, 246, 0.1), rgba(7, 11, 20, 0.94))",
+              padding: "22px",
+            }}
+          >
+            <span
+              style={{
+                color: "#c4b5fd",
+                fontSize: "11px",
+                fontWeight: 900,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+              }}
+            >
+              Ø Leadpreis
+            </span>
+            <strong
+              style={{
+                display: "block",
+                marginTop: "14px",
+                color: "#ffffff",
+                fontSize: "32px",
+                lineHeight: 1,
+              }}
+            >
+              {averageLeadPrice}
+            </strong>
+            <p
+              style={{
+                marginTop: "10px",
+                color: "#94a3b8",
+                fontSize: "13px",
+                lineHeight: 1.6,
+              }}
+            >
+              Credits im Durchschnitt bei den neuesten Anfragen.
+            </p>
+          </article>
+
+          <article
+            style={{
+              border: "1px solid rgba(52, 211, 153, 0.16)",
+              borderRadius: "22px",
+              background:
+                "linear-gradient(145deg, rgba(16, 185, 129, 0.1), rgba(7, 11, 20, 0.94))",
+              padding: "22px",
+            }}
+          >
+            <span
+              style={{
+                color: "#6ee7b7",
+                fontSize: "11px",
+                fontWeight: 900,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+              }}
+            >
+              Regionale Treffer
+            </span>
+            <strong
+              style={{
+                display: "block",
+                marginTop: "14px",
+                color: "#ffffff",
+                fontSize: "32px",
+                lineHeight: 1,
+              }}
+            >
+              {regionalLeadMatches}
+            </strong>
+            <p
+              style={{
+                marginTop: "10px",
+                color: "#94a3b8",
+                fontSize: "13px",
+                lineHeight: 1.6,
+              }}
+            >
+              Neue Leads, die aktuell zu deiner Region passen.
+            </p>
+          </article>
+
+          <article
+            style={{
+              border: "1px solid rgba(251, 191, 36, 0.16)",
+              borderRadius: "22px",
+              background:
+                "linear-gradient(145deg, rgba(245, 158, 11, 0.1), rgba(7, 11, 20, 0.94))",
+              padding: "22px",
+            }}
+          >
+            <span
+              style={{
+                color: "#fcd34d",
+                fontSize: "11px",
+                fontWeight: 900,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+              }}
+            >
+              Auftragspotenzial
+            </span>
+            <strong
+              style={{
+                display: "block",
+                marginTop: "14px",
+                color: "#ffffff",
+                fontSize: "27px",
+                lineHeight: 1.1,
+              }}
+            >
+              {formatMoney(availableFixedOrderVolume)}
+            </strong>
+            <p
+              style={{
+                marginTop: "10px",
+                color: "#94a3b8",
+                fontSize: "13px",
+                lineHeight: 1.6,
+              }}
+            >
+              Auftragsvolumen der aktuell sichtbaren Fixaufträge.
+            </p>
+          </article>
+        </section>
+
+        <section
+          style={{
+            marginBottom: "28px",
+            overflow: "hidden",
+            position: "relative",
+            border: "1px solid rgba(56, 189, 248, 0.18)",
+            borderRadius: "26px",
+            background:
+              "radial-gradient(circle at 85% 15%, rgba(56, 189, 248, 0.16), transparent 32%), linear-gradient(135deg, rgba(8, 47, 73, 0.42), rgba(7, 11, 20, 0.96))",
+            padding: "26px",
+          }}
+        >
+          <div
+            style={{
+              position: "relative",
+              zIndex: 1,
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "22px",
+            }}
+          >
+            <div style={{ maxWidth: "760px" }}>
+              <span
+                style={{
+                  display: "inline-flex",
+                  borderRadius: "999px",
+                  background: "rgba(56, 189, 248, 0.1)",
+                  color: "#7dd3fc",
+                  padding: "7px 11px",
+                  fontSize: "11px",
+                  fontWeight: 900,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                }}
+              >
+                ✦ {dashboardRecommendation.badge}
+              </span>
+              <h2
+                style={{
+                  marginTop: "14px",
+                  color: "#ffffff",
+                  fontSize: "clamp(22px, 3vw, 31px)",
+                  lineHeight: 1.18,
+                }}
+              >
+                {dashboardRecommendation.title}
+              </h2>
+              <p
+                style={{
+                  marginTop: "10px",
+                  color: "#a8b3c7",
+                  fontSize: "14px",
+                  lineHeight: 1.75,
+                }}
+              >
+                {dashboardRecommendation.text}
+              </p>
+            </div>
+
+            <Link
+              href={dashboardRecommendation.href}
+              className="provider-button provider-button--primary"
+            >
+              {dashboardRecommendation.cta}
+              <span aria-hidden="true">→</span>
             </Link>
           </div>
         </section>

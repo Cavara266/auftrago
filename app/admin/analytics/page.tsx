@@ -245,6 +245,37 @@ export default async function AdminAnalyticsPage() {
         )
       : 0;
 
+
+  const activeProviderCount = new Set(
+    leadPurchasesForRanking.map((purchase) => purchase.provider.id),
+  ).size;
+
+  const activeProviderRate = percent(
+    activeProviderCount,
+    providerCount,
+  );
+
+  const averageRevenuePerPayment =
+    totalStripePayments > 0
+      ? Math.round(totalStripeRevenue / totalStripePayments)
+      : 0;
+
+  const averagePurchasesPerSoldLead =
+    soldLeadCount > 0
+      ? Number(
+          (leadPurchaseCount / soldLeadCount).toFixed(1),
+        )
+      : 0;
+
+  const expiringLeadCount = await prisma.lead.count({
+    where: {
+      expiresAt: {
+        gte: now,
+        lte: addDays(now, 1),
+      },
+    },
+  });
+
   const dailyMap = new Map<string, DailyPoint>();
 
   for (let index = 0; index < 7; index += 1) {
@@ -392,6 +423,91 @@ export default async function AdminAnalyticsPage() {
           : 52,
   };
 
+  const strongestRegion = topRegions[0]?.label ?? "Keine Daten";
+  const strongestCategory = topCategories[0]?.label ?? "Keine Daten";
+  const strongestProvider = topProviders[0]?.label ?? "Keine Daten";
+
+  const businessInsights = [
+    {
+      icon: "📍",
+      title: "Stärkste Region",
+      text:
+        topRegions.length > 0
+          ? `${strongestRegion} führt aktuell das Nachfrage-Ranking mit ${topRegions[0].value} Leads an.`
+          : "Noch keine ausreichenden Regionaldaten vorhanden.",
+    },
+    {
+      icon: "🏆",
+      title: "Top-Kategorie",
+      text:
+        topCategories.length > 0
+          ? `${strongestCategory} ist aktuell die stärkste Kategorie mit ${topCategories[0].value} Leads.`
+          : "Noch keine ausreichenden Kategoriedaten vorhanden.",
+    },
+    {
+      icon: "⚡",
+      title: "Aktive Anbieterquote",
+      text: `${activeProviderRate}% der registrierten Anbieter haben bereits mindestens einen Lead gekauft.`,
+    },
+    {
+      icon: expiringLeadCount > 0 ? "⏳" : "✅",
+      title: "Ablaufkontrolle",
+      text:
+        expiringLeadCount > 0
+          ? `${expiringLeadCount} Leads laufen innerhalb der nächsten 24 Stunden ab.`
+          : "Aktuell laufen keine Leads innerhalb der nächsten 24 Stunden ab.",
+    },
+    {
+      icon: "💡",
+      title: "Nächste Wachstumschance",
+      text:
+        leadConversionRate < 30
+          ? "Die Lead-Conversion ist noch ausbaufähig. Prüfe Leadpreise, Anbieter-Matching und Nachfassprozesse."
+          : leadConversionRate < 60
+            ? "Die Conversion entwickelt sich solide. Mehr aktive Anbieter könnten das Wachstum beschleunigen."
+            : "Die Lead-Conversion ist stark. Fokus jetzt auf Skalierung und Wiederkäufe.",
+    },
+    {
+      icon: "🥇",
+      title: "Top-Anbieter",
+      text:
+        topProviders.length > 0
+          ? `${strongestProvider} führt aktuell das Anbieter-Ranking an.`
+          : "Noch keine Anbieter-Rangliste verfügbar.",
+    },
+  ];
+
+  const executiveMetrics = [
+    {
+      label: "Umsatz 7 Tage",
+      value: formatMoney(creditRevenueLast7),
+      trend: growth(creditRevenueLast7, creditRevenuePrevious7),
+    },
+    {
+      label: "Leads 7 Tage",
+      value: leadsLast7Days,
+      trend: growth(leadsLast7Days, leadsPrevious7Days),
+    },
+    {
+      label: "Verkäufe 7 Tage",
+      value: leadPurchasesLast7Days,
+      trend: growth(
+        leadPurchasesLast7Days,
+        leadPurchasesPrevious7Days,
+      ),
+    },
+    {
+      label: "Aktive Anbieter",
+      value: `${activeProviderRate}%`,
+      trend: null,
+    },
+    {
+      label: "Ø Umsatz/Zahlung",
+      value: formatMoney(averageRevenuePerPayment),
+      trend: null,
+    },
+  ];
+
   const kpis = [
     {
       label: "Stripe-Umsatz",
@@ -465,7 +581,86 @@ export default async function AdminAnalyticsPage() {
             </div>
           </header>
 
+          <section className="executive-summary">
+            <div className="executive-summary-head">
+              <div>
+                <span>EXECUTIVE SUMMARY</span>
+                <h2>Business Performance</h2>
+              </div>
+
+              <strong>Live aus der Plattform</strong>
+            </div>
+
+            <div className="executive-summary-grid">
+              {executiveMetrics.map((metric) => (
+                <article key={metric.label}>
+                  <span>{metric.label}</span>
+                  <strong>{metric.value}</strong>
+                  {metric.trend !== null ? (
+                    <small
+                      className={
+                        metric.trend >= 0
+                          ? "trend-positive"
+                          : "trend-negative"
+                      }
+                    >
+                      {metric.trend >= 0 ? "↗" : "↘"}{" "}
+                      {Math.abs(metric.trend)}% zur Vorwoche
+                    </small>
+                  ) : (
+                    <small>Aktueller Plattformwert</small>
+                  )}
+                </article>
+              ))}
+            </div>
+          </section>
+
           <KPICards cards={kpis} />
+
+          <section className="business-intelligence-panel">
+            <div className="business-intelligence-head">
+              <div>
+                <span>🧠 AI BUSINESS INSIGHTS</span>
+                <h2>Was gerade wichtig ist</h2>
+              </div>
+
+              <div className="business-intelligence-score">
+                <span>Lead-Conversion</span>
+                <strong>{leadConversionRate}%</strong>
+              </div>
+            </div>
+
+            <div className="business-insights-grid">
+              {businessInsights.map((insight) => (
+                <article key={insight.title}>
+                  <div>{insight.icon}</div>
+                  <section>
+                    <strong>{insight.title}</strong>
+                    <p>{insight.text}</p>
+                  </section>
+                </article>
+              ))}
+            </div>
+
+            <div className="performance-strip">
+              <div>
+                <span>Aktive Anbieter</span>
+                <strong>{activeProviderCount}</strong>
+              </div>
+              <div>
+                <span>Ø Käufe pro verkauftem Lead</span>
+                <strong>{averagePurchasesPerSoldLead}</strong>
+              </div>
+              <div>
+                <span>Leads mit Verkauf</span>
+                <strong>{soldLeadCount}</strong>
+              </div>
+              <div>
+                <span>Ablauf in 24h</span>
+                <strong>{expiringLeadCount}</strong>
+              </div>
+            </div>
+          </section>
 
           <div className="analytics-main-grid">
             <ActivityChart points={dailyPoints} />
@@ -508,7 +703,180 @@ export default async function AdminAnalyticsPage() {
 
           <Forecast data={forecast} formatMoney={formatMoney} />
 
-          <style>{`
+          <style suppressHydrationWarning>{`
+            .executive-summary {
+              margin-top: 28px;
+              padding: 24px;
+              border-radius: 30px;
+              border: 1px solid rgba(255,255,255,0.10);
+              background:
+                radial-gradient(circle at 90% 10%, rgba(56,189,248,0.14), transparent 30%),
+                linear-gradient(145deg, rgba(8,20,39,0.96), rgba(29,38,78,0.88));
+              box-shadow: 0 28px 80px rgba(0,0,0,0.24);
+            }
+
+            .executive-summary-head,
+            .business-intelligence-head {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 18px;
+              flex-wrap: wrap;
+            }
+
+            .executive-summary-head span,
+            .business-intelligence-head span {
+              color: #93c5fd;
+              font-size: 11px;
+              font-weight: 900;
+              letter-spacing: 0.12em;
+            }
+
+            .executive-summary-head h2,
+            .business-intelligence-head h2 {
+              margin: 7px 0 0;
+            }
+
+            .executive-summary-head > strong {
+              color: #86efac;
+              font-size: 12px;
+            }
+
+            .executive-summary-grid {
+              display: grid;
+              grid-template-columns: repeat(5, minmax(0, 1fr));
+              gap: 12px;
+              margin-top: 20px;
+            }
+
+            .executive-summary-grid article {
+              min-width: 0;
+              padding: 17px;
+              border-radius: 18px;
+              background: rgba(255,255,255,0.045);
+              border: 1px solid rgba(255,255,255,0.07);
+            }
+
+            .executive-summary-grid article > span,
+            .performance-strip span {
+              display: block;
+              color: #94a3b8;
+              font-size: 10px;
+              font-weight: 900;
+              letter-spacing: 0.08em;
+              text-transform: uppercase;
+            }
+
+            .executive-summary-grid article > strong {
+              display: block;
+              margin-top: 9px;
+              font-size: 24px;
+            }
+
+            .executive-summary-grid small {
+              display: block;
+              margin-top: 8px;
+              color: #64748b;
+              font-size: 10px;
+            }
+
+            .trend-positive {
+              color: #86efac !important;
+            }
+
+            .trend-negative {
+              color: #fca5a5 !important;
+            }
+
+            .business-intelligence-panel {
+              margin-top: 18px;
+              padding: 26px;
+              border-radius: 30px;
+              border: 1px solid rgba(167,139,250,0.18);
+              background:
+                radial-gradient(circle at 88% 16%, rgba(139,92,246,0.16), transparent 30%),
+                rgba(8,20,39,0.9);
+            }
+
+            .business-intelligence-score {
+              min-width: 150px;
+              padding: 14px 16px;
+              border-radius: 18px;
+              background: rgba(255,255,255,0.05);
+              text-align: right;
+            }
+
+            .business-intelligence-score span {
+              display: block;
+              color: #94a3b8;
+              font-size: 10px;
+            }
+
+            .business-intelligence-score strong {
+              display: block;
+              margin-top: 6px;
+              font-size: 26px;
+            }
+
+            .business-insights-grid {
+              display: grid;
+              grid-template-columns: repeat(3, minmax(0, 1fr));
+              gap: 12px;
+              margin-top: 20px;
+            }
+
+            .business-insights-grid article {
+              display: grid;
+              grid-template-columns: 42px 1fr;
+              gap: 12px;
+              padding: 16px;
+              border-radius: 18px;
+              background: rgba(255,255,255,0.04);
+              border: 1px solid rgba(255,255,255,0.07);
+            }
+
+            .business-insights-grid article > div {
+              width: 42px;
+              height: 42px;
+              display: grid;
+              place-items: center;
+              border-radius: 13px;
+              background: rgba(99,102,241,0.14);
+              font-size: 20px;
+            }
+
+            .business-insights-grid strong {
+              font-size: 13px;
+            }
+
+            .business-insights-grid p {
+              margin: 6px 0 0;
+              color: #94a3b8;
+              font-size: 11px;
+              line-height: 1.55;
+            }
+
+            .performance-strip {
+              display: grid;
+              grid-template-columns: repeat(4, minmax(0, 1fr));
+              gap: 10px;
+              margin-top: 16px;
+              padding-top: 16px;
+              border-top: 1px solid rgba(255,255,255,0.08);
+            }
+
+            .performance-strip > div {
+              padding: 13px;
+              border-radius: 15px;
+              background: rgba(255,255,255,0.035);
+            }
+
+            .performance-strip strong {
+              display: block;
+              margin-top: 7px;
+              font-size: 20px;
+            }
+
             .analytics-header {
               display: flex;
               justify-content: space-between;
@@ -672,6 +1040,16 @@ export default async function AdminAnalyticsPage() {
               font-size: 24px;
             }
 
+            @media (max-width: 1180px) {
+              .executive-summary-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+              }
+
+              .business-insights-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+              }
+            }
+
             @media (max-width: 1050px) {
               .analytics-main-grid,
               .analytics-double-grid,
@@ -686,8 +1064,16 @@ export default async function AdminAnalyticsPage() {
             }
 
             @media (max-width: 640px) {
-              .analytics-forecast-grid {
+              .analytics-forecast-grid,
+              .executive-summary-grid,
+              .business-insights-grid,
+              .performance-strip {
                 grid-template-columns: 1fr;
+              }
+
+              .business-intelligence-score {
+                width: 100%;
+                text-align: left;
               }
             }
           `}</style>

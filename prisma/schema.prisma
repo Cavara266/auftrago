@@ -37,6 +37,32 @@ enum FixedOrderStatus {
   CANCELLED
 }
 
+enum QuestionType {
+  TEXT
+  TEXTAREA
+  NUMBER
+  DATE
+  SELECT
+  MULTI_SELECT
+  BOOLEAN
+  EMAIL
+  PHONE
+  ADDRESS
+  FILE
+}
+
+enum ServiceStatus {
+  ACTIVE
+  INACTIVE
+  DRAFT
+}
+
+enum CategoryStatus {
+  ACTIVE
+  INACTIVE
+  DRAFT
+}
+
 model Provider {
   id          String         @id @default(uuid())
   email       String         @unique
@@ -76,10 +102,141 @@ model Provider {
   fixedOrders     FixedOrder[]
   invoices        Invoice[]
 
+  providerServices ProviderService[]
+
   @@index([status])
   @@index([slug])
   @@index([createdAt])
   @@index([updatedAt])
+}
+
+model ServiceCategory {
+  id String @id @default(uuid())
+
+  slug        String  @unique
+  name        String
+  description String?
+  icon        String?
+
+  status CategoryStatus @default(ACTIVE)
+
+  sortOrder Int @default(0)
+
+  seoTitle       String?
+  seoDescription String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  services Service[]
+
+  @@index([status])
+  @@index([sortOrder])
+  @@index([createdAt])
+}
+
+model Service {
+  id String @id @default(uuid())
+
+  categoryId String
+  category   ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  slug        String  @unique
+  name        String
+  description String?
+  icon        String?
+
+  status ServiceStatus @default(ACTIVE)
+
+  leadPrice Int @default(20)
+
+  maxPurchases Int @default(4)
+  lifetimeDays Int @default(7)
+
+  requiresLocation Boolean @default(true)
+  requiresDate     Boolean @default(false)
+  allowsFiles      Boolean @default(true)
+
+  sortOrder Int @default(0)
+
+  seoTitle       String?
+  seoDescription String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  questions        ServiceQuestion[]
+  leads            Lead[]
+  providerServices ProviderService[]
+  fixedOrders      FixedOrder[]
+
+  @@index([categoryId])
+  @@index([status])
+  @@index([sortOrder])
+  @@index([leadPrice])
+  @@index([createdAt])
+}
+
+model ServiceQuestion {
+  id String @id @default(uuid())
+
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  key         String
+  label       String
+  description String?
+  placeholder String?
+
+  type QuestionType
+
+  required Boolean @default(false)
+  active   Boolean @default(true)
+
+  sortOrder Int @default(0)
+
+  options Json?
+
+  validation Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  answers LeadAnswer[]
+
+  @@unique([serviceId, key])
+  @@index([serviceId])
+  @@index([active])
+  @@index([sortOrder])
+}
+
+model ProviderService {
+  id String @id @default(uuid())
+
+  providerId String
+  provider   Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  active Boolean @default(true)
+
+  regions     String[] @default([])
+  cities      String[] @default([])
+  postalCodes String[] @default([])
+
+  travelRadiusKm Int?
+
+  minimumOrderValueCents Int?
+  maximumOrderValueCents Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([providerId, serviceId])
+  @@index([providerId])
+  @@index([serviceId])
+  @@index([active])
 }
 
 model Lead {
@@ -98,6 +255,21 @@ model Lead {
   postalCode String?
   city       String?
 
+  street String?
+
+  serviceId String?
+  service   Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
+  requestedDate DateTime?
+  flexibleDate  Boolean   @default(false)
+
+  budgetMinCents Int?
+  budgetMaxCents Int?
+
+  customerType String?
+  source       String?
+  language     String  @default("de")
+
   maxPurchases Int       @default(4)
   expiresAt    DateTime?
 
@@ -105,6 +277,8 @@ model Lead {
   updatedAt DateTime @updatedAt
 
   purchases LeadPurchase[]
+  answers   LeadAnswer[]
+  files     LeadFile[]
 
   @@index([createdAt])
   @@index([expiresAt])
@@ -112,8 +286,54 @@ model Lead {
   @@index([region])
   @@index([postalCode])
   @@index([city])
+  @@index([serviceId])
+  @@index([serviceId, region])
   @@index([category, region])
   @@index([expiresAt, createdAt])
+}
+
+model LeadAnswer {
+  id String @id @default(uuid())
+
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  questionId String?
+  question   ServiceQuestion? @relation(fields: [questionId], references: [id], onDelete: SetNull)
+
+  questionKey   String
+  questionLabel String
+
+  valueText    String?
+  valueNumber  Float?
+  valueBoolean Boolean?
+  valueDate    DateTime?
+  valueJson    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([leadId, questionKey])
+  @@index([leadId])
+  @@index([questionId])
+  @@index([questionKey])
+}
+
+model LeadFile {
+  id String @id @default(uuid())
+
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  name     String
+  url      String
+  mimeType String?
+  size     Int?
+
+  createdAt DateTime @default(now())
+
+  @@index([leadId])
+  @@index([createdAt])
 }
 
 model LeadPurchase {
@@ -127,7 +347,8 @@ model LeadPurchase {
   updatedAt DateTime @updatedAt
 
   provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  lead     Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
 
   notes      LeadNote[]
   messages   LeadMessage[]
@@ -294,6 +515,9 @@ model FixedOrder {
   category    String
   region      String?
 
+  serviceId String?
+  service   Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
   customerFirstName String
   customerLastName  String
   customerEmail     String?
@@ -333,6 +557,7 @@ model FixedOrder {
   @@index([region])
   @@index([postalCode])
   @@index([city])
+  @@index([serviceId])
   @@index([buyerId])
   @@index([executionDate])
   @@index([createdAt])

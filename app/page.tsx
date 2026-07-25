@@ -1,32 +1,103 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
-import HomeLeadForm from "@/components/home-lead-form";
-import { regions as regionData } from "@/lib/region-data";
-import { citiesSeo } from "@/lib/city-data";
-import { services as seoServices, formatText } from "@/lib/seo-data";
+
+import Hero from "@/components/home/Hero";
+import InsuranceSpotlight from "@/components/home/InsuranceSpotlight";
+import LiveLeadsSection from "@/components/live-leads-section";
 import TrustReviewsSection from "@/components/trust-reviews-section";
 import WhyAuftragoSection from "@/components/why-auftrago-section";
-import LiveLeadsSection from "@/components/live-leads-section";
+import { citiesSeo } from "@/lib/city-data";
+import { prisma } from "@/lib/prisma";
+import { regions as regionData } from "@/lib/region-data";
+import { formatText, services as seoServices } from "@/lib/seo-data";
+
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title:
-    "Auftrago – Offertenplattform Schweiz für Reinigung, Hauswartung, Umzug & Gartenpflege",
+    "Auftrago – Schweizer Plattform für Dienstleistungen & Versicherungen",
   description:
-    "Kostenlose Offerten für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung, Fensterreinigung, Sanitär, Elektriker und regionale Dienstleistungen in der Schweiz vergleichen.",
+    "Kostenlose Offerten für Reinigung, Hauswartung, Umzug, Gartenpflege, Handwerk und Versicherungen in der Schweiz vergleichen.",
   alternates: {
     canonical: "https://www.auftrago.ch",
   },
   openGraph: {
     title: "Auftrago – Offertenplattform Schweiz",
     description:
-      "Finde regionale Anbieter für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung und weitere Dienstleistungen in der Schweiz.",
+      "Finde regionale Anbieter für Reinigung, Hauswartung, Umzug, Handwerk und Versicherungsberatung in der Schweiz.",
     url: "https://www.auftrago.ch",
     siteName: "Auftrago",
     type: "website",
   },
 };
+
+const platformStats = [
+  {
+    value: "Schweizweit",
+    label: "Regionale Anbieter",
+    icon: "🇨🇭",
+  },
+  {
+    value: "Kostenlos",
+    label: "Anfrage erstellen",
+    icon: "⚡",
+  },
+  {
+    value: "Unverbindlich",
+    label: "Offerten vergleichen",
+    icon: "✓",
+  },
+  {
+    value: "Direkt",
+    label: "Kontakt zu Firmen",
+    icon: "🤝",
+  },
+];
+
+const featuredCategories = [
+  {
+    icon: "🧹",
+    title: "Reinigung",
+    text: "Wohnung, Büro, Fenster und Spezialreinigung.",
+    href: "/leistungen/reinigung",
+    accent: "from-sky-400/15 via-cyan-300/5 to-transparent",
+  },
+  {
+    icon: "🚚",
+    title: "Umzug & Transport",
+    text: "Privatumzug, Firmenumzug, Transport und Räumung.",
+    href: "/leistungen/umzug",
+    accent: "from-violet-400/15 via-fuchsia-300/5 to-transparent",
+  },
+  {
+    icon: "🛠️",
+    title: "Handwerk",
+    text: "Elektriker, Sanitär, Maler, Schreiner und Montage.",
+    href: "/leistungen/elektriker",
+    accent: "from-orange-400/15 via-amber-300/5 to-transparent",
+  },
+  {
+    icon: "🌿",
+    title: "Garten & Umgebung",
+    text: "Gartenpflege, Heckenschnitt und saisonaler Unterhalt.",
+    href: "/leistungen/gartenpflege",
+    accent: "from-emerald-400/15 via-teal-300/5 to-transparent",
+  },
+  {
+    icon: "🛡️",
+    title: "Versicherungen",
+    text: "Krankenkasse, Auto, Vorsorge und Firmenlösungen.",
+    href: "/auftrag-erstellen?kategorie=Versicherungen",
+    accent: "from-indigo-400/15 via-blue-300/5 to-transparent",
+  },
+  {
+    icon: "💻",
+    title: "IT & Digital",
+    text: "Webseiten, SEO, Software und technischer Support.",
+    href: "/leistungen/it-support",
+    accent: "from-cyan-400/15 via-violet-300/5 to-transparent",
+  },
+];
 
 const mainServices = [
   {
@@ -61,8 +132,8 @@ const mainServices = [
   },
   {
     icon: "♻️",
-    title: "Entsorgung",
-    text: "Entrümpelung, Sperrgut, Keller räumen, Estrich räumen, Räumung und fachgerechte Entsorgung.",
+    title: "Entsorgung & Räumung",
+    text: "Entrümpelung, Sperrgut, Keller und Estrich räumen, Haushaltsauflösung und fachgerechte Entsorgung.",
     href: "/entsorgung-zuerich",
   },
   {
@@ -82,6 +153,66 @@ const mainServices = [
     title: "Elektriker",
     text: "Installationen, Reparaturen, Beleuchtung, Sicherheit und kleinere Elektroarbeiten.",
     href: "/elektriker-zuerich",
+  },
+  {
+    icon: "🚿",
+    title: "Sanitär",
+    text: "Armaturen, Leitungen, Bad, Küche, Reparaturen, Installationen und dringende Sanitärarbeiten.",
+    href: "/sanitaer-zuerich",
+  },
+  {
+    icon: "🪵",
+    title: "Schreiner",
+    text: "Möbelmontage, Reparaturen, Türen, Schränke, Küchen und individuelle Holzarbeiten.",
+    href: "/dienstleistungen",
+  },
+  {
+    icon: "🧱",
+    title: "Gipser & Trockenbau",
+    text: "Wände, Decken, Verputz, Trockenbau, Renovationen und kleinere Ausbesserungsarbeiten.",
+    href: "/dienstleistungen",
+  },
+  {
+    icon: "🪚",
+    title: "Bodenleger",
+    text: "Parkett, Laminat, Vinyl, Teppich, Sockelleisten, Reparaturen und Bodenaufbereitung.",
+    href: "/dienstleistungen",
+  },
+  {
+    icon: "🏗️",
+    title: "Renovation & Umbau",
+    text: "Koordination von Renovationen, Umbauten, Rückbau, Montage und verschiedenen Bauarbeiten.",
+    href: "/dienstleistungen",
+  },
+  {
+    icon: "🔥",
+    title: "Heizung & Klima",
+    text: "Heizungsservice, Wartung, Reparaturen, Thermostate, Klimageräte und technische Kontrollen.",
+    href: "/dienstleistungen",
+  },
+  {
+    icon: "🔐",
+    title: "Schlüssel & Sicherheit",
+    text: "Schlosswechsel, Türöffnung, Zutrittssysteme, Sicherheitstechnik und kleinere Reparaturen.",
+    href: "/dienstleistungen",
+  },
+  {
+    icon: "🛠️",
+    title: "Montage & Reparaturen",
+    text: "Möbelaufbau, Wandmontage, kleinere Reparaturen, Installationen und allgemeine Handwerksarbeiten.",
+    href: "/dienstleistungen",
+  },
+  {
+    icon: "🛡️",
+    title: "Versicherungen",
+    text: "Krankenkasse, Auto, Hausrat, Haftpflicht, Rechtsschutz, Vorsorge und Firmenversicherungen vergleichen.",
+    href: "/auftrag-erstellen?kategorie=Versicherungen",
+  },
+  {
+    icon: "✨",
+    title: "Weitere Dienstleistungen",
+    text: "Du findest deine gewünschte Leistung nicht? Stelle deine Anfrage trotzdem – wir suchen passende Anbieter.",
+    href: "/dienstleistungen",
   },
 ];
 
@@ -124,7 +255,7 @@ const faqs = [
   {
     question: "Welche Dienstleistungen kann ich anfragen?",
     answer:
-      "Du kannst Offerten für Reinigung, Umzugsreinigung, Hauswartung, Gartenpflege, Umzug, Transport, Entsorgung, Fensterreinigung, Malerarbeiten, Elektriker, Sanitär und weitere Dienstleistungen anfragen.",
+      "Du kannst Offerten für Reinigung, Umzugsreinigung, Hauswartung, Gartenpflege, Umzug, Transport, Entsorgung, Fensterreinigung, Malerarbeiten, Elektriker, Sanitär, Versicherungen und weitere Dienstleistungen anfragen.",
   },
   {
     question: "Wie schnell erhalte ich Rückmeldungen?",
@@ -147,6 +278,36 @@ const faqs = [
       "Ja. Auftrago ist darauf ausgelegt, dass du regionale Anbieter und Offerten einfacher vergleichen kannst.",
   },
 ];
+
+function formatLeadTime(createdAt: Date) {
+  const minutes = Math.max(
+    1,
+    Math.floor((Date.now() - createdAt.getTime()) / 60000)
+  );
+
+  if (minutes < 60) {
+    return `vor ${minutes} Min.`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+
+  if (hours < 24) {
+    return `vor ${hours} Std.`;
+  }
+
+  const days = Math.floor(hours / 24);
+  return `vor ${days} Tag${days === 1 ? "" : "en"}`;
+}
+
+function formatLeadPrice(price: number | null) {
+  if (!price || price <= 0) {
+    return "Budget offen";
+  }
+
+  return `CHF ${new Intl.NumberFormat("de-CH", {
+    maximumFractionDigits: 0,
+  }).format(price)}`;
+}
 
 export default async function HomePage() {
   const latestLeads = await prisma.lead.findMany({
@@ -182,6 +343,12 @@ export default async function HomePage() {
     "@type": "WebSite",
     name: "Auftrago",
     url: "https://www.auftrago.ch",
+    potentialAction: {
+      "@type": "SearchAction",
+      target:
+        "https://www.auftrago.ch/offerte-anfragen?query={search_term_string}",
+      "query-input": "required name=search_term_string",
+    },
   };
 
   const organizationSchema = {
@@ -190,7 +357,7 @@ export default async function HomePage() {
     name: "Auftrago",
     url: "https://www.auftrago.ch",
     description:
-      "Schweizer Offertenplattform für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung und regionale Dienstleistungen.",
+      "Schweizer Vermittlungsplattform für Dienstleistungen, Handwerk und Versicherungsanfragen.",
   };
 
   return (
@@ -199,105 +366,165 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
-
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
       />
-
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
 
-      <section className="premium-hero">
-        <div className="container premium-hero-grid">
-          <div className="premium-hero-copy">
-            <span className="eyebrow">Offertenplattform Schweiz</span>
+      <Hero />
 
-            <h1>In 60 Sekunden zur passenden Offerte.</h1>
-
-            <p>
-              Auftrago hilft dir, regionale Anbieter für Reinigung, Hauswartung,
-              Umzug, Gartenpflege, Entsorgung, Fensterreinigung, Malerarbeiten,
-              Sanitär, Elektriker und weitere Dienstleistungen zu vergleichen.
-            </p>
-
-            <p>
-              Statt viele Firmen einzeln anzurufen, beschreibst du deinen Auftrag
-              einmal. Passende Anbieter aus deiner Region können deine Anfrage
-              prüfen und sich bei dir melden.
-            </p>
-
-            <div className="actions">
-              <a href="#anfrage" className="btn btn-primary">
-                Kostenlose Offerte anfragen
-              </a>
-
-              <Link href="/anbieter" className="btn btn-secondary">
-                Anbieter finden
-              </Link>
+      <section className="border-y border-white/10 bg-[#030816]">
+        <div className="mx-auto grid max-w-[1450px] grid-cols-2 gap-px bg-white/10 sm:grid-cols-4">
+          {platformStats.map((stat) => (
+            <div
+              key={stat.label}
+              className="group bg-[#030816] px-5 py-7 text-center transition hover:bg-white/[0.035] sm:px-7"
+            >
+              <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-xl transition group-hover:-translate-y-1 group-hover:border-sky-300/20 group-hover:bg-sky-300/10">
+                {stat.icon}
+              </span>
+              <strong className="mt-4 block text-xl font-black tracking-[-0.03em] text-white sm:text-2xl">
+                {stat.value}
+              </strong>
+              <span className="mt-1 block text-xs font-semibold text-slate-500 sm:text-sm">
+                {stat.label}
+              </span>
             </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="premium-section">
+        <div className="container">
+          <div className="section-head">
+            <span className="eyebrow">Beliebte Kategorien</span>
+            <h2>Was möchtest du erledigen?</h2>
+            <p>
+              Wähle eine Kategorie und starte deine kostenlose Anfrage in wenigen
+              Schritten.
+            </p>
           </div>
 
-          <div id="anfrage" className="premium-form-shell">
-            <div className="form-badge">Kostenlos & unverbindlich</div>
-            <HomeLeadForm />
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {featuredCategories.map((category) => (
+              <Link
+                key={category.title}
+                href={category.href}
+                className={[
+                  "group relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br p-6 transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_24px_70px_rgba(0,0,0,0.32)]",
+                  category.accent,
+                ].join(" ")}
+              >
+                <div className="flex items-start justify-between gap-5">
+                  <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-[#050b17]/75 text-2xl shadow-[0_16px_40px_rgba(0,0,0,0.18)] transition group-hover:scale-105">
+                    {category.icon}
+                  </span>
+                  <span className="text-xl text-sky-300 transition group-hover:translate-x-1">
+                    →
+                  </span>
+                </div>
+
+                <h3 className="mt-7 text-xl font-black tracking-[-0.03em] text-white">
+                  {category.title}
+                </h3>
+                <p className="mt-2 max-w-sm text-sm leading-6 text-slate-400">
+                  {category.text}
+                </p>
+
+                <span className="mt-6 inline-flex text-sm font-black text-white">
+                  Kategorie entdecken
+                </span>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
 
+      <InsuranceSpotlight />
       <TrustReviewsSection />
       <WhyAuftragoSection />
 
       <section className="premium-section">
-  <div className="container">
-    <div className="live-activity-card">
-      <div className="live-activity-head">
-        <span className="eyebrow">Live Aktivität</span>
-        <h2>Aktuelle Anfragen auf Auftrago</h2>
-      </div>
+        <div className="container">
+          <div className="live-activity-card">
+            <div className="live-activity-head">
+              <div>
+                <span className="eyebrow">Live Aktivität</span>
+                <h2>Aktuelle Anfragen auf Auftrago</h2>
+              </div>
 
-      <div className="live-activity-grid">
-        <div className="live-request-card">
-          <span>🔥</span>
-          <strong>Umzugsreinigung</strong>
-          <p>Zürich · vor 3 Minuten</p>
-        </div>
+              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-400/10 px-4 py-2 text-xs font-black text-emerald-300">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+                Live
+              </span>
+            </div>
 
-        <div className="live-request-card">
-          <span>🔥</span>
-          <strong>Fensterreinigung</strong>
-          <p>Baden · vor 7 Minuten</p>
-        </div>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {latestLeads.length > 0 ? (
+                latestLeads.map((lead) => (
+                  <article
+                    key={lead.id}
+                    className="group rounded-[24px] border border-white/10 bg-white/[0.035] p-5 transition duration-300 hover:-translate-y-1 hover:border-sky-300/20 hover:bg-white/[0.055]"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="rounded-full border border-orange-300/20 bg-orange-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-orange-300">
+                        Neu
+                      </span>
+                      <span className="text-xs font-semibold text-slate-500">
+                        {formatLeadTime(lead.createdAt)}
+                      </span>
+                    </div>
 
-        <div className="live-request-card">
-          <span>🔥</span>
-          <strong>Hauswartung</strong>
-          <p>Aarau · vor 12 Minuten</p>
-        </div>
+                    <h3 className="mt-5 text-lg font-black tracking-[-0.02em] text-white">
+                      {lead.title || lead.category}
+                    </h3>
 
-        <div className="live-request-card">
-          <span>🔥</span>
-          <strong>Gartenpflege</strong>
-          <p>Lenzburg · vor 18 Minuten</p>
-        </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <span className="rounded-full bg-white/[0.06] px-3 py-1.5 text-xs font-bold text-slate-300">
+                        📍 {lead.region || "Schweiz"}
+                      </span>
+                      <span className="rounded-full bg-white/[0.06] px-3 py-1.5 text-xs font-bold text-slate-300">
+                        {lead.category}
+                      </span>
+                    </div>
 
-        <div className="live-request-card">
-          <span>🔥</span>
-          <strong>Wohnungsreinigung</strong>
-          <p>Winterthur · vor 24 Minuten</p>
-        </div>
+                    <div className="mt-6 flex items-end justify-between gap-4">
+                      <div>
+                        <span className="block text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">
+                          Auftragswert
+                        </span>
+                        <strong className="mt-1 block text-base font-black text-white">
+                          {formatLeadPrice(lead.price)}
+                        </strong>
+                      </div>
 
-        <div className="live-request-card">
-          <span>🔥</span>
-          <strong>Entsorgung</strong>
-          <p>Zürich · vor 31 Minuten</p>
+                      <Link
+                        href="/anbieter"
+                        className="text-sm font-black text-sky-300 transition group-hover:translate-x-1"
+                      >
+                        Ansehen →
+                      </Link>
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <div className="col-span-full rounded-[24px] border border-white/10 bg-white/[0.035] p-8 text-center">
+                  <strong className="text-lg font-black text-white">
+                    Neue Anfragen werden gleich angezeigt.
+                  </strong>
+                  <p className="mt-2 text-sm text-slate-400">
+                    Starte jetzt deine kostenlose Anfrage.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
+      </section>
 
       <section className="premium-section">
         <div className="container">
@@ -312,19 +539,16 @@ export default async function HomePage() {
               <h3>Auftrag beschreiben</h3>
               <p>Beschreibe kurz dein Projekt und die gewünschte Dienstleistung.</p>
             </div>
-
             <div className="how-card">
               <strong>2</strong>
               <h3>Anfrage senden</h3>
               <p>Deine Anfrage ist kostenlos und unverbindlich.</p>
             </div>
-
             <div className="how-card">
               <strong>3</strong>
               <h3>Offerten erhalten</h3>
               <p>Passende regionale Anbieter können sich bei dir melden.</p>
             </div>
-
             <div className="how-card">
               <strong>4</strong>
               <h3>Vergleichen</h3>
@@ -334,45 +558,16 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <LiveLeadsSection />
+
       <section className="premium-section">
-        <div className="container premium-intro-card">
-          <div>
-            <span className="eyebrow">Warum Auftrago?</span>
-            <h2>Eine Anfrage reicht.</h2>
-          </div>
-
-          <div className="premium-text">
-            <p>
-              Wer eine zuverlässige Firma sucht, verliert oft viel Zeit mit
-              Google-Suche, Telefonaten, Rückfragen und unübersichtlichen
-              Offerten. Auftrago vereinfacht diesen Prozess.
-            </p>
-
-            <p>
-              Besonders bei Umzugsreinigung, Wohnungsreinigung,
-              Treppenhausreinigung, Hauswartung, Gartenpflege, Fensterreinigung,
-              Transport, Räumung oder Entsorgung ist es wichtig, dass Anbieter
-              von Anfang an die richtigen Informationen erhalten.
-            </p>
-
-            <p>
-              Auftrago sorgt für klare Angaben, bessere Vergleichbarkeit, weniger
-              Rückfragen und schnellere Entscheidungen. Dadurch können Kunden
-              schneller passende regionale Firmen finden und Anbieter erhalten
-              relevantere Anfragen aus ihrer Umgebung.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <LiveLeadsSection /><section className="premium-section">
         <div className="container">
           <div className="section-head">
             <span className="eyebrow">Leistungen</span>
-            <h2>Finde Anbieter für viele Dienstleistungen.</h2>
+            <h2>Eine Plattform für praktisch jede Dienstleistung.</h2>
             <p>
-              Von Reinigung über Hauswartung bis Umzug: Auftrago verbindet
-              Kunden mit passenden regionalen Anbietern.
+              Von Reinigung und Hauswartung über Handwerk, Umzug und Entsorgung
+              bis zu Versicherungen, Renovation, Sanitär und Technik.
             </p>
           </div>
 
@@ -390,16 +585,22 @@ export default async function HomePage() {
               </Link>
             ))}
           </div>
+
+          <div className="actions center" style={{ marginTop: "34px" }}>
+            <Link href="/dienstleistungen" className="btn btn-primary">
+              Alle Dienstleistungen entdecken
+            </Link>
+          </div>
         </div>
       </section>
 
       <section className="premium-section">
         <div className="container premium-provider-card">
-          <span className="eyebrow">SEO Fokus</span>
-          <h2>Häufig gesuchte Dienstleistungen</h2>
+          <span className="eyebrow">Häufig gesucht</span>
+          <h2>Beliebte Dienstleistungen</h2>
           <p>
-            Diese Seiten helfen Google, Auftrago als Plattform für regionale
-            Dienstleistungen in der Schweiz besser einzuordnen.
+            Entdecke häufig gesuchte Leistungen und finde passende regionale
+            Anbieter.
           </p>
 
           <div className="seo-link-grid">
@@ -418,8 +619,7 @@ export default async function HomePage() {
           <h2>Regionale Anbieter in der Schweiz finden</h2>
           <p>
             Wähle deine Region und finde passende Anbieter für Reinigung,
-            Hauswartung, Umzug, Gartenpflege, Fensterreinigung, Entsorgung und
-            weitere Dienstleistungen.
+            Hauswartung, Umzug, Gartenpflege und weitere Dienstleistungen.
           </p>
 
           <div className="seo-link-grid">
@@ -437,8 +637,7 @@ export default async function HomePage() {
           <span className="eyebrow">Städte</span>
           <h2>Anbieter in deiner Stadt finden</h2>
           <p>
-            Lokale Suchanfragen bringen oft die besten Kunden. Deshalb verlinkt
-            Auftrago wichtige Stadtseiten direkt von der Startseite.
+            Finde lokale Dienstleister und Offerten direkt in deiner Umgebung.
           </p>
 
           <div className="seo-link-grid">
@@ -456,8 +655,7 @@ export default async function HomePage() {
           <span className="eyebrow">Priorität</span>
           <h2>Starke Seiten für aktuelle Suchanfragen</h2>
           <p>
-            Diese Suchbegriffe zeigen bereits Interesse in Google. Deshalb
-            werden sie besonders stark intern verlinkt.
+            Direkte Einstiege zu häufig gesuchten Dienstleistungen und Regionen.
           </p>
 
           <div className="seo-link-grid">
@@ -473,13 +671,9 @@ export default async function HomePage() {
       <section className="premium-section">
         <div className="container premium-provider-card">
           <span className="eyebrow">Beliebte Offerten</span>
-
           <h2>Direkt zu häufig gesuchten Kombinationen.</h2>
-
           <p>
-            Viele Kunden suchen täglich nach Reinigungsfirma Zürich,
-            Umzugsreinigung Zürich, Hauswartung Uster, Umzug Lenzburg,
-            Büroreinigung Bülach oder Fensterreinigung Solothurn.
+            Beliebte Dienstleistungen und Regionen für eine schnelle Anfrage.
           </p>
 
           <div className="seo-link-grid">
@@ -495,26 +689,16 @@ export default async function HomePage() {
       <section className="premium-section">
         <div className="container premium-provider-card">
           <span className="eyebrow">Für Anbieter</span>
-
           <h2>Mehr relevante Leads. Weniger Streuverlust.</h2>
-
           <p>
-            Auftrago ist für Dienstleister gemacht, die nicht nur Sichtbarkeit
-            möchten, sondern konkrete Kundenanfragen erhalten wollen.
-          </p>
-
-          <p>
-            Besonders für Reinigungsfirmen, Hauswartungen, Gartenbauer,
-            Umzugsfirmen, Entsorgungsbetriebe, Fensterreiniger, Maler,
-            Sanitärbetriebe und Elektriker bietet Auftrago eine direkte
-            Möglichkeit, neue Aufträge in der eigenen Region zu gewinnen.
+            Auftrago ist für Dienstleister gemacht, die konkrete
+            Kundenanfragen in ihrer Region erhalten möchten.
           </p>
 
           <div className="actions">
             <Link href="/anbieter-registrieren" className="btn btn-primary">
               Als Anbieter registrieren
             </Link>
-
             <Link href="/anbieter" className="btn btn-secondary">
               Anbieter ansehen
             </Link>
@@ -541,18 +725,19 @@ export default async function HomePage() {
       <section className="premium-final">
         <div className="container premium-final-card">
           <span className="eyebrow">Jetzt starten</span>
-
-          <h2>Beschreibe deinen Auftrag einmal. Erhalte passende Offerten.</h2>
-
+          <h2>Nur eine Anfrage. Mehrere passende Offerten.</h2>
           <p>
             Kostenlos, unverbindlich und regional. Starte deine Anfrage in
             weniger als einer Minute.
           </p>
 
           <div className="actions center">
-            <a href="#anfrage" className="btn btn-primary">
+            <Link href="/offerte-anfragen" className="btn btn-primary">
               Kostenlose Offerte anfragen
-            </a>
+            </Link>
+            <Link href="/anbieter-registrieren" className="btn btn-secondary">
+              Anbieter werden
+            </Link>
           </div>
         </div>
       </section>

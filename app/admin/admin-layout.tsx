@@ -10,7 +10,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
       <div className="admin-content">{children}</div>
 
-      <style>{`
+      <style suppressHydrationWarning>{`
         .admin-shell {
           min-height: 100vh;
           display: grid;

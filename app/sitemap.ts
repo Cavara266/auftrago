@@ -1,5 +1,6 @@
-import { MetadataRoute } from "next";
-import { generateSlugs, services } from "@/lib/seo-data";
+import type { MetadataRoute } from "next";
+import { generateSlugs, services as seoServices } from "@/lib/seo-data";
+import { services as marketplaceServices } from "@/lib/services";
 import { regions } from "@/lib/region-data";
 import { citiesSeo } from "@/lib/city-data";
 import { prioritySeoPages } from "@/lib/priority-seo-pages";
@@ -10,7 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const staticPages: MetadataRoute.Sitemap = [
     {
-      url: `${baseUrl}`,
+      url: baseUrl,
       lastModified: now,
       changeFrequency: "daily",
       priority: 1,
@@ -28,7 +29,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      url: `${baseUrl}/anbieter-registrieren`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.85,
+    },
+    {
       url: `${baseUrl}/leistungen`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/versicherungen`,
       lastModified: now,
       changeFrequency: "weekly",
       priority: 0.9,
@@ -61,12 +74,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.85,
   }));
 
-  const servicePages: MetadataRoute.Sitemap = services.map((service) => ({
-    url: `${baseUrl}/leistungen/${service}`,
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: 0.85,
-  }));
+  // Bestehende Dienstleistungsseiten aus seo-data
+  const existingServicePages: MetadataRoute.Sitemap = seoServices.map(
+    (service) => ({
+      url: `${baseUrl}/leistungen/${service}`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.85,
+    })
+  );
+
+  // Neue zentrale Dienstleistungsseiten aus lib/services.ts
+  const marketplaceServicePages: MetadataRoute.Sitemap =
+    marketplaceServices.map((service) => ({
+      url: `${baseUrl}/leistungen/${service.slug}`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: service.featured ? 0.9 : 0.85,
+    }));
 
   const priorityPages: MetadataRoute.Sitemap = prioritySeoPages.map(
     (page) => ({
@@ -84,12 +109,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  return [
+  const allPages: MetadataRoute.Sitemap = [
     ...staticPages,
     ...regionPages,
     ...cityPages,
-    ...servicePages,
+    ...existingServicePages,
+    ...marketplaceServicePages,
     ...priorityPages,
     ...seoPages,
   ];
+
+  // Doppelte URLs entfernen
+  return Array.from(
+    new Map(allPages.map((page) => [page.url, page])).values()
+  );
 }

@@ -715,7 +715,7 @@ export default async function AdminCeoPage() {
         </section>
       </div>
 
-      <style>{`
+      <style suppressHydrationWarning>{`
         .ceo-page {
           position: relative;
           min-height: 100vh;

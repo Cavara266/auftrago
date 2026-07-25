@@ -147,7 +147,7 @@ export default async function SmartPricingAdminPage() {
         }}
       />
 
-      <style>{`
+      <style suppressHydrationWarning>{`
         .smart-pricing-page {
           min-height: 100vh;
           padding: 34px;

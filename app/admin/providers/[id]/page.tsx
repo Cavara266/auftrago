@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import AdminAutoRefresh from "@/components/admin/admin-auto-refresh";
 import { prisma } from "@/lib/prisma";
 
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type PageProps = {
   params: {
@@ -10,95 +13,96 @@ type PageProps = {
   };
 };
 
-function formatDate(date: Date | null | undefined) {
-  if (!date) return "–";
-
+function formatDate(date: Date) {
   return new Intl.DateTimeFormat("de-CH", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Europe/Zurich",
   }).format(date);
 }
 
-function formatMoneyFromCents(amount: number) {
+function formatMoney(amountInRappen: number, currency = "CHF") {
   return new Intl.NumberFormat("de-CH", {
     style: "currency",
-    currency: "CHF",
+    currency: currency.toUpperCase(),
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount / 100);
+  }).format(amountInRappen / 100);
 }
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat("de-CH").format(value);
 }
 
+function percent(value: number, total: number) {
+  if (total <= 0) return 0;
+  return Math.round((value / total) * 100);
+}
+
 function initials(value: string) {
-  const parts = value
-    .trim()
+  return value
     .split(/\s+/)
     .filter(Boolean)
-    .slice(0, 2);
-
-  if (parts.length === 0) return "A";
-
-  return parts.map((part) => part.charAt(0).toUpperCase()).join("");
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
 }
 
 function providerStatus(status: string) {
   if (status === "APPROVED") {
     return {
-      label: "Freigegeben",
-      icon: "●",
-      className: "provider-crm-status approved",
+      label: "Genehmigt",
+      className: "crm-status-approved",
     };
   }
 
   if (status === "BLOCKED") {
     return {
       label: "Gesperrt",
-      icon: "●",
-      className: "provider-crm-status blocked",
+      className: "crm-status-blocked",
     };
   }
 
   return {
     label: "Ausstehend",
-    icon: "●",
-    className: "provider-crm-status pending",
+    className: "crm-status-pending",
   };
 }
 
-function purchaseStatus(status: string) {
-  if (status === "WON") return "Gewonnen";
-  if (status === "LOST") return "Verloren";
-  if (status === "CONTACTED") return "Kontaktiert";
-  if (status === "APPOINTMENT_SET") return "Termin vereinbart";
-  if (status === "OFFER_SENT") return "Offerte gesendet";
-  if (status === "NO_OFFER") return "Keine Offerte";
+function leadStatus(status: string) {
+  const labels: Record<string, string> = {
+    OPEN: "Offen",
+    CONTACTED: "Kontaktiert",
+    APPOINTMENT_SET: "Termin",
+    OFFER_SENT: "Offerte",
+    WON: "Gewonnen",
+    LOST: "Verloren",
+    NO_OFFER: "Keine Offerte",
+  };
 
-  return "Offen";
+  return labels[status] ?? status;
 }
 
-function activityIcon(event: string) {
-  const normalized = event.toLowerCase();
+function activityLabel(event: string) {
+  const labels: Record<string, string> = {
+    login: "Login",
+    logout: "Logout",
+    lead_view: "Lead angesehen",
+    lead_unlock: "Lead gekauft",
+    lead_purchase: "Lead gekauft",
+    credit_purchase: "Credits gekauft",
+    page_view: "Seite besucht",
+    provider_approved: "Anbieter freigegeben",
+    provider_blocked: "Anbieter gesperrt",
+    profile_update: "Profil aktualisiert",
+  };
 
-  if (normalized.includes("login")) return "🔐";
-  if (normalized.includes("credit")) return "⭐";
-  if (normalized.includes("payment")) return "💳";
-  if (normalized.includes("purchase")) return "🛒";
-  if (normalized.includes("lead")) return "📈";
-  if (normalized.includes("email")) return "✉️";
-  if (normalized.includes("provider")) return "👤";
-
-  return "⚡";
+  return labels[event] ?? event.replaceAll("_", " ");
 }
 
-export default async function AdminProviderDetailPage({
-  params,
-}: PageProps) {
+export default async function AdminProviderDetailPage({ params }: PageProps) {
   const provider = await prisma.provider.findUnique({
     where: {
       id: params.id,
@@ -108,38 +112,78 @@ export default async function AdminProviderDetailPage({
         orderBy: {
           createdAt: "desc",
         },
+        take: 12,
         include: {
           lead: {
             select: {
               id: true,
               title: true,
-              category: true,
               region: true,
+              category: true,
               city: true,
+              postalCode: true,
               price: true,
             },
+          },
+          notes: {
+            orderBy: {
+              createdAt: "desc",
+            },
+            take: 3,
+          },
+          offers: {
+            orderBy: {
+              createdAt: "desc",
+            },
+            take: 3,
           },
         },
       },
       creditPurchases: {
+        where: {
+          status: "paid",
+        },
         orderBy: {
           createdAt: "desc",
         },
+        take: 12,
       },
       activities: {
         orderBy: {
           createdAt: "desc",
         },
-        take: 100,
+        take: 30,
       },
       fixedOrders: {
         orderBy: {
           createdAt: "desc",
         },
+        take: 10,
       },
       invoices: {
         orderBy: {
           createdAt: "desc",
+        },
+        take: 10,
+        include: {
+          fixedOrder: {
+            select: {
+              id: true,
+              title: true,
+              city: true,
+              postalCode: true,
+              status: true,
+            },
+          },
+        },
+      },
+      _count: {
+        select: {
+          purchases: true,
+          creditPurchases: true,
+          activities: true,
+          fixedOrders: true,
+          invoices: true,
         },
       },
     },
@@ -150,66 +194,140 @@ export default async function AdminProviderDetailPage({
   }
 
   const [
+    creditAggregate,
+    leadPurchaseAggregate,
+    wonCount,
+    contactedCount,
+    offerCount,
     totalProviderCount,
-    providersWithMoreLeadPurchases,
+    providerRankData,
   ] = await Promise.all([
-    prisma.provider.count(),
-    prisma.provider.count({
+    prisma.creditPurchase.aggregate({
       where: {
-        purchases: {
-          some: {},
+        providerId: provider.id,
+        status: "paid",
+      },
+      _sum: {
+        amount: true,
+        credits: true,
+      },
+      _count: {
+        id: true,
+      },
+    }),
+    prisma.leadPurchase.aggregate({
+      where: {
+        providerId: provider.id,
+      },
+      _sum: {
+        price: true,
+      },
+      _count: {
+        id: true,
+      },
+    }),
+    prisma.leadPurchase.count({
+      where: {
+        providerId: provider.id,
+        status: "WON",
+      },
+    }),
+    prisma.leadPurchase.count({
+      where: {
+        providerId: provider.id,
+        status: {
+          in: ["CONTACTED", "APPOINTMENT_SET", "OFFER_SENT", "WON"],
         },
-        NOT: {
-          id: provider.id,
+      },
+    }),
+    prisma.leadPurchase.count({
+      where: {
+        providerId: provider.id,
+        status: {
+          in: ["OFFER_SENT", "WON"],
+        },
+      },
+    }),
+    prisma.provider.count(),
+    prisma.leadPurchase.groupBy({
+      by: ["providerId"],
+      _count: {
+        _all: true,
+      },
+      orderBy: {
+        _count: {
+          providerId: "desc",
         },
       },
     }),
   ]);
 
-  const totalCreditRevenue = provider.creditPurchases
-    .filter((purchase) => purchase.status.toLowerCase() === "paid")
-    .reduce((sum, purchase) => sum + purchase.amount, 0);
+  const status = providerStatus(provider.status);
+  const totalLeadPurchases = leadPurchaseAggregate._count.id;
+  const totalCreditsSpent = leadPurchaseAggregate._sum.price ?? 0;
+  const totalCreditRevenue = creditAggregate._sum.amount ?? 0;
+  const totalCreditsBought = creditAggregate._sum.credits ?? 0;
+  const winRate = percent(wonCount, totalLeadPurchases);
+  const contactRate = percent(contactedCount, totalLeadPurchases);
+  const offerRate = percent(offerCount, totalLeadPurchases);
 
-  const totalInvoiceRevenue = provider.invoices
-    .filter((invoice) => invoice.status.toUpperCase() === "PAID")
-    .reduce((sum, invoice) => sum + invoice.amountCents, 0);
+  const providerRankIndex = providerRankData.findIndex(
+    (entry) => entry.providerId === provider.id,
+  );
+  const providerRank =
+    providerRankIndex >= 0 ? providerRankIndex + 1 : totalProviderCount;
 
-  const totalRevenue = totalCreditRevenue + totalInvoiceRevenue;
-
-  const purchasedLeads = provider.purchases.length;
-
-  const wonLeads = provider.purchases.filter(
-    (purchase) => purchase.status === "WON",
-  ).length;
-
-  const successRate =
-    purchasedLeads > 0
-      ? Math.round((wonLeads / purchasedLeads) * 100)
-      : 0;
-
-  const creditsSpent = provider.purchases.reduce(
-    (sum, purchase) => sum + purchase.price,
-    0,
+  const engagementScore = Math.min(
+    100,
+    Math.round(
+      Math.min(totalLeadPurchases * 4, 35) +
+        Math.min(contactRate * 0.25, 25) +
+        Math.min(winRate * 0.25, 25) +
+        Math.min(provider._count.activities / 2, 15),
+    ),
   );
 
-  const paidCreditPackages = provider.creditPurchases.filter(
-    (purchase) => purchase.status.toLowerCase() === "paid",
-  ).length;
+  const timeline = [
+    ...provider.activities.map((activity) => ({
+      id: `activity-${activity.id}`,
+      date: activity.createdAt,
+      icon: "↗",
+      title: activityLabel(activity.event),
+      description:
+        activity.description ||
+        activity.page ||
+        "Aktivität auf der Plattform",
+      detail: activity.page || null,
+    })),
+    ...provider.creditPurchases.map((purchase) => ({
+      id: `payment-${purchase.id}`,
+      date: purchase.createdAt,
+      icon: "CHF",
+      title: "Credits gekauft",
+      description: `${purchase.credits} Credits`,
+      detail: formatMoney(purchase.amount, purchase.currency),
+    })),
+    ...provider.purchases.map((purchase) => ({
+      id: `purchase-${purchase.id}`,
+      date: purchase.createdAt,
+      icon: "L",
+      title: "Lead gekauft",
+      description: purchase.lead.title,
+      detail: `${purchase.price} Credits`,
+    })),
+    ...provider.fixedOrders.map((order) => ({
+      id: `order-${order.id}`,
+      date: order.createdAt,
+      icon: "F",
+      title: "Fixauftrag",
+      description: order.title,
+      detail: order.status,
+    })),
+  ]
+    .sort((a, b) => b.date.getTime() - a.date.getTime())
+    .slice(0, 25);
 
-  const latestActivity =
-    provider.activities[0]?.createdAt ||
-    provider.purchases[0]?.createdAt ||
-    provider.creditPurchases[0]?.createdAt ||
-    provider.updatedAt;
-
-  const rank =
-    purchasedLeads === 0
-      ? totalProviderCount
-      : Math.min(providersWithMoreLeadPurchases + 1, totalProviderCount);
-
-  const status = providerStatus(provider.status);
-
-  const address = [
+  const location = [
     provider.address,
     [provider.postalCode, provider.city].filter(Boolean).join(" "),
   ]
@@ -218,798 +336,575 @@ export default async function AdminProviderDetailPage({
 
   return (
     <main className="provider-crm-page">
-      <div className="provider-crm-container">
-        <div className="provider-crm-topbar">
+      <div className="provider-crm-glow provider-crm-glow-one" />
+      <div className="provider-crm-glow provider-crm-glow-two" />
+
+      <div className="provider-crm-shell">
+        <header className="provider-crm-header">
           <div>
             <Link href="/admin/providers" className="provider-crm-back">
-              ← Zurück zu den Anbietern
+              ← Zurück zu Anbieter
             </Link>
 
-            <span className="provider-crm-eyebrow">Anbieter CRM</span>
+            <div className="provider-crm-title-row">
+              <div className="provider-crm-avatar">
+                {provider.logoUrl ? (
+                  <img src={provider.logoUrl} alt="" />
+                ) : (
+                  initials(provider.companyName)
+                )}
+              </div>
+
+              <div>
+                <div className="provider-crm-title-meta">
+                  <span className={`provider-crm-status ${status.className}`}>
+                    {status.label}
+                  </span>
+                  <span>#{providerRank} von {totalProviderCount}</span>
+                </div>
+
+                <h1>{provider.companyName}</h1>
+                <p>
+                  {provider.contactName}
+                  {provider.region ? ` · ${provider.region}` : ""}
+                  {provider.category ? ` · ${provider.category}` : ""}
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="provider-crm-top-actions">
-            <a
-              href={`mailto:${provider.email}`}
-              className="provider-crm-button secondary"
-            >
-              ✉️ E-Mail senden
-            </a>
+          <div className="provider-crm-actions">
+            <AdminAutoRefresh intervalSeconds={15} />
+
+            {provider.email ? (
+              <a
+                href={`mailto:${provider.email}`}
+                className="provider-crm-button provider-crm-button-dark"
+              >
+                E-Mail
+              </a>
+            ) : null}
+
+            {provider.phone ? (
+              <a
+                href={`tel:${provider.phone}`}
+                className="provider-crm-button provider-crm-button-dark"
+              >
+                Anrufen
+              </a>
+            ) : null}
 
             <Link
-              href={`/admin/providers/${provider.id}/edit`}
-              className="provider-crm-button primary"
+              href="/admin/providers"
+              className="provider-crm-button provider-crm-button-primary"
             >
-              ✏️ Anbieter bearbeiten
+              Anbieter verwalten
             </Link>
           </div>
-        </div>
+        </header>
 
-        <section className="provider-crm-profile">
-          <div className="provider-crm-profile-main">
-            <div className="provider-crm-avatar">
-              {provider.logoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={provider.logoUrl}
-                  alt={provider.companyName}
-                />
-              ) : (
-                <span>{initials(provider.companyName)}</span>
-              )}
-            </div>
-
-            <div className="provider-crm-profile-copy">
-              <div className="provider-crm-title-row">
-                <h1>{provider.companyName}</h1>
-
-                <span className={status.className}>
-                  <i>{status.icon}</i>
-                  {status.label}
-                </span>
-              </div>
-
-              <p>{provider.contactName}</p>
-
-              <div className="provider-crm-contact-row">
-                <a href={`mailto:${provider.email}`}>
-                  ✉️ {provider.email}
-                </a>
-
-                {provider.phone ? (
-                  <a href={`tel:${provider.phone}`}>
-                    📞 {provider.phone}
-                  </a>
-                ) : null}
-
-                {provider.website ? (
-                  <a
-                    href={
-                      provider.website.startsWith("http")
-                        ? provider.website
-                        : `https://${provider.website}`
-                    }
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    🌐 Website öffnen
-                  </a>
-                ) : null}
+        <section className="provider-crm-hero-grid">
+          <article className="provider-crm-score-card">
+            <div
+              className="provider-crm-score-ring"
+              style={{
+                background: `conic-gradient(#38bdf8 ${
+                  engagementScore * 3.6
+                }deg, rgba(255,255,255,.08) 0deg)`,
+              }}
+            >
+              <div>
+                <strong>{engagementScore}</strong>
+                <span>/ 100</span>
               </div>
             </div>
-          </div>
-
-          <div className="provider-crm-profile-side">
-            <div>
-              <span>Mitglied seit</span>
-              <strong>{formatDate(provider.createdAt)}</strong>
-            </div>
 
             <div>
-              <span>Letzte Aktivität</span>
-              <strong>{formatDate(latestActivity)}</strong>
-            </div>
-
-            <div>
-              <span>Anbieter-ID</span>
-              <strong className="provider-crm-id">
-                {provider.id}
-              </strong>
-            </div>
-          </div>
-        </section>
-
-        <section className="provider-crm-metrics">
-          <article>
-            <div className="provider-crm-metric-icon">⭐</div>
-            <div>
-              <span>Credit-Guthaben</span>
-              <strong>{formatNumber(provider.credits)}</strong>
-              <small>Aktuell verfügbar</small>
+              <small>ANBIETER SCORE</small>
+              <h2>
+                {engagementScore >= 80
+                  ? "Top-Partner"
+                  : engagementScore >= 60
+                    ? "Aktiver Partner"
+                    : engagementScore >= 35
+                      ? "Entwicklungspotenzial"
+                      : "Noch wenig Aktivität"}
+              </h2>
+              <p>
+                Berechnet aus Leadkäufen, Kontaktquote, Erfolgsquote und
+                Plattformaktivitäten.
+              </p>
             </div>
           </article>
 
-          <article>
-            <div className="provider-crm-metric-icon">💰</div>
-            <div>
-              <span>Gesamtausgaben</span>
-              <strong>{formatMoneyFromCents(totalRevenue)}</strong>
-              <small>{paidCreditPackages} bezahlte Credit-Pakete</small>
-            </div>
-          </article>
+          <article className="provider-crm-credit-card">
+            <span>Aktuelles Guthaben</span>
+            <strong>{formatNumber(provider.credits)} Credits</strong>
 
-          <article>
-            <div className="provider-crm-metric-icon">📈</div>
             <div>
-              <span>Gekaufte Leads</span>
-              <strong>{formatNumber(purchasedLeads)}</strong>
-              <small>{formatNumber(creditsSpent)} Credits eingesetzt</small>
-            </div>
-          </article>
-
-          <article>
-            <div className="provider-crm-metric-icon">🏆</div>
-            <div>
-              <span>Erfolgsquote</span>
-              <strong>{successRate}%</strong>
-              <small>
-                Rang {rank} von {totalProviderCount}
-              </small>
+              <span>
+                <small>Gekauft</small>
+                <b>{formatNumber(totalCreditsBought)}</b>
+              </span>
+              <span>
+                <small>Eingesetzt</small>
+                <b>{formatNumber(totalCreditsSpent)}</b>
+              </span>
+              <span>
+                <small>Credit-Umsatz</small>
+                <b>{formatMoney(totalCreditRevenue)}</b>
+              </span>
             </div>
           </article>
         </section>
 
-        <section className="provider-crm-grid">
-          <div className="provider-crm-main-column">
-            <article className="provider-crm-panel">
-              <div className="provider-crm-panel-head">
-                <div>
-                  <span>CRM Übersicht</span>
-                  <h2>Firmenprofil</h2>
-                </div>
-
-                <Link href={`/admin/providers/${provider.id}/edit`}>
-                  Bearbeiten →
-                </Link>
-              </div>
-
-              <div className="provider-crm-details-grid">
-                <div>
-                  <span>Firmenname</span>
-                  <strong>{provider.companyName}</strong>
-                </div>
-
-                <div>
-                  <span>Ansprechperson</span>
-                  <strong>{provider.contactName}</strong>
-                </div>
-
-                <div>
-                  <span>E-Mail-Adresse</span>
-                  <strong>{provider.email}</strong>
-                </div>
-
-                <div>
-                  <span>Telefonnummer</span>
-                  <strong>{provider.phone || "Nicht angegeben"}</strong>
-                </div>
-
-                <div>
-                  <span>Adresse</span>
-                  <strong>{address || "Nicht angegeben"}</strong>
-                </div>
-
-                <div>
-                  <span>Region</span>
-                  <strong>{provider.region || "Nicht angegeben"}</strong>
-                </div>
-
-                <div>
-                  <span>Hauptkategorie</span>
-                  <strong>{provider.category || "Nicht angegeben"}</strong>
-                </div>
-
-                <div>
-                  <span>E-Mail-Benachrichtigungen</span>
-                  <strong>
-                    {provider.receiveLeadEmails
-                      ? "Aktiviert"
-                      : "Deaktiviert"}
-                  </strong>
-                </div>
-
-                <div>
-                  <span>Alle Leads erhalten</span>
-                  <strong>
-                    {provider.receiveAllLeadEmails ? "Ja" : "Nein"}
-                  </strong>
-                </div>
-
-                <div>
-                  <span>Letzte Änderung</span>
-                  <strong>{formatDate(provider.updatedAt)}</strong>
-                </div>
-              </div>
-
-              {provider.description ? (
-                <div className="provider-crm-description">
-                  <span>Firmenbeschreibung</span>
-                  <p>{provider.description}</p>
-                </div>
-              ) : null}
+        <section className="provider-crm-kpi-grid">
+          {[
+            {
+              label: "Leadkäufe",
+              value: totalLeadPurchases,
+              detail: `${totalCreditsSpent} Credits eingesetzt`,
+            },
+            {
+              label: "Gewonnen",
+              value: wonCount,
+              detail: `${winRate}% Erfolgsquote`,
+            },
+            {
+              label: "Kontaktiert",
+              value: contactedCount,
+              detail: `${contactRate}% Kontaktquote`,
+            },
+            {
+              label: "Offerten",
+              value: offerCount,
+              detail: `${offerRate}% Offertquote`,
+            },
+            {
+              label: "Fixaufträge",
+              value: provider._count.fixedOrders,
+              detail: `${provider._count.invoices} Rechnungen`,
+            },
+            {
+              label: "Aktivitäten",
+              value: provider._count.activities,
+              detail: "Plattform-Ereignisse",
+            },
+          ].map((item) => (
+            <article className="provider-crm-kpi" key={item.label}>
+              <span>{item.label}</span>
+              <strong>{formatNumber(item.value)}</strong>
+              <small>{item.detail}</small>
             </article>
+          ))}
+        </section>
 
-            <article className="provider-crm-panel">
-              <div className="provider-crm-panel-head">
-                <div>
-                  <span>Lead-Historie</span>
-                  <h2>Gekaufte Leads</h2>
-                </div>
-
-                <strong>{purchasedLeads}</strong>
+        <section className="provider-crm-main-grid">
+          <article className="provider-crm-panel">
+            <div className="provider-crm-panel-head">
+              <div>
+                <span>CRM</span>
+                <h2>Unternehmensprofil</h2>
               </div>
+            </div>
 
-              {provider.purchases.length === 0 ? (
-                <div className="provider-crm-empty">
-                  <div>📭</div>
-                  <strong>Noch keine Leads gekauft</strong>
-                  <p>
-                    Sobald der Anbieter einen Lead kauft, erscheint dieser
-                    hier.
-                  </p>
-                </div>
-              ) : (
-                <div className="provider-crm-table-wrap">
-                  <table className="provider-crm-table">
-                    <thead>
-                      <tr>
-                        <th>Lead</th>
-                        <th>Kategorie</th>
-                        <th>Region</th>
-                        <th>Credits</th>
-                        <th>Status</th>
-                        <th>Datum</th>
-                        <th />
-                      </tr>
-                    </thead>
+            <div className="provider-crm-profile-grid">
+              <div>
+                <small>Kontaktperson</small>
+                <strong>{provider.contactName}</strong>
+              </div>
+              <div>
+                <small>E-Mail</small>
+                <strong>{provider.email}</strong>
+              </div>
+              <div>
+                <small>Telefon</small>
+                <strong>{provider.phone || "Nicht angegeben"}</strong>
+              </div>
+              <div>
+                <small>Standort</small>
+                <strong>{location || provider.region || "Nicht angegeben"}</strong>
+              </div>
+              <div>
+                <small>Webseite</small>
+                <strong>{provider.website || "Nicht angegeben"}</strong>
+              </div>
+              <div>
+                <small>Registriert</small>
+                <strong>{formatDate(provider.createdAt)}</strong>
+              </div>
+            </div>
 
-                    <tbody>
-                      {provider.purchases.map((purchase) => (
-                        <tr key={purchase.id}>
-                          <td>
-                            <strong>{purchase.lead.title}</strong>
-                          </td>
+            {provider.description ? (
+              <div className="provider-crm-description">
+                <small>Firmenbeschreibung</small>
+                <p>{provider.description}</p>
+              </div>
+            ) : null}
 
-                          <td>{purchase.lead.category}</td>
+            <div className="provider-crm-tags-block">
+              <small>Dienstleistungen</small>
+              <div>
+                {(provider.serviceCategories.length > 0
+                  ? provider.serviceCategories
+                  : provider.category
+                    ? [provider.category]
+                    : ["Keine Kategorien"]
+                ).map((item) => (
+                  <span key={item}>{item}</span>
+                ))}
+              </div>
+            </div>
 
-                          <td>
-                            {purchase.lead.city ||
-                              purchase.lead.region ||
-                              "–"}
-                          </td>
+            <div className="provider-crm-tags-block">
+              <small>Einsatzgebiete</small>
+              <div>
+                {(provider.serviceRegions.length > 0
+                  ? provider.serviceRegions
+                  : provider.region
+                    ? [provider.region]
+                    : ["Keine Regionen"]
+                ).map((item) => (
+                  <span key={item}>{item}</span>
+                ))}
+              </div>
+            </div>
 
-                          <td>{purchase.price}</td>
-
-                          <td>
-                            <span
-                              className={`provider-crm-lead-status status-${purchase.status.toLowerCase()}`}
-                            >
-                              {purchaseStatus(purchase.status)}
-                            </span>
-                          </td>
-
-                          <td>{formatDate(purchase.createdAt)}</td>
-
-                          <td>
-                            <Link
-                              href={`/admin/leads/${purchase.lead.id}`}
-                            >
-                              Öffnen →
-                            </Link>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </article>
-
-            <article className="provider-crm-panel">
-              <div className="provider-crm-panel-head">
-                <div>
-                  <span>Finanzen</span>
-                  <h2>Zahlungsverlauf</h2>
-                </div>
-
+            <div className="provider-crm-settings">
+              <div>
+                <span>Lead-E-Mails</span>
+                <strong>{provider.receiveLeadEmails ? "Aktiv" : "Deaktiviert"}</strong>
+              </div>
+              <div>
+                <span>Alle Lead-E-Mails</span>
                 <strong>
-                  {formatMoneyFromCents(totalRevenue)}
+                  {provider.receiveAllLeadEmails ? "Aktiv" : "Deaktiviert"}
                 </strong>
               </div>
+            </div>
+          </article>
 
-              {provider.creditPurchases.length === 0 &&
-              provider.invoices.length === 0 ? (
-                <div className="provider-crm-empty">
-                  <div>💳</div>
-                  <strong>Noch keine Zahlungen</strong>
-                  <p>
-                    Credit-Käufe und Rechnungen erscheinen automatisch
-                    in diesem Bereich.
-                  </p>
-                </div>
-              ) : (
-                <div className="provider-crm-payment-list">
-                  {provider.creditPurchases.map((purchase) => (
-                    <div
-                      className="provider-crm-payment-row"
-                      key={purchase.id}
-                    >
-                      <div className="provider-crm-payment-icon">
-                        ⭐
-                      </div>
-
-                      <div className="provider-crm-payment-copy">
-                        <strong>
-                          {formatNumber(purchase.credits)} Credits
-                        </strong>
-                        <span>
-                          Credit-Paket
-                          {purchase.packageId
-                            ? ` · ${purchase.packageId}`
-                            : ""}
-                        </span>
-                      </div>
-
-                      <div className="provider-crm-payment-value">
-                        <strong>
-                          {formatMoneyFromCents(purchase.amount)}
-                        </strong>
-                        <span
-                          className={
-                            purchase.status.toLowerCase() === "paid"
-                              ? "paid"
-                              : ""
-                          }
-                        >
-                          {purchase.status}
-                        </span>
-                      </div>
-
-                      <time>{formatDate(purchase.createdAt)}</time>
-                    </div>
-                  ))}
-
-                  {provider.invoices.map((invoice) => (
-                    <div
-                      className="provider-crm-payment-row"
-                      key={invoice.id}
-                    >
-                      <div className="provider-crm-payment-icon">
-                        🧾
-                      </div>
-
-                      <div className="provider-crm-payment-copy">
-                        <strong>{invoice.invoiceNumber}</strong>
-                        <span>Fixauftrag-Rechnung</span>
-                      </div>
-
-                      <div className="provider-crm-payment-value">
-                        <strong>
-                          {formatMoneyFromCents(invoice.amountCents)}
-                        </strong>
-                        <span
-                          className={
-                            invoice.status.toUpperCase() === "PAID"
-                              ? "paid"
-                              : ""
-                          }
-                        >
-                          {invoice.status}
-                        </span>
-                      </div>
-
-                      <time>{formatDate(invoice.createdAt)}</time>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </article>
-
-            <article className="provider-crm-panel">
-              <div className="provider-crm-panel-head">
-                <div>
-                  <span>Chronologie</span>
-                  <h2>Aktivitäten</h2>
-                </div>
-
-                <strong>{provider.activities.length}</strong>
+          <article className="provider-crm-panel">
+            <div className="provider-crm-panel-head">
+              <div>
+                <span>Sales Performance</span>
+                <h2>Conversion-Funnel</h2>
               </div>
+            </div>
 
-              {provider.activities.length === 0 ? (
-                <div className="provider-crm-empty">
-                  <div>⚡</div>
-                  <strong>Noch keine Aktivitäten erfasst</strong>
-                  <p>
-                    Logins, Lead-Käufe und weitere Aktionen werden hier
-                    angezeigt.
-                  </p>
-                </div>
-              ) : (
-                <div className="provider-crm-timeline">
-                  {provider.activities.map((activity) => (
-                    <div
-                      className="provider-crm-timeline-row"
-                      key={activity.id}
-                    >
-                      <div className="provider-crm-timeline-icon">
-                        {activityIcon(activity.event)}
-                      </div>
+            <div className="provider-crm-funnel">
+              {[
+                ["Leadkäufe", totalLeadPurchases, 100],
+                ["Kontaktiert", contactedCount, contactRate],
+                ["Offerten", offerCount, offerRate],
+                ["Gewonnen", wonCount, winRate],
+              ].map(([label, value, rate]) => (
+                <div key={String(label)}>
+                  <div>
+                    <span>{label}</span>
+                    <strong>{formatNumber(Number(value))}</strong>
+                  </div>
 
-                      <div className="provider-crm-timeline-copy">
-                        <strong>{activity.event}</strong>
-
-                        <p>
-                          {activity.description ||
-                            "Aktivität wurde registriert."}
-                        </p>
-
-                        <div>
-                          {activity.page ? (
-                            <span>Seite: {activity.page}</span>
-                          ) : null}
-
-                          {activity.ipAddress ? (
-                            <span>IP: {activity.ipAddress}</span>
-                          ) : null}
-                        </div>
-                      </div>
-
-                      <time>{formatDate(activity.createdAt)}</time>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </article>
-          </div>
-
-          <aside className="provider-crm-sidebar">
-            <article className="provider-crm-panel">
-              <div className="provider-crm-panel-head compact">
-                <div>
-                  <span>Anbieter</span>
-                  <h2>Schnellaktionen</h2>
-                </div>
-              </div>
-
-              <div className="provider-crm-quick-actions">
-                <Link
-                  href={`/admin/providers/${provider.id}/edit`}
-                  className="provider-crm-quick-action"
-                >
-                  <i>✏️</i>
-                  <span>
-                    <strong>Anbieter bearbeiten</strong>
-                    <small>Profil und Einstellungen ändern</small>
-                  </span>
-                </Link>
-
-                <Link
-                  href={`/admin/providers/${provider.id}/credits`}
-                  className="provider-crm-quick-action"
-                >
-                  <i>⭐</i>
-                  <span>
-                    <strong>Credits verwalten</strong>
-                    <small>Credits hinzufügen oder entfernen</small>
-                  </span>
-                </Link>
-
-                <a
-                  href={`mailto:${provider.email}`}
-                  className="provider-crm-quick-action"
-                >
-                  <i>✉️</i>
-                  <span>
-                    <strong>E-Mail senden</strong>
-                    <small>Anbieter direkt kontaktieren</small>
-                  </span>
-                </a>
-
-                {provider.phone ? (
-                  <a
-                    href={`tel:${provider.phone}`}
-                    className="provider-crm-quick-action"
-                  >
-                    <i>📞</i>
-                    <span>
-                      <strong>Anrufen</strong>
-                      <small>{provider.phone}</small>
-                    </span>
-                  </a>
-                ) : null}
-              </div>
-            </article>
-
-            <article className="provider-crm-panel">
-              <div className="provider-crm-panel-head compact">
-                <div>
-                  <span>Abdeckung</span>
-                  <h2>Dienstleistungen</h2>
-                </div>
-              </div>
-
-              <div className="provider-crm-tag-section">
-                <span>Kategorien</span>
-
-                <div className="provider-crm-tags">
-                  {provider.serviceCategories.length === 0 ? (
-                    <small>Keine Kategorien hinterlegt</small>
-                  ) : (
-                    provider.serviceCategories.map((category) => (
-                      <strong key={category}>{category}</strong>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              <div className="provider-crm-tag-section">
-                <span>Regionen</span>
-
-                <div className="provider-crm-tags">
-                  {provider.serviceRegions.length === 0 ? (
-                    <small>Keine Regionen hinterlegt</small>
-                  ) : (
-                    provider.serviceRegions.map((region) => (
-                      <strong key={region}>{region}</strong>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              <div className="provider-crm-tag-section">
-                <span>Städte</span>
-
-                <div className="provider-crm-tags">
-                  {provider.serviceCities.length === 0 ? (
-                    <small>Keine Städte hinterlegt</small>
-                  ) : (
-                    provider.serviceCities.slice(0, 15).map((city) => (
-                      <strong key={city}>{city}</strong>
-                    ))
-                  )}
-                </div>
-              </div>
-            </article>
-
-            <article className="provider-crm-panel">
-              <div className="provider-crm-panel-head compact">
-                <div>
-                  <span>Performance</span>
-                  <h2>Anbieterbewertung</h2>
-                </div>
-              </div>
-
-              <div className="provider-crm-score">
-                <div className="provider-crm-score-circle">
-                  <strong>{successRate}</strong>
-                  <span>/ 100</span>
-                </div>
-
-                <div>
-                  <strong>
-                    {successRate >= 70
-                      ? "Sehr guter Anbieter"
-                      : successRate >= 40
-                        ? "Aktiver Anbieter"
-                        : purchasedLeads > 0
-                          ? "Im Aufbau"
-                          : "Noch keine Daten"}
-                  </strong>
-
-                  <p>
-                    Automatische Bewertung basierend auf Käufen und
-                    gewonnenen Leads.
-                  </p>
-                </div>
-              </div>
-
-              <div className="provider-crm-progress-list">
-                <div>
-                  <span>Erfolgsquote</span>
-                  <strong>{successRate}%</strong>
-                  <i>
-                    <b style={{ width: `${successRate}%` }} />
-                  </i>
-                </div>
-
-                <div>
-                  <span>Profilvollständigkeit</span>
-                  <strong>
-                    {[
-                      provider.companyName,
-                      provider.contactName,
-                      provider.email,
-                      provider.phone,
-                      provider.address,
-                      provider.city,
-                      provider.website,
-                      provider.description,
-                    ].filter(Boolean).length * 12}
-                    %
-                  </strong>
-
-                  <i>
-                    <b
+                  <div className="provider-crm-funnel-track">
+                    <i
                       style={{
-                        width: `${Math.min(
-                          [
-                            provider.companyName,
-                            provider.contactName,
-                            provider.email,
-                            provider.phone,
-                            provider.address,
-                            provider.city,
-                            provider.website,
-                            provider.description,
-                          ].filter(Boolean).length * 12,
-                          100,
+                        width: `${Math.max(
+                          Number(rate),
+                          Number(value) ? 4 : 0,
                         )}%`,
                       }}
                     />
-                  </i>
-                </div>
-              </div>
-            </article>
+                  </div>
 
-            <article className="provider-crm-panel">
-              <div className="provider-crm-panel-head compact">
-                <div>
-                  <span>Interne Nutzung</span>
-                  <h2>Notizen</h2>
+                  <small>{rate}%</small>
                 </div>
-              </div>
+              ))}
+            </div>
 
-              <div className="provider-crm-note-placeholder">
-                <div>📝</div>
-                <strong>Noch keine internen Notizen</strong>
+            <div className="provider-crm-intelligence">
+              <small>AUTOMATISCHE BEWERTUNG</small>
+
+              <div>
+                <strong>
+                  {winRate >= 30
+                    ? "Sehr gute Abschlussleistung"
+                    : winRate >= 15
+                      ? "Solide Abschlussleistung"
+                      : "Abschlussquote kann verbessert werden"}
+                </strong>
                 <p>
-                  Im nächsten Schritt bauen wir das Speichern und
-                  Bearbeiten interner CRM-Notizen ein.
+                  {contactRate < 60
+                    ? "Nicht alle gekauften Leads werden konsequent bearbeitet. Eine höhere Kontaktquote dürfte die Resultate verbessern."
+                    : "Die gekauften Leads werden überwiegend bearbeitet. Der Anbieter zeigt eine gute operative Aktivität."}
                 </p>
-
-                <button type="button" disabled>
-                  Neue Notiz
-                </button>
               </div>
-            </article>
-          </aside>
+            </div>
+          </article>
+        </section>
+
+        <section className="provider-crm-double-grid">
+          <article className="provider-crm-panel">
+            <div className="provider-crm-panel-head">
+              <div>
+                <span>Lead CRM</span>
+                <h2>Gekaufte Leads</h2>
+              </div>
+              <strong>{totalLeadPurchases}</strong>
+            </div>
+
+            <div className="provider-crm-list">
+              {provider.purchases.length === 0 ? (
+                <p className="provider-crm-empty">
+                  Noch keine Leads gekauft.
+                </p>
+              ) : (
+                provider.purchases.map((purchase) => (
+                  <div className="provider-crm-lead-row" key={purchase.id}>
+                    <div className="provider-crm-list-icon">L</div>
+
+                    <div className="provider-crm-list-main">
+                      <strong>{purchase.lead.title}</strong>
+                      <span>
+                        {purchase.lead.postalCode
+                          ? `${purchase.lead.postalCode} `
+                          : ""}
+                        {purchase.lead.city || purchase.lead.region} ·{" "}
+                        {purchase.lead.category}
+                      </span>
+                    </div>
+
+                    <div className="provider-crm-list-side">
+                      <strong>{leadStatus(purchase.status)}</strong>
+                      <span>{purchase.price} Credits</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </article>
+
+          <article className="provider-crm-panel">
+            <div className="provider-crm-panel-head">
+              <div>
+                <span>Finanzen</span>
+                <h2>Credit-Zahlungen</h2>
+              </div>
+              <strong>{creditAggregate._count.id}</strong>
+            </div>
+
+            <div className="provider-crm-list">
+              {provider.creditPurchases.length === 0 ? (
+                <p className="provider-crm-empty">
+                  Noch keine bezahlten Creditpakete.
+                </p>
+              ) : (
+                provider.creditPurchases.map((purchase) => (
+                  <div className="provider-crm-payment-row" key={purchase.id}>
+                    <div className="provider-crm-list-icon">CHF</div>
+
+                    <div className="provider-crm-list-main">
+                      <strong>{purchase.credits} Credits</strong>
+                      <span>{formatDate(purchase.createdAt)}</span>
+                    </div>
+
+                    <div className="provider-crm-list-side">
+                      <strong>
+                        {formatMoney(purchase.amount, purchase.currency)}
+                      </strong>
+                      <span>{purchase.status}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </article>
+        </section>
+
+        <section className="provider-crm-double-grid">
+          <article className="provider-crm-panel">
+            <div className="provider-crm-panel-head">
+              <div>
+                <span>Auftragsgeschäft</span>
+                <h2>Fixaufträge</h2>
+              </div>
+              <strong>{provider._count.fixedOrders}</strong>
+            </div>
+
+            <div className="provider-crm-list">
+              {provider.fixedOrders.length === 0 ? (
+                <p className="provider-crm-empty">
+                  Noch keine Fixaufträge gekauft.
+                </p>
+              ) : (
+                provider.fixedOrders.map((order) => (
+                  <div className="provider-crm-order-row" key={order.id}>
+                    <div className="provider-crm-list-icon">F</div>
+
+                    <div className="provider-crm-list-main">
+                      <strong>{order.title}</strong>
+                      <span>
+                        {order.postalCode} {order.city} · {order.category}
+                      </span>
+                    </div>
+
+                    <div className="provider-crm-list-side">
+                      <strong>{order.status}</strong>
+                      <span>{formatMoney(order.orderValueCents)}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </article>
+
+          <article className="provider-crm-panel">
+            <div className="provider-crm-panel-head">
+              <div>
+                <span>Buchhaltung</span>
+                <h2>Rechnungen</h2>
+              </div>
+              <strong>{provider._count.invoices}</strong>
+            </div>
+
+            <div className="provider-crm-list">
+              {provider.invoices.length === 0 ? (
+                <p className="provider-crm-empty">
+                  Noch keine Rechnungen vorhanden.
+                </p>
+              ) : (
+                provider.invoices.map((invoice) => (
+                  <div className="provider-crm-invoice-row" key={invoice.id}>
+                    <div className="provider-crm-list-icon">R</div>
+
+                    <div className="provider-crm-list-main">
+                      <strong>{invoice.invoiceNumber}</strong>
+                      <span>{invoice.fixedOrder.title}</span>
+                    </div>
+
+                    <div className="provider-crm-list-side">
+                      <strong>{formatMoney(invoice.amountCents)}</strong>
+                      <span>{invoice.status}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </article>
+        </section>
+
+        <section className="provider-crm-panel provider-crm-timeline-panel">
+          <div className="provider-crm-panel-head">
+            <div>
+              <span>Timeline</span>
+              <h2>Neueste Aktivitäten</h2>
+            </div>
+            <strong>{provider._count.activities}</strong>
+          </div>
+
+          <div className="provider-crm-timeline">
+            {timeline.length === 0 ? (
+              <p className="provider-crm-empty">
+                Noch keine Aktivitäten vorhanden.
+              </p>
+            ) : (
+              timeline.map((item) => (
+                <div key={item.id}>
+                  <div className="provider-crm-timeline-icon">
+                    {item.icon}
+                  </div>
+
+                  <div>
+                    <strong>{item.title}</strong>
+                    <span>{item.description}</span>
+                  </div>
+
+                  <div>
+                    {item.detail ? <strong>{item.detail}</strong> : null}
+                    <small>{formatDate(item.date)}</small>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </section>
       </div>
 
-      <style>{`
+      <style suppressHydrationWarning>{`
         .provider-crm-page {
+          position: relative;
           min-height: 100vh;
+          overflow: hidden;
+          padding: 38px 20px 80px;
+          color: #f8fafc;
           background:
-            radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 30%),
-            #f4f7fb;
-          color: #111827;
-          padding: 32px 20px 80px;
+            linear-gradient(180deg, #050b16 0%, #081426 46%, #07101d 100%);
         }
 
-        .provider-crm-container {
+        .provider-crm-glow {
+          position: absolute;
+          width: 580px;
+          height: 580px;
+          border-radius: 999px;
+          filter: blur(130px);
+          opacity: .16;
+          pointer-events: none;
+        }
+
+        .provider-crm-glow-one {
+          top: -260px;
+          right: -160px;
+          background: #4f46e5;
+        }
+
+        .provider-crm-glow-two {
+          bottom: -220px;
+          left: -250px;
+          background: #0891b2;
+        }
+
+        .provider-crm-shell {
+          position: relative;
+          z-index: 1;
           width: min(1500px, 100%);
           margin: 0 auto;
         }
 
-        .provider-crm-topbar,
-        .provider-crm-profile,
-        .provider-crm-profile-main,
-        .provider-crm-title-row,
-        .provider-crm-contact-row,
-        .provider-crm-top-actions,
-        .provider-crm-panel-head,
-        .provider-crm-payment-row,
-        .provider-crm-timeline-row,
-        .provider-crm-score {
+        .provider-crm-header {
           display: flex;
-          align-items: center;
-        }
-
-        .provider-crm-topbar {
           justify-content: space-between;
+          align-items: flex-end;
           gap: 24px;
-          margin-bottom: 22px;
-        }
-
-        .provider-crm-topbar > div:first-child {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-
-        .provider-crm-back {
-          color: #64748b;
-          text-decoration: none;
-          font-size: 14px;
-          font-weight: 700;
-        }
-
-        .provider-crm-back:hover {
-          color: #111827;
-        }
-
-        .provider-crm-eyebrow {
-          color: #2563eb;
-          font-size: 12px;
-          font-weight: 900;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-        }
-
-        .provider-crm-top-actions {
-          gap: 10px;
           flex-wrap: wrap;
         }
 
-        .provider-crm-button {
-          min-height: 44px;
-          padding: 0 18px;
-          border-radius: 12px;
+        .provider-crm-back {
+          display: inline-block;
+          margin-bottom: 20px;
+          color: rgba(226,232,240,.58);
           text-decoration: none;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 14px;
+          font-size: 13px;
           font-weight: 800;
-          transition: 0.2s ease;
         }
 
-        .provider-crm-button:hover {
-          transform: translateY(-1px);
-        }
-
-        .provider-crm-button.primary {
-          color: white;
-          background: #111827;
-          box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
-        }
-
-        .provider-crm-button.secondary {
-          color: #111827;
-          background: white;
-          border: 1px solid #e2e8f0;
-        }
-
-        .provider-crm-profile {
-          justify-content: space-between;
-          align-items: stretch;
-          gap: 30px;
-          padding: 28px;
-          border-radius: 24px;
-          background:
-            linear-gradient(135deg, rgba(255,255,255,0.98), rgba(248,250,252,0.96));
-          border: 1px solid rgba(226, 232, 240, 0.9);
-          box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
-        }
-
-        .provider-crm-profile-main {
-          gap: 20px;
-          min-width: 0;
+        .provider-crm-title-row {
+          display: flex;
+          align-items: center;
+          gap: 18px;
         }
 
         .provider-crm-avatar {
-          width: 84px;
-          height: 84px;
-          flex: 0 0 84px;
-          border-radius: 24px;
+          width: 76px;
+          height: 76px;
+          flex: 0 0 76px;
           overflow: hidden;
           display: grid;
           place-items: center;
-          color: white;
-          background: linear-gradient(135deg, #111827, #334155);
-          font-size: 27px;
-          font-weight: 900;
-          box-shadow: 0 14px 28px rgba(15, 23, 42, 0.2);
+          border-radius: 24px;
+          background:
+            linear-gradient(145deg, rgba(99,102,241,.34), rgba(56,189,248,.18));
+          border: 1px solid rgba(255,255,255,.12);
+          font-size: 24px;
+          font-weight: 950;
         }
 
         .provider-crm-avatar img {
@@ -1018,748 +913,589 @@ export default async function AdminProviderDetailPage({
           object-fit: cover;
         }
 
-        .provider-crm-profile-copy {
-          min-width: 0;
-        }
-
-        .provider-crm-title-row {
-          gap: 12px;
+        .provider-crm-title-meta {
+          display: flex;
+          align-items: center;
+          gap: 10px;
           flex-wrap: wrap;
         }
 
-        .provider-crm-title-row h1 {
-          margin: 0;
-          font-size: clamp(28px, 4vw, 42px);
-          line-height: 1.05;
-          letter-spacing: -0.04em;
-        }
-
-        .provider-crm-profile-copy > p {
-          margin: 7px 0 14px;
-          color: #64748b;
-          font-size: 16px;
+        .provider-crm-title-meta > span:last-child {
+          color: rgba(226,232,240,.42);
+          font-size: 12px;
+          font-weight: 800;
         }
 
         .provider-crm-status {
           display: inline-flex;
-          align-items: center;
-          gap: 7px;
-          padding: 7px 10px;
+          padding: 6px 10px;
           border-radius: 999px;
-          font-size: 12px;
-          font-weight: 900;
-        }
-
-        .provider-crm-status i {
-          font-style: normal;
           font-size: 10px;
-        }
-
-        .provider-crm-status.approved {
-          color: #047857;
-          background: #ecfdf5;
-          border: 1px solid #a7f3d0;
-        }
-
-        .provider-crm-status.pending {
-          color: #b45309;
-          background: #fffbeb;
-          border: 1px solid #fde68a;
-        }
-
-        .provider-crm-status.blocked {
-          color: #b91c1c;
-          background: #fef2f2;
-          border: 1px solid #fecaca;
-        }
-
-        .provider-crm-contact-row {
-          gap: 15px;
-          flex-wrap: wrap;
-        }
-
-        .provider-crm-contact-row a {
-          color: #475569;
-          text-decoration: none;
-          font-size: 13px;
-          font-weight: 700;
-        }
-
-        .provider-crm-contact-row a:hover {
-          color: #2563eb;
-        }
-
-        .provider-crm-profile-side {
-          min-width: 310px;
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 12px;
-        }
-
-        .provider-crm-profile-side > div {
-          padding: 14px;
-          border-radius: 14px;
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-        }
-
-        .provider-crm-profile-side > div:last-child {
-          grid-column: 1 / -1;
-        }
-
-        .provider-crm-profile-side span,
-        .provider-crm-details-grid span,
-        .provider-crm-description span,
-        .provider-crm-tag-section > span {
-          display: block;
-          color: #94a3b8;
-          font-size: 11px;
-          font-weight: 900;
-          letter-spacing: 0.06em;
+          font-weight: 950;
+          letter-spacing: .06em;
           text-transform: uppercase;
-          margin-bottom: 6px;
         }
 
-        .provider-crm-profile-side strong {
-          font-size: 13px;
+        .crm-status-approved {
+          color: #86efac;
+          background: rgba(34,197,94,.12);
         }
 
-        .provider-crm-id {
-          display: block;
-          max-width: 260px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          font-family: monospace;
-          color: #475569;
+        .crm-status-pending {
+          color: #fde68a;
+          background: rgba(234,179,8,.12);
         }
 
-        .provider-crm-metrics {
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 16px;
-          margin: 20px 0;
+        .crm-status-blocked {
+          color: #fda4af;
+          background: rgba(244,63,94,.12);
         }
 
-        .provider-crm-metrics article {
+        .provider-crm-title-row h1 {
+          margin: 10px 0 0;
+          font-size: clamp(32px, 4vw, 54px);
+          line-height: 1;
+          letter-spacing: -.04em;
+        }
+
+        .provider-crm-title-row p {
+          margin: 9px 0 0;
+          color: rgba(226,232,240,.55);
+        }
+
+        .provider-crm-actions {
           display: flex;
-          gap: 14px;
           align-items: center;
-          padding: 20px;
-          background: white;
-          border: 1px solid #e2e8f0;
-          border-radius: 18px;
-          box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
-        }
-
-        .provider-crm-metric-icon {
-          width: 48px;
-          height: 48px;
-          flex: 0 0 48px;
-          border-radius: 14px;
-          display: grid;
-          place-items: center;
-          background: #f1f5f9;
-          font-size: 21px;
-        }
-
-        .provider-crm-metrics article span,
-        .provider-crm-metrics article small {
-          display: block;
-        }
-
-        .provider-crm-metrics article span {
-          color: #64748b;
-          font-size: 12px;
-          font-weight: 800;
-        }
-
-        .provider-crm-metrics article strong {
-          display: block;
-          margin: 3px 0;
-          font-size: 24px;
-          letter-spacing: -0.03em;
-        }
-
-        .provider-crm-metrics article small {
-          color: #94a3b8;
-          font-size: 11px;
-        }
-
-        .provider-crm-grid {
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) 360px;
-          align-items: start;
-          gap: 20px;
-        }
-
-        .provider-crm-main-column,
-        .provider-crm-sidebar {
-          display: grid;
-          gap: 20px;
-        }
-
-        .provider-crm-panel {
-          min-width: 0;
-          padding: 24px;
-          background: white;
-          border: 1px solid #e2e8f0;
-          border-radius: 20px;
-          box-shadow: 0 10px 35px rgba(15, 23, 42, 0.05);
-        }
-
-        .provider-crm-panel-head {
-          justify-content: space-between;
-          gap: 20px;
-          margin-bottom: 22px;
-        }
-
-        .provider-crm-panel-head.compact {
-          margin-bottom: 18px;
-        }
-
-        .provider-crm-panel-head span {
-          display: block;
-          color: #2563eb;
-          font-size: 10px;
-          font-weight: 900;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          margin-bottom: 4px;
-        }
-
-        .provider-crm-panel-head h2 {
-          margin: 0;
-          font-size: 20px;
-          letter-spacing: -0.02em;
-        }
-
-        .provider-crm-panel-head > a {
-          color: #2563eb;
-          text-decoration: none;
-          font-size: 13px;
-          font-weight: 800;
-        }
-
-        .provider-crm-details-grid {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 12px;
-        }
-
-        .provider-crm-details-grid > div {
-          min-width: 0;
-          padding: 14px;
-          border-radius: 14px;
-          background: #f8fafc;
-          border: 1px solid #edf2f7;
-        }
-
-        .provider-crm-details-grid strong {
-          display: block;
-          overflow-wrap: anywhere;
-          font-size: 14px;
-        }
-
-        .provider-crm-description {
-          margin-top: 14px;
-          padding: 16px;
-          border-radius: 14px;
-          background: #f8fafc;
-          border: 1px solid #edf2f7;
-        }
-
-        .provider-crm-description p {
-          margin: 0;
-          color: #475569;
-          font-size: 14px;
-          line-height: 1.7;
-          white-space: pre-line;
-        }
-
-        .provider-crm-table-wrap {
-          overflow-x: auto;
-        }
-
-        .provider-crm-table {
-          width: 100%;
-          border-collapse: collapse;
-          min-width: 850px;
-        }
-
-        .provider-crm-table th {
-          padding: 11px 12px;
-          text-align: left;
-          color: #94a3b8;
-          font-size: 10px;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-          border-bottom: 1px solid #e2e8f0;
-        }
-
-        .provider-crm-table td {
-          padding: 14px 12px;
-          color: #475569;
-          font-size: 13px;
-          border-bottom: 1px solid #f1f5f9;
-        }
-
-        .provider-crm-table td strong {
-          color: #111827;
-        }
-
-        .provider-crm-table td a {
-          color: #2563eb;
-          text-decoration: none;
-          font-weight: 800;
-          white-space: nowrap;
-        }
-
-        .provider-crm-lead-status {
-          display: inline-flex;
-          padding: 6px 9px;
-          border-radius: 999px;
-          background: #f1f5f9;
-          color: #475569;
-          font-size: 10px;
-          font-weight: 900;
-          white-space: nowrap;
-        }
-
-        .provider-crm-lead-status.status-won {
-          color: #047857;
-          background: #ecfdf5;
-        }
-
-        .provider-crm-lead-status.status-lost,
-        .provider-crm-lead-status.status-no_offer {
-          color: #b91c1c;
-          background: #fef2f2;
-        }
-
-        .provider-crm-lead-status.status-offer_sent,
-        .provider-crm-lead-status.status-appointment_set {
-          color: #1d4ed8;
-          background: #eff6ff;
-        }
-
-        .provider-crm-empty {
-          padding: 35px 20px;
-          text-align: center;
-          border-radius: 16px;
-          background: #f8fafc;
-          border: 1px dashed #cbd5e1;
-        }
-
-        .provider-crm-empty > div {
-          font-size: 28px;
-          margin-bottom: 8px;
-        }
-
-        .provider-crm-empty strong {
-          display: block;
-        }
-
-        .provider-crm-empty p {
-          margin: 6px auto 0;
-          max-width: 420px;
-          color: #64748b;
-          font-size: 13px;
-          line-height: 1.6;
-        }
-
-        .provider-crm-payment-list,
-        .provider-crm-timeline {
-          display: grid;
-        }
-
-        .provider-crm-payment-row {
-          display: grid;
-          grid-template-columns: 44px minmax(0, 1fr) auto auto;
-          gap: 13px;
-          padding: 14px 0;
-          border-bottom: 1px solid #f1f5f9;
-        }
-
-        .provider-crm-payment-row:last-child,
-        .provider-crm-timeline-row:last-child {
-          border-bottom: 0;
-        }
-
-        .provider-crm-payment-icon,
-        .provider-crm-timeline-icon {
-          width: 42px;
-          height: 42px;
-          border-radius: 13px;
-          display: grid;
-          place-items: center;
-          background: #f1f5f9;
-        }
-
-        .provider-crm-payment-copy strong,
-        .provider-crm-payment-copy span,
-        .provider-crm-payment-value strong,
-        .provider-crm-payment-value span {
-          display: block;
-        }
-
-        .provider-crm-payment-copy span,
-        .provider-crm-payment-value span,
-        .provider-crm-payment-row time {
-          color: #94a3b8;
-          font-size: 11px;
-        }
-
-        .provider-crm-payment-value {
-          text-align: right;
-        }
-
-        .provider-crm-payment-value span.paid {
-          color: #059669;
-          font-weight: 800;
-        }
-
-        .provider-crm-payment-row time {
-          min-width: 120px;
-          text-align: right;
-        }
-
-        .provider-crm-timeline-row {
-          align-items: flex-start;
-          gap: 14px;
-          padding: 15px 0;
-          border-bottom: 1px solid #f1f5f9;
-        }
-
-        .provider-crm-timeline-icon {
-          flex: 0 0 42px;
-        }
-
-        .provider-crm-timeline-copy {
-          flex: 1;
-          min-width: 0;
-        }
-
-        .provider-crm-timeline-copy strong {
-          display: block;
-          margin-bottom: 3px;
-        }
-
-        .provider-crm-timeline-copy p {
-          margin: 0;
-          color: #64748b;
-          font-size: 13px;
-          line-height: 1.5;
-        }
-
-        .provider-crm-timeline-copy > div {
-          display: flex;
           gap: 10px;
           flex-wrap: wrap;
-          margin-top: 7px;
         }
 
-        .provider-crm-timeline-copy span,
-        .provider-crm-timeline-row time {
-          color: #94a3b8;
-          font-size: 10px;
+        .provider-crm-button {
+          min-height: 44px;
+          padding: 0 16px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 14px;
+          border: 1px solid rgba(255,255,255,.10);
+          text-decoration: none;
+          font-size: 13px;
+          font-weight: 850;
         }
 
-        .provider-crm-timeline-row time {
-          text-align: right;
-          white-space: nowrap;
+        .provider-crm-button-dark {
+          color: #f8fafc;
+          background: rgba(255,255,255,.04);
         }
 
-        .provider-crm-quick-actions {
+        .provider-crm-button-primary {
+          color: white;
+          background: linear-gradient(135deg, #6366f1, #2563eb);
+          box-shadow: 0 14px 35px rgba(37,99,235,.25);
+        }
+
+        .provider-crm-hero-grid {
           display: grid;
-          gap: 9px;
+          grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+          gap: 18px;
+          margin-top: 34px;
         }
 
-        .provider-crm-quick-action {
+        .provider-crm-score-card,
+        .provider-crm-credit-card,
+        .provider-crm-kpi,
+        .provider-crm-panel {
+          border: 1px solid rgba(255,255,255,.09);
+          box-shadow: 0 26px 80px rgba(0,0,0,.22);
+        }
+
+        .provider-crm-score-card {
+          padding: 28px;
+          border-radius: 30px;
           display: flex;
           align-items: center;
-          gap: 12px;
-          padding: 13px;
-          border-radius: 14px;
-          color: #111827;
-          text-decoration: none;
-          background: #f8fafc;
-          border: 1px solid #edf2f7;
-          transition: 0.2s ease;
+          gap: 24px;
+          background: rgba(8,20,39,.86);
         }
 
-        .provider-crm-quick-action:hover {
-          transform: translateX(3px);
-          border-color: #cbd5e1;
-          background: white;
-        }
-
-        .provider-crm-quick-action i {
-          width: 38px;
-          height: 38px;
-          flex: 0 0 38px;
+        .provider-crm-score-ring {
+          width: 132px;
+          height: 132px;
+          flex: 0 0 132px;
           display: grid;
           place-items: center;
-          border-radius: 12px;
-          background: white;
-          font-style: normal;
-          box-shadow: 0 5px 15px rgba(15, 23, 42, 0.06);
+          border-radius: 999px;
         }
 
-        .provider-crm-quick-action span {
-          min-width: 0;
-        }
-
-        .provider-crm-quick-action strong,
-        .provider-crm-quick-action small {
-          display: block;
-        }
-
-        .provider-crm-quick-action strong {
-          font-size: 13px;
-        }
-
-        .provider-crm-quick-action small {
-          margin-top: 2px;
-          color: #94a3b8;
-          font-size: 10px;
-        }
-
-        .provider-crm-tag-section + .provider-crm-tag-section {
-          margin-top: 18px;
-        }
-
-        .provider-crm-tags {
-          display: flex;
-          gap: 7px;
-          flex-wrap: wrap;
-        }
-
-        .provider-crm-tags strong {
-          padding: 7px 9px;
-          border-radius: 9px;
-          color: #334155;
-          background: #f1f5f9;
-          font-size: 10px;
-        }
-
-        .provider-crm-tags small {
-          color: #94a3b8;
-        }
-
-        .provider-crm-score {
-          align-items: center;
-          gap: 15px;
-          padding: 15px;
-          border-radius: 16px;
-          background: #f8fafc;
-          border: 1px solid #edf2f7;
-        }
-
-        .provider-crm-score-circle {
-          width: 72px;
-          height: 72px;
-          flex: 0 0 72px;
-          border-radius: 50%;
+        .provider-crm-score-ring > div {
+          width: 104px;
+          height: 104px;
           display: grid;
           place-content: center;
           text-align: center;
-          color: white;
-          background: linear-gradient(135deg, #111827, #334155);
+          border-radius: 999px;
+          background: #091425;
         }
 
-        .provider-crm-score-circle strong {
-          display: block;
-          font-size: 24px;
+        .provider-crm-score-ring strong {
+          font-size: 35px;
           line-height: 1;
         }
 
-        .provider-crm-score-circle span {
-          font-size: 9px;
-          opacity: 0.7;
-        }
-
-        .provider-crm-score > div:last-child > strong {
-          display: block;
-          margin-bottom: 4px;
-          font-size: 13px;
-        }
-
-        .provider-crm-score p {
-          margin: 0;
-          color: #64748b;
+        .provider-crm-score-ring span {
+          margin-top: 4px;
+          color: rgba(226,232,240,.42);
           font-size: 11px;
-          line-height: 1.5;
         }
 
-        .provider-crm-progress-list {
+        .provider-crm-score-card small,
+        .provider-crm-credit-card > span {
+          color: #a5b4fc;
+          font-size: 11px;
+          font-weight: 950;
+          letter-spacing: .08em;
+          text-transform: uppercase;
+        }
+
+        .provider-crm-score-card h2 {
+          margin: 8px 0 0;
+          font-size: 27px;
+        }
+
+        .provider-crm-score-card p {
+          margin: 9px 0 0;
+          color: rgba(226,232,240,.52);
+          font-size: 13px;
+          line-height: 1.55;
+        }
+
+        .provider-crm-credit-card {
+          padding: 30px;
+          border-radius: 30px;
+          background:
+            radial-gradient(circle at 90% 0%, rgba(56,189,248,.18), transparent 30%),
+            linear-gradient(145deg, rgba(15,37,62,.97), rgba(24,30,76,.94));
+        }
+
+        .provider-crm-credit-card > strong {
+          display: block;
+          margin-top: 18px;
+          font-size: clamp(38px, 5vw, 64px);
+          line-height: 1;
+          letter-spacing: -.05em;
+        }
+
+        .provider-crm-credit-card > div {
           display: grid;
-          gap: 14px;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 10px;
+          margin-top: 28px;
+        }
+
+        .provider-crm-credit-card > div > span {
+          padding: 14px;
+          border-radius: 17px;
+          background: rgba(255,255,255,.05);
+          border: 1px solid rgba(255,255,255,.06);
+        }
+
+        .provider-crm-credit-card small,
+        .provider-crm-credit-card b {
+          display: block;
+        }
+
+        .provider-crm-credit-card small {
+          color: rgba(226,232,240,.45);
+        }
+
+        .provider-crm-credit-card b {
+          margin-top: 7px;
+          font-size: 17px;
+        }
+
+        .provider-crm-kpi-grid {
+          display: grid;
+          grid-template-columns: repeat(6, minmax(0, 1fr));
+          gap: 12px;
           margin-top: 18px;
         }
 
-        .provider-crm-progress-list > div {
-          display: grid;
-          grid-template-columns: 1fr auto;
-          gap: 7px 10px;
+        .provider-crm-kpi {
+          min-height: 142px;
+          padding: 20px;
+          border-radius: 23px;
+          background: rgba(8,20,39,.82);
         }
 
-        .provider-crm-progress-list span,
-        .provider-crm-progress-list strong {
+        .provider-crm-kpi span,
+        .provider-crm-kpi strong,
+        .provider-crm-kpi small {
+          display: block;
+        }
+
+        .provider-crm-kpi span {
+          color: rgba(226,232,240,.47);
           font-size: 11px;
+          font-weight: 900;
+          letter-spacing: .06em;
+          text-transform: uppercase;
         }
 
-        .provider-crm-progress-list > div > i {
-          grid-column: 1 / -1;
-          height: 7px;
-          overflow: hidden;
-          border-radius: 999px;
-          background: #e2e8f0;
+        .provider-crm-kpi strong {
+          margin-top: 23px;
+          font-size: 30px;
         }
 
-        .provider-crm-progress-list > div > i > b {
-          display: block;
-          height: 100%;
-          border-radius: inherit;
-          background: #111827;
-        }
-
-        .provider-crm-note-placeholder {
-          text-align: center;
-          padding: 15px 5px 5px;
-        }
-
-        .provider-crm-note-placeholder > div {
-          font-size: 28px;
-        }
-
-        .provider-crm-note-placeholder strong {
-          display: block;
+        .provider-crm-kpi small {
           margin-top: 7px;
+          color: rgba(226,232,240,.42);
         }
 
-        .provider-crm-note-placeholder p {
-          margin: 6px 0 14px;
-          color: #64748b;
+        .provider-crm-main-grid,
+        .provider-crm-double-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 18px;
+          margin-top: 18px;
+        }
+
+        .provider-crm-panel {
+          padding: 26px;
+          border-radius: 28px;
+          background: rgba(8,20,39,.84);
+        }
+
+        .provider-crm-panel-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 16px;
+        }
+
+        .provider-crm-panel-head span {
+          color: #a5b4fc;
           font-size: 11px;
+          font-weight: 950;
+          letter-spacing: .08em;
+          text-transform: uppercase;
+        }
+
+        .provider-crm-panel-head h2 {
+          margin: 7px 0 0;
+          font-size: 24px;
+        }
+
+        .provider-crm-profile-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 10px;
+          margin-top: 22px;
+        }
+
+        .provider-crm-profile-grid > div,
+        .provider-crm-settings > div {
+          padding: 15px;
+          border-radius: 17px;
+          background: rgba(255,255,255,.04);
+        }
+
+        .provider-crm-profile-grid small,
+        .provider-crm-profile-grid strong {
+          display: block;
+        }
+
+        .provider-crm-profile-grid small {
+          color: rgba(226,232,240,.42);
+        }
+
+        .provider-crm-profile-grid strong {
+          margin-top: 6px;
+          overflow-wrap: anywhere;
+        }
+
+        .provider-crm-description,
+        .provider-crm-tags-block {
+          margin-top: 18px;
+        }
+
+        .provider-crm-description > small,
+        .provider-crm-tags-block > small {
+          color: rgba(226,232,240,.42);
+          font-weight: 850;
+        }
+
+        .provider-crm-description p {
+          margin: 8px 0 0;
+          color: rgba(226,232,240,.62);
           line-height: 1.6;
         }
 
-        .provider-crm-note-placeholder button {
-          width: 100%;
-          min-height: 42px;
-          border: 0;
-          border-radius: 12px;
-          color: #94a3b8;
-          background: #f1f5f9;
+        .provider-crm-tags-block > div {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 9px;
+        }
+
+        .provider-crm-tags-block span {
+          padding: 7px 10px;
+          border-radius: 999px;
+          background: rgba(99,102,241,.12);
+          color: #c4b5fd;
+          font-size: 11px;
           font-weight: 800;
-          cursor: not-allowed;
         }
 
-        @media (max-width: 1180px) {
-          .provider-crm-metrics {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
+        .provider-crm-settings {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 10px;
+          margin-top: 18px;
+        }
 
-          .provider-crm-grid {
-            grid-template-columns: 1fr;
-          }
+        .provider-crm-settings span,
+        .provider-crm-settings strong {
+          display: block;
+        }
 
-          .provider-crm-sidebar {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+        .provider-crm-settings span {
+          color: rgba(226,232,240,.42);
+          font-size: 11px;
+        }
+
+        .provider-crm-settings strong {
+          margin-top: 6px;
+        }
+
+        .provider-crm-funnel {
+          display: grid;
+          gap: 18px;
+          margin-top: 25px;
+        }
+
+        .provider-crm-funnel > div > div:first-child {
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 7px;
+        }
+
+        .provider-crm-funnel > div > div:first-child span {
+          color: rgba(226,232,240,.62);
+        }
+
+        .provider-crm-funnel-track {
+          height: 10px;
+          overflow: hidden;
+          border-radius: 999px;
+          background: rgba(255,255,255,.06);
+        }
+
+        .provider-crm-funnel-track i {
+          display: block;
+          height: 100%;
+          border-radius: 999px;
+          background: linear-gradient(90deg, #8b5cf6, #38bdf8);
+        }
+
+        .provider-crm-funnel small {
+          display: block;
+          margin-top: 5px;
+          color: rgba(226,232,240,.38);
+        }
+
+        .provider-crm-intelligence {
+          margin-top: 25px;
+          padding: 18px;
+          border-radius: 20px;
+          background:
+            linear-gradient(145deg, rgba(99,102,241,.12), rgba(56,189,248,.06));
+          border: 1px solid rgba(129,140,248,.14);
+        }
+
+        .provider-crm-intelligence > small {
+          color: #a5b4fc;
+          font-size: 10px;
+          font-weight: 950;
+          letter-spacing: .08em;
+        }
+
+        .provider-crm-intelligence strong {
+          display: block;
+          margin-top: 12px;
+        }
+
+        .provider-crm-intelligence p {
+          margin: 7px 0 0;
+          color: rgba(226,232,240,.50);
+          font-size: 12px;
+          line-height: 1.55;
+        }
+
+        .provider-crm-list {
+          display: grid;
+          gap: 2px;
+          margin-top: 20px;
+        }
+
+        .provider-crm-lead-row,
+        .provider-crm-payment-row,
+        .provider-crm-order-row,
+        .provider-crm-invoice-row {
+          display: grid;
+          grid-template-columns: 46px 1fr auto;
+          gap: 12px;
+          align-items: center;
+          padding: 13px 0;
+          border-bottom: 1px solid rgba(255,255,255,.06);
+        }
+
+        .provider-crm-list-icon {
+          width: 42px;
+          height: 42px;
+          display: grid;
+          place-items: center;
+          border-radius: 14px;
+          background: rgba(56,189,248,.10);
+          color: #7dd3fc;
+          font-size: 11px;
+          font-weight: 950;
+        }
+
+        .provider-crm-list-main strong,
+        .provider-crm-list-main span,
+        .provider-crm-list-side strong,
+        .provider-crm-list-side span {
+          display: block;
+        }
+
+        .provider-crm-list-main span,
+        .provider-crm-list-side span {
+          margin-top: 4px;
+          color: rgba(226,232,240,.42);
+          font-size: 11px;
+        }
+
+        .provider-crm-list-side {
+          text-align: right;
+        }
+
+        .provider-crm-list-side strong {
+          font-size: 12px;
+        }
+
+        .provider-crm-timeline-panel {
+          margin-top: 18px;
+        }
+
+        .provider-crm-timeline {
+          display: grid;
+          margin-top: 22px;
+        }
+
+        .provider-crm-timeline > div {
+          display: grid;
+          grid-template-columns: 44px 1fr auto;
+          gap: 13px;
+          align-items: center;
+          padding: 13px 0;
+          border-bottom: 1px solid rgba(255,255,255,.06);
+        }
+
+        .provider-crm-timeline-icon {
+          width: 40px;
+          height: 40px;
+          display: grid;
+          place-items: center;
+          border-radius: 14px;
+          background: rgba(99,102,241,.12);
+          color: #c4b5fd;
+          font-size: 10px;
+          font-weight: 950;
+        }
+
+        .provider-crm-timeline > div > div:nth-child(2) strong,
+        .provider-crm-timeline > div > div:nth-child(2) span,
+        .provider-crm-timeline > div > div:last-child strong,
+        .provider-crm-timeline > div > div:last-child small {
+          display: block;
+        }
+
+        .provider-crm-timeline > div > div:nth-child(2) span {
+          margin-top: 4px;
+          color: rgba(226,232,240,.44);
+          font-size: 12px;
+        }
+
+        .provider-crm-timeline > div > div:last-child {
+          text-align: right;
+        }
+
+        .provider-crm-timeline > div > div:last-child strong {
+          font-size: 11px;
+        }
+
+        .provider-crm-timeline > div > div:last-child small {
+          margin-top: 4px;
+          color: rgba(226,232,240,.38);
+          font-size: 10px;
+        }
+
+        .provider-crm-empty {
+          color: rgba(226,232,240,.42);
+        }
+
+        @media (max-width: 1200px) {
+          .provider-crm-kpi-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
           }
         }
 
-        @media (max-width: 850px) {
-          .provider-crm-topbar,
-          .provider-crm-profile {
-            align-items: stretch;
-            flex-direction: column;
-          }
-
-          .provider-crm-top-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-          }
-
-          .provider-crm-profile-side {
-            min-width: 0;
-          }
-
-          .provider-crm-details-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .provider-crm-sidebar {
+        @media (max-width: 900px) {
+          .provider-crm-hero-grid,
+          .provider-crm-main-grid,
+          .provider-crm-double-grid {
             grid-template-columns: 1fr;
           }
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 680px) {
           .provider-crm-page {
-            padding: 20px 12px 60px;
+            padding-inline: 12px;
           }
 
-          .provider-crm-profile,
-          .provider-crm-panel {
-            padding: 18px;
-            border-radius: 17px;
-          }
-
-          .provider-crm-profile-main {
+          .provider-crm-title-row {
             align-items: flex-start;
           }
 
           .provider-crm-avatar {
-            width: 64px;
-            height: 64px;
-            flex-basis: 64px;
-            border-radius: 18px;
-            font-size: 20px;
+            width: 58px;
+            height: 58px;
+            flex-basis: 58px;
+            border-radius: 19px;
+            font-size: 18px;
           }
 
-          .provider-crm-title-row h1 {
-            font-size: 25px;
-          }
-
-          .provider-crm-contact-row {
+          .provider-crm-score-card {
             align-items: flex-start;
             flex-direction: column;
-            gap: 8px;
           }
 
-          .provider-crm-profile-side {
+          .provider-crm-credit-card > div,
+          .provider-crm-profile-grid,
+          .provider-crm-settings {
             grid-template-columns: 1fr;
           }
 
-          .provider-crm-profile-side > div:last-child {
-            grid-column: auto;
+          .provider-crm-kpi-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
           }
 
-          .provider-crm-metrics {
-            grid-template-columns: 1fr;
+          .provider-crm-timeline > div {
+            grid-template-columns: 40px 1fr;
           }
 
-          .provider-crm-top-actions {
-            grid-template-columns: 1fr;
-          }
-
-          .provider-crm-payment-row {
-            grid-template-columns: 42px minmax(0, 1fr) auto;
-          }
-
-          .provider-crm-payment-row time {
-            grid-column: 2 / -1;
-            min-width: 0;
-            text-align: left;
-          }
-
-          .provider-crm-timeline-row {
-            display: grid;
-            grid-template-columns: 42px minmax(0, 1fr);
-          }
-
-          .provider-crm-timeline-row time {
+          .provider-crm-timeline > div > div:last-child {
             grid-column: 2;
             text-align: left;
           }

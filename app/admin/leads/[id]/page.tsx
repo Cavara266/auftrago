@@ -832,6 +832,80 @@ export default async function AdminLeadDetailPage({
   const successMessage = getMessage(query?.message);
   const errorMessage = getError(query?.error);
 
+  const wonPurchases = lead.purchases.filter(
+    (purchase) => purchase.status === "WON",
+  ).length;
+
+  const progressedPurchases = lead.purchases.filter(
+    (purchase) =>
+      purchase.status === "CONTACTED" ||
+      purchase.status === "APPOINTMENT_SET" ||
+      purchase.status === "OFFER_SENT" ||
+      purchase.status === "WON",
+  ).length;
+
+  const leadScore = Math.min(
+    100,
+    Math.round(
+      (lead.purchases.length / Math.max(maxPurchases, 1)) * 35 +
+        (progressedPurchases / Math.max(lead.purchases.length, 1)) * 25 +
+        (totalOffers > 0 ? 20 : 0) +
+        (acceptedOffers > 0 ? 20 : 0),
+    ),
+  );
+
+  const leadPriority =
+    availabilityStatus === "ENDING" ||
+    (remainingSlots <= 1 && availabilityStatus === "ACTIVE")
+      ? "Hoch"
+      : leadScore >= 65
+        ? "Hoch"
+        : leadScore >= 35
+          ? "Mittel"
+          : "Niedrig";
+
+  const closeProbability =
+    acceptedOffers > 0
+      ? 95
+      : wonPurchases > 0
+        ? 90
+        : totalOffers > 0
+          ? Math.min(85, 45 + totalOffers * 10)
+          : progressedPurchases > 0
+            ? Math.min(65, 25 + progressedPurchases * 10)
+            : Math.min(35, 10 + lead.purchases.length * 8);
+
+  const nextBestAction =
+    availabilityStatus === "EXPIRED"
+      ? {
+          title: "Lead reaktivieren oder archivieren",
+          text: "Der Lead ist abgelaufen. Prüfe, ob eine Verlängerung sinnvoll ist oder ob der Datensatz abgeschlossen werden kann.",
+          cta: "7 Tage verlängern",
+        }
+      : availabilityStatus === "ENDING"
+        ? {
+            title: "Heute aktiv nachfassen",
+            text: "Der Lead läuft bald ab. Kontaktiere Käufer mit offenem oder laufendem Status und prüfe ausstehende Offerten.",
+            cta: "Jetzt nachfassen",
+          }
+        : totalOffers === 0 && lead.purchases.length > 0
+          ? {
+              title: "Erste Offerte beschleunigen",
+              text: "Der Lead wurde bereits gekauft, aber es ist noch keine Offerte hinterlegt. Das ist aktuell der wichtigste nächste Schritt.",
+              cta: "Offerte erfassen",
+            }
+          : acceptedOffers > 0
+            ? {
+                title: "Gewonnenen Auftrag absichern",
+                text: "Mindestens eine Offerte wurde angenommen. Prüfe, ob Status, Notizen und nächste operative Schritte vollständig dokumentiert sind.",
+                cta: "CRM prüfen",
+              }
+            : {
+                title: "Anbieteraktivität erhöhen",
+                text: "Mehr Aktivität im Verkaufsprozess verbessert die Chance auf einen erfolgreichen Abschluss.",
+                cta: "Status aktualisieren",
+              };
+
   const dateTimeValue = lead.expiresAt
     ? new Date(
         lead.expiresAt.getTime() -
@@ -915,6 +989,258 @@ export default async function AdminLeadDetailPage({
             ❌ {errorMessage}
           </div>
         ) : null}
+
+        <section
+          style={{
+            marginTop: 24,
+            display: "grid",
+            gridTemplateColumns:
+              "minmax(0, 1.4fr) minmax(280px, 0.8fr)",
+            gap: 16,
+          }}
+          className="crm-ai-grid"
+        >
+          <article
+            style={{
+              position: "relative",
+              overflow: "hidden",
+              border: "1px solid rgba(56, 189, 248, 0.2)",
+              borderRadius: 26,
+              background:
+                "radial-gradient(circle at 86% 18%, rgba(56,189,248,0.18), transparent 28%), linear-gradient(135deg, rgba(8,47,73,0.5), rgba(8,23,42,0.96))",
+              padding: 24,
+            }}
+          >
+            <span
+              style={{
+                display: "inline-flex",
+                padding: "7px 11px",
+                borderRadius: 999,
+                background: "rgba(56,189,248,0.1)",
+                color: "#7dd3fc",
+                fontSize: 10,
+                fontWeight: 900,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+              }}
+            >
+              ✦ CRM Intelligence
+            </span>
+
+            <h2
+              style={{
+                margin: "14px 0 0",
+                fontSize: "clamp(24px, 3vw, 34px)",
+                lineHeight: 1.15,
+              }}
+            >
+              {nextBestAction.title}
+            </h2>
+
+            <p
+              style={{
+                margin: "10px 0 0",
+                maxWidth: 780,
+                color: "#a8b3c7",
+                fontSize: 14,
+                lineHeight: 1.75,
+              }}
+            >
+              {nextBestAction.text}
+            </p>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(150px, 1fr))",
+                gap: 10,
+                marginTop: 20,
+              }}
+            >
+              <div
+                style={{
+                  padding: 14,
+                  borderRadius: 16,
+                  background: "rgba(255,255,255,0.045)",
+                }}
+              >
+                <small
+                  style={{
+                    display: "block",
+                    color: "#64748b",
+                    fontSize: 9,
+                    fontWeight: 900,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Lead Score
+                </small>
+                <strong
+                  style={{
+                    display: "block",
+                    marginTop: 7,
+                    fontSize: 24,
+                  }}
+                >
+                  {leadScore}/100
+                </strong>
+              </div>
+
+              <div
+                style={{
+                  padding: 14,
+                  borderRadius: 16,
+                  background: "rgba(255,255,255,0.045)",
+                }}
+              >
+                <small
+                  style={{
+                    display: "block",
+                    color: "#64748b",
+                    fontSize: 9,
+                    fontWeight: 900,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Priorität
+                </small>
+                <strong
+                  style={{
+                    display: "block",
+                    marginTop: 7,
+                    fontSize: 24,
+                  }}
+                >
+                  {leadPriority}
+                </strong>
+              </div>
+
+              <div
+                style={{
+                  padding: 14,
+                  borderRadius: 16,
+                  background: "rgba(255,255,255,0.045)",
+                }}
+              >
+                <small
+                  style={{
+                    display: "block",
+                    color: "#64748b",
+                    fontSize: 9,
+                    fontWeight: 900,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Abschlusschance
+                </small>
+                <strong
+                  style={{
+                    display: "block",
+                    marginTop: 7,
+                    fontSize: 24,
+                  }}
+                >
+                  {closeProbability}%
+                </strong>
+              </div>
+            </div>
+          </article>
+
+          <article
+            style={{
+              border: "1px solid rgba(167, 139, 250, 0.18)",
+              borderRadius: 26,
+              background:
+                "linear-gradient(145deg, rgba(99,102,241,0.14), rgba(8,23,42,0.96))",
+              padding: 24,
+            }}
+          >
+            <span
+              style={{
+                color: "#c4b5fd",
+                fontSize: 10,
+                fontWeight: 900,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+              }}
+            >
+              Verkaufsstatus
+            </span>
+
+            <div
+              style={{
+                display: "grid",
+                gap: 12,
+                marginTop: 16,
+              }}
+            >
+              {[
+                ["Käufer", lead.purchases.length],
+                ["In Bearbeitung", progressedPurchases],
+                ["Gewonnen", wonPurchases],
+                ["Offerten", totalOffers],
+              ].map(([label, value]) => (
+                <div
+                  key={String(label)}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 16,
+                    padding: "12px 0",
+                    borderBottom:
+                      "1px solid rgba(255,255,255,0.07)",
+                  }}
+                >
+                  <span
+                    style={{
+                      color: "#94a3b8",
+                      fontSize: 12,
+                    }}
+                  >
+                    {label}
+                  </span>
+                  <strong>{value}</strong>
+                </div>
+              ))}
+            </div>
+
+            <div
+              style={{
+                marginTop: 18,
+                padding: 14,
+                borderRadius: 16,
+                background: "rgba(255,255,255,0.045)",
+              }}
+            >
+              <small
+                style={{
+                  display: "block",
+                  color: "#64748b",
+                  fontSize: 9,
+                  fontWeight: 900,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Empfohlene Aktion
+              </small>
+              <strong
+                style={{
+                  display: "block",
+                  marginTop: 7,
+                  color: "#ffffff",
+                  fontSize: 14,
+                }}
+              >
+                {nextBestAction.cta}
+              </strong>
+            </div>
+          </article>
+        </section>
 
         <section className="stats-grid">
           <StatCard
@@ -1651,7 +1977,7 @@ export default async function AdminLeadDetailPage({
         </section>
       </div>
 
-      <style>{`
+      <style suppressHydrationWarning>{`
         * {
           box-sizing: border-box;
         }
@@ -2398,6 +2724,12 @@ export default async function AdminLeadDetailPage({
 
         .empty-state.compact {
           padding: 22px;
+        }
+
+        @media (max-width: 980px) {
+          .crm-ai-grid {
+            grid-template-columns: 1fr !important;
+          }
         }
 
         @media (max-width: 1220px) {

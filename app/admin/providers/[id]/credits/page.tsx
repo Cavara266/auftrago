@@ -631,7 +631,7 @@ export default async function ProviderCreditsPage({
         </section>
       </div>
 
-      <style>{`
+      <style suppressHydrationWarning>{`
         .credits-page {
           min-height: 100vh;
           padding: 32px 20px 80px;

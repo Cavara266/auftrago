@@ -8,50 +8,71 @@ import Footer from "@/components/footer";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.auftrago.ch"),
+
   title: {
     default:
-      "Auftrago – Offertenplattform Schweiz für Reinigung, Hauswartung & Umzug",
+      "Auftrago – Schweizer Plattform für Dienstleistungen, Handwerk & Versicherungen",
     template: "%s | Auftrago",
   },
+
   description:
-    "Kostenlose Offerten für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung, Fensterreinigung, Transport, Sanitär, Elektriker und weitere regionale Dienstleistungen in der Schweiz vergleichen.",
+    "Vergleiche kostenlos regionale Anbieter für Reinigung, Hauswartung, Umzug, Handwerk, Versicherungen, Immobilien, Finanzen und digitale Dienstleistungen in der Schweiz.",
+
   applicationName: "Auftrago",
   authors: [{ name: "Auftrago" }],
   creator: "Auftrago",
   publisher: "Auftrago",
   category: "Dienstleistungen",
+
   keywords: [
     "Offerten Schweiz",
+    "Dienstleister Schweiz",
+    "Anbieter vergleichen",
+    "regionale Anbieter",
     "Reinigung Schweiz",
+    "Umzugsreinigung Schweiz",
     "Hauswartung Schweiz",
     "Umzug Schweiz",
     "Gartenpflege Schweiz",
-    "Entsorgung Schweiz",
     "Fensterreinigung Schweiz",
-    "regionale Anbieter",
-    "Dienstleister vergleichen",
+    "Entsorgung Schweiz",
+    "Elektriker Schweiz",
+    "Sanitär Schweiz",
+    "Maler Schweiz",
+    "Handwerker Schweiz",
+    "Versicherungen vergleichen",
+    "Krankenkasse vergleichen",
+    "Immobilienmakler Schweiz",
+    "Treuhänder Schweiz",
+    "SEO Agentur Schweiz",
   ],
+
   alternates: {
     canonical: "https://www.auftrago.ch",
   },
+
   openGraph: {
-    title: "Auftrago – Offertenplattform Schweiz",
+    title:
+      "Auftrago – Schweizer Plattform für Dienstleistungen & Versicherungen",
     description:
-      "Finde regionale Anbieter für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung und weitere Dienstleistungen.",
+      "Finde regionale Anbieter für Reinigung, Handwerk, Umzug, Versicherungen, Immobilien, Finanzen und digitale Dienstleistungen.",
     url: "https://www.auftrago.ch",
     siteName: "Auftrago",
     locale: "de_CH",
     type: "website",
   },
+
   twitter: {
     card: "summary_large_image",
-    title: "Auftrago – Offertenplattform Schweiz",
+    title: "Auftrago – Schweizer Dienstleistungsplattform",
     description:
-      "Kostenlose Offerten für regionale Dienstleistungen in der Schweiz vergleichen.",
+      "Kostenlos regionale Anbieter und Dienstleistungen in der Schweiz vergleichen.",
   },
+
   robots: {
     index: true,
     follow: true,
+
     googleBot: {
       index: true,
       follow: true,
@@ -80,11 +101,24 @@ export default function RootLayout({
     url: "https://www.auftrago.ch",
     logo: "https://www.auftrago.ch/favicon.ico",
     description:
-      "Schweizer Offertenplattform für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung und regionale Dienstleistungen.",
+      "Schweizer Vermittlungs- und Offertenplattform für regionale Dienstleistungen, Handwerker, Versicherungen, Immobilien, Finanzen und digitale Lösungen.",
     areaServed: {
       "@type": "Country",
       name: "Schweiz",
     },
+    knowsAbout: [
+      "Reinigung",
+      "Hauswartung",
+      "Umzug",
+      "Transport",
+      "Entsorgung",
+      "Gartenpflege",
+      "Handwerker",
+      "Versicherungen",
+      "Immobilien",
+      "Finanzen",
+      "IT-Dienstleistungen",
+    ],
   };
 
   const websiteSchema = {
@@ -93,9 +127,15 @@ export default function RootLayout({
     name: "Auftrago",
     url: "https://www.auftrago.ch",
     inLanguage: "de-CH",
+    publisher: {
+      "@type": "Organization",
+      name: "Auftrago",
+      url: "https://www.auftrago.ch",
+    },
     potentialAction: {
       "@type": "SearchAction",
-      target: "https://www.auftrago.ch/?q={search_term_string}",
+      target:
+        "https://www.auftrago.ch/leistungen?suche={search_term_string}",
       "query-input": "required name=search_term_string",
     },
   };
@@ -103,7 +143,10 @@ export default function RootLayout({
   const serviceSchema = {
     "@context": "https://schema.org",
     "@type": "Service",
-    name: "Regionale Offerten vergleichen",
+    name: "Regionale Anbieter und Offerten vergleichen",
+    description:
+      "Auftrago vermittelt regionale Anbieter für private und geschäftliche Dienstleistungen in der Schweiz.",
+    url: "https://www.auftrago.ch",
     provider: {
       "@type": "Organization",
       name: "Auftrago",
@@ -113,17 +156,52 @@ export default function RootLayout({
       "@type": "Country",
       name: "Schweiz",
     },
+    audience: [
+      {
+        "@type": "Audience",
+        audienceType: "Privatkunden",
+      },
+      {
+        "@type": "Audience",
+        audienceType: "Unternehmen",
+      },
+      {
+        "@type": "Audience",
+        audienceType: "Immobilienverwaltungen",
+      },
+    ],
     serviceType: [
       "Reinigung",
-      "Hauswartung",
-      "Umzug",
-      "Gartenpflege",
-      "Entsorgung",
+      "Umzugsreinigung",
       "Fensterreinigung",
+      "Büroreinigung",
+      "Hauswartung",
+      "Gartenpflege",
+      "Winterdienst",
+      "Umzug",
       "Transport",
+      "Entsorgung",
+      "Räumung",
       "Malerarbeiten",
-      "Sanitär",
       "Elektriker",
+      "Sanitär",
+      "Schreiner",
+      "Bodenleger",
+      "Renovation",
+      "Solaranlagen",
+      "Wärmepumpen",
+      "Versicherungen",
+      "Krankenkassenberatung",
+      "Autoversicherung",
+      "Vorsorgeberatung",
+      "Immobilienmakler",
+      "Immobilienbewertung",
+      "Hypothekenberatung",
+      "Treuhand",
+      "Steuerberatung",
+      "Webdesign",
+      "SEO",
+      "IT-Support",
     ],
   };
 
@@ -165,10 +243,13 @@ export default function RootLayout({
         <Script id="google-analytics" strategy="afterInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
 
-            gtag('config', 'G-7YJE35KZCX');
+            function gtag() {
+              window.dataLayer.push(arguments);
+            }
+
+            gtag("js", new Date());
+            gtag("config", "G-7YJE35KZCX");
           `}
         </Script>
       </body>

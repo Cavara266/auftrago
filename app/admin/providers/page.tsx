@@ -284,7 +284,7 @@ export default async function AdminProvidersPage({
 
   return (
     <main className="providers-page">
-      <style>{`
+      <style suppressHydrationWarning>{`
         .providers-page{min-height:100vh;padding:64px 0 96px;background:radial-gradient(circle at 15% 0%,rgba(14,165,233,.16),transparent 31%),radial-gradient(circle at 85% 12%,rgba(99,102,241,.20),transparent 34%),linear-gradient(180deg,#071426 0%,#08111f 48%,#060d18 100%);color:#f8fafc}
         .providers-shell{width:min(1480px,calc(100% - 40px));margin:0 auto}
         .topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}

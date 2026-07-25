@@ -1053,7 +1053,7 @@ export default async function AdminLeadsPage({
         </section>
       </div>
 
-      <style>{`
+      <style suppressHydrationWarning>{`
         .admin-page {
           min-height: 100vh;
           padding: 32px 0 72px;

@@ -890,7 +890,7 @@ export default function SmartPricingForm({
         </button>
       </div>
 
-      <style>{`
+      <style suppressHydrationWarning>{`
         .smart-pricing-form {
           padding-bottom: 110px;
         }
