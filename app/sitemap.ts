@@ -1,126 +1,152 @@
 import type { MetadataRoute } from "next";
-import { generateSlugs, services as seoServices } from "@/lib/seo-data";
-import { services as marketplaceServices } from "@/lib/services";
-import { regions } from "@/lib/region-data";
-import { citiesSeo } from "@/lib/city-data";
-import { prioritySeoPages } from "@/lib/priority-seo-pages";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://www.auftrago.ch";
+import { prisma } from "@/lib/prisma";
+import { citiesSeo } from "@/lib/city-data";
+import { regions } from "@/lib/region-data";
+import { seoConfig } from "@/lib/seo";
+import { services } from "@/lib/seo-data";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 3600;
+
+const staticPages = [
+  "",
+  "/dienstleistungen",
+  "/offerte-anfragen",
+  "/auftrag-erstellen",
+  "/anbieter",
+  "/anbieter-registrieren",
+  "/ueber-uns",
+  "/kontakt",
+  "/datenschutz",
+  "/agb",
+];
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
-  const staticPages: MetadataRoute.Sitemap = [
-    {
-      url: baseUrl,
-      lastModified: now,
-      changeFrequency: "daily",
-      priority: 1,
-    },
-    {
-      url: `${baseUrl}/offerte-anfragen`,
-      lastModified: now,
-      changeFrequency: "daily",
-      priority: 0.95,
-    },
-    {
-      url: `${baseUrl}/anbieter`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/anbieter-registrieren`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.85,
-    },
-    {
-      url: `${baseUrl}/leistungen`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/versicherungen`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/region`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/stadt`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-  ];
+  /*
+   * Bestehende Sitemap-Einträge
+   * Diese bleiben vollständig erhalten.
+   */
 
-  const regionPages: MetadataRoute.Sitemap = regions.map((region) => ({
-    url: `${baseUrl}/region/${region.slug}`,
+  const staticEntries: MetadataRoute.Sitemap = staticPages.map((path) => ({
+    url: `${seoConfig.siteUrl}${path}`,
     lastModified: now,
-    changeFrequency: "weekly",
-    priority: 0.85,
+    changeFrequency: path === "" ? "daily" : "monthly",
+    priority: path === "" ? 1 : 0.65,
   }));
 
-  const cityPages: MetadataRoute.Sitemap = citiesSeo.map((city) => ({
-    url: `${baseUrl}/stadt/${city.slug}`,
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: 0.85,
-  }));
-
-  // Bestehende Dienstleistungsseiten aus seo-data
-  const existingServicePages: MetadataRoute.Sitemap = seoServices.map(
-    (service) => ({
-      url: `${baseUrl}/leistungen/${service}`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.85,
-    })
-  );
-
-  // Neue zentrale Dienstleistungsseiten aus lib/services.ts
-  const marketplaceServicePages: MetadataRoute.Sitemap =
-    marketplaceServices.map((service) => ({
-      url: `${baseUrl}/leistungen/${service.slug}`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: service.featured ? 0.9 : 0.85,
-    }));
-
-  const priorityPages: MetadataRoute.Sitemap = prioritySeoPages.map(
-    (page) => ({
-      url: `${baseUrl}/${page.slug}`,
-      lastModified: now,
-      changeFrequency: "daily",
-      priority: 0.95,
-    })
-  );
-
-  const seoPages: MetadataRoute.Sitemap = generateSlugs().map((slug) => ({
-    url: `${baseUrl}/${slug}`,
+  const serviceEntries: MetadataRoute.Sitemap = services.map((service) => ({
+    url: `${seoConfig.siteUrl}/leistungen/${service}`,
     lastModified: now,
     changeFrequency: "weekly",
     priority: 0.8,
   }));
 
-  const allPages: MetadataRoute.Sitemap = [
-    ...staticPages,
-    ...regionPages,
-    ...cityPages,
-    ...existingServicePages,
-    ...marketplaceServicePages,
-    ...priorityPages,
-    ...seoPages,
+  const cityEntries: MetadataRoute.Sitemap = citiesSeo.map((city) => ({
+    url: `${seoConfig.siteUrl}/stadt/${city.slug}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.75,
+  }));
+
+  const regionEntries: MetadataRoute.Sitemap = regions.map((region) => ({
+    url: `${seoConfig.siteUrl}/region/${region.slug}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.7,
+  }));
+
+  const combinationEntries: MetadataRoute.Sitemap = services.flatMap(
+    (service) =>
+      citiesSeo.map((city) => ({
+        url: `${seoConfig.siteUrl}/dienstleistung/${service}/${city.slug}`,
+        lastModified: now,
+        changeFrequency: "weekly" as const,
+        priority: 0.7,
+      })),
+  );
+
+  /*
+   * Neue SEO-CMS-Landingpages aus Prisma
+   * Es werden nur aktive und indexierbare Seiten aufgenommen.
+   */
+
+  const databaseLandingPages = await prisma.seoLandingPage.findMany({
+    where: {
+      status: "ACTIVE",
+      indexable: true,
+      city: {
+        status: "ACTIVE",
+        indexable: true,
+      },
+      service: {
+        status: "ACTIVE",
+        indexable: true,
+      },
+    },
+    select: {
+      updatedAt: true,
+      city: {
+        select: {
+          slug: true,
+        },
+      },
+      service: {
+        select: {
+          slug: true,
+        },
+      },
+    },
+  });
+
+  const databaseEntries: MetadataRoute.Sitemap = databaseLandingPages.map(
+    (page) => ({
+      url: `${seoConfig.siteUrl}/dienstleistung/${page.service.slug}/${page.city.slug}`,
+      lastModified: page.updatedAt,
+      changeFrequency: "weekly",
+      priority: 0.75,
+    }),
+  );
+
+  /*
+   * Alle bestehenden und neuen URLs zusammenführen.
+   * Doppelte URLs werden automatisch entfernt.
+   */
+
+  const allEntries: MetadataRoute.Sitemap = [
+    ...staticEntries,
+    ...serviceEntries,
+    ...cityEntries,
+    ...regionEntries,
+    ...combinationEntries,
+    ...databaseEntries,
   ];
 
-  // Doppelte URLs entfernen
-  return Array.from(
-    new Map(allPages.map((page) => [page.url, page])).values()
-  );
+  const uniqueEntries = new Map<string, MetadataRoute.Sitemap[number]>();
+
+  for (const entry of allEntries) {
+    const existingEntry = uniqueEntries.get(entry.url);
+
+    if (!existingEntry) {
+      uniqueEntries.set(entry.url, entry);
+      continue;
+    }
+
+    const existingDate = existingEntry.lastModified
+      ? new Date(existingEntry.lastModified).getTime()
+      : 0;
+
+    const newDate = entry.lastModified
+      ? new Date(entry.lastModified).getTime()
+      : 0;
+
+    if (newDate >= existingDate) {
+      uniqueEntries.set(entry.url, entry);
+    }
+  }
+
+  return Array.from(uniqueEntries.values());
 }

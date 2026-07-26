@@ -2,329 +2,254 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import Hero from "@/components/home/Hero";
-import InsuranceSpotlight from "@/components/home/InsuranceSpotlight";
 import LiveLeadsSection from "@/components/live-leads-section";
-import TrustReviewsSection from "@/components/trust-reviews-section";
-import WhyAuftragoSection from "@/components/why-auftrago-section";
 import { citiesSeo } from "@/lib/city-data";
-import { prisma } from "@/lib/prisma";
 import { regions as regionData } from "@/lib/region-data";
-import { formatText, services as seoServices } from "@/lib/seo-data";
+import {
+  formatText,
+  services as seoServices,
+} from "@/lib/seo-data";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title:
-    "Auftrago – Schweizer Plattform für Dienstleistungen & Versicherungen",
+    "Auftrago – Schweizer Plattform für Dienstleistungen",
   description:
-    "Kostenlose Offerten für Reinigung, Hauswartung, Umzug, Gartenpflege, Handwerk und Versicherungen in der Schweiz vergleichen.",
+    "Kostenlos regionale Anbieter für Reinigung, Umzug, Handwerk, Hauswartung, Garten und viele weitere Dienstleistungen vergleichen.",
   alternates: {
     canonical: "https://www.auftrago.ch",
   },
   openGraph: {
-    title: "Auftrago – Offertenplattform Schweiz",
+    title:
+      "Auftrago – Dein Auftrag. Perfekt erledigt.",
     description:
-      "Finde regionale Anbieter für Reinigung, Hauswartung, Umzug, Handwerk und Versicherungsberatung in der Schweiz.",
+      "Erfasse deinen Auftrag kostenlos und erreiche passende Anbieter aus deiner Region.",
     url: "https://www.auftrago.ch",
     siteName: "Auftrago",
     type: "website",
   },
 };
 
-const platformStats = [
+const categoryCards = [
   {
-    value: "Schweizweit",
-    label: "Regionale Anbieter",
-    icon: "🇨🇭",
-  },
-  {
-    value: "Kostenlos",
-    label: "Anfrage erstellen",
-    icon: "⚡",
-  },
-  {
-    value: "Unverbindlich",
-    label: "Offerten vergleichen",
-    icon: "✓",
-  },
-  {
-    value: "Direkt",
-    label: "Kontakt zu Firmen",
-    icon: "🤝",
-  },
-];
-
-const featuredCategories = [
-  {
-    icon: "🧹",
+    number: "01",
+    icon: "✦",
     title: "Reinigung",
-    text: "Wohnung, Büro, Fenster und Spezialreinigung.",
+    subtitle: "Sauberkeit auf höchstem Niveau",
+    text:
+      "Wohnungsreinigung, Umzugsreinigung, Büroreinigung, Fenster und Spezialreinigung.",
     href: "/leistungen/reinigung",
-    accent: "from-sky-400/15 via-cyan-300/5 to-transparent",
+    gradient:
+      "from-sky-400/25 via-blue-500/10 to-transparent",
+    iconClass:
+      "border-sky-300/30 bg-sky-400/10 text-sky-300",
   },
   {
-    icon: "🚚",
-    title: "Umzug & Transport",
-    text: "Privatumzug, Firmenumzug, Transport und Räumung.",
-    href: "/leistungen/umzug",
-    accent: "from-violet-400/15 via-fuchsia-300/5 to-transparent",
-  },
-  {
-    icon: "🛠️",
+    number: "02",
+    icon: "⌁",
     title: "Handwerk",
-    text: "Elektriker, Sanitär, Maler, Schreiner und Montage.",
-    href: "/leistungen/elektriker",
-    accent: "from-orange-400/15 via-amber-300/5 to-transparent",
+    subtitle: "Profis für jedes Projekt",
+    text:
+      "Elektriker, Maler, Sanitär, Bodenleger, Schreiner, Montage und Renovationen.",
+    href: "/dienstleistungen",
+    gradient:
+      "from-orange-400/25 via-amber-500/10 to-transparent",
+    iconClass:
+      "border-orange-300/30 bg-orange-400/10 text-orange-300",
   },
   {
-    icon: "🌿",
-    title: "Garten & Umgebung",
-    text: "Gartenpflege, Heckenschnitt und saisonaler Unterhalt.",
-    href: "/leistungen/gartenpflege",
-    accent: "from-emerald-400/15 via-teal-300/5 to-transparent",
-  },
-  {
-    icon: "🛡️",
-    title: "Versicherungen",
-    text: "Krankenkasse, Auto, Vorsorge und Firmenlösungen.",
-    href: "/auftrag-erstellen?kategorie=Versicherungen",
-    accent: "from-indigo-400/15 via-blue-300/5 to-transparent",
-  },
-  {
-    icon: "💻",
-    title: "IT & Digital",
-    text: "Webseiten, SEO, Software und technischer Support.",
-    href: "/leistungen/it-support",
-    accent: "from-cyan-400/15 via-violet-300/5 to-transparent",
-  },
-];
-
-const mainServices = [
-  {
-    icon: "🧹",
-    title: "Reinigung",
-    text: "Wohnungsreinigung, Büroreinigung, Unterhaltsreinigung, Baureinigung, Endreinigung und Spezialreinigung.",
-    href: "/reinigung-zuerich",
-  },
-  {
-    icon: "🏠",
-    title: "Umzugsreinigung",
-    text: "Endreinigung, Wohnungsabgabe, Küche, Bad, Fenster und Reinigung mit Abgabegarantie.",
-    href: "/umzugsreinigung-zuerich",
-  },
-  {
-    icon: "🏢",
-    title: "Hauswartung",
-    text: "Liegenschaftsunterhalt, Treppenhausreinigung, Kontrollgänge, Umgebungspflege und Winterdienst.",
-    href: "/hauswartung-zuerich",
-  },
-  {
-    icon: "🌿",
-    title: "Gartenpflege",
-    text: "Rasenmähen, Heckenschnitt, Laubarbeiten, Saisonpflege und Gartenunterhalt.",
-    href: "/gartenpflege-zuerich",
-  },
-  {
-    icon: "📦",
+    number: "03",
+    icon: "▣",
     title: "Umzug & Transport",
-    text: "Privatumzug, Firmenumzug, Möbeltransport, Kleintransport und Transporthilfe.",
-    href: "/umzug-zuerich",
+    subtitle: "Sicher von A nach B",
+    text:
+      "Privatumzug, Firmenumzug, Möbeltransport, Räumung und Entsorgung.",
+    href: "/leistungen/umzug",
+    gradient:
+      "from-indigo-400/25 via-violet-500/10 to-transparent",
+    iconClass:
+      "border-indigo-300/30 bg-indigo-400/10 text-indigo-300",
   },
   {
-    icon: "♻️",
-    title: "Entsorgung & Räumung",
-    text: "Entrümpelung, Sperrgut, Keller und Estrich räumen, Haushaltsauflösung und fachgerechte Entsorgung.",
-    href: "/entsorgung-zuerich",
+    number: "04",
+    icon: "♧",
+    title: "Garten & Umgebung",
+    subtitle: "Alles rund ums Grundstück",
+    text:
+      "Gartenpflege, Rasen, Heckenschnitt, Umgebungspflege und Winterdienst.",
+    href: "/leistungen/gartenpflege",
+    gradient:
+      "from-emerald-400/25 via-teal-500/10 to-transparent",
+    iconClass:
+      "border-emerald-300/30 bg-emerald-400/10 text-emerald-300",
   },
   {
-    icon: "🪟",
-    title: "Fensterreinigung",
-    text: "Fenster, Glasfassaden, Wintergärten, Rahmen, Storen und gründliche Glasreinigung.",
-    href: "/fensterreinigung-zuerich",
+    number: "05",
+    icon: "⌂",
+    title: "Hauswartung",
+    subtitle: "Betreuung mit System",
+    text:
+      "Liegenschaftsbetreuung, Kontrollgänge, Unterhalt, Reinigung und Technik.",
+    href: "/leistungen/hauswartung",
+    gradient:
+      "from-cyan-400/25 via-sky-500/10 to-transparent",
+    iconClass:
+      "border-cyan-300/30 bg-cyan-400/10 text-cyan-300",
   },
   {
-    icon: "🎨",
-    title: "Malerarbeiten",
-    text: "Innenanstrich, Fassaden, Renovationen, Ausbesserungen und frische Räume.",
-    href: "/maler-zuerich",
-  },
-  {
-    icon: "⚡",
-    title: "Elektriker",
-    text: "Installationen, Reparaturen, Beleuchtung, Sicherheit und kleinere Elektroarbeiten.",
-    href: "/elektriker-zuerich",
-  },
-  {
-    icon: "🚿",
-    title: "Sanitär",
-    text: "Armaturen, Leitungen, Bad, Küche, Reparaturen, Installationen und dringende Sanitärarbeiten.",
-    href: "/sanitaer-zuerich",
-  },
-  {
-    icon: "🪵",
-    title: "Schreiner",
-    text: "Möbelmontage, Reparaturen, Türen, Schränke, Küchen und individuelle Holzarbeiten.",
+    number: "06",
+    icon: "◇",
+    title: "Weitere Services",
+    subtitle: "Über 420 Möglichkeiten",
+    text:
+      "Versicherungen, IT, Gesundheit und zahlreiche weitere Dienstleistungen.",
     href: "/dienstleistungen",
-  },
-  {
-    icon: "🧱",
-    title: "Gipser & Trockenbau",
-    text: "Wände, Decken, Verputz, Trockenbau, Renovationen und kleinere Ausbesserungsarbeiten.",
-    href: "/dienstleistungen",
-  },
-  {
-    icon: "🪚",
-    title: "Bodenleger",
-    text: "Parkett, Laminat, Vinyl, Teppich, Sockelleisten, Reparaturen und Bodenaufbereitung.",
-    href: "/dienstleistungen",
-  },
-  {
-    icon: "🏗️",
-    title: "Renovation & Umbau",
-    text: "Koordination von Renovationen, Umbauten, Rückbau, Montage und verschiedenen Bauarbeiten.",
-    href: "/dienstleistungen",
-  },
-  {
-    icon: "🔥",
-    title: "Heizung & Klima",
-    text: "Heizungsservice, Wartung, Reparaturen, Thermostate, Klimageräte und technische Kontrollen.",
-    href: "/dienstleistungen",
-  },
-  {
-    icon: "🔐",
-    title: "Schlüssel & Sicherheit",
-    text: "Schlosswechsel, Türöffnung, Zutrittssysteme, Sicherheitstechnik und kleinere Reparaturen.",
-    href: "/dienstleistungen",
-  },
-  {
-    icon: "🛠️",
-    title: "Montage & Reparaturen",
-    text: "Möbelaufbau, Wandmontage, kleinere Reparaturen, Installationen und allgemeine Handwerksarbeiten.",
-    href: "/dienstleistungen",
-  },
-  {
-    icon: "🛡️",
-    title: "Versicherungen",
-    text: "Krankenkasse, Auto, Hausrat, Haftpflicht, Rechtsschutz, Vorsorge und Firmenversicherungen vergleichen.",
-    href: "/auftrag-erstellen?kategorie=Versicherungen",
-  },
-  {
-    icon: "✨",
-    title: "Weitere Dienstleistungen",
-    text: "Du findest deine gewünschte Leistung nicht? Stelle deine Anfrage trotzdem – wir suchen passende Anbieter.",
-    href: "/dienstleistungen",
+    gradient:
+      "from-fuchsia-400/25 via-purple-500/10 to-transparent",
+    iconClass:
+      "border-fuchsia-300/30 bg-fuchsia-400/10 text-fuchsia-300",
   },
 ];
 
-const priorityLinks = [
-  ["Hauswartfirma Uster", "/hauswartung-uster"],
-  ["Hauswartservice Uster", "/hauswartung-uster"],
-  ["Hauswartarbeiten Uster", "/hauswartung-uster"],
-  ["Reinigung Uster", "/reinigung-uster"],
-  ["Endreinigung Bülach", "/end-reinigung-buelach"],
-  ["Büroreinigung Bülach", "/bueroreinigung-buelach"],
-  ["Umzug Lenzburg", "/umzug-lenzburg"],
-  ["Fensterreinigung Solothurn", "/fensterreinigung-solothurn"],
-  ["Winterdienst Aargau", "/winterdienst-aargau"],
-  ["Maler Dübendorf", "/maler-duebendorf"],
-  ["Elektriker Bern", "/elektriker-bern"],
-  ["Umzug Baden", "/umzug-baden"],
+const processSteps = [
+  {
+    number: "01",
+    label: "Anfrage",
+    icon: "✎",
+    title: "Sag uns, was erledigt werden soll.",
+    text:
+      "Dienstleistung, Region und Termin eintragen. Deine Anfrage ist in weniger als einer Minute bereit.",
+  },
+  {
+    number: "02",
+    label: "Matching",
+    icon: "◎",
+    title: "Auftrago findet passende Anbieter.",
+    text:
+      "Dein Auftrag wird für geeignete Dienstleister aus deiner Region sichtbar gemacht.",
+  },
+  {
+    number: "03",
+    label: "Vergleich",
+    icon: "↗",
+    title: "Du erhältst passende Rückmeldungen.",
+    text:
+      "Vergleiche Preis, Leistung, Verfügbarkeit und Auftreten der Anbieter.",
+  },
+  {
+    number: "04",
+    label: "Erledigt",
+    icon: "✓",
+    title: "Du entscheidest, wer den Auftrag erhält.",
+    text:
+      "Keine Annahmepflicht. Du wählst selbst den Anbieter, der am besten passt.",
+  },
 ];
 
-const popularLinks = [
-  ["Reinigung Zürich", "/reinigung-zuerich"],
-  ["Reinigung Aargau", "/reinigung-aargau"],
-  ["Reinigung Basel", "/reinigung-basel"],
-  ["Reinigung Bern", "/reinigung-bern"],
-  ["Umzugsreinigung Zürich", "/umzugsreinigung-zuerich"],
-  ["Umzugsreinigung Aargau", "/umzugsreinigung-aargau"],
-  ["Hauswartung Zürich", "/hauswartung-zuerich"],
-  ["Hauswartung Aargau", "/hauswartung-aargau"],
-  ["Gartenpflege Zürich", "/gartenpflege-zuerich"],
-  ["Fensterreinigung Zürich", "/fensterreinigung-zuerich"],
-  ["Entsorgung Zürich", "/entsorgung-zuerich"],
-  ["Umzug Zürich", "/umzug-zuerich"],
+const popularServices = [
+  ["✦", "Reinigung", "/leistungen/reinigung"],
+  [
+    "⌂",
+    "Umzugsreinigung",
+    "/leistungen/umzugsreinigung",
+  ],
+  ["▦", "Hauswartung", "/leistungen/hauswartung"],
+  ["♧", "Gartenpflege", "/leistungen/gartenpflege"],
+  ["▣", "Umzug", "/leistungen/umzug"],
+  ["↗", "Transport", "/leistungen/transport"],
+  ["♻", "Entsorgung", "/leistungen/entsorgung"],
+  [
+    "□",
+    "Fensterreinigung",
+    "/leistungen/fensterreinigung",
+  ],
+  ["◉", "Maler", "/leistungen/maler"],
+  ["⚡", "Elektriker", "/leistungen/elektriker"],
+  ["◌", "Sanitär", "/leistungen/sanitaer"],
+  ["⌘", "Montage", "/dienstleistungen"],
+  ["▤", "Bodenleger", "/dienstleistungen"],
+  ["△", "Renovation", "/dienstleistungen"],
+  ["❄", "Winterdienst", "/leistungen/winterdienst"],
+  ["◇", "Alle Services", "/dienstleistungen"],
+];
+
+const advantages = [
+  {
+    icon: "01",
+    title: "Keine endlose Suche",
+    text:
+      "Eine Anfrage ersetzt unzählige Telefonate, Suchresultate und einzelne Kontaktformulare.",
+  },
+  {
+    icon: "02",
+    title: "Regionale Anbieter",
+    text:
+      "Du erreichst Dienstleister, die in deiner Region tätig sind und zu deinem Auftrag passen.",
+  },
+  {
+    icon: "03",
+    title: "Du behältst die Kontrolle",
+    text:
+      "Du entscheidest selbst, welche Rückmeldung überzeugt und wer den Auftrag erhält.",
+  },
+  {
+    icon: "04",
+    title: "Kostenlos für Kunden",
+    text:
+      "Das Erstellen einer Anfrage ist kostenlos und verpflichtet dich zu keiner Annahme.",
+  },
+];
+
+const providerAdvantages = [
+  "Konkrete Kundenanfragen",
+  "Eigene Regionen auswählen",
+  "Passende Leistungen festlegen",
+  "Keine klassische Kaltakquise",
+  "Volle Kostenkontrolle",
+  "Schneller Zugang zu neuen Aufträgen",
 ];
 
 const faqs = [
   {
-    question: "Ist Auftrago kostenlos?",
+    question:
+      "Ist eine Anfrage auf Auftrago wirklich kostenlos?",
     answer:
-      "Ja. Kunden können kostenlos und unverbindlich eine Anfrage erstellen.",
+      "Ja. Auftraggeber können ihre Anfrage kostenlos und unverbindlich erfassen. Du entscheidest selbst, ob eine Offerte oder Rückmeldung zu deinem Auftrag passt.",
   },
   {
-    question: "Welche Dienstleistungen kann ich anfragen?",
+    question:
+      "Welche Dienstleistungen kann ich anfragen?",
     answer:
-      "Du kannst Offerten für Reinigung, Umzugsreinigung, Hauswartung, Gartenpflege, Umzug, Transport, Entsorgung, Fensterreinigung, Malerarbeiten, Elektriker, Sanitär, Versicherungen und weitere Dienstleistungen anfragen.",
+      "Auftrago deckt unter anderem Reinigung, Umzug, Hauswartung, Gartenpflege, Transport, Entsorgung, Malerarbeiten, Elektriker, Sanitär, Renovationen, Versicherungen und viele weitere Bereiche ab.",
   },
   {
-    question: "Wie schnell erhalte ich Rückmeldungen?",
+    question:
+      "Wie schnell erhalte ich Rückmeldungen?",
     answer:
-      "Das hängt von Region, Auftrag und Verfügbarkeit der Anbieter ab. Eine genaue Beschreibung erhöht die Chance auf schnelle Rückmeldungen.",
+      "Die Reaktionszeit hängt von Region, Dienstleistung, Termin und Verfügbarkeit ab. Eine vollständige Beschreibung und passende Fotos erhöhen die Chance auf schnelle Rückmeldungen.",
   },
   {
-    question: "Muss ich ein Angebot annehmen?",
+    question:
+      "Muss ich eines der Angebote annehmen?",
     answer:
-      "Nein. Die Anfrage ist unverbindlich. Du entscheidest selbst, ob ein Angebot zu deinem Auftrag passt.",
+      "Nein. Deine Anfrage bleibt unverbindlich. Du kannst Rückmeldungen vergleichen und frei entscheiden, ob du einen Anbieter beauftragen möchtest.",
   },
   {
-    question: "Für welche Regionen ist Auftrago geeignet?",
+    question:
+      "Ist Auftrago schweizweit verfügbar?",
     answer:
-      "Auftrago eignet sich für Zürich, Aargau, Basel, Bern, Luzern, Zug, St. Gallen, Solothurn, Schaffhausen und weitere Regionen in der Schweiz.",
+      "Ja. Kunden können Anfragen aus verschiedenen Kantonen und Regionen erfassen. Die konkrete Auswahl hängt von den verfügbaren Anbietern in der jeweiligen Umgebung ab.",
   },
   {
-    question: "Kann ich mehrere Anbieter vergleichen?",
+    question:
+      "Wie funktioniert Auftrago für Anbieter?",
     answer:
-      "Ja. Auftrago ist darauf ausgelegt, dass du regionale Anbieter und Offerten einfacher vergleichen kannst.",
+      "Registrierte Dienstleister erhalten Zugang zu passenden Kundenanfragen aus ihren gewählten Regionen und Fachbereichen. Relevante Aufträge können gezielt freigeschaltet werden.",
   },
 ];
 
-function formatLeadTime(createdAt: Date) {
-  const minutes = Math.max(
-    1,
-    Math.floor((Date.now() - createdAt.getTime()) / 60000)
-  );
-
-  if (minutes < 60) {
-    return `vor ${minutes} Min.`;
-  }
-
-  const hours = Math.floor(minutes / 60);
-
-  if (hours < 24) {
-    return `vor ${hours} Std.`;
-  }
-
-  const days = Math.floor(hours / 24);
-  return `vor ${days} Tag${days === 1 ? "" : "en"}`;
-}
-
-function formatLeadPrice(price: number | null) {
-  if (!price || price <= 0) {
-    return "Budget offen";
-  }
-
-  return `CHF ${new Intl.NumberFormat("de-CH", {
-    maximumFractionDigits: 0,
-  }).format(price)}`;
-}
-
 export default async function HomePage() {
-  const latestLeads = await prisma.lead.findMany({
-    orderBy: {
-      createdAt: "desc",
-    },
-    take: 6,
-    select: {
-      id: true,
-      title: true,
-      region: true,
-      category: true,
-      price: true,
-      createdAt: true,
-    },
-  });
-
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -347,397 +272,999 @@ export default async function HomePage() {
       "@type": "SearchAction",
       target:
         "https://www.auftrago.ch/offerte-anfragen?query={search_term_string}",
-      "query-input": "required name=search_term_string",
+      "query-input":
+        "required name=search_term_string",
     },
   };
 
-  const organizationSchema = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: "Auftrago",
-    url: "https://www.auftrago.ch",
-    description:
-      "Schweizer Vermittlungsplattform für Dienstleistungen, Handwerk und Versicherungsanfragen.",
-  };
-
   return (
-    <main className="home-page premium-home">
+    <main className="overflow-hidden bg-[#030611] text-white">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqSchema),
+        }}
       />
 
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(websiteSchema),
+        }}
+      />
+
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            @keyframes homeFloat {
+              0%, 100% {
+                transform: translate3d(0, 0, 0);
+              }
+              50% {
+                transform: translate3d(0, -14px, 0);
+              }
+            }
+
+            @keyframes homeGlow {
+              0%, 100% {
+                opacity: .32;
+                transform: scale(1);
+              }
+              50% {
+                opacity: .65;
+                transform: scale(1.08);
+              }
+            }
+
+            @keyframes homeBeam {
+              0% {
+                transform: translateX(-170%) rotate(15deg);
+              }
+              100% {
+                transform: translateX(390%) rotate(15deg);
+              }
+            }
+
+            @keyframes homeMarquee {
+              from {
+                transform: translateX(0);
+              }
+              to {
+                transform: translateX(-50%);
+              }
+            }
+
+            @keyframes homeRotate {
+              from {
+                transform: rotate(0deg);
+              }
+              to {
+                transform: rotate(360deg);
+              }
+            }
+
+            .home-grid {
+              background-image:
+                linear-gradient(
+                  rgba(255,255,255,.035) 1px,
+                  transparent 1px
+                ),
+                linear-gradient(
+                  90deg,
+                  rgba(255,255,255,.035) 1px,
+                  transparent 1px
+                );
+              background-size: 70px 70px;
+            }
+
+            .home-dot-grid {
+              background-image:
+                radial-gradient(
+                  rgba(255,255,255,.12) 1px,
+                  transparent 1px
+                );
+              background-size: 24px 24px;
+            }
+
+            .home-text-gradient {
+              background:
+                linear-gradient(
+                  110deg,
+                  #ffffff 0%,
+                  #ffffff 25%,
+                  #56c8ff 48%,
+                  #6775ff 68%,
+                  #d14dff 88%
+                );
+              -webkit-background-clip: text;
+              background-clip: text;
+              color: transparent;
+            }
+
+            .home-card-shine::after {
+              content: "";
+              position: absolute;
+              inset: -50% auto -50% -40%;
+              width: 28%;
+              background:
+                linear-gradient(
+                  90deg,
+                  transparent,
+                  rgba(255,255,255,.12),
+                  transparent
+                );
+              transform: rotate(16deg);
+              transition: left .85s ease;
+              pointer-events: none;
+            }
+
+            .home-card-shine:hover::after {
+              left: 125%;
+            }
+
+            .home-glass {
+              background:
+                linear-gradient(
+                  145deg,
+                  rgba(255,255,255,.085),
+                  rgba(255,255,255,.02)
+                );
+              backdrop-filter: blur(24px);
+              box-shadow:
+                inset 0 1px 0 rgba(255,255,255,.08),
+                0 35px 100px rgba(0,0,0,.34);
+            }
+
+            .home-marquee {
+              animation:
+                homeMarquee 32s linear infinite;
+            }
+
+            .home-float {
+              animation:
+                homeFloat 7s ease-in-out infinite;
+            }
+
+            .home-glow {
+              animation:
+                homeGlow 7s ease-in-out infinite;
+            }
+
+            .home-rotate {
+              animation:
+                homeRotate 35s linear infinite;
+            }
+
+            .home-faq summary::-webkit-details-marker {
+              display: none;
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+              .home-marquee,
+              .home-float,
+              .home-glow,
+              .home-rotate {
+                animation: none !important;
+              }
+            }
+          `,
+        }}
+      />
+
+      {/*
+        WICHTIG:
+        Dieser Hero bleibt vollständig bestehen.
+        Die Komponente wird nicht verändert.
+      */}
       <Hero />
 
-      <section className="border-y border-white/10 bg-[#030816]">
-        <div className="mx-auto grid max-w-[1450px] grid-cols-2 gap-px bg-white/10 sm:grid-cols-4">
-          {platformStats.map((stat) => (
+      {/* CINEMATIC TRANSITION */}
+      <section className="relative border-y border-white/[0.07] bg-[#020510] py-7">
+        <div className="absolute inset-0 bg-gradient-to-r from-sky-500/[0.04] via-transparent to-fuchsia-500/[0.04]" />
+
+        <div className="home-marquee relative flex w-max items-center">
+          {[
+            "REINIGUNG",
+            "HANDWERK",
+            "UMZUG",
+            "HAUSWARTUNG",
+            "GARTEN",
+            "TRANSPORT",
+            "ENTSORGUNG",
+            "VERSICHERUNGEN",
+            "REINIGUNG",
+            "HANDWERK",
+            "UMZUG",
+            "HAUSWARTUNG",
+            "GARTEN",
+            "TRANSPORT",
+            "ENTSORGUNG",
+            "VERSICHERUNGEN",
+          ].map((item, index) => (
             <div
-              key={stat.label}
-              className="group bg-[#030816] px-5 py-7 text-center transition hover:bg-white/[0.035] sm:px-7"
+              key={`${item}-${index}`}
+              className="flex items-center"
             >
-              <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-xl transition group-hover:-translate-y-1 group-hover:border-sky-300/20 group-hover:bg-sky-300/10">
-                {stat.icon}
+              <span className="mx-7 whitespace-nowrap text-xs font-black tracking-[0.34em] text-slate-500">
+                {item}
               </span>
-              <strong className="mt-4 block text-xl font-black tracking-[-0.03em] text-white sm:text-2xl">
-                {stat.value}
-              </strong>
-              <span className="mt-1 block text-xs font-semibold text-slate-500 sm:text-sm">
-                {stat.label}
+              <span className="text-lg text-sky-400/50">
+                ✦
               </span>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="premium-section">
-        <div className="container">
-          <div className="section-head">
-            <span className="eyebrow">Beliebte Kategorien</span>
-            <h2>Was möchtest du erledigen?</h2>
-            <p>
-              Wähle eine Kategorie und starte deine kostenlose Anfrage in wenigen
-              Schritten.
-            </p>
+      {/* CATEGORY UNIVERSE */}
+      <section className="relative px-5 py-28 sm:px-8 lg:px-12 lg:py-40">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_90%_15%,rgba(91,79,255,0.13),transparent_34%),radial-gradient(circle_at_5%_65%,rgba(0,174,255,0.11),transparent_35%)]" />
+
+        <div className="home-grid absolute inset-0 opacity-20 [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)]" />
+
+        <div className="relative mx-auto max-w-[1500px]">
+          <div className="grid items-end gap-10 lg:grid-cols-[1fr_430px]">
+            <div>
+              <span className="inline-flex items-center gap-3 rounded-full border border-sky-300/20 bg-sky-400/[0.055] px-4 py-2 text-xs font-black uppercase tracking-[0.23em] text-sky-200">
+                <span className="h-1.5 w-1.5 rounded-full bg-sky-300" />
+                Die Auftrago Welt
+              </span>
+
+              <h2 className="mt-7 max-w-[990px] text-[3.4rem] font-black leading-[0.91] tracking-[-0.07em] sm:text-[5rem] lg:text-[6.2rem]">
+                Ein Portal.
+                <span className="home-text-gradient block">
+                  Unendlich viele Möglichkeiten.
+                </span>
+              </h2>
+            </div>
+
+            <div className="lg:pb-2">
+              <p className="text-lg font-medium leading-8 text-slate-400">
+                Egal ob kleine Aufgabe oder grosses Projekt:
+                Auftrago verbindet Kunden mit passenden
+                Fachbetrieben aus ihrer Region.
+              </p>
+
+              <Link
+                href="/dienstleistungen"
+                className="group mt-7 inline-flex items-center gap-3 text-sm font-black text-sky-300"
+              >
+                Über 420 Dienstleistungen entdecken
+                <span className="transition group-hover:translate-x-1">
+                  →
+                </span>
+              </Link>
+            </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {featuredCategories.map((category) => (
+          <div className="mt-16 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {categoryCards.map((category) => (
               <Link
                 key={category.title}
                 href={category.href}
-                className={[
-                  "group relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br p-6 transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_24px_70px_rgba(0,0,0,0.32)]",
-                  category.accent,
-                ].join(" ")}
+                className="home-card-shine group relative min-h-[390px] overflow-hidden rounded-[38px] border border-white/[0.09] bg-[#080d20]/80 p-7 transition duration-500 hover:-translate-y-3 hover:border-white/20 hover:shadow-[0_45px_120px_rgba(0,0,0,0.5)] sm:p-9"
               >
-                <div className="flex items-start justify-between gap-5">
-                  <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-[#050b17]/75 text-2xl shadow-[0_16px_40px_rgba(0,0,0,0.18)] transition group-hover:scale-105">
-                    {category.icon}
-                  </span>
-                  <span className="text-xl text-sky-300 transition group-hover:translate-x-1">
-                    →
-                  </span>
+                <div
+                  className={[
+                    "absolute inset-0 bg-gradient-to-br opacity-80 transition duration-500 group-hover:opacity-100",
+                    category.gradient,
+                  ].join(" ")}
+                />
+
+                <div className="home-dot-grid absolute inset-0 opacity-[0.06]" />
+
+                <div className="relative flex h-full flex-col">
+                  <div className="flex items-start justify-between">
+                    <span
+                      className={[
+                        "flex h-[72px] w-[72px] items-center justify-center rounded-[25px] border text-4xl font-light transition duration-500 group-hover:rotate-6 group-hover:scale-110",
+                        category.iconClass,
+                      ].join(" ")}
+                    >
+                      {category.icon}
+                    </span>
+
+                    <span className="text-xs font-black tracking-[0.25em] text-white/25">
+                      {category.number}
+                    </span>
+                  </div>
+
+                  <div className="mt-auto pt-20">
+                    <p className="text-xs font-black uppercase tracking-[0.19em] text-slate-500">
+                      {category.subtitle}
+                    </p>
+
+                    <h3 className="mt-3 text-3xl font-black tracking-[-0.045em] sm:text-4xl">
+                      {category.title}
+                    </h3>
+
+                    <p className="mt-4 max-w-md text-sm font-medium leading-7 text-slate-400">
+                      {category.text}
+                    </p>
+
+                    <div className="mt-8 flex items-center justify-between border-t border-white/[0.08] pt-6">
+                      <span className="text-sm font-black">
+                        Kategorie öffnen
+                      </span>
+
+                      <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.045] text-lg text-sky-300 transition duration-300 group-hover:translate-x-1 group-hover:border-sky-300/30 group-hover:bg-sky-400/10">
+                        →
+                      </span>
+                    </div>
+                  </div>
                 </div>
-
-                <h3 className="mt-7 text-xl font-black tracking-[-0.03em] text-white">
-                  {category.title}
-                </h3>
-                <p className="mt-2 max-w-sm text-sm leading-6 text-slate-400">
-                  {category.text}
-                </p>
-
-                <span className="mt-6 inline-flex text-sm font-black text-white">
-                  Kategorie entdecken
-                </span>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      <InsuranceSpotlight />
-      <TrustReviewsSection />
-      <WhyAuftragoSection />
+      {/* LIVE LEADS STAGE */}
+      <section className="relative border-y border-white/[0.08] bg-[#040817]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_15%,rgba(63,84,255,0.15),transparent_38%)]" />
+        <div className="home-grid absolute inset-0 opacity-15" />
 
-      <section className="premium-section">
-        <div className="container">
-          <div className="live-activity-card">
-            <div className="live-activity-head">
-              <div>
-                <span className="eyebrow">Live Aktivität</span>
-                <h2>Aktuelle Anfragen auf Auftrago</h2>
-              </div>
+        <div className="relative">
+          <LiveLeadsSection />
+        </div>
+      </section>
 
-              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-400/10 px-4 py-2 text-xs font-black text-emerald-300">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-                Live
+      {/* PROCESS */}
+      <section className="relative px-5 py-28 sm:px-8 lg:px-12 lg:py-40">
+        <div className="absolute -left-40 top-40 h-[500px] w-[500px] rounded-full bg-sky-500/[0.09] blur-[120px]" />
+        <div className="absolute -right-40 bottom-20 h-[500px] w-[500px] rounded-full bg-violet-500/[0.09] blur-[120px]" />
+
+        <div className="relative mx-auto max-w-[1500px]">
+          <div className="mx-auto max-w-[1000px] text-center">
+            <span className="inline-flex rounded-full border border-violet-300/20 bg-violet-400/[0.055] px-4 py-2 text-xs font-black uppercase tracking-[0.23em] text-violet-200">
+              Einfacher geht es nicht
+            </span>
+
+            <h2 className="mt-7 text-[3.3rem] font-black leading-[0.92] tracking-[-0.07em] sm:text-[5rem] lg:text-[6rem]">
+              Von null auf
+              <span className="home-text-gradient block">
+                perfekt erledigt.
               </span>
-            </div>
+            </h2>
 
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {latestLeads.length > 0 ? (
-                latestLeads.map((lead) => (
-                  <article
-                    key={lead.id}
-                    className="group rounded-[24px] border border-white/10 bg-white/[0.035] p-5 transition duration-300 hover:-translate-y-1 hover:border-sky-300/20 hover:bg-white/[0.055]"
-                  >
-                    <div className="flex items-center justify-between gap-4">
-                      <span className="rounded-full border border-orange-300/20 bg-orange-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-orange-300">
-                        Neu
-                      </span>
-                      <span className="text-xs font-semibold text-slate-500">
-                        {formatLeadTime(lead.createdAt)}
-                      </span>
-                    </div>
+            <p className="mx-auto mt-7 max-w-[710px] text-lg font-medium leading-8 text-slate-400">
+              Ein klarer Prozess, der dir Zeit spart und
+              passende Dienstleister schneller erreichbar
+              macht.
+            </p>
+          </div>
 
-                    <h3 className="mt-5 text-lg font-black tracking-[-0.02em] text-white">
-                      {lead.title || lead.category}
-                    </h3>
+          <div className="relative mt-20 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            <div className="absolute left-[10%] right-[10%] top-[70px] hidden h-px bg-gradient-to-r from-transparent via-sky-400/50 to-transparent xl:block" />
 
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <span className="rounded-full bg-white/[0.06] px-3 py-1.5 text-xs font-bold text-slate-300">
-                        📍 {lead.region || "Schweiz"}
-                      </span>
-                      <span className="rounded-full bg-white/[0.06] px-3 py-1.5 text-xs font-bold text-slate-300">
-                        {lead.category}
-                      </span>
-                    </div>
+            {processSteps.map((step, index) => (
+              <div
+                key={step.number}
+                className="group relative min-h-[380px] overflow-hidden rounded-[34px] border border-white/[0.09] bg-[#080e20] p-7 transition duration-500 hover:-translate-y-3 hover:border-sky-300/20 hover:bg-[#0a1229] sm:p-8"
+              >
+                <div className="absolute -right-14 -top-14 h-36 w-36 rounded-full bg-sky-400/[0.055] blur-3xl transition group-hover:bg-sky-400/10" />
 
-                    <div className="mt-6 flex items-end justify-between gap-4">
-                      <div>
-                        <span className="block text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">
-                          Auftragswert
-                        </span>
-                        <strong className="mt-1 block text-base font-black text-white">
-                          {formatLeadPrice(lead.price)}
-                        </strong>
-                      </div>
+                <div className="relative">
+                  <div className="flex items-center justify-between">
+                    <span className="flex h-[66px] w-[66px] items-center justify-center rounded-[23px] border border-white/10 bg-white/[0.04] text-3xl text-sky-300 transition duration-500 group-hover:scale-110 group-hover:border-sky-300/30 group-hover:bg-sky-400/10">
+                      {step.icon}
+                    </span>
 
-                      <Link
-                        href="/anbieter"
-                        className="text-sm font-black text-sky-300 transition group-hover:translate-x-1"
-                      >
-                        Ansehen →
-                      </Link>
-                    </div>
-                  </article>
-                ))
-              ) : (
-                <div className="col-span-full rounded-[24px] border border-white/10 bg-white/[0.035] p-8 text-center">
-                  <strong className="text-lg font-black text-white">
-                    Neue Anfragen werden gleich angezeigt.
-                  </strong>
-                  <p className="mt-2 text-sm text-slate-400">
-                    Starte jetzt deine kostenlose Anfrage.
+                    <span className="text-6xl font-black tracking-[-0.08em] text-white/[0.045]">
+                      {step.number}
+                    </span>
+                  </div>
+
+                  <p className="mt-10 text-xs font-black uppercase tracking-[0.2em] text-sky-300">
+                    {step.label}
+                  </p>
+
+                  <h3 className="mt-4 text-2xl font-black leading-tight tracking-[-0.04em]">
+                    {step.title}
+                  </h3>
+
+                  <p className="mt-5 text-sm font-medium leading-7 text-slate-400">
+                    {step.text}
                   </p>
                 </div>
+
+                {index < processSteps.length - 1 && (
+                  <span className="absolute -right-3 top-[57px] z-20 hidden h-7 w-7 items-center justify-center rounded-full border border-sky-300/25 bg-[#091126] text-xs text-sky-300 xl:flex">
+                    →
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-12 flex justify-center">
+            <Link
+              href="/offerte-anfragen"
+              className="group relative inline-flex min-h-[64px] items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 px-9 font-black shadow-[0_24px_80px_rgba(67,87,255,0.36)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_34px_100px_rgba(67,87,255,0.5)]"
+            >
+              <span className="relative flex items-center gap-3">
+                Auftrag kostenlos starten
+                <span className="text-xl transition group-hover:translate-x-1">
+                  →
+                </span>
+              </span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* EXPERIENCE PANEL */}
+      <section className="relative border-y border-white/[0.08] bg-[#040817] px-5 py-28 sm:px-8 lg:px-12 lg:py-40">
+        <div className="home-grid absolute inset-0 opacity-15" />
+
+        <div className="relative mx-auto grid max-w-[1500px] gap-16 lg:grid-cols-[1.02fr_.98fr] lg:items-center">
+          <div className="relative min-h-[650px]">
+            <div className="home-glow absolute inset-12 rounded-full bg-gradient-to-br from-sky-500/30 via-indigo-500/15 to-fuchsia-500/20 blur-[100px]" />
+
+            <div className="relative min-h-[650px] overflow-hidden rounded-[46px] border border-white/10 bg-[#070d20] p-6 shadow-[0_50px_150px_rgba(0,0,0,.48)] sm:p-9">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(67,190,255,0.2),transparent_35%),radial-gradient(circle_at_90%_90%,rgba(182,66,255,0.2),transparent_35%)]" />
+
+              <div className="home-grid absolute inset-0 opacity-20" />
+
+              <div className="relative">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.23em] text-sky-300">
+                      Live Matching
+                    </p>
+
+                    <h3 className="mt-3 text-3xl font-black tracking-[-0.05em] sm:text-4xl">
+                      Dein Auftrag arbeitet bereits.
+                    </h3>
+                  </div>
+
+                  <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-400 to-violet-500 text-2xl shadow-[0_18px_55px_rgba(73,98,255,.35)]">
+                    ⚡
+                  </span>
+                </div>
+
+                <div className="mt-9 rounded-[30px] border border-white/[0.09] bg-black/20 p-5 sm:p-6">
+                  <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-4">
+                      <span className="flex h-14 w-14 items-center justify-center rounded-[20px] border border-sky-300/20 bg-sky-400/10 text-2xl">
+                        ✦
+                      </span>
+
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-[0.17em] text-slate-500">
+                          Deine Anfrage
+                        </p>
+
+                        <p className="mt-2 text-lg font-black">
+                          Wohnungsreinigung in Aarau
+                        </p>
+                      </div>
+                    </div>
+
+                    <span className="w-fit rounded-full border border-emerald-300/20 bg-emerald-400/10 px-3 py-1.5 text-xs font-black text-emerald-300">
+                      ● Live
+                    </span>
+                  </div>
+
+                  <div className="mt-6 h-2 overflow-hidden rounded-full bg-white/[0.07]">
+                    <div className="h-full w-[84%] rounded-full bg-gradient-to-r from-sky-400 via-indigo-400 to-fuchsia-400" />
+                  </div>
+
+                  <div className="mt-3 flex justify-between text-xs font-bold text-slate-500">
+                    <span>Matching läuft</span>
+                    <span>84 %</span>
+                  </div>
+                </div>
+
+                <div className="mt-5 space-y-3">
+                  {[
+                    [
+                      "Dienstleistung erkannt",
+                      "Wohnungsreinigung",
+                      "✓",
+                    ],
+                    [
+                      "Region erkannt",
+                      "Aarau und Umgebung",
+                      "⌖",
+                    ],
+                    [
+                      "Anbieter gefunden",
+                      "12 passende Betriebe",
+                      "◎",
+                    ],
+                  ].map(([title, subtitle, icon]) => (
+                    <div
+                      key={title}
+                      className="flex items-center gap-4 rounded-[24px] border border-white/[0.075] bg-white/[0.025] p-4"
+                    >
+                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-indigo-300/20 bg-indigo-400/10 text-lg text-indigo-300">
+                        {icon}
+                      </span>
+
+                      <div>
+                        <p className="font-black">
+                          {title}
+                        </p>
+                        <p className="mt-1 text-xs font-bold text-slate-500">
+                          {subtitle}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-5 flex flex-col gap-4 rounded-[26px] bg-gradient-to-r from-blue-500 to-violet-500 p-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs font-bold text-white/70">
+                      Dein nächster Schritt
+                    </p>
+
+                    <p className="mt-1 font-black">
+                      Passende Anbieter vergleichen
+                    </p>
+                  </div>
+
+                  <span className="text-2xl">→</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="home-float home-glass absolute -right-6 top-16 hidden w-[230px] rounded-[28px] border border-white/10 p-5 xl:block">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">
+                Match gefunden
+              </p>
+              <p className="mt-3 text-2xl font-black tracking-[-0.04em]">
+                12 Anbieter
+              </p>
+              <p className="mt-2 text-sm text-slate-400">
+                in deiner Region
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <span className="inline-flex rounded-full border border-emerald-300/20 bg-emerald-400/[0.055] px-4 py-2 text-xs font-black uppercase tracking-[0.23em] text-emerald-200">
+              Das Auftrago Prinzip
+            </span>
+
+            <h2 className="mt-7 text-[3.3rem] font-black leading-[0.92] tracking-[-0.07em] sm:text-[5rem] lg:text-[5.7rem]">
+              Weniger Aufwand.
+              <span className="home-text-gradient block">
+                Mehr Möglichkeiten.
+              </span>
+            </h2>
+
+            <p className="mt-7 max-w-[680px] text-lg font-medium leading-8 text-slate-400">
+              Auftrago verändert, wie Kunden Dienstleister
+              finden. Statt selbst unzählige Firmen zu
+              kontaktieren, startest du eine einzige
+              strukturierte Anfrage.
+            </p>
+
+            <div className="mt-10 grid gap-4 sm:grid-cols-2">
+              {advantages.map((advantage) => (
+                <div
+                  key={advantage.title}
+                  className="rounded-[26px] border border-white/[0.08] bg-white/[0.025] p-5 transition duration-300 hover:-translate-y-1 hover:border-white/[0.15] hover:bg-white/[0.04]"
+                >
+                  <span className="text-xs font-black tracking-[0.2em] text-sky-300">
+                    {advantage.icon}
+                  </span>
+
+                  <h3 className="mt-5 text-lg font-black tracking-[-0.025em]">
+                    {advantage.title}
+                  </h3>
+
+                  <p className="mt-3 text-sm font-medium leading-7 text-slate-400">
+                    {advantage.text}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+              <Link
+                href="/offerte-anfragen"
+                className="inline-flex min-h-[60px] items-center justify-center rounded-2xl bg-white px-8 font-black text-[#050917] transition hover:-translate-y-1 hover:shadow-[0_25px_70px_rgba(255,255,255,.15)]"
+              >
+                Kostenlos starten
+              </Link>
+
+              <Link
+                href="/anbieter"
+                className="inline-flex min-h-[60px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-8 font-black transition hover:-translate-y-1 hover:border-white/20"
+              >
+                Anbieter entdecken
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SERVICE GRID */}
+      <section className="relative px-5 py-28 sm:px-8 lg:px-12 lg:py-40">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(91,79,255,0.11),transparent_36%)]" />
+
+        <div className="relative mx-auto max-w-[1500px]">
+          <div className="flex flex-col justify-between gap-9 lg:flex-row lg:items-end">
+            <div>
+              <span className="inline-flex rounded-full border border-indigo-300/20 bg-indigo-400/[0.055] px-4 py-2 text-xs font-black uppercase tracking-[0.23em] text-indigo-200">
+                Direkt zum passenden Service
+              </span>
+
+              <h2 className="mt-7 max-w-[900px] text-[3.3rem] font-black leading-[0.92] tracking-[-0.07em] sm:text-[5rem] lg:text-[5.8rem]">
+                Was möchtest du
+                <span className="home-text-gradient block">
+                  erledigen lassen?
+                </span>
+              </h2>
+            </div>
+
+            <Link
+              href="/dienstleistungen"
+              className="group inline-flex items-center gap-3 text-sm font-black text-sky-300"
+            >
+              Alle Dienstleistungen
+              <span className="transition group-hover:translate-x-1">
+                →
+              </span>
+            </Link>
+          </div>
+
+          <div className="mt-16 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {popularServices.map(
+              ([icon, label, href], index) => (
+                <Link
+                  key={`${label}-${href}`}
+                  href={href}
+                  className="group relative min-h-[155px] overflow-hidden rounded-[28px] border border-white/[0.08] bg-[#080d1d] p-5 transition duration-400 hover:-translate-y-2 hover:border-sky-300/25 hover:bg-[#0b1227] hover:shadow-[0_28px_70px_rgba(0,0,0,.35)]"
+                >
+                  <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-sky-400/[0.045] blur-2xl transition group-hover:bg-sky-400/10" />
+
+                  <div className="relative flex h-full flex-col justify-between">
+                    <div className="flex items-start justify-between">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/[0.09] bg-black/20 text-xl text-sky-300 transition duration-300 group-hover:scale-110 group-hover:border-sky-300/25">
+                        {icon}
+                      </span>
+
+                      <span className="text-[10px] font-black tracking-[0.18em] text-white/[0.12]">
+                        {String(index + 1).padStart(
+                          2,
+                          "0"
+                        )}
+                      </span>
+                    </div>
+
+                    <div className="mt-8 flex items-center justify-between">
+                      <h3 className="font-black tracking-[-0.02em]">
+                        {label}
+                      </h3>
+
+                      <span className="text-sky-300 transition group-hover:translate-x-1">
+                        →
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              )
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* PROVIDER EXPERIENCE */}
+      <section className="relative px-5 pb-28 sm:px-8 lg:px-12 lg:pb-40">
+        <div className="relative mx-auto max-w-[1500px] overflow-hidden rounded-[48px] border border-violet-300/15 bg-[#080d1e] p-7 shadow-[0_50px_150px_rgba(0,0,0,.45)] sm:p-12 lg:p-16">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_20%,rgba(45,170,255,0.18),transparent_34%),radial-gradient(circle_at_100%_80%,rgba(202,55,255,0.18),transparent_34%)]" />
+
+          <div className="home-grid absolute inset-0 opacity-20" />
+
+          <div className="relative grid gap-14 lg:grid-cols-[1fr_.9fr] lg:items-center">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full border border-violet-300/20 bg-violet-400/[0.07] px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-violet-200">
+                <span className="h-2 w-2 rounded-full bg-violet-300" />
+                Für Dienstleister
+              </span>
+
+              <h2 className="mt-7 text-[3.2rem] font-black leading-[0.91] tracking-[-0.07em] sm:text-[4.8rem] lg:text-[5.6rem]">
+                Neue Aufträge.
+                <span className="home-text-gradient block">
+                  Ohne Kaltakquise.
+                </span>
+              </h2>
+
+              <p className="mt-7 max-w-[700px] text-lg font-medium leading-8 text-slate-400">
+                Erhalte Zugang zu Kundenanfragen aus deinen
+                Regionen und Fachbereichen. Konzentriere dich
+                auf Aufträge, die wirklich zu deinem Betrieb
+                passen.
+              </p>
+
+              <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+                <Link
+                  href="/anbieter-registrieren"
+                  className="group inline-flex min-h-[62px] items-center justify-center rounded-2xl bg-gradient-to-r from-sky-400 via-indigo-500 to-fuchsia-500 px-8 font-black shadow-[0_24px_80px_rgba(92,78,255,.4)] transition hover:-translate-y-1"
+                >
+                  Jetzt Anbieter werden
+                  <span className="ml-3 transition group-hover:translate-x-1">
+                    →
+                  </span>
+                </Link>
+
+                <Link
+                  href="/anbieter"
+                  className="inline-flex min-h-[62px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-8 font-black transition hover:-translate-y-1 hover:border-white/20"
+                >
+                  Mehr erfahren
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {providerAdvantages.map(
+                (advantage, index) => (
+                  <div
+                    key={advantage}
+                    className="group rounded-[26px] border border-white/[0.08] bg-black/20 p-5 transition duration-300 hover:-translate-y-1 hover:border-violet-300/20 hover:bg-violet-400/[0.05]"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-300/20 bg-emerald-400/10 font-black text-emerald-300">
+                        ✓
+                      </span>
+
+                      <span className="text-xs font-black text-white/[0.1]">
+                        {String(index + 1).padStart(
+                          2,
+                          "0"
+                        )}
+                      </span>
+                    </div>
+
+                    <p className="mt-6 font-black leading-6">
+                      {advantage}
+                    </p>
+                  </div>
+                )
               )}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="premium-section">
-        <div className="container">
-          <div className="section-head">
-            <span className="eyebrow">So funktioniert es</span>
-            <h2>In 4 Schritten zur passenden Offerte</h2>
+      {/* REGIONS */}
+      <section className="relative border-y border-white/[0.08] bg-[#040817] px-5 py-28 sm:px-8 lg:px-12 lg:py-36">
+        <div className="home-grid absolute inset-0 opacity-15" />
+
+        <div className="relative mx-auto max-w-[1500px]">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="rounded-[38px] border border-white/[0.085] bg-white/[0.025] p-7 sm:p-10">
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-sky-300">
+                Regionen
+              </p>
+
+              <h2 className="mt-5 text-4xl font-black tracking-[-0.05em] sm:text-5xl">
+                Schweizweit verbunden.
+              </h2>
+
+              <p className="mt-5 max-w-xl leading-7 text-slate-400">
+                Finde regionale Anbieter für deine gewünschte
+                Dienstleistung.
+              </p>
+
+              <div className="mt-9 grid gap-2 sm:grid-cols-2">
+                {regionData
+                  .slice(0, 12)
+                  .map((region) => (
+                    <Link
+                      key={region.slug}
+                      href={`/region/${region.slug}`}
+                      className="group flex items-center justify-between rounded-2xl border border-white/[0.07] bg-black/20 px-4 py-3.5 text-sm font-bold text-slate-400 transition hover:border-sky-300/20 hover:bg-sky-400/[0.055] hover:text-white"
+                    >
+                      <span>
+                        Anbieter in {region.name}
+                      </span>
+                      <span className="text-sky-300 transition group-hover:translate-x-1">
+                        →
+                      </span>
+                    </Link>
+                  ))}
+              </div>
+            </div>
+
+            <div className="rounded-[38px] border border-white/[0.085] bg-white/[0.025] p-7 sm:p-10">
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-violet-300">
+                Städte
+              </p>
+
+              <h2 className="mt-5 text-4xl font-black tracking-[-0.05em] sm:text-5xl">
+                Direkt in deiner Nähe.
+              </h2>
+
+              <p className="mt-5 max-w-xl leading-7 text-slate-400">
+                Lokale Dienstleister und Offerten aus deiner
+                Stadt und Umgebung.
+              </p>
+
+              <div className="mt-9 grid gap-2 sm:grid-cols-2">
+                {citiesSeo
+                  .slice(0, 12)
+                  .map((city) => (
+                    <Link
+                      key={city.slug}
+                      href={`/stadt/${city.slug}`}
+                      className="group flex items-center justify-between rounded-2xl border border-white/[0.07] bg-black/20 px-4 py-3.5 text-sm font-bold text-slate-400 transition hover:border-violet-300/20 hover:bg-violet-400/[0.055] hover:text-white"
+                    >
+                      <span>
+                        Anbieter in {city.name}
+                      </span>
+                      <span className="text-violet-300 transition group-hover:translate-x-1">
+                        →
+                      </span>
+                    </Link>
+                  ))}
+              </div>
+            </div>
           </div>
 
-          <div className="how-grid">
-            <div className="how-card">
-              <strong>1</strong>
-              <h3>Auftrag beschreiben</h3>
-              <p>Beschreibe kurz dein Projekt und die gewünschte Dienstleistung.</p>
-            </div>
-            <div className="how-card">
-              <strong>2</strong>
-              <h3>Anfrage senden</h3>
-              <p>Deine Anfrage ist kostenlos und unverbindlich.</p>
-            </div>
-            <div className="how-card">
-              <strong>3</strong>
-              <h3>Offerten erhalten</h3>
-              <p>Passende regionale Anbieter können sich bei dir melden.</p>
-            </div>
-            <div className="how-card">
-              <strong>4</strong>
-              <h3>Vergleichen</h3>
-              <p>Vergleiche Preis, Qualität, Service und Verfügbarkeit.</p>
-            </div>
-          </div>
-        </div>
-      </section>
+          <div className="mt-6 rounded-[38px] border border-white/[0.085] bg-white/[0.025] p-7 sm:p-10">
+            <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-300">
+                  Häufig gesucht
+                </p>
 
-      <LiveLeadsSection />
+                <h2 className="mt-5 text-4xl font-black tracking-[-0.05em] sm:text-5xl">
+                  Beliebte Dienstleistungen
+                </h2>
+              </div>
 
-      <section className="premium-section">
-        <div className="container">
-          <div className="section-head">
-            <span className="eyebrow">Leistungen</span>
-            <h2>Eine Plattform für praktisch jede Dienstleistung.</h2>
-            <p>
-              Von Reinigung und Hauswartung über Handwerk, Umzug und Entsorgung
-              bis zu Versicherungen, Renovation, Sanitär und Technik.
-            </p>
-          </div>
-
-          <div className="premium-service-grid">
-            {mainServices.map((service) => (
               <Link
-                href={service.href}
-                className="premium-service-card"
-                key={service.title}
+                href="/dienstleistungen"
+                className="text-sm font-black text-sky-300"
               >
-                <div className="premium-service-icon">{service.icon}</div>
-                <h3>{service.title}</h3>
-                <p>{service.text}</p>
-                <strong>Mehr erfahren →</strong>
+                Alle Dienstleistungen →
               </Link>
-            ))}
-          </div>
+            </div>
 
-          <div className="actions center" style={{ marginTop: "34px" }}>
-            <Link href="/dienstleistungen" className="btn btn-primary">
-              Alle Dienstleistungen entdecken
+            <div className="mt-9 flex flex-wrap gap-2">
+              {seoServices
+                .slice(0, 24)
+                .map((service) => (
+                  <Link
+                    key={service}
+                    href={`/leistungen/${service}`}
+                    className="rounded-full border border-white/[0.08] bg-black/20 px-4 py-2.5 text-sm font-bold text-slate-400 transition hover:border-emerald-300/20 hover:bg-emerald-400/[0.055] hover:text-white"
+                  >
+                    {formatText(service)}
+                  </Link>
+                ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="relative px-5 py-28 sm:px-8 lg:px-12 lg:py-40">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_20%,rgba(36,169,255,0.08),transparent_30%),radial-gradient(circle_at_90%_80%,rgba(162,57,255,0.08),transparent_30%)]" />
+
+        <div className="relative mx-auto grid max-w-[1500px] gap-14 lg:grid-cols-[.7fr_1.3fr]">
+          <div>
+            <span className="inline-flex rounded-full border border-sky-300/20 bg-sky-400/[0.055] px-4 py-2 text-xs font-black uppercase tracking-[0.23em] text-sky-200">
+              Fragen & Antworten
+            </span>
+
+            <h2 className="mt-7 text-[3.2rem] font-black leading-[0.91] tracking-[-0.07em] sm:text-[4.8rem]">
+              Noch Fragen?
+              <span className="home-text-gradient block">
+                Wir klären das.
+              </span>
+            </h2>
+
+            <p className="mt-6 max-w-md text-lg font-medium leading-8 text-slate-400">
+              Die wichtigsten Antworten rund um Aufträge,
+              Anbieter und die Nutzung von Auftrago.
+            </p>
+
+            <Link
+              href="/offerte-anfragen"
+              className="mt-9 inline-flex min-h-[58px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-7 font-black transition hover:-translate-y-1 hover:border-sky-300/25"
+            >
+              Anfrage direkt starten
             </Link>
           </div>
-        </div>
-      </section>
 
-      <section className="premium-section">
-        <div className="container premium-provider-card">
-          <span className="eyebrow">Häufig gesucht</span>
-          <h2>Beliebte Dienstleistungen</h2>
-          <p>
-            Entdecke häufig gesuchte Leistungen und finde passende regionale
-            Anbieter.
-          </p>
+          <div className="home-faq space-y-3">
+            {faqs.map((faq, index) => (
+              <details
+                key={faq.question}
+                className="group overflow-hidden rounded-[26px] border border-white/[0.085] bg-white/[0.025] transition open:border-sky-300/20 open:bg-white/[0.045]"
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-5 px-5 py-5 sm:px-7 sm:py-6">
+                  <div className="flex items-center gap-4">
+                    <span className="text-xs font-black tracking-[0.12em] text-sky-300">
+                      {String(index + 1).padStart(
+                        2,
+                        "0"
+                      )}
+                    </span>
 
-          <div className="seo-link-grid">
-            {seoServices.slice(0, 20).map((service) => (
-              <Link key={service} href={`/leistungen/${service}`}>
-                {formatText(service)}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+                    <span className="text-base font-black sm:text-lg">
+                      {faq.question}
+                    </span>
+                  </div>
 
-      <section className="premium-section">
-        <div className="container premium-provider-card">
-          <span className="eyebrow">Regionen</span>
-          <h2>Regionale Anbieter in der Schweiz finden</h2>
-          <p>
-            Wähle deine Region und finde passende Anbieter für Reinigung,
-            Hauswartung, Umzug, Gartenpflege und weitere Dienstleistungen.
-          </p>
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-xl transition duration-300 group-open:rotate-45 group-open:border-sky-300/20 group-open:bg-sky-400/10">
+                    +
+                  </span>
+                </summary>
 
-          <div className="seo-link-grid">
-            {regionData.map((region) => (
-              <Link key={region.slug} href={`/region/${region.slug}`}>
-                Anbieter in {region.name}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="premium-section">
-        <div className="container premium-provider-card">
-          <span className="eyebrow">Städte</span>
-          <h2>Anbieter in deiner Stadt finden</h2>
-          <p>
-            Finde lokale Dienstleister und Offerten direkt in deiner Umgebung.
-          </p>
-
-          <div className="seo-link-grid">
-            {citiesSeo.map((city) => (
-              <Link key={city.slug} href={`/stadt/${city.slug}`}>
-                Anbieter in {city.name}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="premium-section">
-        <div className="container premium-provider-card">
-          <span className="eyebrow">Priorität</span>
-          <h2>Starke Seiten für aktuelle Suchanfragen</h2>
-          <p>
-            Direkte Einstiege zu häufig gesuchten Dienstleistungen und Regionen.
-          </p>
-
-          <div className="seo-link-grid">
-            {priorityLinks.map(([label, href]) => (
-              <Link key={href + label} href={href}>
-                {label}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="premium-section">
-        <div className="container premium-provider-card">
-          <span className="eyebrow">Beliebte Offerten</span>
-          <h2>Direkt zu häufig gesuchten Kombinationen.</h2>
-          <p>
-            Beliebte Dienstleistungen und Regionen für eine schnelle Anfrage.
-          </p>
-
-          <div className="seo-link-grid">
-            {popularLinks.map(([label, href]) => (
-              <Link key={href} href={href}>
-                {label}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="premium-section">
-        <div className="container premium-provider-card">
-          <span className="eyebrow">Für Anbieter</span>
-          <h2>Mehr relevante Leads. Weniger Streuverlust.</h2>
-          <p>
-            Auftrago ist für Dienstleister gemacht, die konkrete
-            Kundenanfragen in ihrer Region erhalten möchten.
-          </p>
-
-          <div className="actions">
-            <Link href="/anbieter-registrieren" className="btn btn-primary">
-              Als Anbieter registrieren
-            </Link>
-            <Link href="/anbieter" className="btn btn-secondary">
-              Anbieter ansehen
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <section className="premium-section">
-        <div className="container premium-faq">
-          <span className="eyebrow">FAQ</span>
-          <h2>Häufige Fragen zu Auftrago</h2>
-
-          <div className="quote-faq">
-            {faqs.map((faq) => (
-              <details key={faq.question}>
-                <summary>{faq.question}</summary>
-                <p>{faq.answer}</p>
+                <div className="border-t border-white/[0.06] px-5 py-5 sm:px-7 sm:py-6">
+                  <p className="max-w-3xl text-sm font-medium leading-7 text-slate-400 sm:text-base sm:leading-8">
+                    {faq.answer}
+                  </p>
+                </div>
               </details>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="premium-final">
-        <div className="container premium-final-card">
-          <span className="eyebrow">Jetzt starten</span>
-          <h2>Nur eine Anfrage. Mehrere passende Offerten.</h2>
-          <p>
-            Kostenlos, unverbindlich und regional. Starte deine Anfrage in
-            weniger als einer Minute.
-          </p>
+      {/* FINAL CTA */}
+      <section className="relative px-5 pb-12 sm:px-8 lg:px-12 lg:pb-16">
+        <div className="relative mx-auto max-w-[1500px] overflow-hidden rounded-[50px] border border-white/10 bg-[#080e21] px-6 py-24 text-center shadow-[0_55px_170px_rgba(0,0,0,.55)] sm:px-12 lg:py-36">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_10%,rgba(40,181,255,0.25),transparent_35%),radial-gradient(circle_at_88%_90%,rgba(203,56,255,0.24),transparent_35%)]" />
 
-          <div className="actions center">
-            <Link href="/offerte-anfragen" className="btn btn-primary">
-              Kostenlose Offerte anfragen
-            </Link>
-            <Link href="/anbieter-registrieren" className="btn btn-secondary">
-              Anbieter werden
-            </Link>
+          <div className="home-grid absolute inset-0 opacity-25" />
+
+          <div className="home-rotate absolute left-1/2 top-1/2 h-[800px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-white/[0.045]" />
+
+          <div className="relative mx-auto max-w-[1100px]">
+            <span className="inline-flex items-center gap-3 rounded-full border border-emerald-300/20 bg-emerald-400/[0.07] px-4 py-2 text-xs font-black uppercase tracking-[0.23em] text-emerald-200">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-70" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+              </span>
+              Bereit für deinen Auftrag
+            </span>
+
+            <h2 className="mt-8 text-[3.5rem] font-black leading-[0.88] tracking-[-0.075em] sm:text-[5.7rem] lg:text-[7.2rem]">
+              Nicht lange suchen.
+              <span className="home-text-gradient block">
+                Einfach Auftrago.
+              </span>
+            </h2>
+
+            <p className="mx-auto mt-8 max-w-[780px] text-lg font-medium leading-8 text-slate-300 sm:text-xl">
+              Erstelle deine Anfrage kostenlos und erreiche
+              passende Anbieter aus deiner Region.
+            </p>
+
+            <div className="mt-11 flex flex-col justify-center gap-4 sm:flex-row">
+              <Link
+                href="/offerte-anfragen"
+                className="group inline-flex min-h-[66px] items-center justify-center rounded-2xl bg-gradient-to-r from-sky-400 via-indigo-500 to-fuchsia-500 px-9 text-base font-black shadow-[0_27px_90px_rgba(82,73,255,.48)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_38px_110px_rgba(82,73,255,.65)]"
+              >
+                Auftrag kostenlos starten
+                <span className="ml-3 text-xl transition group-hover:translate-x-1">
+                  →
+                </span>
+              </Link>
+
+              <Link
+                href="/anbieter-registrieren"
+                className="inline-flex min-h-[66px] items-center justify-center rounded-2xl border border-white/15 bg-white/[0.055] px-9 text-base font-black backdrop-blur-xl transition hover:-translate-y-1 hover:border-white/25 hover:bg-white/[0.085]"
+              >
+                Anbieter werden
+              </Link>
+            </div>
+
+            <div className="mt-9 flex flex-wrap justify-center gap-x-8 gap-y-3 text-xs font-bold text-slate-500 sm:text-sm">
+              <span>✓ 100 % kostenlos</span>
+              <span>✓ Unverbindlich</span>
+              <span>✓ Regionale Anbieter</span>
+              <span>✓ Schweizweit</span>
+            </div>
           </div>
         </div>
       </section>

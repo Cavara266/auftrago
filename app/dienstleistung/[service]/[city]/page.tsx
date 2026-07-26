@@ -1,0 +1,838 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+
+import FaqSection from "@/components/seo/FaqSection";
+import PriceGuidance from "@/components/seo/PriceGuidance";
+import RequestTips from "@/components/seo/RequestTips";
+import SeoLayout from "@/components/seo/SeoLayout";
+
+import {
+  cityProfiles,
+  getCityProfile,
+} from "@/data/seo/city-profiles";
+
+import {
+  getServiceProfile,
+  serviceProfiles,
+} from "@/data/seo/service-profiles";
+
+import { prisma } from "@/lib/prisma";
+
+import {
+  breadcrumbSchema,
+  serviceSchema,
+  webPageSchema,
+} from "@/lib/schema";
+
+import {
+  createSeoMetadata,
+  serviceCityDescription,
+  serviceCityTitle,
+} from "@/lib/seo";
+
+import {
+  buildFaqs,
+  buildSeoContent,
+} from "@/lib/seo-engine/content";
+
+
+import {
+  getNearbyCityLinks,
+  getRelatedServiceLinks,
+} from "@/lib/seo-engine/internal-links";
+
+export const revalidate = 3600;
+export const dynamicParams = true;
+
+type PageProps = {
+  params: Promise<{
+    service: string;
+    city: string;
+  }>;
+};
+
+async function getCmsLandingPage(
+  serviceSlug: string,
+  citySlug: string
+) {
+  return prisma.seoLandingPage.findFirst({
+    where: {
+      status: "ACTIVE",
+      city: {
+        slug: citySlug,
+        status: "ACTIVE",
+      },
+      service: {
+        slug: serviceSlug,
+        status: "ACTIVE",
+      },
+    },
+    include: {
+      city: true,
+      service: {
+        include: {
+          faqs: {
+            where: {
+              status: "ACTIVE",
+            },
+            orderBy: {
+              sortOrder: "asc",
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+function centsToFrancs(value: number | null | undefined) {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+
+  return value / 100;
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const {
+    service: serviceSlug,
+    city: citySlug,
+  } = await params;
+
+  const [cmsPage, staticService, staticCity] =
+    await Promise.all([
+      getCmsLandingPage(serviceSlug, citySlug),
+      Promise.resolve(getServiceProfile(serviceSlug)),
+      Promise.resolve(getCityProfile(citySlug)),
+    ]);
+
+  const path =
+    `/dienstleistung/${serviceSlug}/${citySlug}`;
+
+  if (cmsPage) {
+    const title =
+      cmsPage.seoTitle ||
+      cmsPage.service.seoTitle ||
+      `${cmsPage.service.name} in ${cmsPage.city.name} | Auftrago`;
+
+    const description =
+      cmsPage.seoDescription ||
+      cmsPage.service.seoDescription ||
+      cmsPage.introduction ||
+      `Finde passende Anbieter für ${cmsPage.service.name} in ${cmsPage.city.name} und vergleiche regionale Angebote.`;
+
+    const indexable =
+      cmsPage.indexable &&
+      cmsPage.city.indexable &&
+      cmsPage.service.indexable;
+
+    return createSeoMetadata({
+      title,
+      description,
+      path,
+      type: "service",
+      noindex: !indexable,
+      nofollow: !indexable,
+      keywords: [
+        `${cmsPage.service.name} ${cmsPage.city.name}`,
+        `${cmsPage.service.name} in ${cmsPage.city.name}`,
+        `${cmsPage.service.name} Anbieter ${cmsPage.city.name}`,
+        `${cmsPage.service.name} Offerte ${cmsPage.city.name}`,
+        `${cmsPage.service.name} Kosten ${cmsPage.city.name}`,
+      ],
+    });
+  }
+
+  if (!staticService || !staticCity) {
+    return createSeoMetadata({
+      title: "Seite nicht gefunden",
+      description:
+        "Die gewünschte Dienstleistungsseite ist nicht verfügbar.",
+      path,
+      noindex: true,
+      nofollow: true,
+    });
+  }
+
+  return createSeoMetadata({
+    title: serviceCityTitle(
+      staticService.name,
+      staticCity.name
+    ),
+    description: serviceCityDescription(
+      staticService.name,
+      staticCity.name
+    ),
+    path:
+      `/dienstleistung/${staticService.slug}/${staticCity.slug}`,
+    type: "service",
+    keywords: [
+      `${staticService.name} ${staticCity.name}`,
+      `${staticService.name} in ${staticCity.name}`,
+      `${staticService.name} Offerte ${staticCity.name}`,
+      `${staticService.name} Anbieter ${staticCity.name}`,
+      `${staticService.singular} ${staticCity.name}`,
+    ],
+  });
+}
+
+export async function generateStaticParams() {
+  return serviceProfiles.flatMap((service) =>
+    cityProfiles.map((city) => ({
+      service: service.slug,
+      city: city.slug,
+    }))
+  );
+}
+
+export default async function ServiceCityPage({
+  params,
+}: PageProps) {
+  const {
+    service: serviceSlug,
+    city: citySlug,
+  } = await params;
+
+  const [cmsPage, staticService, staticCity] =
+    await Promise.all([
+      getCmsLandingPage(serviceSlug, citySlug),
+      Promise.resolve(getServiceProfile(serviceSlug)),
+      Promise.resolve(getCityProfile(citySlug)),
+    ]);
+
+  if (!cmsPage && (!staticService || !staticCity)) {
+    notFound();
+  }
+
+  if (cmsPage && (!staticService || !staticCity)) {
+    return <CmsOnlyLandingPage cmsPage={cmsPage} />;
+  }
+
+  if (!staticService || !staticCity) {
+    notFound();
+  }
+
+  const staticContent = buildSeoContent(
+    staticService,
+    staticCity
+  );
+
+  const staticFaqs = buildFaqs(
+    staticService,
+    staticCity
+  );
+
+  const path =
+    `/dienstleistung/${staticService.slug}/${staticCity.slug}`;
+
+  const heroTitle =
+    cmsPage?.headline ||
+    staticContent.heroTitle;
+
+  const heroDescription =
+    cmsPage?.introduction ||
+    staticContent.heroDescription;
+
+  const localIntro =
+    cmsPage?.city.localContent ||
+    cmsPage?.city.introduction ||
+    staticContent.localIntro;
+
+  const comparisonText =
+    cmsPage?.content ||
+    staticContent.comparisonText;
+
+  const priceFrom =
+    centsToFrancs(
+      cmsPage?.customPriceMinCents ??
+      cmsPage?.service.priceMinCents
+    ) ??
+    staticService.priceFrom;
+
+  const priceTo =
+    centsToFrancs(
+      cmsPage?.customPriceMaxCents ??
+      cmsPage?.service.priceMaxCents
+    ) ??
+    staticService.priceTo;
+
+  const priceUnit =
+    cmsPage?.service.priceUnit ||
+    staticService.unit;
+
+  const benefits =
+    cmsPage &&
+    cmsPage.service.benefits.length > 0
+      ? cmsPage.service.benefits
+      : staticService.shortBenefits;
+
+  const faqs =
+    cmsPage &&
+    cmsPage.service.faqs.length > 0
+      ? cmsPage.service.faqs.map((faq) => ({
+          question: faq.question,
+          answer: faq.answer,
+        }))
+      : staticFaqs;
+
+  const pageDescription =
+    cmsPage?.seoDescription ||
+    cmsPage?.introduction ||
+    serviceCityDescription(
+      staticService.name,
+      staticCity.name
+    );
+
+  const breadcrumbs = [
+    {
+      label: "Startseite",
+      href: "/",
+    },
+    {
+      label: "Dienstleistungen",
+      href: "/dienstleistungen",
+    },
+    {
+      label: staticService.name,
+      href: `/leistungen/${staticService.slug}`,
+    },
+    {
+      label: staticCity.name,
+      href: path,
+    },
+  ];
+
+  const schema = [
+    webPageSchema({
+      name:
+        cmsPage?.seoTitle ||
+        serviceCityTitle(
+          staticService.name,
+          staticCity.name
+        ),
+      description: pageDescription,
+      path,
+    }),
+
+    serviceSchema({
+      name:
+        `${staticService.name} in ${staticCity.name}`,
+      description: pageDescription,
+      path,
+      areaServed: [
+        staticCity.name,
+        staticCity.regionName,
+        "Schweiz",
+      ],
+      category: staticService.category,
+    }),
+
+    breadcrumbSchema(
+      breadcrumbs.map((item) => ({
+        name: item.label,
+        path: item.href,
+      }))
+    ),
+  ];
+
+  const relatedServices =
+    getRelatedServiceLinks(
+      staticService.slug,
+      staticCity.slug
+    );
+
+  const nearbyCities =
+    getNearbyCityLinks(
+      staticCity.slug,
+      staticService.slug
+    );
+return (
+    <SeoLayout
+      breadcrumbs={breadcrumbs}
+      schema={schema}
+    >
+      <section className="premium-section pt-4">
+        <div className="container">
+          <div className="relative overflow-hidden rounded-[34px] border border-white/10 bg-gradient-to-br from-sky-400/15 via-[#07101f] to-[#030816] px-6 py-12 sm:px-10 lg:px-14 lg:py-16">
+            <span className="eyebrow">
+              {staticService.category} ·{" "}
+              {staticCity.regionName}
+            </span>
+
+            <h1 className="mt-5 max-w-5xl text-4xl font-black tracking-[-0.045em] text-white sm:text-5xl lg:text-6xl">
+              {heroTitle}
+            </h1>
+
+            <p className="mt-6 max-w-3xl text-base leading-8 text-slate-300 sm:text-lg">
+              {heroDescription}
+            </p>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/offerte-anfragen"
+                className="btn btn-primary"
+              >
+                Kostenlose Anfrage erstellen
+              </Link>
+
+              <Link
+                href={`/leistungen/${staticService.slug}`}
+                className="btn btn-secondary"
+              >
+                Mehr über {staticService.name}
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="premium-section">
+        <div className="container grid gap-5 md:grid-cols-3">
+          {benefits.slice(0, 6).map((benefit) => (
+            <article
+              key={benefit}
+              className="rounded-[26px] border border-white/10 bg-white/[0.035] p-6"
+            >
+              <h2 className="text-xl font-black text-white">
+                {benefit}
+              </h2>
+
+              <p className="mt-3 text-sm leading-7 text-slate-400">
+                Passende Anbieter vergleichen und den
+                Auftrag klar, nachvollziehbar und
+                unverbindlich vorbereiten.
+              </p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="premium-section">
+        <div className="container grid gap-8 lg:grid-cols-[1.25fr_0.75fr]">
+          <article className="premium-provider-card">
+            <span className="eyebrow">
+              Regionaler Überblick
+            </span>
+
+            <h2>
+              {staticService.name} in{" "}
+              {staticCity.name} sinnvoll vergleichen
+            </h2>
+
+            <p>{localIntro}</p>
+
+            <p className="mt-5">
+              {comparisonText}
+            </p>
+
+            <h3 className="mt-8 text-2xl font-black text-white">
+              Geeignet für
+            </h3>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              {staticService.suitableFor.map(
+                (item) => (
+                  <span
+                    key={item}
+                    className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-sm font-semibold text-slate-300"
+                  >
+                    {item}
+                  </span>
+                )
+              )}
+            </div>
+          </article>
+
+          <aside className="premium-provider-card">
+            <span className="eyebrow">
+              Ablauf
+            </span>
+
+            <h2>In vier Schritten starten</h2>
+
+            <div className="mt-6 space-y-5">
+              {[
+                "Leistung und Ort auswählen",
+                "Auftrag vollständig beschreiben",
+                "Termin und Kontaktdaten ergänzen",
+                "Rückmeldungen vergleichen",
+              ].map((step, index) => (
+                <div
+                  key={step}
+                  className="flex gap-4"
+                >
+                  <strong className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-400/15 text-sky-300">
+                    {index + 1}
+                  </strong>
+
+                  <p className="pt-1 text-sm leading-6 text-slate-300">
+                    {step}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <PriceGuidance
+        title={
+          `Was kostet ${staticService.name} in ${staticCity.name}?`
+        }
+        text={staticContent.priceIntro}
+        from={priceFrom}
+        to={priceTo}
+        unit={priceUnit}
+      />
+
+      <RequestTips
+        title={
+          `So wird deine Anfrage für ${staticService.name} genauer`
+        }
+        tips={staticService.requestTips}
+      />
+
+      <FaqSection
+        items={faqs}
+        title={
+          `Häufige Fragen zu ${staticService.name} in ${staticCity.name}`
+        }
+      />
+
+      <section className="premium-section">
+        <div className="container premium-provider-card">
+          <span className="eyebrow">
+            Ähnliche Leistungen
+          </span>
+
+          <h2>
+            Weitere Dienstleistungen in{" "}
+            {staticCity.name}
+          </h2>
+
+          <div className="seo-link-grid">
+            {relatedServices.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+              >
+                {item.label} in {staticCity.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="premium-section">
+        <div className="container premium-provider-card">
+          <span className="eyebrow">
+            In der Umgebung
+          </span>
+
+          <h2>
+            {staticService.name} in weiteren Städten
+          </h2>
+
+          <div className="seo-link-grid">
+            {nearbyCities.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+              >
+                {staticService.name} in {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="premium-final">
+        <div className="container premium-final-card">
+          <span className="eyebrow">
+            Jetzt starten
+          </span>
+
+          <h2>{staticContent.ctaTitle}</h2>
+          <p>{staticContent.ctaText}</p>
+
+          <div className="actions center">
+            <Link
+              href="/offerte-anfragen"
+              className="btn btn-primary"
+            >
+              Kostenlose Offerte anfragen
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      </SeoLayout>
+  );
+}
+
+type CmsPage = NonNullable<
+  Awaited<ReturnType<typeof getCmsLandingPage>>
+>;
+
+function CmsOnlyLandingPage({
+  cmsPage,
+}: {
+  cmsPage: CmsPage;
+}) {
+  const path =
+    `/dienstleistung/${cmsPage.service.slug}/${cmsPage.city.slug}`;
+
+  const title =
+    cmsPage.headline ||
+    `${cmsPage.service.name} in ${cmsPage.city.name}`;
+
+  const description =
+    cmsPage.seoDescription ||
+    cmsPage.introduction ||
+    `Finde Anbieter für ${cmsPage.service.name} in ${cmsPage.city.name}.`;
+
+  const breadcrumbs = [
+    {
+      label: "Startseite",
+      href: "/",
+    },
+    {
+      label: "Dienstleistungen",
+      href: "/dienstleistungen",
+    },
+    {
+      label: cmsPage.service.name,
+      href: `/leistungen/${cmsPage.service.slug}`,
+    },
+    {
+      label: cmsPage.city.name,
+      href: path,
+    },
+  ];
+
+  const schema = [
+    webPageSchema({
+      name: title,
+      description,
+      path,
+    }),
+
+    serviceSchema({
+      name:
+        `${cmsPage.service.name} in ${cmsPage.city.name}`,
+      description,
+      path,
+      areaServed: [
+        cmsPage.city.name,
+        cmsPage.city.region || cmsPage.city.canton,
+        "Schweiz",
+      ],
+      category: cmsPage.service.name,
+    }),
+
+    breadcrumbSchema(
+      breadcrumbs.map((item) => ({
+        name: item.label,
+        path: item.href,
+      }))
+    ),
+  ];
+
+  const priceFrom = centsToFrancs(
+    cmsPage.customPriceMinCents ??
+    cmsPage.service.priceMinCents
+  );
+
+  const priceTo = centsToFrancs(
+    cmsPage.customPriceMaxCents ??
+    cmsPage.service.priceMaxCents
+  );
+
+  const faqItems =
+    cmsPage.service.faqs.map((faq) => ({
+      question: faq.question,
+      answer: faq.answer,
+    }));
+
+  return (
+    <SeoLayout
+      breadcrumbs={breadcrumbs}
+      schema={schema}
+    >
+      <section className="premium-section pt-4">
+        <div className="container">
+          <div className="relative overflow-hidden rounded-[34px] border border-white/10 bg-gradient-to-br from-sky-400/15 via-[#07101f] to-[#030816] px-6 py-12 sm:px-10 lg:px-14 lg:py-16">
+            <span className="eyebrow">
+              {cmsPage.service.name} ·{" "}
+              {cmsPage.city.canton}
+            </span>
+
+            <h1 className="mt-5 max-w-5xl text-4xl font-black tracking-[-0.045em] text-white sm:text-5xl lg:text-6xl">
+              {title}
+            </h1>
+
+            <p className="mt-6 max-w-3xl text-base leading-8 text-slate-300 sm:text-lg">
+              {cmsPage.introduction || description}
+            </p>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/offerte-anfragen"
+                className="btn btn-primary"
+              >
+                Kostenlose Anfrage erstellen
+              </Link>
+
+              <Link
+                href={`/leistungen/${cmsPage.service.slug}`}
+                className="btn btn-secondary"
+              >
+                Mehr über {cmsPage.service.name}
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {cmsPage.service.benefits.length > 0 ? (
+        <section className="premium-section">
+          <div className="container grid gap-5 md:grid-cols-3">
+            {cmsPage.service.benefits
+              .slice(0, 6)
+              .map((benefit) => (
+                <article
+                  key={benefit}
+                  className="rounded-[26px] border border-white/10 bg-white/[0.035] p-6"
+                >
+                  <h2 className="text-xl font-black text-white">
+                    {benefit}
+                  </h2>
+
+                  <p className="mt-3 text-sm leading-7 text-slate-400">
+                    Regionale Anbieter vergleichen und
+                    kostenlos eine Anfrage erstellen.
+                  </p>
+                </article>
+              ))}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="premium-section">
+        <div className="container grid gap-8 lg:grid-cols-[1.25fr_0.75fr]">
+          <article className="premium-provider-card">
+            <span className="eyebrow">
+              Regionaler Überblick
+            </span>
+
+            <h2>
+              {cmsPage.service.name} in{" "}
+              {cmsPage.city.name}
+            </h2>
+
+            <p>
+              {cmsPage.city.localContent ||
+                cmsPage.city.introduction ||
+                cmsPage.content ||
+                description}
+            </p>
+
+            {cmsPage.content ? (
+              <p className="mt-5">
+                {cmsPage.content}
+              </p>
+            ) : null}
+          </article>
+
+          <aside className="premium-provider-card">
+            <span className="eyebrow">
+              Ablauf
+            </span>
+
+            <h2>In vier Schritten starten</h2>
+
+            <div className="mt-6 space-y-5">
+              {[
+                "Leistung und Ort auswählen",
+                "Auftrag vollständig beschreiben",
+                "Termin und Kontaktdaten ergänzen",
+                "Angebote vergleichen",
+              ].map((step, index) => (
+                <div
+                  key={step}
+                  className="flex gap-4"
+                >
+                  <strong className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-400/15 text-sky-300">
+                    {index + 1}
+                  </strong>
+
+                  <p className="pt-1 text-sm leading-6 text-slate-300">
+                    {step}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      {priceFrom !== undefined &&
+      priceTo !== undefined ? (
+        <PriceGuidance
+          title={
+            `Was kostet ${cmsPage.service.name} in ${cmsPage.city.name}?`
+          }
+          text={
+            `Die tatsächlichen Kosten hängen vom Umfang, Termin, Objekt und den gewünschten Leistungen ab.`
+          }
+          from={priceFrom}
+          to={priceTo}
+          unit={
+            cmsPage.service.priceUnit ||
+            "pro Auftrag"
+          }
+        />
+      ) : null}
+
+      {faqItems.length > 0 ? (
+        <FaqSection
+          items={faqItems}
+          title={
+            `Häufige Fragen zu ${cmsPage.service.name} in ${cmsPage.city.name}`
+          }
+        />
+      ) : null}
+
+      <section className="premium-final">
+        <div className="container premium-final-card">
+          <span className="eyebrow">
+            Jetzt starten
+          </span>
+
+          <h2>
+            Angebote für {cmsPage.service.name} in{" "}
+            {cmsPage.city.name} vergleichen
+          </h2>
+
+          <p>
+            Beschreibe deinen Auftrag und erhalte
+            Rückmeldungen von passenden regionalen
+            Anbietern.
+          </p>
+
+          <div className="actions center">
+            <Link
+              href="/offerte-anfragen"
+              className="btn btn-primary"
+            >
+              Kostenlose Offerte anfragen
+            </Link>
+          </div>
+        </div>
+      </section>
+    </SeoLayout>
+  );
+}

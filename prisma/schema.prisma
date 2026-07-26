@@ -589,3 +589,198 @@ model Invoice {
   @@index([createdAt])
   @@index([providerId, createdAt])
 }
+
+enum SeoContentStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+model SeoCity {
+  id String @id @default(uuid())
+
+  slug    String  @unique
+  name    String
+  canton  String
+  region  String?
+  country String  @default("Schweiz")
+
+  introduction String?
+  localContent String?
+
+  seoTitle       String?
+  seoDescription String?
+  canonicalUrl   String?
+
+  neighboringCities String[] @default([])
+
+  status    SeoContentStatus @default(DRAFT)
+  indexable Boolean          @default(true)
+  sortOrder Int              @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  landingPages SeoLandingPage[]
+
+  @@index([status])
+  @@index([canton])
+  @@index([region])
+  @@index([sortOrder])
+  @@index([createdAt])
+}
+
+model SeoServicePage {
+  id String @id @default(uuid())
+
+  slug        String  @unique
+  name        String
+  shortName   String?
+  description String?
+  content     String?
+
+  priceMinCents Int?
+  priceMaxCents Int?
+  priceUnit     String?
+
+  seoTitle       String?
+  seoDescription String?
+  canonicalUrl   String?
+
+  benefits        String[] @default([])
+  relatedServices String[] @default([])
+
+  status    SeoContentStatus @default(DRAFT)
+  indexable Boolean          @default(true)
+  sortOrder Int              @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  landingPages SeoLandingPage[]
+  faqs         SeoFaq[]
+
+  @@index([status])
+  @@index([sortOrder])
+  @@index([createdAt])
+}
+
+model SeoLandingPage {
+  id String @id @default(uuid())
+
+  cityId String
+  city   SeoCity @relation(fields: [cityId], references: [id], onDelete: Cascade)
+
+  serviceId String
+  service   SeoServicePage @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  slug String @unique
+
+  headline     String?
+  introduction String?
+  content      String?
+
+  seoTitle       String?
+  seoDescription String?
+  canonicalUrl   String?
+
+  customPriceMinCents Int?
+  customPriceMaxCents Int?
+
+  status    SeoContentStatus @default(DRAFT)
+  indexable Boolean          @default(true)
+  featured  Boolean          @default(false)
+
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([cityId, serviceId])
+  @@index([cityId])
+  @@index([serviceId])
+  @@index([status])
+  @@index([indexable])
+  @@index([publishedAt])
+  @@index([createdAt])
+}
+
+model SeoFaq {
+  id String @id @default(uuid())
+
+  serviceId String?
+  service   SeoServicePage? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  question String
+  answer   String
+
+  status    SeoContentStatus @default(ACTIVE)
+  sortOrder Int              @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([serviceId])
+  @@index([status])
+  @@index([sortOrder])
+}
+
+model SeoArticle {
+  id String @id @default(uuid())
+
+  slug     String  @unique
+  title    String
+  excerpt  String?
+  content  String?
+  category String?
+  imageUrl String?
+
+  seoTitle       String?
+  seoDescription String?
+  canonicalUrl   String?
+
+  status    SeoContentStatus @default(DRAFT)
+  indexable Boolean          @default(true)
+  featured  Boolean          @default(false)
+
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status])
+  @@index([category])
+  @@index([featured])
+  @@index([publishedAt])
+  @@index([createdAt])
+}
+
+model SeoRedirect {
+  id String @id @default(uuid())
+
+  sourcePath      String  @unique
+  destinationPath String
+  permanent       Boolean @default(true)
+  active          Boolean @default(true)
+
+  note String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active])
+  @@index([permanent])
+  @@index([createdAt])
+}
+
+model SeoSetting {
+  id String @id @default(uuid())
+
+  key         String  @unique
+  value       Json
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+}

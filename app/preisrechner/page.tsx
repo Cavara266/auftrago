@@ -8,10 +8,22 @@ type ServiceKey =
   | "baureinigung"
   | "fensterreinigung"
   | "unterhaltsreinigung"
+  | "bueroreinigung"
+  | "treppenhausreinigung"
   | "hauswartung"
+  | "fassadenreinigung"
+  | "teppichreinigung"
   | "gartenpflege"
+  | "winterdienst"
   | "umzug"
-  | "entsorgung";
+  | "transport"
+  | "moebelmontage"
+  | "entsorgung"
+  | "raeumung"
+  | "malerarbeiten"
+  | "bodenleger"
+  | "elektriker"
+  | "sanitaer";
 
 type PaymentOption = "deposit" | "full";
 
@@ -30,8 +42,8 @@ const services: Record<
     name: "Umzugsreinigung",
     icon: "🏠",
     description: "Endreinigung mit Abgabegarantie.",
-    basePrice: 390,
-    sqmPrice: 4.2,
+    basePrice: 420,
+    sqmPrice: 5.2,
     minPrice: 590,
   },
   grundreinigung: {
@@ -39,64 +51,341 @@ const services: Record<
     icon: "✨",
     description: "Intensive Reinigung für Wohnung, Haus oder Gewerbe.",
     basePrice: 280,
-    sqmPrice: 3.6,
+    sqmPrice: 4.6,
     minPrice: 390,
   },
   baureinigung: {
     name: "Baureinigung",
     icon: "🏗️",
     description: "Grob-, Zwischen- und Bauendreinigung.",
-    basePrice: 520,
-    sqmPrice: 5.8,
+    basePrice: 650,
+    sqmPrice: 7.5,
     minPrice: 750,
   },
   fensterreinigung: {
     name: "Fensterreinigung",
     icon: "🪟",
     description: "Fenster, Rahmen, Glasflächen und Storen.",
-    basePrice: 160,
-    sqmPrice: 1.4,
-    minPrice: 180,
+    basePrice: 180,
+    sqmPrice: 2.8,
+    minPrice: 220,
   },
   unterhaltsreinigung: {
     name: "Unterhaltsreinigung",
     icon: "🧽",
-    description: "Regelmässige Reinigung für Privat und Gewerbe.",
+    description: "Regelmässige Reinigung für Privatkunden.",
     basePrice: 120,
     sqmPrice: 1.8,
     minPrice: 150,
+  },
+  bueroreinigung: {
+    name: "Büroreinigung",
+    icon: "💼",
+    description: "Regelmässige Reinigung von Büros und Gewerbeflächen.",
+    basePrice: 160,
+    sqmPrice: 2.1,
+    minPrice: 190,
+  },
+  treppenhausreinigung: {
+    name: "Treppenhausreinigung",
+    icon: "🪜",
+    description: "Treppen, Geländer, Eingänge und Gemeinschaftsflächen.",
+    basePrice: 180,
+    sqmPrice: 2.2,
+    minPrice: 220,
   },
   hauswartung: {
     name: "Hauswartung",
     icon: "🏢",
     description: "Betreuung von Liegenschaften und Objekten.",
-    basePrice: 280,
-    sqmPrice: 1.5,
-    minPrice: 350,
+    basePrice: 320,
+    sqmPrice: 1.7,
+    minPrice: 390,
+  },
+  fassadenreinigung: {
+    name: "Fassadenreinigung",
+    icon: "🏙️",
+    description: "Reinigung von Fassaden und Aussenflächen.",
+    basePrice: 480,
+    sqmPrice: 7.2,
+    minPrice: 650,
+  },
+  teppichreinigung: {
+    name: "Teppichreinigung",
+    icon: "🧶",
+    description: "Professionelle Tiefenreinigung von Teppichflächen.",
+    basePrice: 140,
+    sqmPrice: 4.4,
+    minPrice: 190,
   },
   gartenpflege: {
     name: "Gartenpflege",
     icon: "🌿",
     description: "Rasen, Hecken, Pflege und saisonale Arbeiten.",
-    basePrice: 160,
+    basePrice: 180,
+    sqmPrice: 1.4,
+    minPrice: 220,
+  },
+  winterdienst: {
+    name: "Winterdienst",
+    icon: "❄️",
+    description: "Schneeräumung, Salzen und sichere Zugangswege.",
+    basePrice: 180,
     sqmPrice: 1.2,
-    minPrice: 180,
+    minPrice: 220,
   },
   umzug: {
     name: "Umzug",
     icon: "🚚",
-    description: "Privatumzug, Transport und Helfer.",
+    description: "Privatumzug, Firmenumzug und Umzugshelfer.",
     basePrice: 520,
-    sqmPrice: 2.8,
+    sqmPrice: 2.2,
     minPrice: 690,
+  },
+  transport: {
+    name: "Transport",
+    icon: "🚛",
+    description: "Möbel-, Stückgut- und Kleintransporte.",
+    basePrice: 290,
+    sqmPrice: 3.2,
+    minPrice: 350,
+  },
+  moebelmontage: {
+    name: "Möbelmontage",
+    icon: "🛠️",
+    description: "Aufbau und Demontage von Möbeln.",
+    basePrice: 180,
+    sqmPrice: 22,
+    minPrice: 220,
   },
   entsorgung: {
     name: "Entsorgung",
     icon: "♻️",
-    description: "Räumung, Entsorgung und Sperrgut.",
+    description: "Sperrgut, Möbel und fachgerechte Entsorgung.",
+    basePrice: 290,
+    sqmPrice: 4.2,
+    minPrice: 350,
+  },
+  raeumung: {
+    name: "Räumung",
+    icon: "📦",
+    description: "Keller-, Wohnungs- und Haushaltsräumungen.",
+    basePrice: 480,
+    sqmPrice: 7.5,
+    minPrice: 690,
+  },
+  malerarbeiten: {
+    name: "Malerarbeiten",
+    icon: "🎨",
+    description: "Innenanstriche, Renovationen und Ausbesserungen.",
+    basePrice: 390,
+    sqmPrice: 11.5,
+    minPrice: 590,
+  },
+  bodenleger: {
+    name: "Bodenleger",
+    icon: "🪵",
+    description: "Verlegung von Laminat, Vinyl, Parkett und Teppich.",
+    basePrice: 420,
+    sqmPrice: 38,
+    minPrice: 690,
+  },
+  elektriker: {
+    name: "Elektriker",
+    icon: "⚡",
+    description: "Installationen, Reparaturen und elektrische Arbeiten.",
     basePrice: 240,
-    sqmPrice: 2.2,
+    sqmPrice: 85,
     minPrice: 290,
+  },
+  sanitaer: {
+    name: "Sanitär",
+    icon: "🚿",
+    description: "Armaturen, Leitungen, Reparaturen und Installationen.",
+    basePrice: 260,
+    sqmPrice: 90,
+    minPrice: 320,
+  },
+};
+
+const fieldConfigurations: Record<
+  ServiceKey,
+  {
+    objectLabel: string;
+    roomsLabel: string;
+    areaLabel: string;
+    bathroomsLabel: string;
+    floorLabel: string;
+    stepDescription: string;
+  }
+> = {
+  umzugsreinigung: {
+    objectLabel: "Objektart",
+    roomsLabel: "Zimmer",
+    areaLabel: "Wohnfläche m²",
+    bathroomsLabel: "Badezimmer / Nasszellen",
+    floorLabel: "Stockwerk",
+    stepDescription: "Objektgrösse und Ausstattung für die Endreinigung.",
+  },
+  grundreinigung: {
+    objectLabel: "Objektart",
+    roomsLabel: "Räume",
+    areaLabel: "Reinigungsfläche m²",
+    bathroomsLabel: "Badezimmer / Nasszellen",
+    floorLabel: "Stockwerk",
+    stepDescription: "Fläche, Räume und Verschmutzungsgrad erfassen.",
+  },
+  baureinigung: {
+    objectLabel: "Bauobjekt",
+    roomsLabel: "Räume / Einheiten",
+    areaLabel: "Baufläche m²",
+    bathroomsLabel: "Nasszellen",
+    floorLabel: "Etagen",
+    stepDescription: "Baufläche und Umfang der Bauendreinigung.",
+  },
+  fensterreinigung: {
+    objectLabel: "Objektart",
+    roomsLabel: "Anzahl Fenster",
+    areaLabel: "Glasfläche m²",
+    bathroomsLabel: "Anzahl Storen",
+    floorLabel: "Stockwerk",
+    stepDescription: "Fensteranzahl, Glasfläche und Zugänglichkeit.",
+  },
+  unterhaltsreinigung: {
+    objectLabel: "Objektart",
+    roomsLabel: "Räume",
+    areaLabel: "Reinigungsfläche m²",
+    bathroomsLabel: "Nasszellen",
+    floorLabel: "Stockwerk",
+    stepDescription: "Fläche und Umfang des Reinigungseinsatzes.",
+  },
+  bueroreinigung: {
+    objectLabel: "Büroart",
+    roomsLabel: "Büroräume",
+    areaLabel: "Bürofläche m²",
+    bathroomsLabel: "Nasszellen",
+    floorLabel: "Etage",
+    stepDescription: "Bürofläche, Räume und Gemeinschaftsbereiche.",
+  },
+  treppenhausreinigung: {
+    objectLabel: "Liegenschaft",
+    roomsLabel: "Treppenhäuser",
+    areaLabel: "Gesamtfläche m²",
+    bathroomsLabel: "Eingangsbereiche",
+    floorLabel: "Etagen",
+    stepDescription: "Treppenhäuser, Etagen und Gemeinschaftsflächen.",
+  },
+  hauswartung: {
+    objectLabel: "Liegenschaftstyp",
+    roomsLabel: "Anzahl Einheiten",
+    areaLabel: "Gesamtfläche m²",
+    bathroomsLabel: "Treppenhäuser",
+    floorLabel: "Etagen",
+    stepDescription: "Grösse und Umfang der Liegenschaftsbetreuung.",
+  },
+  fassadenreinigung: {
+    objectLabel: "Gebäudeart",
+    roomsLabel: "Fassadenseiten",
+    areaLabel: "Fassadenfläche m²",
+    bathroomsLabel: "Zugänge / Abschnitte",
+    floorLabel: "Gebäudehöhe / Etagen",
+    stepDescription: "Fassadenfläche, Höhe und Zugänglichkeit.",
+  },
+  teppichreinigung: {
+    objectLabel: "Objektart",
+    roomsLabel: "Räume",
+    areaLabel: "Teppichfläche m²",
+    bathroomsLabel: "Fleckenbereiche",
+    floorLabel: "Stockwerk",
+    stepDescription: "Teppichfläche und Reinigungsumfang.",
+  },
+  gartenpflege: {
+    objectLabel: "Grundstückstyp",
+    roomsLabel: "Heckenmeter",
+    areaLabel: "Gartenfläche m²",
+    bathroomsLabel: "Bäume / Sträucher",
+    floorLabel: "Zugangserschwernis",
+    stepDescription: "Gartenfläche, Hecken und Pflanzenbestand.",
+  },
+  winterdienst: {
+    objectLabel: "Objektart",
+    roomsLabel: "Zugangsbereiche",
+    areaLabel: "Räumfläche m²",
+    bathroomsLabel: "Treppen / Rampen",
+    floorLabel: "Gefällestufe",
+    stepDescription: "Räumfläche, Zugänge und Gefahrenstellen.",
+  },
+  umzug: {
+    objectLabel: "Umzugsart",
+    roomsLabel: "Zimmer",
+    areaLabel: "Distanz in km",
+    bathroomsLabel: "Benötigte Helfer",
+    floorLabel: "Stockwerk",
+    stepDescription: "Umfang, Distanz, Helfer und Zugänglichkeit.",
+  },
+  transport: {
+    objectLabel: "Transportart",
+    roomsLabel: "Anzahl Gegenstände",
+    areaLabel: "Distanz in km",
+    bathroomsLabel: "Benötigte Helfer",
+    floorLabel: "Stockwerk",
+    stepDescription: "Transportgut, Distanz und Trageaufwand.",
+  },
+  moebelmontage: {
+    objectLabel: "Montageart",
+    roomsLabel: "Anzahl Möbel",
+    areaLabel: "Geschätzte Arbeitsstunden",
+    bathroomsLabel: "Demontagen",
+    floorLabel: "Stockwerk",
+    stepDescription: "Anzahl Möbel und geschätzter Montageaufwand.",
+  },
+  entsorgung: {
+    objectLabel: "Entsorgungsart",
+    roomsLabel: "Räume",
+    areaLabel: "Volumen in m³",
+    bathroomsLabel: "Schwere Gegenstände",
+    floorLabel: "Stockwerk",
+    stepDescription: "Volumen, Gewicht und Zugänglichkeit.",
+  },
+  raeumung: {
+    objectLabel: "Räumungsart",
+    roomsLabel: "Räume",
+    areaLabel: "Räumfläche m²",
+    bathroomsLabel: "Schwere Gegenstände",
+    floorLabel: "Stockwerk",
+    stepDescription: "Fläche, Räume und Menge des Räumungsguts.",
+  },
+  malerarbeiten: {
+    objectLabel: "Objektart",
+    roomsLabel: "Räume",
+    areaLabel: "Malerfläche m²",
+    bathroomsLabel: "Türen / Rahmen",
+    floorLabel: "Stockwerk",
+    stepDescription: "Zu streichende Fläche und Anzahl Räume.",
+  },
+  bodenleger: {
+    objectLabel: "Bodenart",
+    roomsLabel: "Räume",
+    areaLabel: "Bodenfläche m²",
+    bathroomsLabel: "Türübergänge",
+    floorLabel: "Stockwerk",
+    stepDescription: "Bodenfläche, Räume und Verlegeaufwand.",
+  },
+  elektriker: {
+    objectLabel: "Auftragsart",
+    roomsLabel: "Arbeitsstellen",
+    areaLabel: "Leitungsmeter",
+    bathroomsLabel: "Geräte / Anschlüsse",
+    floorLabel: "Etage",
+    stepDescription: "Arbeitsstellen, Leitungen und Installationen.",
+  },
+  sanitaer: {
+    objectLabel: "Auftragsart",
+    roomsLabel: "Arbeitsstellen",
+    areaLabel: "Leitungsmeter",
+    bathroomsLabel: "Armaturen / Geräte",
+    floorLabel: "Etage",
+    stepDescription: "Armaturen, Leitungen und Installationsumfang.",
   },
 };
 
@@ -152,104 +441,316 @@ export default function PreisrechnerPage() {
   const [acceptedReview, setAcceptedReview] = useState(false);
 
   const selected = services[service];
+  const fieldConfig = fieldConfigurations[service];
 
- const calculation = useMemo(() => {
-  const safeArea = Math.max(Number(area) || 0, 1);
-  const safeRooms = Math.max(Number(rooms) || 0, 1);
-  const safeBathrooms = Math.max(Number(bathrooms) || 0, 0);
-  const safeFloor = Math.max(Number(floor) || 0, 0);
+  const calculation = useMemo(() => {
+    const safeArea = Math.max(Number(area) || 0, 1);
+    const safeRooms = Math.max(Number(rooms) || 0, 1);
+    const safeBathrooms = Math.max(Number(bathrooms) || 0, 0);
+    const safeFloor = Math.max(Number(floor) || 0, 0);
 
-  let total = 0;
+    let total = 0;
 
-  if (service === "umzugsreinigung") {
-    total = 420 + safeArea * 5.2 + safeRooms * 95 + safeBathrooms * 120;
-  }
+    switch (service) {
+      case "umzugsreinigung":
+        total =
+          420 +
+          safeArea * 5.2 +
+          safeRooms * 95 +
+          safeBathrooms * 120;
+        break;
 
-  if (service === "grundreinigung") {
-    total = 280 + safeArea * 4.6 + safeRooms * 70 + safeBathrooms * 90;
-  }
+      case "grundreinigung":
+        total =
+          280 +
+          safeArea * 4.6 +
+          safeRooms * 70 +
+          safeBathrooms * 90;
+        break;
 
-  if (service === "baureinigung") {
-    total = 650 + safeArea * 7.5 + safeRooms * 90 + safeBathrooms * 110;
-  }
+      case "baureinigung":
+        total =
+          650 +
+          safeArea * 7.5 +
+          safeRooms * 90 +
+          safeBathrooms * 110;
+        break;
 
-  if (service === "fensterreinigung") {
-    total = 180 + safeArea * 2.8;
-  }
+      case "fensterreinigung":
+        total =
+          160 +
+          safeRooms * 24 +
+          safeArea * 4.5 +
+          safeBathrooms * 18;
+        break;
 
-  if (service === "unterhaltsreinigung") {
-    total = 120 + safeArea * 1.8;
-  }
+      case "unterhaltsreinigung":
+        total =
+          100 +
+          safeArea * 1.8 +
+          safeRooms * 18 +
+          safeBathrooms * 25;
+        break;
 
-  if (service === "hauswartung") {
-    total = 280 + safeArea * 1.6;
-  }
+      case "bueroreinigung":
+        total =
+          130 +
+          safeArea * 2.1 +
+          safeRooms * 15 +
+          safeBathrooms * 30;
+        break;
 
-  if (service === "gartenpflege") {
-    total = 180 + safeArea * 1.4;
-  }
+      case "treppenhausreinigung":
+        total =
+          160 +
+          safeArea * 2.2 +
+          safeRooms * 75 +
+          safeFloor * 35;
+        break;
 
-  if (service === "umzug") {
-    total = 520 + safeRooms * 220 + safeArea * 2.2 + safeFloor * 90;
-  }
+      case "hauswartung":
+        total =
+          280 +
+          safeArea * 1.7 +
+          safeRooms * 45 +
+          safeBathrooms * 70 +
+          safeFloor * 25;
+        break;
 
-  if (service === "entsorgung") {
-    total = 290 + safeArea * 4.2 + safeRooms * 130;
-  }
+      case "fassadenreinigung":
+        total =
+          480 +
+          safeArea * 7.2 +
+          safeRooms * 95 +
+          safeFloor * 120;
+        break;
 
-  if (safeFloor > 0 && !lift) total += safeFloor * 90;
-  if (balcony) total += 80;
-  if (cellar) total += 120;
-  if (attic) total += 120;
-  if (garage) total += 150;
-  if (storen) total += 160;
-  if (lamellen) total += 220;
-  if (oven) total += 45;
-  if (hood) total += 45;
-  if (fridge) total += 45;
-  if (washer) total += 40;
-  if (dryer) total += 40;
-  if (carpet) total += 180;
-  if (heavyDirt) total += 220;
-  if (constructionDirt) total += 320;
-  if (mold) total += 280;
-  if (express) total += 220;
+      case "teppichreinigung":
+        total =
+          140 +
+          safeArea * 4.4 +
+          safeRooms * 25 +
+          safeBathrooms * 35;
+        break;
 
-  const totalPrice = Math.max(total, selected.minPrice);
-  const roundedTotal = Math.round(totalPrice / 10) * 10;
-  const fullPaymentPrice = Math.round((roundedTotal * 0.9) / 10) * 10;
-  const depositPrice = Math.round((roundedTotal * 0.5) / 10) * 10;
+      case "gartenpflege":
+        total =
+          180 +
+          safeArea * 1.4 +
+          safeRooms * 14 +
+          safeBathrooms * 45;
+        break;
 
-  return {
-    totalPrice: roundedTotal,
-    fullPaymentPrice,
-    depositPrice,
-  };
-}, [
-  selected,
-  service,
-  area,
-  rooms,
-  bathrooms,
-  floor,
-  lift,
-  balcony,
-  cellar,
-  attic,
-  garage,
-  storen,
-  lamellen,
-  oven,
-  hood,
-  fridge,
-  washer,
-  dryer,
-  carpet,
-  heavyDirt,
-  constructionDirt,
-  mold,
-  express,
-]); 
+      case "winterdienst":
+        total =
+          180 +
+          safeArea * 1.2 +
+          safeRooms * 35 +
+          safeBathrooms * 25;
+        break;
+
+      case "umzug":
+        total =
+          520 +
+          safeRooms * 220 +
+          safeArea * 4.2 +
+          safeBathrooms * 130 +
+          safeFloor * 90;
+        break;
+
+      case "transport":
+        total =
+          290 +
+          safeRooms * 28 +
+          safeArea * 3.2 +
+          safeBathrooms * 120 +
+          safeFloor * 70;
+        break;
+
+      case "moebelmontage":
+        total =
+          180 +
+          safeRooms * 65 +
+          safeArea * 95 +
+          safeBathrooms * 45;
+        break;
+
+      case "entsorgung":
+        total =
+          290 +
+          safeArea * 85 +
+          safeRooms * 75 +
+          safeBathrooms * 80 +
+          safeFloor * 70;
+        break;
+
+      case "raeumung":
+        total =
+          480 +
+          safeArea * 7.5 +
+          safeRooms * 130 +
+          safeBathrooms * 90 +
+          safeFloor * 75;
+        break;
+
+      case "malerarbeiten":
+        total =
+          390 +
+          safeArea * 11.5 +
+          safeRooms * 95 +
+          safeBathrooms * 45;
+        break;
+
+      case "bodenleger":
+        total =
+          420 +
+          safeArea * 38 +
+          safeRooms * 80 +
+          safeBathrooms * 35;
+        break;
+
+      case "elektriker":
+        total =
+          240 +
+          safeRooms * 95 +
+          safeArea * 18 +
+          safeBathrooms * 85;
+        break;
+
+      case "sanitaer":
+        total =
+          260 +
+          safeRooms * 110 +
+          safeArea * 22 +
+          safeBathrooms * 95;
+        break;
+
+      default:
+        total =
+          selected.basePrice +
+          safeArea * selected.sqmPrice;
+    }
+
+    const cleaningServices: ServiceKey[] = [
+      "umzugsreinigung",
+      "grundreinigung",
+      "baureinigung",
+      "fensterreinigung",
+      "unterhaltsreinigung",
+      "bueroreinigung",
+      "treppenhausreinigung",
+      "fassadenreinigung",
+      "teppichreinigung",
+    ];
+
+    const accessServices: ServiceKey[] = [
+      "umzugsreinigung",
+      "grundreinigung",
+      "baureinigung",
+      "fensterreinigung",
+      "umzug",
+      "transport",
+      "entsorgung",
+      "raeumung",
+      "malerarbeiten",
+      "bodenleger",
+    ];
+
+    if (
+      accessServices.includes(service) &&
+      safeFloor > 0 &&
+      !lift
+    ) {
+      total += safeFloor * 90;
+    }
+
+    if (balcony) total += 80;
+    if (cellar) total += 120;
+    if (attic) total += 120;
+    if (garage) total += 150;
+
+    if (cleaningServices.includes(service)) {
+      if (storen) total += 160;
+      if (lamellen) total += 220;
+      if (oven) total += 45;
+      if (hood) total += 45;
+      if (fridge) total += 45;
+      if (washer) total += 40;
+      if (dryer) total += 40;
+      if (carpet) total += 180;
+    }
+
+    if (heavyDirt) {
+      total += Math.max(220, total * 0.12);
+    }
+
+    if (constructionDirt) {
+      total += Math.max(320, total * 0.18);
+    }
+
+    if (mold) {
+      total += 280;
+    }
+
+    if (express) {
+      total += Math.max(220, total * 0.15);
+    }
+
+    const objectTypeFactors: Record<string, number> = {
+      Wohnung: 1,
+      Haus: 1.12,
+      Büro: 1.08,
+      Gewerbe: 1.18,
+      Neubau: 1.22,
+    };
+
+    total *= objectTypeFactors[objectType] ?? 1;
+
+    const totalPrice = Math.max(
+      total,
+      selected.minPrice
+    );
+
+    const roundedTotal =
+      Math.round(totalPrice / 10) * 10;
+
+    const fullPaymentPrice =
+      Math.round((roundedTotal * 0.9) / 10) * 10;
+
+    const depositPrice =
+      Math.round((roundedTotal * 0.5) / 10) * 10;
+
+    return {
+      totalPrice: roundedTotal,
+      fullPaymentPrice,
+      depositPrice,
+    };
+  }, [
+    selected,
+    service,
+    objectType,
+    area,
+    rooms,
+    bathrooms,
+    floor,
+    lift,
+    balcony,
+    cellar,
+    attic,
+    garage,
+    storen,
+    lamellen,
+    oven,
+    hood,
+    fridge,
+    washer,
+    dryer,
+    carpet,
+    heavyDirt,
+    constructionDirt,
+    mold,
+    express,
+  ]); 
 
   const amountToday =
     payment === "full" ? calculation.fullPaymentPrice : calculation.depositPrice;
@@ -290,6 +791,9 @@ export default function PreisrechnerPage() {
       objectType,
       rooms: String(rooms),
       area: String(area),
+      bathrooms: String(bathrooms),
+      floor: String(floor),
+      lift: String(lift),
       firstName,
       lastName,
       email,
@@ -309,9 +813,9 @@ export default function PreisrechnerPage() {
         .page {
           min-height: 100vh;
           background:
-            radial-gradient(circle at 12% 6%, rgba(52, 211, 153, 0.22), transparent 32%),
+            radial-gradient(circle at 12% 6%, rgba(56, 189, 248, 0.22), transparent 32%),
             radial-gradient(circle at 85% 10%, rgba(234, 179, 8, 0.1), transparent 25%),
-            linear-gradient(135deg, #020806 0%, #06110d 50%, #020403 100%);
+            linear-gradient(135deg, #030615 0%, #070b20 50%, #02030b 100%);
           color: #fff;
           padding: 28px 18px 44px;
           font-family: Arial, sans-serif;
@@ -343,10 +847,10 @@ export default function PreisrechnerPage() {
           width: 48px;
           height: 48px;
           border-radius: 16px;
-          background: linear-gradient(135deg, #22c55e, #16a34a);
+          background: linear-gradient(135deg, #6366f1, #a855f7);
           display: grid;
           place-items: center;
-          box-shadow: 0 0 34px rgba(34, 197, 94, 0.36);
+          box-shadow: 0 0 34px rgba(168, 85, 247, 0.36);
         }
 
         .brand small {
@@ -384,8 +888,8 @@ export default function PreisrechnerPage() {
         .eyebrow {
           display: inline-flex;
           border: 1px solid rgba(110, 231, 183, 0.35);
-          background: rgba(16, 185, 129, 0.1);
-          color: #6ee7b7;
+          background: rgba(99, 102, 241, 0.1);
+          color: #7dd3fc;
           border-radius: 999px;
           padding: 10px 20px;
           font-weight: 950;
@@ -447,7 +951,7 @@ export default function PreisrechnerPage() {
           border-radius: 999px;
           display: grid;
           place-items: center;
-          background: linear-gradient(135deg, #10b981, #047857);
+          background: linear-gradient(135deg, #38bdf8, #6366f1);
           color: white;
           font-weight: 950;
           box-shadow: 0 0 24px rgba(16,185,129,.35);
@@ -485,9 +989,9 @@ export default function PreisrechnerPage() {
 
         .service-card:hover,
         .service-card.active {
-          border-color: rgba(52, 211, 153, 0.8);
-          background: rgba(16, 185, 129, 0.13);
-          box-shadow: 0 0 30px rgba(16, 185, 129, 0.12);
+          border-color: rgba(56, 189, 248, 0.8);
+          background: rgba(99, 102, 241, 0.13);
+          box-shadow: 0 0 30px rgba(99, 102, 241, 0.12);
         }
 
         .service-icon {
@@ -582,7 +1086,7 @@ export default function PreisrechnerPage() {
         .check input {
           width: 18px;
           height: 18px;
-          accent-color: #22c55e;
+          accent-color: #6366f1;
         }
 
         .upload-grid {
@@ -616,16 +1120,16 @@ export default function PreisrechnerPage() {
           padding: 18px;
           background: rgba(0,0,0,.22);
           border: 1px solid rgba(255,255,255,.09);
-          color: #bbf7d0;
+          color: #c4b5fd;
           line-height: 1.65;
           font-size: 14px;
         }
 
         .badge {
           display: inline-flex;
-          color: #bbf7d0;
-          background: rgba(34,197,94,.18);
-          border: 1px solid rgba(34,197,94,.35);
+          color: #c4b5fd;
+          background: rgba(168,85,247,.18);
+          border: 1px solid rgba(168,85,247,.35);
           padding: 4px 8px;
           border-radius: 999px;
           font-size: 12px;
@@ -637,7 +1141,7 @@ export default function PreisrechnerPage() {
           position: sticky;
           top: 20px;
           background:
-            radial-gradient(circle at 70% 0%, rgba(34,197,94,.25), transparent 34%),
+            radial-gradient(circle at 70% 0%, rgba(168,85,247,.25), transparent 34%),
             linear-gradient(180deg, rgba(6,78,59,.66), rgba(2,8,6,.88));
           border-color: rgba(52,211,153,.35);
           box-shadow:
@@ -646,7 +1150,7 @@ export default function PreisrechnerPage() {
         }
 
         .result-label {
-          color: #d1fae5;
+          color: #bfdbfe;
           font-weight: 900;
           font-size: 18px;
           margin-bottom: 12px;
@@ -656,7 +1160,7 @@ export default function PreisrechnerPage() {
           font-size: clamp(50px, 5.8vw, 74px);
           font-weight: 950;
           letter-spacing: -3px;
-          color: #bbf7d0;
+          color: #c4b5fd;
           margin: 0 0 18px;
           line-height: 0.95;
           text-shadow: 0 0 28px rgba(52,211,153,.24);
@@ -679,7 +1183,7 @@ export default function PreisrechnerPage() {
         .summary-title {
           font-size: 13px;
           letter-spacing: .08em;
-          color: #d1fae5;
+          color: #bfdbfe;
           font-weight: 950;
           margin-bottom: 10px;
         }
@@ -720,7 +1224,7 @@ export default function PreisrechnerPage() {
         }
 
         .payment input {
-          accent-color: #22c55e;
+          accent-color: #6366f1;
           margin-right: 10px;
           width: 18px;
           height: 18px;
@@ -740,16 +1244,16 @@ export default function PreisrechnerPage() {
         }
 
         .green {
-          color: #4ade80;
+          color: #a78bfa;
           font-weight: 950;
         }
 
         .total {
-          background: rgba(34,197,94,.08);
+          background: rgba(168,85,247,.08);
           border-radius: 18px;
           padding: 16px;
           margin: 16px 0;
-          border: 1px solid rgba(34,197,94,.18);
+          border: 1px solid rgba(168,85,247,.18);
         }
 
         .terms {
@@ -769,7 +1273,7 @@ export default function PreisrechnerPage() {
         .terms input {
           width: 18px;
           height: 18px;
-          accent-color: #22c55e;
+          accent-color: #6366f1;
           flex-shrink: 0;
         }
 
@@ -780,9 +1284,9 @@ export default function PreisrechnerPage() {
           padding: 20px;
           font-size: 18px;
           font-weight: 950;
-          color: #052e16;
-          background: linear-gradient(135deg, #86efac, #22c55e);
-          box-shadow: 0 18px 45px rgba(34,197,94,.25);
+          color: #ffffff;
+          background: linear-gradient(135deg, #38bdf8, #6366f1);
+          box-shadow: 0 18px 45px rgba(168,85,247,.25);
           cursor: pointer;
           margin-top: 16px;
         }
@@ -834,6 +1338,139 @@ export default function PreisrechnerPage() {
           font-size: 13px;
           line-height: 1.4;
         }
+
+        
+        .quote-only-box {
+          margin-top: 22px;
+          padding: 26px;
+          border: 1px solid rgba(99, 102, 241, .38);
+          border-radius: 26px;
+          background:
+            radial-gradient(
+              circle at 0% 0%,
+              rgba(56, 189, 248, .15),
+              transparent 38%
+            ),
+            radial-gradient(
+              circle at 100% 100%,
+              rgba(168, 85, 247, .14),
+              transparent 42%
+            ),
+            rgba(5, 9, 26, .9);
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,.07),
+            0 30px 90px rgba(0,0,0,.35);
+        }
+
+        .quote-only-badge {
+          display: inline-flex;
+          padding: 7px 11px;
+          border: 1px solid rgba(125, 211, 252, .24);
+          border-radius: 999px;
+          background: rgba(56, 189, 248, .08);
+          color: #7dd3fc;
+          font-size: 11px;
+          font-weight: 950;
+          letter-spacing: .14em;
+        }
+
+        .quote-only-box h3 {
+          margin: 16px 0 0;
+          color: white;
+          font-size: 28px;
+          line-height: 1.1;
+          letter-spacing: -.04em;
+        }
+
+        .quote-only-description {
+          margin: 14px 0 0;
+          color: #aab6ca;
+          font-size: 15px;
+          line-height: 1.65;
+        }
+
+        .quote-only-benefits {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          margin-top: 20px;
+        }
+
+        .quote-only-benefits div {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          padding: 13px;
+          border: 1px solid rgba(255,255,255,.08);
+          border-radius: 15px;
+          background: rgba(255,255,255,.035);
+          color: #dbe5f4;
+          font-size: 13px;
+          font-weight: 800;
+        }
+
+        .quote-only-benefits span {
+          color: #34d399;
+          font-weight: 950;
+        }
+
+        .quote-only-button {
+          width: 100%;
+          min-height: 66px;
+          margin-top: 22px;
+          border: 0;
+          border-radius: 18px;
+          background:
+            linear-gradient(
+              90deg,
+              #38bdf8,
+              #6366f1,
+              #a855f7
+            );
+          color: white;
+          cursor: pointer;
+          font-size: 17px;
+          font-weight: 950;
+          box-shadow:
+            0 25px 85px rgba(79, 70, 229, .42);
+          transition:
+            transform .22s ease,
+            box-shadow .22s ease;
+        }
+
+        .quote-only-button:hover {
+          transform: translateY(-3px);
+          box-shadow:
+            0 35px 105px rgba(79, 70, 229, .58);
+        }
+
+        .quote-only-button span {
+          display: inline-block;
+          margin-left: 10px;
+        }
+
+        .quote-only-note {
+          margin: 15px 0 0;
+          text-align: center;
+          color: #7f8ba0;
+          font-size: 12px;
+          line-height: 1.55;
+        }
+
+        @media (max-width: 620px) {
+          .quote-only-benefits {
+            grid-template-columns: 1fr;
+          }
+
+          .quote-only-box {
+            padding: 20px;
+          }
+
+          .quote-only-box h3 {
+            font-size: 23px;
+          }
+        }
+
 
         @media (max-width: 980px) {
           .topbar {
@@ -891,8 +1528,8 @@ export default function PreisrechnerPage() {
         </div>
 
         <section className="hero">
-          <div className="eyebrow">ONLINE BUCHUNG</div>
-          <h1 className="title">Preis berechnen & Termin reservieren</h1>
+          <div className="eyebrow">ONLINE PREISRECHNER</div>
+          <h1 className="title">Preis berechnen & Offerte anfragen</h1>
           <p className="subtitle">
             Dienstleistung auswählen, Angaben erfassen, Termin reservieren und sicher
             online bezahlen. Jede Buchung wird vor der definitiven Bestätigung geprüft.
@@ -931,13 +1568,13 @@ export default function PreisrechnerPage() {
                 <div className="step-no">2</div>
                 <div>
                   <h3>Objektangaben</h3>
-                  <div className="step-desc">Grunddaten für eine realistische Preisberechnung.</div>
+                  <div className="step-desc">{fieldConfig.stepDescription}</div>
                 </div>
               </div>
 
               <div className="three">
                 <div className="field">
-                  <label>Objektart</label>
+                  <label>{fieldConfig.objectLabel}</label>
                   <select value={objectType} onChange={(e) => setObjectType(e.target.value)}>
                     <option>Wohnung</option>
                     <option>Haus</option>
@@ -948,7 +1585,7 @@ export default function PreisrechnerPage() {
                 </div>
 
                 <div className="field">
-                  <label>Zimmer</label>
+                  <label>{fieldConfig.roomsLabel}</label>
                   <input
                     type="number"
                     min="1"
@@ -959,7 +1596,7 @@ export default function PreisrechnerPage() {
                 </div>
 
                 <div className="field">
-                  <label>Fläche m²</label>
+                  <label>{fieldConfig.areaLabel}</label>
                   <input
                     type="number"
                     min="1"
@@ -971,7 +1608,7 @@ export default function PreisrechnerPage() {
 
               <div className="three">
                 <div className="field">
-                  <label>Badezimmer / Nasszellen</label>
+                  <label>{fieldConfig.bathroomsLabel}</label>
                   <input
                     type="number"
                     min="0"
@@ -981,7 +1618,7 @@ export default function PreisrechnerPage() {
                 </div>
 
                 <div className="field">
-                  <label>Stockwerk</label>
+                  <label>{fieldConfig.floorLabel}</label>
                   <input
                     type="number"
                     min="0"
@@ -1128,7 +1765,7 @@ export default function PreisrechnerPage() {
                 <div className="step-no">6</div>
                 <div>
                   <h3>Termin auswählen</h3>
-                  <div className="step-desc">Der Termin wird nach Zahlung reserviert.</div>
+                  <div className="step-desc">Der Wunschtermin wird nach Prüfung und Annahme der Offerte bestätigt.</div>
                 </div>
               </div>
 
@@ -1154,7 +1791,7 @@ export default function PreisrechnerPage() {
           </section>
 
           <aside className="result">
-            <div className="result-label">Ihr provisorischer Buchungspreis</div>
+            <div className="result-label">Ihre unverbindliche Preisindikation</div>
 
             <h2 className="price">CHF {formatPrice(calculation.totalPrice)}</h2>
 
@@ -1170,16 +1807,16 @@ export default function PreisrechnerPage() {
                 <strong>{selected.name}</strong>
               </div>
               <div className="row">
-                <span>Objekt</span>
+                <span>{fieldConfig.objectLabel}</span>
                 <strong>{objectType}</strong>
               </div>
               <div className="row">
-                <span>Zimmer</span>
+                <span>{fieldConfig.roomsLabel}</span>
                 <strong>{rooms}</strong>
               </div>
               <div className="row">
-                <span>Fläche</span>
-                <strong>{area} m²</strong>
+                <span>{fieldConfig.areaLabel}</span>
+                <strong>{area}</strong>
               </div>
               <div className="row">
                 <span>Kunde</span>
@@ -1195,78 +1832,80 @@ export default function PreisrechnerPage() {
               </div>
             </div>
 
-            <label
-              className={`payment ${payment === "deposit" ? "active" : ""}`}
-              onClick={() => setPayment("deposit")}
-            >
-              <input
-                type="radio"
-                checked={payment === "deposit"}
-                onChange={() => setPayment("deposit")}
-              />
-              <strong>50 % Anzahlung</strong>
-              <p>Heute bezahlen: CHF {formatPrice(calculation.depositPrice)}</p>
-              <p>Restzahlung am Reinigungstag.</p>
-            </label>
-
-            <label
-              className={`payment ${payment === "full" ? "active" : ""}`}
-              onClick={() => setPayment("full")}
-            >
-              <input
-                type="radio"
-                checked={payment === "full"}
-                onChange={() => setPayment("full")}
-              />
-              <strong>100 % Sofortzahlung</strong>
-              <p className="green">10 % Rabatt sichern</p>
-              <p>Heute bezahlen: CHF {formatPrice(calculation.fullPaymentPrice)}</p>
-            </label>
-
-            <div className="total">
-              <div className="row">
-                <span>Total</span>
-                <strong>CHF {formatPrice(calculation.totalPrice)}</strong>
-              </div>
-              <div className="row">
-                <span>Heute bezahlen</span>
-                <strong>CHF {formatPrice(amountToday)}</strong>
-              </div>
-              {payment === "deposit" && (
-                <div className="row">
-                  <span>Restzahlung am Reinigungstag</span>
-                  <strong>
-                    CHF {formatPrice(calculation.totalPrice - calculation.depositPrice)}
-                  </strong>
-                </div>
-              )}
+            
+          <div className="quote-only-box">
+            <div className="quote-only-badge">
+              UNVERBINDLICHE PREISINDIKATION
             </div>
 
-            <label className="terms">
-              <input
-                type="checkbox"
-                checked={acceptedTerms}
-                onChange={(e) => setAcceptedTerms(e.target.checked)}
-              />
-              Ich akzeptiere die AGB und Zahlungsbedingungen.
-            </label>
+            <h3>Definitive Offerte anfragen</h3>
 
-            <label className="terms">
-              <input
-                type="checkbox"
-                checked={acceptedReview}
-                onChange={(e) => setAcceptedReview(e.target.checked)}
-              />
-              Ich bin damit einverstanden, dass Auftrago meine Buchung nach Eingang nochmals prüft und den endgültigen Preis sowie den Termin vor der Bestätigung freigibt.
-            </label>
+            <p className="quote-only-description">
+              Der angezeigte Betrag ist eine unverbindliche Schätzung.
+              Wir prüfen Ihre Angaben persönlich und senden Ihnen danach
+              eine definitive Offerte.
+            </p>
 
-            <button className="button" disabled={!canCheckout} onClick={startCheckout}>
-              🔒 Jetzt Termin reservieren & bezahlen
+            <div className="quote-only-benefits">
+              <div>
+                <span>✓</span>
+                Keine Zahlung erforderlich
+              </div>
+
+              <div>
+                <span>✓</span>
+                Keine automatische Buchung
+              </div>
+
+              <div>
+                <span>✓</span>
+                Persönliche Prüfung
+              </div>
+
+              <div>
+                <span>✓</span>
+                Definitiver Preis vor Auftrag
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="quote-only-button"
+              onClick={() => {
+                const params = new URLSearchParams({
+                  service: selected.name,
+                  estimatedPrice: String(calculation.totalPrice),
+                  objectType,
+                  rooms: String(rooms),
+                  area: String(area),
+                  bathrooms: String(bathrooms),
+                  floor: String(floor),
+                  date,
+                  time,
+                  firstName,
+                  lastName,
+                  email,
+                  phone,
+                  street,
+                  zip,
+                  city,
+                  notes,
+                });
+
+                window.location.href =
+                  `/offerte-anfragen?${params.toString()}`;
+              }}
+            >
+              Jetzt definitive Offerte anfragen
+              <span>→</span>
             </button>
 
-            <p className="note">
-              Sichere Zahlung via Stripe. Ohne Ihre Zustimmung entstehen keine Zusatzkosten.
+            <p className="quote-only-note">
+              Kostenlos und unverbindlich. Ein Auftrag entsteht erst,
+              nachdem Sie unsere definitive Offerte ausdrücklich bestätigt haben.
             </p>
+          </div>
+
           </aside>
         </div>
 

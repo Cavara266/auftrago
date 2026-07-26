@@ -1,0 +1,70 @@
+
+/* =========================================================
+   FIX: DESKTOP-NAV AUCH BEI SCHMALEREM BROWSER SICHTBAR
+   ========================================================= */
+
+@media (min-width: 760px) {
+  .desktopNav {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: clamp(10px, 1.2vw, 22px) !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    margin: 0 14px !important;
+  }
+
+  .desktopNav > a,
+  .desktopNav > button {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    font-size: clamp(11px, 1vw, 14px) !important;
+  }
+
+  .mobileButton {
+    display: none !important;
+  }
+}
+
+@media (min-width: 760px) and (max-width: 1050px) {
+  .desktopNav {
+    gap: 12px !important;
+    margin: 0 10px !important;
+  }
+
+  .navLink,
+  .activeNavLink,
+  .desktopNav > a,
+  .desktopNav > button {
+    min-height: 40px !important;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+    font-size: 11px !important;
+  }
+
+  .actions {
+    gap: 8px !important;
+  }
+
+  .primaryButton,
+  .creditButton {
+    padding-left: 13px !important;
+    padding-right: 13px !important;
+    font-size: 11px !important;
+  }
+}
+
+@media (max-width: 759px) {
+  .desktopNav {
+    display: none !important;
+  }
+
+  .mobileButton {
+    display: inline-flex !important;
+  }
+}

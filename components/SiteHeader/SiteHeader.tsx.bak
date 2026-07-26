@@ -1,0 +1,291 @@
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { services } from "@/lib/services";
+import styles from "./SiteHeader.module.css";
+
+const regionLinks = [
+  { label: "Zürich", href: "/region/zuerich" },
+  { label: "Aargau", href: "/region/aargau" },
+  { label: "Basel", href: "/region/basel" },
+  { label: "Bern", href: "/region/bern" },
+  { label: "Luzern", href: "/region/luzern" },
+  { label: "Zug", href: "/region/zug" },
+];
+
+const categoryOrder = [
+  "Haus & Reinigung",
+  "Handwerk",
+  "Umzug & Transport",
+  "Energie",
+  "Versicherungen",
+  "Immobilien",
+  "Finanzen",
+  "IT & Digital",
+];
+
+export default function SiteHeader() {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
+  const [regionsOpen, setRegionsOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const groupedServices = useMemo(() => {
+    return categoryOrder
+      .map((category) => ({
+        category,
+        items: services.filter((service) => service.category === category),
+      }))
+      .filter((group) => group.items.length > 0);
+  }, []);
+
+  const results = useMemo(() => {
+    const value = query.trim().toLowerCase();
+
+    if (!value) {
+      return services.slice(0, 8);
+    }
+
+    return services
+      .filter((service) => {
+        return (
+          service.title.toLowerCase().includes(value) ||
+          service.category.toLowerCase().includes(value) ||
+          service.keywords.some((keyword) =>
+            keyword.toLowerCase().includes(value)
+          )
+        );
+      })
+      .slice(0, 10);
+  }, [query]);
+
+  function closeAll() {
+    setMenuOpen(false);
+    setServicesOpen(false);
+    setRegionsOpen(false);
+    setSearchOpen(false);
+  }
+
+  function handleSearchSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const firstResult = results[0];
+
+    if (firstResult) {
+      closeAll();
+      router.push(`/leistungen/${firstResult.slug}`);
+      return;
+    }
+
+    closeAll();
+    router.push(`/auftrag-erstellen?query=${encodeURIComponent(query)}`);
+  }
+
+  return (
+    <>
+      <header className={styles.header}>
+        <div className={styles.shell}>
+          <Link href="/" className={styles.logo} onClick={closeAll}>
+            Auftrago<span>.</span>
+          </Link>
+
+          <nav className={styles.desktopNav}>
+            <button
+              type="button"
+              className={styles.navButton}
+              onClick={() => {
+                setServicesOpen((value) => !value);
+                setRegionsOpen(false);
+              }}
+            >
+              Dienstleistungen
+              <span>{servicesOpen ? "−" : "+"}</span>
+            </button>
+
+            <Link
+              href="/anbieter"
+              className={pathname === "/anbieter" ? styles.active : ""}
+            >
+              Anbieter
+            </Link>
+
+            <button
+              type="button"
+              className={styles.navButton}
+              onClick={() => {
+                setRegionsOpen((value) => !value);
+                setServicesOpen(false);
+              }}
+            >
+              Regionen
+              <span>{regionsOpen ? "−" : "+"}</span>
+            </button>
+
+            <Link href="/versicherungen" className={styles.premiumLink}>
+              Versicherungen
+              <small>NEU</small>
+            </Link>
+
+            <Link href="/anbieter-registrieren">Für Anbieter</Link>
+          </nav>
+
+          <div className={styles.actions}>
+            <button
+              type="button"
+              className={styles.searchButton}
+              onClick={() => setSearchOpen(true)}
+              aria-label="Suche öffnen"
+            >
+              Suche
+            </button>
+
+            <Link href="/auftrag-erstellen" className={styles.primaryButton}>
+              Auftrag starten
+            </Link>
+
+            <button
+              type="button"
+              className={styles.mobileButton}
+              onClick={() => setMenuOpen((value) => !value)}
+              aria-label="Menü öffnen"
+            >
+              {menuOpen ? "✕" : "☰"}
+            </button>
+          </div>
+        </div>
+
+        {servicesOpen && (
+          <div className={styles.megaMenu}>
+            <div className={styles.megaMenuInner}>
+              <div className={styles.megaIntro}>
+                <span>Alle Dienstleistungen</span>
+                <h2>Finde genau den richtigen Anbieter.</h2>
+                <p>
+                  Reinigung, Handwerk, Umzug, Versicherungen, Immobilien,
+                  Finanzen und digitale Lösungen.
+                </p>
+
+                <Link href="/leistungen" onClick={closeAll}>
+                  Alle Leistungen ansehen →
+                </Link>
+              </div>
+
+              <div className={styles.megaGrid}>
+                {groupedServices.map((group) => (
+                  <div key={group.category} className={styles.megaGroup}>
+                    <strong>{group.category}</strong>
+
+                    {group.items.slice(0, 5).map((service) => (
+                      <Link
+                        key={service.slug}
+                        href={`/leistungen/${service.slug}`}
+                        onClick={closeAll}
+                      >
+                        <span>{service.icon}</span>
+                        {service.title}
+                      </Link>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {regionsOpen && (
+          <div className={styles.regionMenu}>
+            <div className={styles.regionGrid}>
+              {regionLinks.map((region) => (
+                <Link key={region.href} href={region.href} onClick={closeAll}>
+                  Anbieter in {region.label}
+                  <span>→</span>
+                </Link>
+              ))}
+
+              <Link href="/region" onClick={closeAll}>
+                Alle Regionen
+                <span>→</span>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {menuOpen && (
+          <div className={styles.mobileMenu}>
+            <Link href="/leistungen" onClick={closeAll}>
+              Dienstleistungen
+            </Link>
+            <Link href="/anbieter" onClick={closeAll}>
+              Anbieter
+            </Link>
+            <Link href="/region" onClick={closeAll}>
+              Regionen
+            </Link>
+            <Link href="/versicherungen" onClick={closeAll}>
+              Versicherungen
+            </Link>
+            <Link href="/anbieter-registrieren" onClick={closeAll}>
+              Für Anbieter
+            </Link>
+            <Link href="/auftrag-erstellen" onClick={closeAll}>
+              Auftrag starten
+            </Link>
+          </div>
+        )}
+      </header>
+
+      {searchOpen && (
+        <div className={styles.searchOverlay} role="dialog" aria-modal="true">
+          <button
+            type="button"
+            className={styles.closeSearch}
+            onClick={() => setSearchOpen(false)}
+            aria-label="Suche schliessen"
+          >
+            ✕
+          </button>
+
+          <div className={styles.searchPanel}>
+            <span className={styles.searchEyebrow}>Auftrago Suche</span>
+            <h2>Wonach suchst du?</h2>
+
+            <form onSubmit={handleSearchSubmit}>
+              <input
+                autoFocus
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Zum Beispiel Reinigung, Elektriker oder Krankenkasse"
+              />
+              <button type="submit">Suchen</button>
+            </form>
+
+            <div className={styles.searchResults}>
+              {results.map((service) => (
+                <Link
+                  key={service.slug}
+                  href={`/leistungen/${service.slug}`}
+                  onClick={closeAll}
+                >
+                  <span>{service.icon}</span>
+
+                  <div>
+                    <strong>{service.title}</strong>
+                    <small>{service.category}</small>
+                  </div>
+
+                  <b>→</b>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

@@ -386,3 +386,43 @@
     min-height: 56px;
   }
 }
+/* Navigation wieder vollständig sichtbar */
+@media (min-width: 1180px) {
+  .desktopNav {
+    display: flex !important;
+    align-items: center !important;
+    gap: 24px !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+
+  .desktopNav > a,
+  .desktopNav > button {
+    display: inline-flex !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+    flex: 0 0 auto !important;
+  }
+
+  .mobileButton {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1179px) {
+  .desktopNav {
+    display: none !important;
+  }
+
+  .mobileButton {
+    display: inline-flex !important;
+  }
+}

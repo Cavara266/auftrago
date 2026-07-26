@@ -766,6 +766,10 @@ export default async function AdminDashboardPage() {
               Analytics
             </Link>
 
+            <Link href="/admin/seo" className="admin-btn admin-btn-secondary">
+              SEO Center
+            </Link>
+
             <Link href="/admin/activity" className="admin-btn admin-btn-secondary">
               Activities
             </Link>

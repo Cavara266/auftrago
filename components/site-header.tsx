@@ -15,10 +15,6 @@ import { services } from "@/lib/services";
 
 const navigation = [
   {
-    href: "/",
-    label: "Startseite",
-  },
-  {
     href: "/anbieter",
     label: "Anbieter",
   },
@@ -292,51 +288,7 @@ export default function SiteHeader() {
                 </Link>
               );
             })}
-
-            <button
-              type="button"
-              onClick={openServicesMenu}
-              aria-expanded={servicesMenuOpen}
-              className={[
-                "relative inline-flex min-h-[44px] items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3.5 text-[14px] font-bold transition duration-200",
-                pathname.startsWith("/leistungen") || servicesMenuOpen
-                  ? "bg-white/10 text-white"
-                  : "text-slate-300 hover:bg-white/[0.06] hover:text-white",
-              ].join(" ")}
-            >
-              <span>Leistungen</span>
-              <span
-                className={[
-                  "text-xs transition duration-200",
-                  servicesMenuOpen ? "rotate-180" : "",
-                ].join(" ")}
-              >
-                ▾
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={openRegionMenu}
-              aria-expanded={regionMenuOpen}
-              className={[
-                "relative inline-flex min-h-[44px] items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3.5 text-[14px] font-bold transition duration-200",
-                pathname.startsWith("/region") || regionMenuOpen
-                  ? "bg-white/10 text-white"
-                  : "text-slate-300 hover:bg-white/[0.06] hover:text-white",
-              ].join(" ")}
-            >
-              <span>Regionen</span>
-              <span
-                className={[
-                  "text-xs transition duration-200",
-                  regionMenuOpen ? "rotate-180" : "",
-                ].join(" ")}
-              >
-                ▾
-              </span>
-            </button>
-          </nav>
+</nav>
 
           <div className="hidden min-w-0 flex-1 items-center justify-end gap-3 lg:flex">
             <div
@@ -431,8 +383,7 @@ export default function SiteHeader() {
                 </div>
               ) : null}
             </div>
-
-            <Link
+<Link
               href="/credits"
               onClick={closeMenus}
               className={[
