@@ -1,19 +1,26 @@
-import { NextResponse } from "next/server";
+import {
+  NextRequest,
+  NextResponse,
+} from "next/server";
 
-export async function GET() {
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+export async function GET(
+  request: NextRequest
+) {
   const response = NextResponse.redirect(
-    new URL(
-      "/login",
-      process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
-    )
+    new URL("/login", request.url)
   );
 
   response.cookies.set("auftrago_session", "", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure:
+      process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
     expires: new Date(0),
+    maxAge: 0,
   });
 
   return response;

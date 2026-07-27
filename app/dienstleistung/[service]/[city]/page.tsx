@@ -36,7 +36,6 @@ import {
   buildSeoContent,
 } from "@/lib/seo-engine/content";
 
-
 import {
   getNearbyCityLinks,
   getRelatedServiceLinks,
@@ -56,37 +55,48 @@ async function getCmsLandingPage(
   serviceSlug: string,
   citySlug: string
 ) {
-  return prisma.seoLandingPage.findFirst({
-    where: {
-      status: "ACTIVE",
-      city: {
-        slug: citySlug,
+  try {
+    return await prisma.seoLandingPage.findFirst({
+      where: {
         status: "ACTIVE",
+        city: {
+          slug: citySlug,
+          status: "ACTIVE",
+        },
+        service: {
+          slug: serviceSlug,
+          status: "ACTIVE",
+        },
       },
-      service: {
-        slug: serviceSlug,
-        status: "ACTIVE",
-      },
-    },
-    include: {
-      city: true,
-      service: {
-        include: {
-          faqs: {
-            where: {
-              status: "ACTIVE",
-            },
-            orderBy: {
-              sortOrder: "asc",
+      include: {
+        city: true,
+        service: {
+          include: {
+            faqs: {
+              where: {
+                status: "ACTIVE",
+              },
+              orderBy: {
+                sortOrder: "asc",
+              },
             },
           },
         },
       },
-    },
-  });
+    });
+  } catch (error) {
+    console.error(
+      `[SEO] CMS-Seite konnte nicht geladen werden: ${serviceSlug}/${citySlug}`,
+      error
+    );
+
+    return null;
+  }
 }
 
-function centsToFrancs(value: number | null | undefined) {
+function centsToFrancs(
+  value: number | null | undefined
+) {
   if (value === null || value === undefined) {
     return undefined;
   }
@@ -105,7 +115,9 @@ export async function generateMetadata({
   const [cmsPage, staticService, staticCity] =
     await Promise.all([
       getCmsLandingPage(serviceSlug, citySlug),
-      Promise.resolve(getServiceProfile(serviceSlug)),
+      Promise.resolve(
+        getServiceProfile(serviceSlug)
+      ),
       Promise.resolve(getCityProfile(citySlug)),
     ]);
 
@@ -199,16 +211,28 @@ export default async function ServiceCityPage({
   const [cmsPage, staticService, staticCity] =
     await Promise.all([
       getCmsLandingPage(serviceSlug, citySlug),
-      Promise.resolve(getServiceProfile(serviceSlug)),
+      Promise.resolve(
+        getServiceProfile(serviceSlug)
+      ),
       Promise.resolve(getCityProfile(citySlug)),
     ]);
 
-  if (!cmsPage && (!staticService || !staticCity)) {
+  if (
+    !cmsPage &&
+    (!staticService || !staticCity)
+  ) {
     notFound();
   }
 
-  if (cmsPage && (!staticService || !staticCity)) {
-    return <CmsOnlyLandingPage cmsPage={cmsPage} />;
+  if (
+    cmsPage &&
+    (!staticService || !staticCity)
+  ) {
+    return (
+      <CmsOnlyLandingPage
+        cmsPage={cmsPage}
+      />
+    );
   }
 
   if (!staticService || !staticCity) {
@@ -248,16 +272,14 @@ export default async function ServiceCityPage({
   const priceFrom =
     centsToFrancs(
       cmsPage?.customPriceMinCents ??
-      cmsPage?.service.priceMinCents
-    ) ??
-    staticService.priceFrom;
+        cmsPage?.service.priceMinCents
+    ) ?? staticService.priceFrom;
 
   const priceTo =
     centsToFrancs(
       cmsPage?.customPriceMaxCents ??
-      cmsPage?.service.priceMaxCents
-    ) ??
-    staticService.priceTo;
+        cmsPage?.service.priceMaxCents
+    ) ?? staticService.priceTo;
 
   const priceUnit =
     cmsPage?.service.priceUnit ||
@@ -272,10 +294,12 @@ export default async function ServiceCityPage({
   const faqs =
     cmsPage &&
     cmsPage.service.faqs.length > 0
-      ? cmsPage.service.faqs.map((faq) => ({
-          question: faq.question,
-          answer: faq.answer,
-        }))
+      ? cmsPage.service.faqs.map(
+          (faq) => ({
+            question: faq.question,
+            answer: faq.answer,
+          })
+        )
       : staticFaqs;
 
   const pageDescription =
@@ -349,7 +373,8 @@ export default async function ServiceCityPage({
       staticCity.slug,
       staticService.slug
     );
-return (
+
+  return (
     <SeoLayout
       breadcrumbs={breadcrumbs}
       schema={schema}
@@ -391,22 +416,24 @@ return (
 
       <section className="premium-section">
         <div className="container grid gap-5 md:grid-cols-3">
-          {benefits.slice(0, 6).map((benefit) => (
-            <article
-              key={benefit}
-              className="rounded-[26px] border border-white/10 bg-white/[0.035] p-6"
-            >
-              <h2 className="text-xl font-black text-white">
-                {benefit}
-              </h2>
+          {benefits
+            .slice(0, 6)
+            .map((benefit) => (
+              <article
+                key={benefit}
+                className="rounded-[26px] border border-white/10 bg-white/[0.035] p-6"
+              >
+                <h2 className="text-xl font-black text-white">
+                  {benefit}
+                </h2>
 
-              <p className="mt-3 text-sm leading-7 text-slate-400">
-                Passende Anbieter vergleichen und den
-                Auftrag klar, nachvollziehbar und
-                unverbindlich vorbereiten.
-              </p>
-            </article>
-          ))}
+                <p className="mt-3 text-sm leading-7 text-slate-400">
+                  Passende Anbieter vergleichen und
+                  den Auftrag klar, nachvollziehbar
+                  und unverbindlich vorbereiten.
+                </p>
+              </article>
+            ))}
         </div>
       </section>
 
@@ -419,7 +446,8 @@ return (
 
             <h2>
               {staticService.name} in{" "}
-              {staticCity.name} sinnvoll vergleichen
+              {staticCity.name} sinnvoll
+              vergleichen
             </h2>
 
             <p>{localIntro}</p>
@@ -451,7 +479,9 @@ return (
               Ablauf
             </span>
 
-            <h2>In vier Schritten starten</h2>
+            <h2>
+              In vier Schritten starten
+            </h2>
 
             <div className="mt-6 space-y-5">
               {[
@@ -519,7 +549,8 @@ return (
                 key={item.href}
                 href={item.href}
               >
-                {item.label} in {staticCity.name}
+                {item.label} in{" "}
+                {staticCity.name}
               </Link>
             ))}
           </div>
@@ -533,7 +564,8 @@ return (
           </span>
 
           <h2>
-            {staticService.name} in weiteren Städten
+            {staticService.name} in weiteren
+            Städten
           </h2>
 
           <div className="seo-link-grid">
@@ -542,7 +574,8 @@ return (
                 key={item.href}
                 href={item.href}
               >
-                {staticService.name} in {item.label}
+                {staticService.name} in{" "}
+                {item.label}
               </Link>
             ))}
           </div>
@@ -555,7 +588,10 @@ return (
             Jetzt starten
           </span>
 
-          <h2>{staticContent.ctaTitle}</h2>
+          <h2>
+            {staticContent.ctaTitle}
+          </h2>
+
           <p>{staticContent.ctaText}</p>
 
           <div className="actions center">
@@ -568,13 +604,14 @@ return (
           </div>
         </div>
       </section>
-
-      </SeoLayout>
+    </SeoLayout>
   );
 }
 
 type CmsPage = NonNullable<
-  Awaited<ReturnType<typeof getCmsLandingPage>>
+  Awaited<
+    ReturnType<typeof getCmsLandingPage>
+  >
 >;
 
 function CmsOnlyLandingPage({
@@ -605,7 +642,8 @@ function CmsOnlyLandingPage({
     },
     {
       label: cmsPage.service.name,
-      href: `/leistungen/${cmsPage.service.slug}`,
+      href:
+        `/leistungen/${cmsPage.service.slug}`,
     },
     {
       label: cmsPage.city.name,
@@ -627,7 +665,8 @@ function CmsOnlyLandingPage({
       path,
       areaServed: [
         cmsPage.city.name,
-        cmsPage.city.region || cmsPage.city.canton,
+        cmsPage.city.region ||
+          cmsPage.city.canton,
         "Schweiz",
       ],
       category: cmsPage.service.name,
@@ -643,12 +682,12 @@ function CmsOnlyLandingPage({
 
   const priceFrom = centsToFrancs(
     cmsPage.customPriceMinCents ??
-    cmsPage.service.priceMinCents
+      cmsPage.service.priceMinCents
   );
 
   const priceTo = centsToFrancs(
     cmsPage.customPriceMaxCents ??
-    cmsPage.service.priceMaxCents
+      cmsPage.service.priceMaxCents
   );
 
   const faqItems =
@@ -675,7 +714,8 @@ function CmsOnlyLandingPage({
             </h1>
 
             <p className="mt-6 max-w-3xl text-base leading-8 text-slate-300 sm:text-lg">
-              {cmsPage.introduction || description}
+              {cmsPage.introduction ||
+                description}
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
@@ -687,17 +727,21 @@ function CmsOnlyLandingPage({
               </Link>
 
               <Link
-                href={`/leistungen/${cmsPage.service.slug}`}
+                href={
+                  `/leistungen/${cmsPage.service.slug}`
+                }
                 className="btn btn-secondary"
               >
-                Mehr über {cmsPage.service.name}
+                Mehr über{" "}
+                {cmsPage.service.name}
               </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {cmsPage.service.benefits.length > 0 ? (
+      {cmsPage.service.benefits.length >
+      0 ? (
         <section className="premium-section">
           <div className="container grid gap-5 md:grid-cols-3">
             {cmsPage.service.benefits
@@ -712,8 +756,9 @@ function CmsOnlyLandingPage({
                   </h2>
 
                   <p className="mt-3 text-sm leading-7 text-slate-400">
-                    Regionale Anbieter vergleichen und
-                    kostenlos eine Anfrage erstellen.
+                    Regionale Anbieter vergleichen
+                    und kostenlos eine Anfrage
+                    erstellen.
                   </p>
                 </article>
               ))}
@@ -752,7 +797,9 @@ function CmsOnlyLandingPage({
               Ablauf
             </span>
 
-            <h2>In vier Schritten starten</h2>
+            <h2>
+              In vier Schritten starten
+            </h2>
 
             <div className="mt-6 space-y-5">
               {[
@@ -786,7 +833,7 @@ function CmsOnlyLandingPage({
             `Was kostet ${cmsPage.service.name} in ${cmsPage.city.name}?`
           }
           text={
-            `Die tatsächlichen Kosten hängen vom Umfang, Termin, Objekt und den gewünschten Leistungen ab.`
+            "Die tatsächlichen Kosten hängen vom Umfang, Termin, Objekt und den gewünschten Leistungen ab."
           }
           from={priceFrom}
           to={priceTo}
@@ -813,7 +860,8 @@ function CmsOnlyLandingPage({
           </span>
 
           <h2>
-            Angebote für {cmsPage.service.name} in{" "}
+            Angebote für{" "}
+            {cmsPage.service.name} in{" "}
             {cmsPage.city.name} vergleichen
           </h2>
 
