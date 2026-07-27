@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { sendLeadPurchaseMail } from "@/lib/lead-purchase-mail";
+import { getLeadPricing } from "@/lib/lead-pricing";
 
 type PurchasedResult = {
   status: "purchased";
@@ -36,7 +37,9 @@ type FailedPurchaseResult = {
   leadId?: string;
 };
 
-type PurchaseResult = PurchasedResult | FailedPurchaseResult;
+type PurchaseResult =
+  | PurchasedResult
+  | FailedPurchaseResult;
 
 export async function buyLeadAction(
   formData: FormData
@@ -51,7 +54,9 @@ export async function buyLeadAction(
     redirect("/login?error=provider-not-approved");
   }
 
-  const leadId = String(formData.get("leadId") || "").trim();
+  const leadId = String(
+    formData.get("leadId") || ""
+  ).trim();
 
   if (!leadId) {
     redirect("/portal/leads?error=invalid-lead");
@@ -62,19 +67,20 @@ export async function buyLeadAction(
   try {
     result = await prisma.$transaction(
       async (tx): Promise<PurchaseResult> => {
-        const provider = await tx.provider.findUnique({
-          where: {
-            id: user.id,
-          },
-          select: {
-            id: true,
-            email: true,
-            contactName: true,
-            companyName: true,
-            credits: true,
-            status: true,
-          },
-        });
+        const provider =
+          await tx.provider.findUnique({
+            where: {
+              id: user.id,
+            },
+            select: {
+              id: true,
+              email: true,
+              contactName: true,
+              companyName: true,
+              credits: true,
+              status: true,
+            },
+          });
 
         if (!provider) {
           return {
@@ -88,22 +94,24 @@ export async function buyLeadAction(
           };
         }
 
-        const lead = await tx.lead.findUnique({
-          where: {
-            id: leadId,
-          },
-          select: {
-            id: true,
-            title: true,
-            category: true,
-            region: true,
-            description: true,
-            name: true,
-            phone: true,
-            email: true,
-            price: true,
-          },
-        });
+        const lead =
+          await tx.lead.findUnique({
+            where: {
+              id: leadId,
+            },
+            select: {
+              id: true,
+              title: true,
+              category: true,
+              region: true,
+              description: true,
+              name: true,
+              phone: true,
+              email: true,
+              price: true,
+              createdAt: true,
+            },
+          });
 
         if (!lead) {
           return {
@@ -131,20 +139,29 @@ export async function buyLeadAction(
           };
         }
 
-        const creditUpdate = await tx.provider.updateMany({
-          where: {
-            id: provider.id,
-            status: "APPROVED",
-            credits: {
-              gte: lead.price,
+        const pricing = getLeadPricing(
+          lead.price,
+          lead.createdAt
+        );
+
+        const purchasePrice =
+          pricing.currentPrice;
+
+        const creditUpdate =
+          await tx.provider.updateMany({
+            where: {
+              id: provider.id,
+              status: "APPROVED",
+              credits: {
+                gte: purchasePrice,
+              },
             },
-          },
-          data: {
-            credits: {
-              decrement: lead.price,
+            data: {
+              credits: {
+                decrement: purchasePrice,
+              },
             },
-          },
-        });
+          });
 
         if (creditUpdate.count !== 1) {
           return {
@@ -157,7 +174,7 @@ export async function buyLeadAction(
           data: {
             providerId: provider.id,
             leadId: lead.id,
-            price: lead.price,
+            price: purchasePrice,
             status: "OPEN",
           },
         });
@@ -176,9 +193,12 @@ export async function buyLeadAction(
           status: "purchased",
           leadId: lead.id,
           providerEmail: provider.email,
-          providerContactName: provider.contactName,
-          providerCompanyName: provider.companyName,
-          remainingCredits: updatedProvider?.credits ?? 0,
+          providerContactName:
+            provider.contactName,
+          providerCompanyName:
+            provider.companyName,
+          remainingCredits:
+            updatedProvider?.credits ?? 0,
           lead: {
             title: lead.title,
             category: lead.category,
@@ -187,18 +207,20 @@ export async function buyLeadAction(
             name: lead.name,
             phone: lead.phone,
             email: lead.email,
-            price: lead.price,
+            price: purchasePrice,
           },
         };
       },
       {
         isolationLevel:
-          Prisma.TransactionIsolationLevel.Serializable,
+          Prisma.TransactionIsolationLevel
+            .Serializable,
       }
     );
   } catch (error) {
     if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error instanceof
+        Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
       redirect(
@@ -208,21 +230,33 @@ export async function buyLeadAction(
       );
     }
 
-    console.error("BUY LEAD ACTION ERROR:", error);
+    console.error(
+      "BUY LEAD ACTION ERROR:",
+      error
+    );
 
-    redirect("/portal/leads?error=purchase-failed");
+    redirect(
+      "/portal/leads?error=purchase-failed"
+    );
   }
 
   if (result.status === "provider-missing") {
     redirect("/login");
   }
 
-  if (result.status === "provider-not-approved") {
-    redirect("/login?error=provider-not-approved");
+  if (
+    result.status ===
+    "provider-not-approved"
+  ) {
+    redirect(
+      "/login?error=provider-not-approved"
+    );
   }
 
   if (result.status === "lead-not-found") {
-    redirect("/portal/leads?error=lead-not-found");
+    redirect(
+      "/portal/leads?error=lead-not-found"
+    );
   }
 
   if (result.status === "already-bought") {
@@ -233,7 +267,10 @@ export async function buyLeadAction(
     );
   }
 
-  if (result.status === "not-enough-credits") {
+  if (
+    result.status ===
+    "not-enough-credits"
+  ) {
     redirect(
       `/portal/guthaben?error=not-enough-credits&leadId=${encodeURIComponent(
         result.leadId || leadId
@@ -242,36 +279,51 @@ export async function buyLeadAction(
   }
 
   if (result.status !== "purchased") {
-    console.error("UNEXPECTED PURCHASE RESULT:", result);
+    console.error(
+      "UNEXPECTED PURCHASE RESULT:",
+      result
+    );
 
-    redirect("/portal/leads?error=purchase-failed");
+    redirect(
+      "/portal/leads?error=purchase-failed"
+    );
   }
 
   try {
     await sendLeadPurchaseMail({
-      providerEmail: result.providerEmail,
-      providerContactName: result.providerContactName,
-      providerCompanyName: result.providerCompanyName,
+      providerEmail:
+        result.providerEmail,
+      providerContactName:
+        result.providerContactName,
+      providerCompanyName:
+        result.providerCompanyName,
 
       leadId: result.leadId,
-      leadTitle: result.lead.title,
-      leadCategory: result.lead.category,
-      leadRegion: result.lead.region,
-      leadDescription: result.lead.description,
+      leadTitle:
+        result.lead.title,
+      leadCategory:
+        result.lead.category,
+      leadRegion:
+        result.lead.region,
+      leadDescription:
+        result.lead.description,
 
-      customerName: result.lead.name,
-      customerPhone: result.lead.phone,
-      customerEmail: result.lead.email,
+      customerName:
+        result.lead.name,
+      customerPhone:
+        result.lead.phone,
+      customerEmail:
+        result.lead.email,
 
       price: result.lead.price,
-      remainingCredits: result.remainingCredits,
+      remainingCredits:
+        result.remainingCredits,
     });
   } catch (error) {
-    /*
-     * Der Kauf bleibt erfolgreich, auch wenn die E-Mail
-     * vorübergehend nicht gesendet werden kann.
-     */
-    console.error("LEAD PURCHASE MAIL ERROR:", error);
+    console.error(
+      "LEAD PURCHASE MAIL ERROR:",
+      error
+    );
   }
 
   revalidatePath("/portal");
@@ -279,7 +331,9 @@ export async function buyLeadAction(
   revalidatePath("/portal/meine-leads");
   revalidatePath("/portal/guthaben");
   revalidatePath("/portal/transaktionen");
-  revalidatePath(`/portal/leads/${result.leadId}`);
+  revalidatePath(
+    `/portal/leads/${result.leadId}`
+  );
 
   redirect(
     `/portal/leads/${encodeURIComponent(

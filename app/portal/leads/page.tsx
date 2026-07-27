@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth";
 import { buyLeadAction } from "./actions";
+import { getLeadPricing } from "@/lib/lead-pricing";
+import "./lead-center.css";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,43 +21,135 @@ type PageProps = {
 
 const regions = [
   "Aargau",
-  "Zürich",
+  "Appenzell Ausserrhoden",
+  "Appenzell Innerrhoden",
+  "Basel-Landschaft",
+  "Basel-Stadt",
   "Bern",
+  "Freiburg",
+  "Genf",
+  "Glarus",
+  "Graubünden",
+  "Jura",
   "Luzern",
-  "Basel",
+  "Neuenburg",
+  "Nidwalden",
+  "Obwalden",
+  "Schaffhausen",
+  "Schwyz",
   "Solothurn",
-  "Zug",
   "St. Gallen",
+  "Tessin",
+  "Thurgau",
+  "Uri",
+  "Waadt",
+  "Wallis",
+  "Zug",
+  "Zürich",
 ];
 
 const categories = [
   "Hauswartung",
+  "Facility Management",
+  "Liegenschaftsunterhalt",
+  "Technischer Hausdienst",
   "Reinigung",
-  "Umzugsreinigung",
-  "Grundreinigung",
   "Unterhaltsreinigung",
+  "Büroreinigung",
+  "Praxisreinigung",
+  "Treppenhausreinigung",
+  "Umzugsreinigung",
+  "Endreinigung",
+  "Grundreinigung",
+  "Baureinigung",
   "Fensterreinigung",
+  "Fassadenreinigung",
+  "Teppichreinigung",
+  "Polsterreinigung",
+  "Hochdruckreinigung",
+  "Desinfektionsreinigung",
   "Gartenpflege",
+  "Gartenunterhalt",
+  "Gartenbau",
+  "Rasenpflege",
+  "Heckenschnitt",
+  "Baumschnitt",
+  "Baumfällung",
+  "Landschaftsbau",
+  "Bewässerung",
+  "Winterdienst",
+  "Schneeräumung",
   "Maler",
+  "Malerarbeiten",
   "Gipser",
+  "Trockenbau",
+  "Plattenleger",
+  "Bodenleger",
+  "Parkettleger",
+  "Fliesenleger",
+  "Maurer",
+  "Betonarbeiten",
+  "Fassadenarbeiten",
+  "Dachdecker",
+  "Spengler",
+  "Gerüstbau",
+  "Schreiner",
+  "Zimmermann",
+  "Küchenbau",
+  "Fensterbau",
+  "Türen und Tore",
+  "Glaser",
+  "Metallbau",
+  "Schlosser",
   "Sanitär",
+  "Heizung",
+  "Lüftung",
+  "Klima",
+  "Wärmepumpen",
+  "Boiler-Service",
+  "Rohrreinigung",
+  "Kanalreinigung",
   "Elektriker",
+  "Elektroinstallation",
+  "Photovoltaik",
+  "Solaranlagen",
+  "Smart Home",
+  "Alarmanlagen",
+  "Videoüberwachung",
+  "Netzwerktechnik",
   "Umzug",
+  "Privatumzug",
+  "Firmenumzug",
+  "Möbeltransport",
+  "Klaviertransport",
   "Transport",
+  "Kurierdienst",
+  "Lieferdienst",
+  "Möbelmontage",
+  "Montageservice",
+  "Entrümpelung",
+  "Räumung",
+  "Haushaltsauflösung",
   "Entsorgung",
+  "Muldenservice",
+  "Abbrucharbeiten",
+  "Demontage",
+  "Pest Control",
+  "Schädlingsbekämpfung",
+  "Hausräumung",
+  "Hausmeisterservice",
+  "Reparaturservice",
+  "Allrounder",
 ];
 
 function getErrorMessage(error?: string) {
   switch (error) {
     case "invalid-lead":
       return "Der Lead konnte nicht verarbeitet werden.";
-
     case "lead-not-found":
       return "Der ausgewählte Lead wurde nicht gefunden.";
-
     case "not-enough-credits":
       return "Nicht genügend Credits vorhanden. Bitte lade dein Guthaben auf.";
-
     default:
       return "";
   }
@@ -65,10 +159,8 @@ function getInfoMessage(message?: string) {
   switch (message) {
     case "purchased":
       return "Lead erfolgreich gekauft.";
-
     case "already-bought":
       return "Dieser Lead wurde bereits gekauft.";
-
     default:
       return "";
   }
@@ -109,7 +201,8 @@ function formatCurrency(
   return new Intl.NumberFormat("de-CH", {
     style: "currency",
     currency,
-    minimumFractionDigits: 2,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   }).format(amountInCents / 100);
 }
 
@@ -128,13 +221,57 @@ function isMatchingProvider(
   providerCategory: string | null
 ) {
   return (
-    Boolean(itemRegion && providerRegion && itemRegion === providerRegion) ||
+    Boolean(
+      itemRegion &&
+        providerRegion &&
+        itemRegion === providerRegion
+    ) ||
     Boolean(
       itemCategory &&
         providerCategory &&
         itemCategory === providerCategory
     )
   );
+}
+
+function getMatchScore(
+  regionMatches: boolean,
+  categoryMatches: boolean,
+  createdAt: Date
+) {
+  const ageInHours =
+    (Date.now() - createdAt.getTime()) /
+    (1000 * 60 * 60);
+
+  let score = 61;
+
+  if (regionMatches) score += 18;
+  if (categoryMatches) score += 15;
+  if (ageInHours <= 24) score += 5;
+
+  return Math.min(score, 99);
+}
+
+function getFreshness(createdAt: Date) {
+  const diffMs = Date.now() - createdAt.getTime();
+  const minutes = Math.max(
+    1,
+    Math.floor(diffMs / 60000)
+  );
+
+  if (minutes < 60) {
+    return `Vor ${minutes} Min.`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+
+  if (hours < 24) {
+    return `Vor ${hours} Std.`;
+  }
+
+  const days = Math.floor(hours / 24);
+
+  return `Vor ${days} Tagen`;
 }
 
 export default async function PortalLeadsPage({
@@ -147,22 +284,40 @@ export default async function PortalLeadsPage({
   const selectedRegion = params?.region || "";
   const selectedCategory = params?.category || "";
 
-  const cookieStore = await cookies();
-  const providerId =
-    cookieStore.get("auftrago_session")?.value;
+  const user = await requireUser();
 
-  if (!providerId) {
+  if (!user) {
     redirect("/login");
   }
 
   const provider = await prisma.provider.findUnique({
     where: {
-      id: providerId,
+      id: user.id,
     },
     include: {
       purchases: {
         select: {
           leadId: true,
+        },
+      },
+      providerServices: {
+        where: {
+          active: true,
+        },
+        include: {
+          service: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              category: {
+                select: {
+                  name: true,
+                  slug: true,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -176,14 +331,10 @@ export default async function PortalLeadsPage({
     prisma.lead.findMany({
       where: {
         ...(selectedRegion
-          ? {
-              region: selectedRegion,
-            }
+          ? { region: selectedRegion }
           : {}),
         ...(selectedCategory
-          ? {
-              category: selectedCategory,
-            }
+          ? { category: selectedCategory }
           : {}),
       },
       orderBy: {
@@ -195,20 +346,13 @@ export default async function PortalLeadsPage({
       where: {
         status: "OPEN",
         buyerId: null,
-
         ...(selectedRegion
-          ? {
-              region: selectedRegion,
-            }
+          ? { region: selectedRegion }
           : {}),
-
         ...(selectedCategory
-          ? {
-              category: selectedCategory,
-            }
+          ? { category: selectedCategory }
           : {}),
       },
-
       select: {
         id: true,
         title: true,
@@ -224,12 +368,9 @@ export default async function PortalLeadsPage({
         commissionAmountCents: true,
         createdAt: true,
       },
-
-      orderBy: [
-        {
-          createdAt: "desc",
-        },
-      ],
+      orderBy: {
+        createdAt: "desc",
+      },
     }),
   ]);
 
@@ -291,16 +432,6 @@ export default async function PortalLeadsPage({
     }
   );
 
-  const matchingFixedOrderCount =
-    sortedFixedOrders.filter((order) =>
-      isMatchingProvider(
-        order.region,
-        order.category,
-        provider.region,
-        provider.category
-      )
-    ).length;
-
   const matchingLeadCount = sortedLeads.filter(
     (lead) =>
       isMatchingProvider(
@@ -311,6 +442,16 @@ export default async function PortalLeadsPage({
       )
   ).length;
 
+  const matchingFixedOrderCount =
+    sortedFixedOrders.filter((order) =>
+      isMatchingProvider(
+        order.region,
+        order.category,
+        provider.region,
+        provider.category
+      )
+    ).length;
+
   const errorMessage = getErrorMessage(
     params?.error
   );
@@ -320,999 +461,558 @@ export default async function PortalLeadsPage({
   );
 
   return (
-    <main className="page">
-      <section className="leadx-hero">
-        <div className="container leadx-hero-shell">
-          <div className="leadx-hero-content">
-            <span className="eyebrow">
-              Kundenchancen Marketplace
-            </span>
+    <main className="lead-center">
+      <div className="lead-center__orb lead-center__orb--one" />
+      <div className="lead-center__orb lead-center__orb--two" />
 
-            <h1>Neue Aufträge sichern.</h1>
+      <div className="lead-center__container">
+        <section className="lead-center__hero">
+          <div className="lead-center__hero-copy">
+            <div className="lead-center__live-label">
+              <span />
+              AUFTRAGO LEAD CENTER
+            </div>
+
+            <h1>
+              Die besten Aufträge.
+              <em>Für dein Unternehmen.</em>
+            </h1>
 
             <p>
-              Übernimm bestätigte Fixaufträge oder
-              schalte passende Kundenanfragen mit
-              Credits frei.
+              Entdecke passende Kundenanfragen,
+              übernimm bestätigte Fixaufträge und
+              verwalte deine Chancen an einem Ort.
             </p>
+
+            <div className="lead-center__hero-actions">
+              <Link
+                href="#normale-leads"
+                className="lead-center__button lead-center__button--primary"
+              >
+                Leads entdecken
+                <span>→</span>
+              </Link>
+
+              <Link
+                href="/portal/fixed-orders"
+                className="lead-center__button lead-center__button--ghost"
+              >
+                Fixaufträge ansehen
+              </Link>
+            </div>
           </div>
 
-          <div className="leadx-hero-actions">
-            <Link
-              href="/portal"
-              className="btn btn-secondary"
-            >
-              Dashboard
-            </Link>
+          <div className="lead-center__hero-panel">
+            <span className="lead-center__panel-kicker">
+              DEIN STATUS
+            </span>
 
-            <Link
-              href="/portal/fixed-orders"
-              className="btn btn-secondary"
-            >
-              Fixaufträge
-            </Link>
+            <strong>{provider.credits}</strong>
+            <p>Credits verfügbar</p>
+
+            <div className="lead-center__credit-track">
+              <span
+                style={{
+                  width: `${Math.min(
+                    100,
+                    Math.max(6, provider.credits)
+                  )}%`,
+                }}
+              />
+            </div>
+
+            <div className="lead-center__hero-panel-grid">
+              <div>
+                <b>{matchingLeadCount}</b>
+                <small>Passende Leads</small>
+              </div>
+
+              <div>
+                <b>{sortedFixedOrders.length}</b>
+                <small>Fixaufträge</small>
+              </div>
+            </div>
 
             <Link
               href="/portal/guthaben"
-              className="btn btn-primary"
+              className="lead-center__button lead-center__button--primary"
             >
-              Credits kaufen
+              Credits aufladen
+              <span>→</span>
             </Link>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="leadx-section">
-        <div className="container">
-          {errorMessage ? (
-            <div className="leadx-error">
-              {errorMessage}
+        {errorMessage ? (
+          <div className="lead-center__alert lead-center__alert--error">
+            {errorMessage}
+          </div>
+        ) : null}
+
+        {infoMessage ? (
+          <div className="lead-center__alert lead-center__alert--success">
+            {infoMessage}
+          </div>
+        ) : null}
+
+        <section className="lead-center__metrics">
+          <article>
+            <span>01</span>
+            <strong>{sortedLeads.length}</strong>
+            <p>Aktive Kundenanfragen</p>
+          </article>
+
+          <article>
+            <span>02</span>
+            <strong>
+              {matchingLeadCount +
+                matchingFixedOrderCount}
+            </strong>
+            <p>Passende Chancen</p>
+          </article>
+
+          <article>
+            <span>03</span>
+            <strong>{sortedFixedOrders.length}</strong>
+            <p>Bestätigte Fixaufträge</p>
+          </article>
+
+          <article>
+            <span>04</span>
+            <strong>{provider.credits}</strong>
+            <p>Verfügbare Credits</p>
+          </article>
+        </section>
+
+        <section className="lead-center__filter-shell">
+          <div>
+            <span className="lead-center__section-kicker">
+              SMART FILTER
+            </span>
+
+            <h2>Die richtigen Chancen finden</h2>
+          </div>
+
+          <form
+            className="lead-center__filter"
+            action="/portal/leads"
+          >
+            <label>
+              <span>Region</span>
+
+              <select
+                name="region"
+                defaultValue={selectedRegion}
+              >
+                <option value="">
+                  Alle Regionen
+                </option>
+
+                {regions.map((region) => (
+                  <option
+                    key={region}
+                    value={region}
+                  >
+                    {region}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              <span>Kategorie</span>
+
+              <select
+                name="category"
+                defaultValue={selectedCategory}
+              >
+                <option value="">
+                  Alle Kategorien
+                </option>
+
+                {categories.map((category) => (
+                  <option
+                    key={category}
+                    value={category}
+                  >
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <button
+              type="submit"
+              className="lead-center__button lead-center__button--primary"
+            >
+              Chancen filtern
+            </button>
+
+            <Link
+              href="/portal/leads"
+              className="lead-center__button lead-center__button--ghost"
+            >
+              Zurücksetzen
+            </Link>
+          </form>
+        </section>
+
+        {sortedFixedOrders.length > 0 ? (
+          <section className="lead-center__fixed">
+            <header className="lead-center__section-header">
+              <div>
+                <span className="lead-center__section-kicker lead-center__section-kicker--gold">
+                  DIREKT ÜBERNEHMEN
+                </span>
+
+                <h2>Bestätigte Fixaufträge</h2>
+
+                <p>
+                  Der Kunde hat bereits zugesagt.
+                  Diese Aufträge werden nur einmal
+                  vergeben.
+                </p>
+              </div>
+
+              <Link
+                href="/portal/fixed-orders"
+                className="lead-center__text-link lead-center__text-link--gold"
+              >
+                Alle anzeigen →
+              </Link>
+            </header>
+
+            <div className="lead-center__fixed-grid">
+              {sortedFixedOrders
+                .slice(0, 3)
+                .map((order) => {
+                  const isMatching =
+                    isMatchingProvider(
+                      order.region,
+                      order.category,
+                      provider.region,
+                      provider.category
+                    );
+
+                  return (
+                    <article
+                      key={order.id}
+                      className="lead-center__fixed-card"
+                    >
+                      <div className="lead-center__fixed-card-top">
+                        <span>FIXAUFTRAG</span>
+
+                        {isMatching ? (
+                          <b>✓ PASST ZU DIR</b>
+                        ) : null}
+                      </div>
+
+                      <small>{order.category}</small>
+                      <h3>{order.title}</h3>
+
+                      <div className="lead-center__value-row">
+                        <div>
+                          <span>Auftragswert</span>
+                          <strong>
+                            {formatCurrency(
+                              order.orderValueCents
+                            )}
+                          </strong>
+                        </div>
+
+                        <div>
+                          <span>Übernahmepreis</span>
+                          <strong>
+                            {formatCurrency(
+                              order.commissionAmountCents
+                            )}
+                          </strong>
+                        </div>
+                      </div>
+
+                      <dl className="lead-center__details">
+                        <div>
+                          <dt>Ort</dt>
+                          <dd>
+                            {order.postalCode}{" "}
+                            {order.city}
+                          </dd>
+                        </div>
+
+                        <div>
+                          <dt>Ausführung</dt>
+                          <dd>
+                            {formatExecutionDate(
+                              order.executionDate,
+                              order.flexibleDate
+                            )}
+                          </dd>
+                        </div>
+                      </dl>
+
+                      <Link
+                        href={`/portal/fixed-orders/${order.id}`}
+                        className="lead-center__button lead-center__button--gold"
+                      >
+                        Auftrag ansehen
+                        <span>→</span>
+                      </Link>
+                    </article>
+                  );
+                })}
             </div>
-          ) : null}
+          </section>
+        ) : null}
 
-          {infoMessage ? (
-            <div className="leadx-success">
-              {infoMessage}
-            </div>
-          ) : null}
-
-          <div className="leadx-stats">
+        <section
+          id="normale-leads"
+          className="lead-center__marketplace"
+        >
+          <header className="lead-center__section-header">
             <div>
-              <strong>
-                {sortedFixedOrders.length}
-              </strong>
+              <span className="lead-center__section-kicker">
+                LIVE MARKETPLACE
+              </span>
 
-              <span>Fixaufträge verfügbar</span>
+              <h2>Neue Kundenanfragen</h2>
+
+              <p>
+                Passende Leads werden automatisch
+                priorisiert und zuerst angezeigt.
+              </p>
             </div>
 
-            <div>
+            <div className="lead-center__result-count">
               <strong>{sortedLeads.length}</strong>
               <span>Leads verfügbar</span>
             </div>
+          </header>
 
-            <div>
-              <strong>
-                {matchingFixedOrderCount +
-                  matchingLeadCount}
-              </strong>
+          {sortedLeads.length === 0 ? (
+            <div className="lead-center__empty">
+              <span>Keine Treffer</span>
+              <h3>Keine Leads gefunden</h3>
+              <p>
+                Entferne die Filter oder prüfe später
+                erneut die neuesten Anfragen.
+              </p>
 
-              <span>Passende Chancen</span>
-            </div>
-
-            <div>
-              <strong>{provider.credits}</strong>
-              <span>Credits verfügbar</span>
-            </div>
-          </div>
-
-          <div className="leadx-layout">
-            <div className="leadx-main">
-              <form
-                className="leadx-filter"
-                action="/portal/leads"
+              <Link
+                href="/portal/leads"
+                className="lead-center__button lead-center__button--primary"
               >
-                <div>
-                  <label htmlFor="region">
-                    Region
-                  </label>
+                Filter entfernen
+              </Link>
+            </div>
+          ) : (
+            <div className="lead-center__lead-grid">
+              {sortedLeads.map((lead) => {
+                const isBought =
+                  purchasedLeadIds.has(lead.id);
 
-                  <select
-                    id="region"
-                    name="region"
-                    defaultValue={selectedRegion}
+                const pricing = getLeadPricing(
+                  lead.price,
+                  lead.createdAt
+                );
+
+                const hasEnoughCredits =
+                  provider.credits >=
+                  pricing.currentPrice;
+
+                const regionMatches =
+                  Boolean(
+                    lead.region &&
+                      provider.region &&
+                      lead.region ===
+                        provider.region
+                  );
+
+                const categoryMatches =
+                  Boolean(
+                    lead.category &&
+                      provider.category &&
+                      lead.category ===
+                        provider.category
+                  );
+
+                const isMatching =
+                  regionMatches ||
+                  categoryMatches;
+
+                const matchScore = getMatchScore(
+                  regionMatches,
+                  categoryMatches,
+                  lead.createdAt
+                );
+
+                return (
+                  <article
+                    key={lead.id}
+                    className={[
+                      "lead-center__lead-card",
+                      isMatching
+                        ? "lead-center__lead-card--match"
+                        : "",
+                    ].join(" ")}
                   >
-                    <option value="">
-                      Alle Regionen
-                    </option>
+                    <div className="lead-center__lead-card-head">
+                      <div className="lead-center__badges">
+                        <span className="lead-center__badge lead-center__badge--new">
+                          {isBought
+                            ? "Freigeschaltet"
+                            : "Neu"}
+                        </span>
 
-                    {regions.map((region) => (
-                      <option
-                        key={region}
-                        value={region}
-                      >
-                        {region}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                        <span className="lead-center__badge">
+                          {lead.category}
+                        </span>
 
-                <div>
-                  <label htmlFor="category">
-                    Kategorie
-                  </label>
+                        {pricing.isDiscounted ? (
+                          <span className="lead-center__badge lead-center__badge--discount">
+                            −{pricing.discountPercent}%{" "}
+                            {pricing.dealLabel}
+                          </span>
+                        ) : null}
+                      </div>
 
-                  <select
-                    id="category"
-                    name="category"
-                    defaultValue={selectedCategory}
-                  >
-                    <option value="">
-                      Alle Kategorien
-                    </option>
+                      <div className="lead-center__score">
+                        <strong>{matchScore}%</strong>
+                        <span>Match</span>
+                      </div>
+                    </div>
 
-                    {categories.map((category) => (
-                      <option
-                        key={category}
-                        value={category}
-                      >
-                        {category}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                    <div className="lead-center__lead-copy">
+                      <span className="lead-center__lead-category">
+                        {lead.category}
+                      </span>
 
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                >
-                  Chancen filtern
-                </button>
+                      <h3>
+                        {getShortTitle(lead.title)}
+                      </h3>
 
-                <Link
-                  href="/portal/leads"
-                  className="btn btn-secondary"
-                >
-                  Zurücksetzen
-                </Link>
-              </form>
+                      <p>
+                        Passende Kundenanfrage aus der
+                        Region {lead.region}.
+                      </p>
+                    </div>
 
-              <section
-                style={{
-                  position: "relative",
-                  overflow: "hidden",
-                  marginBottom: 34,
-                  padding: 26,
-                  borderRadius: 30,
-                  border:
-                    "1px solid rgba(251,191,36,0.25)",
-                  background:
-                    "radial-gradient(circle at 100% 0%, rgba(245,158,11,0.16), transparent 38%), linear-gradient(145deg, rgba(15,28,48,0.98), rgba(19,25,45,0.98))",
-                  boxShadow:
-                    "0 24px 70px rgba(0,0,0,0.24)",
-                }}
-              >
-                <div
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: 4,
-                    background:
-                      "linear-gradient(90deg, #f59e0b, #fb7185, #8b5cf6)",
-                  }}
-                />
+                    <div className="lead-center__lead-meta">
+                      <div>
+                        <span>Region</span>
+                        <strong>{lead.region}</strong>
+                      </div>
 
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    gap: 20,
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <div>
-                    <span
-                      style={{
-                        display: "inline-flex",
-                        padding: "7px 12px",
-                        borderRadius: 999,
-                        border:
-                          "1px solid rgba(251,191,36,0.25)",
-                        background:
-                          "rgba(245,158,11,0.10)",
-                        color: "#fcd34d",
-                        fontSize: 12,
-                        fontWeight: 900,
-                        letterSpacing: "0.12em",
-                      }}
-                    >
-                      🔥 SOFORT VERFÜGBARE
-                      FIXAUFTRÄGE
-                    </span>
+                      <div>
+                        <span>Eingang</span>
+                        <strong>
+                          {getFreshness(
+                            lead.createdAt
+                          )}
+                        </strong>
+                      </div>
 
-                    <h2
-                      style={{
-                        marginTop: 14,
-                        fontSize: 30,
-                      }}
-                    >
-                      Bestätigte Aufträge direkt
-                      übernehmen
-                    </h2>
+                      <div>
+                        <span>Kontakt</span>
+                        <strong>
+                          {isBought
+                            ? "Freigeschaltet"
+                            : "Geschützt"}
+                        </strong>
+                      </div>
 
-                    <p
-                      style={{
-                        maxWidth: 700,
-                        marginTop: 10,
-                        opacity: 0.66,
-                        lineHeight: 1.7,
-                      }}
-                    >
-                      Diese Kunden haben den Auftrag
-                      bereits bestätigt. Der Auftrag wird
-                      nur einmal verkauft.
-                    </p>
-                  </div>
+                      <div>
+                        <span>Verfügbarkeit</span>
+                        <strong>Max. 4 Firmen</strong>
+                      </div>
+                    </div>
 
-                  <div
-                    style={{
-                      minWidth: 120,
-                      padding: "16px 20px",
-                      borderRadius: 20,
-                      border:
-                        "1px solid rgba(251,191,36,0.20)",
-                      background:
-                        "rgba(245,158,11,0.08)",
-                      textAlign: "center",
-                    }}
-                  >
-                    <strong
-                      style={{
-                        display: "block",
-                        fontSize: 30,
-                        color: "#fcd34d",
-                      }}
-                    >
-                      {sortedFixedOrders.length}
-                    </strong>
+                    <div className="lead-center__match-box">
+                      <div>
+                        <span>
+                          Persönliche Übereinstimmung
+                        </span>
 
-                    <small
-                      style={{
-                        opacity: 0.58,
-                      }}
-                    >
-                      verfügbar
-                    </small>
-                  </div>
-                </div>
+                        <strong>
+                          {isMatching
+                            ? "Sehr passend"
+                            : "Neue Chance"}
+                        </strong>
+                      </div>
 
-                {sortedFixedOrders.length === 0 ? (
-                  <div
-                    style={{
-                      marginTop: 24,
-                      padding: 28,
-                      borderRadius: 22,
-                      border:
-                        "1px dashed rgba(255,255,255,0.13)",
-                      background:
-                        "rgba(255,255,255,0.025)",
-                      textAlign: "center",
-                    }}
-                  >
-                    <strong
-                      style={{
-                        display: "block",
-                        fontSize: 18,
-                      }}
-                    >
-                      Aktuell keine Fixaufträge
-                      verfügbar
-                    </strong>
+                      <div className="lead-center__match-track">
+                        <span
+                          style={{
+                            width: `${matchScore}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
 
-                    <p
-                      style={{
-                        marginTop: 8,
-                        opacity: 0.54,
-                      }}
-                    >
-                      Sobald ein bestätigter Auftrag
-                      erfasst wird, erscheint er hier
-                      automatisch.
-                    </p>
+                    <footer className="lead-center__lead-footer">
+                      <div className="lead-center__lead-price">
+                        <span>
+                          {pricing.isDiscounted
+                            ? `${pricing.dealLabel} · ${pricing.discountPercent}% günstiger`
+                            : "Leadpreis"}
+                        </span>
 
-                    {(selectedRegion ||
-                      selectedCategory) && (
-                      <Link
-                        href="/portal/leads"
-                        className="btn btn-secondary"
-                        style={{
-                          marginTop: 16,
-                        }}
-                      >
-                        Filter entfernen
-                      </Link>
-                    )}
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns:
-                        "repeat(auto-fit, minmax(280px, 1fr))",
-                      gap: 18,
-                      marginTop: 26,
-                    }}
-                  >
-                    {sortedFixedOrders.map(
-                      (order) => {
-                        const isMatching =
-                          isMatchingProvider(
-                            order.region,
-                            order.category,
-                            provider.region,
-                            provider.category
-                          );
+                        {pricing.isDiscounted ? (
+                          <del>
+                            {pricing.originalPrice} Credits
+                          </del>
+                        ) : null}
 
-                        return (
-                          <article
-                            key={order.id}
-                            style={{
-                              position: "relative",
-                              overflow: "hidden",
-                              padding: 22,
-                              borderRadius: 26,
-                              border:
-                                isMatching
-                                  ? "1px solid rgba(52,211,153,0.26)"
-                                  : "1px solid rgba(255,255,255,0.10)",
-                              background:
-                                "linear-gradient(145deg, rgba(15,31,54,0.98), rgba(19,25,45,0.98))",
-                            }}
-                          >
-                            <div
-                              style={{
-                                display: "flex",
-                                justifyContent:
-                                  "space-between",
-                                alignItems: "center",
-                                gap: 12,
-                              }}
-                            >
-                              <span
-                                style={{
-                                  display:
-                                    "inline-flex",
-                                  padding:
-                                    "6px 10px",
-                                  borderRadius: 999,
-                                  background:
-                                    "rgba(245,158,11,0.12)",
-                                  color: "#fcd34d",
-                                  fontSize: 11,
-                                  fontWeight: 900,
-                                }}
-                              >
-                                🔥 FIXAUFTRAG
-                              </span>
+                        <strong>
+                          {pricing.currentPrice} Credits
+                        </strong>
 
-                              {isMatching ? (
-                                <span
-                                  style={{
-                                    display:
-                                      "inline-flex",
-                                    padding:
-                                      "6px 10px",
-                                    borderRadius: 999,
-                                    background:
-                                      "rgba(52,211,153,0.10)",
-                                    color:
-                                      "#6ee7b7",
-                                    fontSize: 11,
-                                    fontWeight: 900,
-                                  }}
-                                >
-                                  ✓ PASST ZU DIR
-                                </span>
-                              ) : null}
-                            </div>
+                        <small>
+                          {pricing.isDiscounted
+                            ? "Automatisch reduzierter Preis"
+                            : "Einmalige Freischaltung"}
+                        </small>
+                      </div>
 
-                            <p
-                              style={{
-                                marginTop: 20,
-                                color: "#93c5fd",
-                                fontSize: 12,
-                                fontWeight: 900,
-                                letterSpacing:
-                                  "0.08em",
-                                textTransform:
-                                  "uppercase",
-                              }}
-                            >
-                              {order.category}
-                            </p>
-
-                            <h3
-                              style={{
-                                marginTop: 8,
-                                fontSize: 23,
-                                lineHeight: 1.25,
-                              }}
-                            >
-                              {order.title}
-                            </h3>
-
-                            {order.description ? (
-                              <p
-                                style={{
-                                  marginTop: 10,
-                                  opacity: 0.58,
-                                  fontSize: 13,
-                                  lineHeight: 1.6,
-                                  display:
-                                    "-webkit-box",
-                                  WebkitLineClamp: 2,
-                                  WebkitBoxOrient:
-                                    "vertical",
-                                  overflow:
-                                    "hidden",
-                                }}
-                              >
-                                {order.description}
-                              </p>
-                            ) : null}
-
-                            <div
-                              style={{
-                                display: "grid",
-                                gridTemplateColumns:
-                                  "repeat(2, minmax(0, 1fr))",
-                                gap: 10,
-                                marginTop: 20,
-                              }}
-                            >
-                              <div
-                                style={{
-                                  padding: 14,
-                                  borderRadius: 16,
-                                  background:
-                                    "rgba(255,255,255,0.035)",
-                                }}
-                              >
-                                <small
-                                  style={{
-                                    display:
-                                      "block",
-                                    opacity: 0.48,
-                                  }}
-                                >
-                                  Auftragswert
-                                </small>
-
-                                <strong
-                                  style={{
-                                    display:
-                                      "block",
-                                    marginTop: 5,
-                                    fontSize: 18,
-                                  }}
-                                >
-                                  {formatCurrency(
-                                    order.orderValueCents
-                                  )}
-                                </strong>
-                              </div>
-
-                              <div
-                                style={{
-                                  padding: 14,
-                                  borderRadius: 16,
-                                  background:
-                                    "rgba(245,158,11,0.09)",
-                                }}
-                              >
-                                <small
-                                  style={{
-                                    display:
-                                      "block",
-                                    color:
-                                      "#fcd34d",
-                                    opacity: 0.76,
-                                  }}
-                                >
-                                  Übernahmepreis
-                                </small>
-
-                                <strong
-                                  style={{
-                                    display:
-                                      "block",
-                                    marginTop: 5,
-                                    color:
-                                      "#fcd34d",
-                                    fontSize: 18,
-                                  }}
-                                >
-                                  {formatCurrency(
-                                    order.commissionAmountCents
-                                  )}
-                                </strong>
-                              </div>
-                            </div>
-
-                            <div
-                              style={{
-                                display: "grid",
-                                gap: 10,
-                                marginTop: 18,
-                                paddingTop: 18,
-                                borderTop:
-                                  "1px solid rgba(255,255,255,0.08)",
-                              }}
-                            >
-                              <div
-                                style={{
-                                  display: "flex",
-                                  justifyContent:
-                                    "space-between",
-                                  gap: 12,
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    opacity: 0.5,
-                                    fontSize: 13,
-                                  }}
-                                >
-                                  Ort
-                                </span>
-
-                                <strong
-                                  style={{
-                                    fontSize: 13,
-                                    textAlign:
-                                      "right",
-                                  }}
-                                >
-                                  {order.postalCode}{" "}
-                                  {order.city}
-                                </strong>
-                              </div>
-
-                              <div
-                                style={{
-                                  display: "flex",
-                                  justifyContent:
-                                    "space-between",
-                                  gap: 12,
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    opacity: 0.5,
-                                    fontSize: 13,
-                                  }}
-                                >
-                                  Region
-                                </span>
-
-                                <strong
-                                  style={{
-                                    fontSize: 13,
-                                    textAlign:
-                                      "right",
-                                  }}
-                                >
-                                  {order.region ||
-                                    "Schweiz"}
-                                </strong>
-                              </div>
-
-                              <div
-                                style={{
-                                  display: "flex",
-                                  justifyContent:
-                                    "space-between",
-                                  gap: 12,
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    opacity: 0.5,
-                                    fontSize: 13,
-                                  }}
-                                >
-                                  Ausführung
-                                </span>
-
-                                <strong
-                                  style={{
-                                    fontSize: 13,
-                                    textAlign:
-                                      "right",
-                                  }}
-                                >
-                                  {formatExecutionDate(
-                                    order.executionDate,
-                                    order.flexibleDate
-                                  )}
-                                </strong>
-                              </div>
-
-                              <div
-                                style={{
-                                  display: "flex",
-                                  justifyContent:
-                                    "space-between",
-                                  gap: 12,
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    opacity: 0.5,
-                                    fontSize: 13,
-                                  }}
-                                >
-                                  Provision
-                                </span>
-
-                                <strong
-                                  style={{
-                                    fontSize: 13,
-                                    color:
-                                      "#fcd34d",
-                                  }}
-                                >
-                                  {
-                                    order.commissionPercent
-                                  }
-                                  %
-                                </strong>
-                              </div>
-                            </div>
-
-                            <Link
-                              href={`/portal/fixed-orders/${order.id}`}
-                              className="btn btn-primary"
-                              style={{
-                                width: "100%",
-                                marginTop: 20,
-                                minHeight: 50,
-                              }}
-                            >
-                              🔥 Auftrag sofort
-                              ansehen
-                            </Link>
-
-                            <small
-                              style={{
-                                display: "block",
-                                marginTop: 10,
-                                textAlign:
-                                  "center",
-                                opacity: 0.42,
-                              }}
-                            >
-                              Kundendaten nach
-                              erfolgreicher Übernahme
-                            </small>
-                          </article>
-                        );
-                      }
-                    )}
-                  </div>
-                )}
-
-                {sortedFixedOrders.length > 0 ? (
-                  <div
-                    style={{
-                      marginTop: 22,
-                      textAlign: "center",
-                    }}
-                  >
-                    <Link
-                      href="/portal/fixed-orders"
-                      style={{
-                        color: "#fcd34d",
-                        fontWeight: 900,
-                        textDecoration: "none",
-                      }}
-                    >
-                      Alle Fixaufträge öffnen →
-                    </Link>
-                  </div>
-                ) : null}
-              </section>
-
-              <section>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent:
-                      "space-between",
-                    alignItems: "flex-end",
-                    gap: 16,
-                    flexWrap: "wrap",
-                    marginBottom: 18,
-                  }}
-                >
-                  <div>
-                    <span className="eyebrow">
-                      NORMALE LEADS
-                    </span>
-
-                    <h2
-                      style={{
-                        marginTop: 8,
-                      }}
-                    >
-                      Kundenkontakte freischalten
-                    </h2>
-                  </div>
-
-                  <span
-                    style={{
-                      opacity: 0.54,
-                      fontSize: 13,
-                    }}
-                  >
-                    {sortedLeads.length} Leads
-                    verfügbar
-                  </span>
-                </div>
-
-                {sortedLeads.length === 0 ? (
-                  <div className="leadx-empty">
-                    <span>
-                      Keine Leads gefunden
-                    </span>
-
-                    <h2>
-                      Für diese Filter gibt es
-                      aktuell keine Leads.
-                    </h2>
-
-                    <p>
-                      Entferne den Filter oder prüfe
-                      später erneut neue Anfragen.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="topoffer-leads-list">
-                    {sortedLeads.map((lead) => {
-                      const isBought =
-                        purchasedLeadIds.has(
-                          lead.id
-                        );
-
-                      const hasEnoughCredits =
-                        provider.credits >=
-                        lead.price;
-
-                      const isMatching =
-                        isMatchingProvider(
-                          lead.region,
-                          lead.category,
-                          provider.region,
-                          provider.category
-                        );
-
-                      return (
-                        <article
-                          key={lead.id}
-                          className="topoffer-lead-card"
+                      {isBought ? (
+                        <Link
+                          href="/portal/meine-leads"
+                          className="lead-center__button lead-center__button--ghost"
                         >
-                          <div className="topoffer-card-header">
-                            <div className="topoffer-badges">
-                              <span>
-                                {isBought
-                                  ? "Freigeschaltet"
-                                  : "Neu"}
-                              </span>
+                          Kontakt ansehen
+                        </Link>
+                      ) : hasEnoughCredits ? (
+                        <form action={buyLeadAction}>
+                          <input
+                            type="hidden"
+                            name="leadId"
+                            value={lead.id}
+                          />
 
-                              <span>
-                                {lead.category}
-                              </span>
-
-                              {isMatching ? (
-                                <span>
-                                  Passend
-                                </span>
-                              ) : null}
-                            </div>
-
-                            <span className="topoffer-company-count">
-                              Maximal 4 Firmen
-                            </span>
-                          </div>
-
-                          <div className="topoffer-card-body">
-                            <h2>
-                              {lead.category}
-                            </h2>
-
-                            <p className="topoffer-subtitle">
-                              {getShortTitle(
-                                lead.title
-                              )}
-                            </p>
-
-                            <p className="topoffer-location">
-                              {lead.region}
-                            </p>
-
-                            <p className="topoffer-date">
-                              Angefragt am{" "}
-                              {formatDate(
-                                lead.createdAt
-                              )}
-                            </p>
-
-                            <p className="topoffer-status">
-                              {isBought
-                                ? "Kontakt freigeschaltet"
-                                : "Kontakt gesperrt"}
-                            </p>
-                          </div>
-
-                          <div className="topoffer-card-footer">
-                            <div>
-                              <strong>
-                                {lead.price} Credits
-                              </strong>
-
-                              <small>
-                                Details erst nach
-                                Freischaltung
-                              </small>
-                            </div>
-
-                            {isBought ? (
-                              <Link
-                                href="/portal/meine-leads"
-                                className="btn btn-secondary"
-                              >
-                                Kontakt ansehen
-                              </Link>
-                            ) : hasEnoughCredits ? (
-                              <form
-                                action={
-                                  buyLeadAction
-                                }
-                              >
-                                <input
-                                  type="hidden"
-                                  name="leadId"
-                                  value={lead.id}
-                                />
-
-                                <button
-                                  type="submit"
-                                  className="btn btn-primary"
-                                >
-                                  Kontakt
-                                  freischalten
-                                </button>
-                              </form>
-                            ) : (
-                              <Link
-                                href="/portal/guthaben"
-                                className="btn btn-primary"
-                              >
-                                Credits aufladen
-                              </Link>
-                            )}
-                          </div>
-                        </article>
-                      );
-                    })}
-                  </div>
-                )}
-              </section>
+                          <button
+                            type="submit"
+                            className="lead-center__button lead-center__button--primary"
+                          >
+                            Freischalten
+                            <span>→</span>
+                          </button>
+                        </form>
+                      ) : (
+                        <Link
+                          href="/portal/guthaben"
+                          className="lead-center__button lead-center__button--primary"
+                        >
+                          Credits aufladen
+                          <span>→</span>
+                        </Link>
+                      )}
+                    </footer>
+                  </article>
+                );
+              })}
             </div>
-
-            <aside className="leadx-sidebar">
-              <div className="leadx-side-card">
-                <span>Dein Konto</span>
-                <h2>Anbieterstatus</h2>
-
-                <div className="leadx-side-stat">
-                  <strong>
-                    {provider.credits}
-                  </strong>
-
-                  <small>
-                    Aktuelle Credits
-                  </small>
-                </div>
-
-                <div className="leadx-side-stat">
-                  <strong>
-                    {provider.companyName}
-                  </strong>
-
-                  <small>Firma</small>
-                </div>
-
-                <div className="leadx-side-stat">
-                  <strong>
-                    {provider.category || "—"}
-                  </strong>
-
-                  <small>
-                    Deine Kategorie
-                  </small>
-                </div>
-
-                <div className="leadx-side-stat">
-                  <strong>
-                    {provider.region ||
-                      "Schweiz"}
-                  </strong>
-
-                  <small>Deine Region</small>
-                </div>
-              </div>
-
-              <div
-                className="leadx-side-card"
-                style={{
-                  border:
-                    "1px solid rgba(251,191,36,0.22)",
-                  background:
-                    "linear-gradient(145deg, rgba(44,31,14,0.55), rgba(15,26,46,0.96))",
-                }}
-              >
-                <span
-                  style={{
-                    color: "#fcd34d",
-                  }}
-                >
-                  🔥 Fixaufträge
-                </span>
-
-                <h2>
-                  Bestätigte Aufträge sichern.
-                </h2>
-
-                <p>
-                  Fixaufträge werden nur einmal
-                  vergeben. Wer zuerst erfolgreich
-                  übernimmt, erhält den Auftrag.
-                </p>
-
-                <Link
-                  href="/portal/fixed-orders"
-                  className="btn btn-primary"
-                >
-                  Fixaufträge ansehen
-                </Link>
-              </div>
-
-              <div className="leadx-side-card leadx-profit">
-                <span>Credits</span>
-
-                <h2>
-                  Normale Leads freischalten.
-                </h2>
-
-                <p>
-                  Lade Credits auf und sichere dir
-                  passende Kundenkontakte.
-                </p>
-
-                <Link
-                  href="/portal/guthaben"
-                  className="btn btn-primary"
-                >
-                  Credits kaufen
-                </Link>
-              </div>
-            </aside>
-          </div>
-        </div>
-      </section>
+          )}
+        </section>
+      </div>
     </main>
   );
 }

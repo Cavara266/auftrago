@@ -5,6 +5,8 @@ import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 import "./portal-dashboard.css";
+import "./portal-dashboard-premium.css";
+import "./portal-leads-showcase.css";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -1082,129 +1084,264 @@ export default async function PortalDashboardPage() {
         </section>
 
         <div className="provider-dashboard__grid">
-          <section className="provider-leads">
-            <div className="provider-section-heading">
-              <div>
-                <span>Neue Chancen</span>
+          <section className="lead-showcase">
+            <div className="lead-showcase__ambient lead-showcase__ambient--one" />
+            <div className="lead-showcase__ambient lead-showcase__ambient--two" />
+
+            <header className="lead-showcase__header">
+              <div className="lead-showcase__heading">
+                <div className="lead-showcase__live">
+                  <span />
+                  Live-Marktplatz
+                </div>
 
                 <h2>
-                  Aktuelle Kundenanfragen
+                  Aufträge, die dein
+                  <strong> Unternehmen wachsen lassen.</strong>
                 </h2>
 
                 <p>
-                  Neue Leads werden laufend ergänzt.
-                  Frühes Reagieren erhöht deine Chance
-                  auf den Auftrag.
+                  Entdecke aktuelle Kundenanfragen und sichere dir
+                  interessante Projekte, bevor andere Anbieter
+                  reagieren.
                 </p>
               </div>
 
-              <Link
-                href="/portal/leads"
-                className="provider-text-link"
-              >
-                Alle Leads ansehen
-                <span aria-hidden="true">→</span>
-              </Link>
-            </div>
+              <div className="lead-showcase__header-side">
+                <div className="lead-showcase__availability">
+                  <span>Jetzt verfügbar</span>
 
-            <div className="provider-leads__list">
-              {latestLeads.length > 0 ? (
-                latestLeads.map(
-                  (lead, index) => {
-                    const fit = getLeadFit(
-                      lead.region,
-                      provider.region
-                    );
+                  <strong>{latestLeads.length}</strong>
 
-                    return (
-                      <article
-                        className="provider-lead-card"
-                        key={lead.id}
-                      >
-                        <div className="provider-lead-card__number">
-                          {String(
-                            index + 1
-                          ).padStart(2, "0")}
+                  <small>neue Chancen</small>
+                </div>
+
+                <Link
+                  href="/portal/leads"
+                  className="lead-showcase__all-link"
+                >
+                  Alle Anfragen entdecken
+                  <span aria-hidden="true">↗</span>
+                </Link>
+              </div>
+            </header>
+
+            {latestLeads.length > 0 ? (
+              <div className="lead-showcase__list">
+                {latestLeads.map((lead, index) => {
+                  const fit = getLeadFit(
+                    lead.region,
+                    provider.region
+                  );
+
+                  const isStrongMatch =
+                    fit === "Sehr passend";
+
+                  const matchScore = isStrongMatch
+                    ? Math.max(91, 98 - index)
+                    : Math.max(72, 88 - index * 2);
+
+                  return (
+                    <article
+                      className="lead-showcase__card"
+                      key={lead.id}
+                    >
+                      <div className="lead-showcase__card-glow" />
+
+                      <div className="lead-showcase__rank">
+                        <span>Anfrage</span>
+
+                        <strong>
+                          {String(index + 1).padStart(2, "0")}
+                        </strong>
+                      </div>
+
+                      <div className="lead-showcase__content">
+                        <div className="lead-showcase__badges">
+                          <span className="lead-showcase__badge lead-showcase__badge--new">
+                            <i />
+                            Neu
+                          </span>
+
+                          <span
+                            className={
+                              isStrongMatch
+                                ? "lead-showcase__badge lead-showcase__badge--match"
+                                : "lead-showcase__badge"
+                            }
+                          >
+                            {isStrongMatch ? "★ " : ""}
+                            {fit}
+                          </span>
+
+                          <span className="lead-showcase__badge">
+                            {lead.region || "Schweiz"}
+                          </span>
+
+                          <span className="lead-showcase__age">
+                            {getAgeLabel(lead.createdAt)}
+                          </span>
                         </div>
 
-                        <div className="provider-lead-card__content">
-                          <div className="provider-lead-card__badges">
-                            <span className="provider-lead-card__new">
-                              Neu
-                            </span>
-
-                            <span>{fit}</span>
-
-                            <span>
-                              {lead.region ||
-                                "Schweiz"}
-                            </span>
-                          </div>
-
-                          <h3>
-                            {lead.title ||
-                              lead.category}
-                          </h3>
-
-                          <div className="provider-lead-card__meta">
-                            <span>
-                              <small>
-                                Leistung
-                              </small>
-
+                        <div className="lead-showcase__title-row">
+                          <div>
+                            <span className="lead-showcase__category">
                               {lead.category}
                             </span>
 
-                            <span>
-                              <small>Region</small>
+                            <h3>
+                              {lead.title || lead.category}
+                            </h3>
+                          </div>
 
-                              {lead.region ||
-                                "Schweiz"}
-                            </span>
+                          <div className="lead-showcase__match-score">
+                            <div>
+                              <strong>{matchScore}%</strong>
+                              <span>Match</span>
+                            </div>
 
-                            <span>
-                              <small>Kontakt</small>
-
-                              Nach Kauf sichtbar
-                            </span>
+                            <i>
+                              <b
+                                style={{
+                                  width: `${matchScore}%`,
+                                }}
+                              />
+                            </i>
                           </div>
                         </div>
 
-                        <div className="provider-lead-card__purchase">
-                          <span>Leadpreis</span>
+                        <div className="lead-showcase__details">
+                          <div>
+                            <span className="lead-showcase__detail-icon">
+                              ✦
+                            </span>
 
-                          <strong>
-                            {lead.price}
-                          </strong>
+                            <p>
+                              <small>Dienstleistung</small>
+                              <strong>{lead.category}</strong>
+                            </p>
+                          </div>
 
-                          <small>Credits</small>
+                          <div>
+                            <span className="lead-showcase__detail-icon">
+                              ◎
+                            </span>
 
-                          <Link
-                            href="/portal/leads"
-                            className="provider-button provider-button--compact"
-                          >
-                            Freischalten
-                          </Link>
+                            <p>
+                              <small>Einsatzgebiet</small>
+                              <strong>
+                                {lead.region || "Schweiz"}
+                              </strong>
+                            </p>
+                          </div>
+
+                          <div>
+                            <span className="lead-showcase__detail-icon">
+                              ◈
+                            </span>
+
+                            <p>
+                              <small>Kundendaten</small>
+                              <strong>
+                                Nach Kauf sofort sichtbar
+                              </strong>
+                            </p>
+                          </div>
                         </div>
-                      </article>
-                    );
-                  }
-                )
-              ) : (
-                <div className="provider-empty">
-                  <span>✓</span>
 
-                  <h3>
-                    Du bist auf dem neusten Stand
-                  </h3>
+                        <div className="lead-showcase__trust">
+                          <span>✓ Geprüfte Anfrage</span>
+                          <span>✓ Direkter Kundenkontakt</span>
+                          <span>✓ Sofort freischaltbar</span>
+                        </div>
+                      </div>
+
+                      <div className="lead-showcase__purchase">
+                        <span className="lead-showcase__price-label">
+                          Freischaltpreis
+                        </span>
+
+                        <div className="lead-showcase__price">
+                          <strong>{lead.price}</strong>
+
+                          <span>
+                            Credits
+                            <small>einmalig</small>
+                          </span>
+                        </div>
+
+                        <div className="lead-showcase__credit-check">
+                          {provider.credits >= lead.price ? (
+                            <>
+                              <span className="lead-showcase__credit-check-dot" />
+                              Guthaben ausreichend
+                            </>
+                          ) : (
+                            <>
+                              <span className="lead-showcase__credit-check-dot lead-showcase__credit-check-dot--warning" />
+                              Credits aufladen
+                            </>
+                          )}
+                        </div>
+
+                        <Link
+                          href="/portal/leads"
+                          className="lead-showcase__unlock"
+                        >
+                          <span>
+                            Anfrage freischalten
+                            <small>Kontaktdaten sofort erhalten</small>
+                          </span>
+
+                          <b aria-hidden="true">→</b>
+                        </Link>
+
+                        <small className="lead-showcase__secure">
+                          🔒 Sicher über dein Auftrago-Guthaben
+                        </small>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="lead-showcase__empty">
+                <div>✓</div>
+
+                <span>Marktplatz aktualisiert</span>
+
+                <h3>Du bist auf dem neuesten Stand</h3>
+
+                <p>
+                  Momentan sind keine neuen Kundenanfragen
+                  verfügbar. Neue Leads erscheinen automatisch
+                  an dieser Stelle.
+                </p>
+
+                <Link href="/portal/leads">
+                  Marktplatz öffnen →
+                </Link>
+              </div>
+            )}
+
+            {latestLeads.length > 0 ? (
+              <footer className="lead-showcase__footer">
+                <div>
+                  <span>✦</span>
 
                   <p>
-                    Aktuell sind keine neuen Leads
-                    vorhanden.
+                    <strong>Frühes Reagieren lohnt sich.</strong>
+                    Besonders attraktive Anfragen werden häufig
+                    innerhalb kurzer Zeit freigeschaltet.
                   </p>
                 </div>
-              )}
-            </div>
+
+                <Link href="/portal/leads">
+                  Alle {totalLeads} Leads ansehen
+                  <span aria-hidden="true">→</span>
+                </Link>
+              </footer>
+            ) : null}
           </section>
 
           <aside className="provider-sidebar">

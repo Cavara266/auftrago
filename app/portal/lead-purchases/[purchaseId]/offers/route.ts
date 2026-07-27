@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 
+import { requireUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -17,10 +18,15 @@ function clean(value: unknown) {
 
 export async function POST(req: Request, context: RouteContext) {
   try {
-    const cookieStore = await cookies();
-    const providerId = cookieStore.get("auftrago_session")?.value;
+    
+  const user = await requireUser();
 
-    if (!providerId) {
+  if (!user) {
+    redirect("/login");
+  }
+
+  const providerId = user.id;
+if (!providerId) {
       return NextResponse.json(
         { ok: false, error: "Nicht eingeloggt." },
         { status: 401 }

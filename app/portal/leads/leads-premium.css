@@ -1,0 +1,1319 @@
+/* =========================================================
+   AUFTRAGO LEAD CENTER
+   Premium Marketplace Design
+   ========================================================= */
+
+.provider-leads-page {
+  --lead-bg: #050814;
+  --lead-panel: rgba(13, 24, 49, 0.94);
+  --lead-panel-strong: rgba(17, 31, 63, 0.98);
+  --lead-border: rgba(126, 167, 235, 0.16);
+  --lead-border-active: rgba(79, 193, 255, 0.42);
+  --lead-text: #f8fbff;
+  --lead-muted: #8b9ab5;
+  --lead-muted-soft: #65738e;
+  --lead-blue: #55c9ff;
+  --lead-indigo: #647cff;
+  --lead-purple: #9a6fff;
+  --lead-green: #53e4ae;
+  --lead-orange: #ffb75f;
+  --lead-red: #ff6f88;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  overflow: hidden;
+  padding: 38px 28px 100px;
+  background:
+    radial-gradient(
+      circle at 8% 0%,
+      rgba(47, 143, 255, 0.18),
+      transparent 29%
+    ),
+    radial-gradient(
+      circle at 96% 10%,
+      rgba(133, 81, 255, 0.16),
+      transparent 32%
+    ),
+    linear-gradient(
+      180deg,
+      #070b19 0%,
+      #050814 55%,
+      #040610 100%
+    );
+  color: var(--lead-text);
+}
+
+.provider-leads-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  opacity: 0.23;
+  pointer-events: none;
+  background-image:
+    linear-gradient(
+      rgba(255, 255, 255, 0.025) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.025) 1px,
+      transparent 1px
+    );
+  background-size: 56px 56px;
+  mask-image:
+    linear-gradient(
+      to bottom,
+      black,
+      transparent 85%
+    );
+}
+
+.provider-leads-page *,
+.provider-leads-page *::before,
+.provider-leads-page *::after {
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   TYPOGRAPHY
+   ========================================================= */
+
+.provider-leads-page h1 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(42px, 5.7vw, 74px);
+  font-weight: 950;
+  line-height: 0.98;
+  letter-spacing: -0.065em;
+  text-wrap: balance;
+}
+
+.provider-leads-page h2 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(27px, 3vw, 39px);
+  font-weight: 900;
+  line-height: 1.06;
+  letter-spacing: -0.045em;
+}
+
+.provider-leads-page h3 {
+  color: #f8fbff;
+  letter-spacing: -0.032em;
+}
+
+.provider-leads-page p {
+  color: var(--lead-muted);
+}
+
+.provider-leads-page a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* =========================================================
+   HERO / FIRST SECTION
+   ========================================================= */
+
+.provider-leads-page > section:first-of-type,
+.provider-leads-page > div:first-child,
+.provider-leads-page main > section:first-of-type {
+  position: relative;
+}
+
+.provider-leads-page header:first-of-type {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(28px, 4vw, 54px);
+  border: 1px solid rgba(255, 255, 255, 0.095);
+  border-radius: 32px;
+  background:
+    radial-gradient(
+      circle at 86% 2%,
+      rgba(77, 190, 255, 0.17),
+      transparent 38%
+    ),
+    radial-gradient(
+      circle at 8% 100%,
+      rgba(123, 82, 255, 0.17),
+      transparent 42%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(21, 39, 78, 0.99),
+      rgba(9, 18, 39, 0.99) 60%,
+      rgba(12, 15, 34, 0.99)
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 40px 110px rgba(0, 0, 0, 0.34);
+}
+
+.provider-leads-page header:first-of-type::after {
+  content: "";
+  position: absolute;
+  top: -150px;
+  right: -120px;
+  width: 370px;
+  height: 370px;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 999px;
+  box-shadow:
+    0 0 0 48px rgba(255, 255, 255, 0.012),
+    0 0 0 96px rgba(255, 255, 255, 0.008);
+  pointer-events: none;
+}
+
+.provider-leads-page header:first-of-type p {
+  max-width: 760px;
+  margin: 18px 0 0;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+/* =========================================================
+   GENERIC KPI CARDS
+   ========================================================= */
+
+.provider-leads-page [class*="stat"],
+.provider-leads-page [class*="metric"],
+.provider-leads-page [class*="kpi"] {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--lead-border) !important;
+  border-radius: 22px !important;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(78, 165, 255, 0.11),
+      transparent 46%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(18, 32, 63, 0.95),
+      rgba(8, 16, 35, 0.98)
+    ) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 22px 60px rgba(0, 0, 0, 0.2);
+}
+
+.provider-leads-page [class*="stat"] strong,
+.provider-leads-page [class*="metric"] strong,
+.provider-leads-page [class*="kpi"] strong {
+  color: #fff;
+  font-size: clamp(31px, 4vw, 50px);
+  font-weight: 950;
+  line-height: 0.95;
+  letter-spacing: -0.06em;
+}
+
+/* =========================================================
+   FILTERS
+   ========================================================= */
+
+.provider-leads-page form:not([action]),
+.provider-leads-page [class*="filter"] {
+  border-color: rgba(122, 164, 230, 0.15) !important;
+  border-radius: 22px !important;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(17, 29, 58, 0.92),
+      rgba(8, 15, 33, 0.96)
+    ) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 20px 60px rgba(0, 0, 0, 0.18);
+}
+
+.provider-leads-page input,
+.provider-leads-page select {
+  min-height: 49px;
+  border: 1px solid rgba(255, 255, 255, 0.095) !important;
+  border-radius: 14px !important;
+  outline: none;
+  background: rgba(255, 255, 255, 0.035) !important;
+  color: #f5f8ff !important;
+  font: inherit;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.provider-leads-page input::placeholder {
+  color: #65748e;
+}
+
+.provider-leads-page input:focus,
+.provider-leads-page select:focus {
+  border-color: rgba(75, 194, 255, 0.4) !important;
+  background: rgba(255, 255, 255, 0.052) !important;
+  box-shadow: 0 0 0 4px rgba(67, 172, 255, 0.075);
+}
+
+/* Filter chips and badges */
+
+.provider-leads-page [class*="chip"],
+.provider-leads-page [class*="badge"],
+.provider-leads-page [class*="pill"],
+.provider-leads-page [class*="tag"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  color: #afbdd3;
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.provider-leads-page [class*="badge"]:first-child,
+.provider-leads-page [class*="pill"]:first-child,
+.provider-leads-page [class*="tag"]:first-child {
+  border-color: rgba(72, 226, 169, 0.18);
+  background: rgba(53, 205, 148, 0.085);
+  color: #67edb6;
+}
+
+/* =========================================================
+   LEAD CARDS
+   ========================================================= */
+
+.provider-leads-page article {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(110, 154, 225, 0.18) !important;
+  border-radius: 25px !important;
+  background:
+    radial-gradient(
+      circle at 93% 8%,
+      rgba(50, 135, 255, 0.12),
+      transparent 36%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(18, 34, 68, 0.98),
+      rgba(7, 17, 39, 0.99)
+    ) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 22px 65px rgba(0, 0, 0, 0.23);
+  transition:
+    transform 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.provider-leads-page article::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  background:
+    linear-gradient(
+      105deg,
+      rgba(58, 186, 255, 0.075),
+      transparent 38%,
+      rgba(132, 90, 255, 0.075)
+    );
+  transition: opacity 200ms ease;
+}
+
+.provider-leads-page article:hover {
+  transform: translateY(-5px);
+  border-color: var(--lead-border-active) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.075),
+    0 32px 88px rgba(0, 0, 0, 0.34),
+    0 0 48px rgba(44, 139, 255, 0.08);
+}
+
+.provider-leads-page article:hover::before {
+  opacity: 1;
+}
+
+.provider-leads-page article h2,
+.provider-leads-page article h3 {
+  color: #fff;
+  font-weight: 900;
+}
+
+.provider-leads-page article strong {
+  color: #fff;
+}
+
+/* Horizontal separators inside cards */
+
+.provider-leads-page article hr {
+  height: 1px;
+  margin: 18px 0;
+  border: 0;
+  background: rgba(255, 255, 255, 0.065);
+}
+
+/* Small labels */
+
+.provider-leads-page article dt,
+.provider-leads-page article label,
+.provider-leads-page article small {
+  color: #7585a0;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.045em;
+}
+
+.provider-leads-page article dd {
+  color: #dbe5f6;
+}
+
+/* =========================================================
+   PRICE / CREDIT AREA
+   ========================================================= */
+
+.provider-leads-page [class*="price"],
+.provider-leads-page [class*="credit"] {
+  position: relative;
+}
+
+.provider-leads-page [class*="price"] strong,
+.provider-leads-page [class*="credit"] strong {
+  color: #fff;
+  font-size: clamp(27px, 3.5vw, 42px);
+  font-weight: 950;
+  line-height: 0.95;
+  letter-spacing: -0.06em;
+}
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.provider-leads-page button,
+.provider-leads-page a[class*="button"],
+.provider-leads-page a[class*="cta"] {
+  min-height: 52px;
+  border-radius: 15px !important;
+  font-weight: 900;
+  transition:
+    transform 180ms ease,
+    filter 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.provider-leads-page button[type="submit"],
+.provider-leads-page form button,
+.provider-leads-page [class*="unlock"] {
+  position: relative;
+  overflow: hidden;
+  border: 0 !important;
+  background:
+    linear-gradient(
+      110deg,
+      #2ebdf6 0%,
+      #3e83fa 52%,
+      #795ff4 100%
+    ) !important;
+  color: #fff !important;
+  box-shadow:
+    0 17px 42px rgba(50, 123, 248, 0.27),
+    inset 0 1px 0 rgba(255, 255, 255, 0.21);
+}
+
+.provider-leads-page button[type="submit"]::after,
+.provider-leads-page form button::after,
+.provider-leads-page [class*="unlock"]::after {
+  content: "";
+  position: absolute;
+  top: -60%;
+  left: -85%;
+  width: 55%;
+  height: 220%;
+  transform: rotate(22deg);
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.28),
+      transparent
+    );
+  transition: left 480ms ease;
+}
+
+.provider-leads-page button[type="submit"]:hover::after,
+.provider-leads-page form button:hover::after,
+.provider-leads-page [class*="unlock"]:hover::after {
+  left: 135%;
+}
+
+.provider-leads-page button:hover,
+.provider-leads-page a[class*="button"]:hover,
+.provider-leads-page a[class*="cta"]:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+}
+
+.provider-leads-page button[type="submit"]:hover,
+.provider-leads-page form button:hover,
+.provider-leads-page [class*="unlock"]:hover {
+  box-shadow:
+    0 23px 58px rgba(50, 123, 248, 0.39),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+.provider-leads-page button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  filter: grayscale(0.3);
+  transform: none;
+}
+
+/* =========================================================
+   SIDEBAR / CONTROL CENTER
+   ========================================================= */
+
+.provider-leads-page aside {
+  display: grid;
+  align-content: start;
+  gap: 21px;
+}
+
+.provider-leads-page aside > * {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(92, 162, 235, 0.2) !important;
+  border-radius: 24px !important;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(58, 139, 255, 0.14),
+      transparent 42%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(18, 36, 71, 0.98),
+      rgba(7, 17, 38, 0.99)
+    ) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 24px 68px rgba(0, 0, 0, 0.25);
+}
+
+.provider-leads-page aside a {
+  color: #8bdcff;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.provider-leads-page aside a:hover {
+  color: #c1efff;
+}
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.provider-leads-page [class*="empty"] {
+  display: grid;
+  place-items: center;
+  min-height: 310px;
+  padding: 50px 25px;
+  border: 1px dashed rgba(113, 166, 239, 0.2) !important;
+  border-radius: 25px;
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(65, 151, 255, 0.09),
+      transparent 48%
+    ),
+    rgba(255, 255, 255, 0.014);
+  text-align: center;
+}
+
+/* =========================================================
+   ANIMATIONS
+   ========================================================= */
+
+@keyframes leadReveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.provider-leads-page header,
+.provider-leads-page article,
+.provider-leads-page aside > * {
+  animation: leadReveal 500ms ease both;
+}
+
+.provider-leads-page article:nth-of-type(2) {
+  animation-delay: 50ms;
+}
+
+.provider-leads-page article:nth-of-type(3) {
+  animation-delay: 100ms;
+}
+
+.provider-leads-page article:nth-of-type(4) {
+  animation-delay: 150ms;
+}
+
+.provider-leads-page article:nth-of-type(5) {
+  animation-delay: 200ms;
+}
+
+/* =========================================================
+   DESKTOP STICKY SIDEBAR
+   ========================================================= */
+
+@media (min-width: 1101px) {
+  .provider-leads-page aside {
+    position: sticky;
+    top: 25px;
+  }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 780px) {
+  .provider-leads-page {
+    padding: 19px 13px 75px;
+  }
+
+  .provider-leads-page header:first-of-type {
+    padding: 27px 20px;
+    border-radius: 24px;
+  }
+
+  .provider-leads-page h1 {
+    font-size: clamp(38px, 12vw, 54px);
+  }
+
+  .provider-leads-page header:first-of-type p {
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .provider-leads-page article {
+    border-radius: 20px !important;
+  }
+
+  .provider-leads-page aside > * {
+    border-radius: 20px !important;
+  }
+
+  .provider-leads-page button,
+  .provider-leads-page a[class*="button"],
+  .provider-leads-page a[class*="cta"] {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .provider-leads-page *,
+  .provider-leads-page *::before,
+  .provider-leads-page *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Loading skeleton */
+
+.lead-loading-page {
+  display: grid;
+  gap: 26px;
+}
+
+.lead-loading-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 24px;
+}
+
+.lead-loading-list {
+  display: grid;
+  gap: 18px;
+}
+
+.lead-loading-card,
+.lead-loading-sidebar {
+  padding: 25px;
+}
+
+.lead-loading-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.lead-loading-line,
+.lead-loading-box,
+.lead-loading-button {
+  overflow: hidden;
+  border-radius: 10px;
+  background:
+    linear-gradient(
+      100deg,
+      rgba(255, 255, 255, 0.045) 20%,
+      rgba(255, 255, 255, 0.09) 40%,
+      rgba(255, 255, 255, 0.045) 60%
+    );
+  background-size: 220% 100%;
+  animation: leadShimmer 1.4s linear infinite;
+}
+
+.lead-loading-line {
+  width: 70%;
+  height: 13px;
+  margin-top: 14px;
+}
+
+.lead-loading-line--small {
+  width: 24%;
+  height: 10px;
+  margin-top: 0;
+}
+
+.lead-loading-line--title {
+  width: 58%;
+  height: 28px;
+}
+
+.lead-loading-line--hero {
+  width: 62%;
+  height: 62px;
+  margin-top: 24px;
+}
+
+.lead-loading-line--wide {
+  width: 76%;
+}
+
+.lead-loading-box {
+  height: 65px;
+}
+
+.lead-loading-button {
+  width: 180px;
+  height: 52px;
+  margin-top: 24px;
+}
+
+@keyframes leadShimmer {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -20% 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .lead-loading-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .lead-loading-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lead-loading-line--hero {
+    width: 90%;
+    height: 45px;
+  }
+
+  .lead-loading-button {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   LEADS GRID UPGRADE
+   Edel, kompakt und nebeneinander
+   ========================================================= */
+
+/* Hauptbereich mit Cards */
+
+.provider-leads-page [class*="lead-list"],
+.provider-leads-page [class*="leads-list"],
+.provider-leads-page [class*="cards"],
+.provider-leads-page [class*="results"] {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 22px !important;
+  align-items: stretch;
+}
+
+/* Lead-Karten kompakter und hochwertiger */
+
+.provider-leads-page article {
+  display: flex;
+  flex-direction: column;
+  min-height: 390px;
+  padding: 26px !important;
+  border-radius: 28px !important;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(74, 174, 255, 0.14),
+      transparent 38%
+    ),
+    radial-gradient(
+      circle at 0% 100%,
+      rgba(125, 86, 255, 0.1),
+      transparent 42%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(18, 35, 69, 0.98),
+      rgba(7, 16, 36, 0.99)
+    ) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.055),
+    0 28px 75px rgba(0, 0, 0, 0.27);
+}
+
+.provider-leads-page article:hover {
+  transform: translateY(-7px);
+  border-color: rgba(93, 200, 255, 0.42) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 38px 95px rgba(0, 0, 0, 0.38),
+    0 0 55px rgba(54, 146, 255, 0.1);
+}
+
+/* Kartenkopf */
+
+.provider-leads-page article > div:first-child {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Haupttitel */
+
+.provider-leads-page article h2,
+.provider-leads-page article h3 {
+  margin-top: 22px;
+  font-size: clamp(24px, 2.5vw, 34px);
+  line-height: 1.05;
+}
+
+.provider-leads-page article h2 + p,
+.provider-leads-page article h3 + p {
+  margin-top: 9px;
+  color: #c8d4e7;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+/* Meta-Infos als kleine Boxen */
+
+.provider-leads-page article dl,
+.provider-leads-page article [class*="meta"],
+.provider-leads-page article [class*="details"] {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.provider-leads-page article dl > div,
+.provider-leads-page article [class*="meta"] > *,
+.provider-leads-page article [class*="details"] > * {
+  padding: 13px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.065);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+/* Unterer Kaufbereich bleibt unten */
+
+.provider-leads-page article form,
+.provider-leads-page article [class*="actions"],
+.provider-leads-page article [class*="footer"] {
+  margin-top: auto;
+  padding-top: 24px;
+}
+
+/* Preis und Button nebeneinander */
+
+.provider-leads-page article form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 18px;
+}
+
+.provider-leads-page article form button,
+.provider-leads-page article [class*="unlock"] {
+  min-width: 180px;
+  padding-inline: 22px;
+}
+
+/* Credits hervorheben */
+
+.provider-leads-page article [class*="price"] strong,
+.provider-leads-page article [class*="credit"] strong,
+.provider-leads-page article form strong {
+  font-size: 30px;
+  background:
+    linear-gradient(
+      95deg,
+      #ffffff,
+      #9edfff
+    );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* Premium Badge */
+
+.provider-leads-page article [class*="badge"]:first-child,
+.provider-leads-page article [class*="pill"]:first-child,
+.provider-leads-page article [class*="tag"]:first-child {
+  box-shadow: 0 0 24px rgba(61, 222, 159, 0.08);
+}
+
+/* Sidebar schmaler, Cards breiter */
+
+.provider-leads-page [class*="layout"],
+.provider-leads-page [class*="content-grid"],
+.provider-leads-page [class*="main-grid"] {
+  grid-template-columns: minmax(0, 1fr) 320px !important;
+  gap: 26px !important;
+}
+
+/* Sehr breite Displays: 3 Karten */
+
+@media (min-width: 1650px) {
+  .provider-leads-page [class*="lead-list"],
+  .provider-leads-page [class*="leads-list"],
+  .provider-leads-page [class*="cards"],
+  .provider-leads-page [class*="results"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Tablet: 1 Karte */
+
+@media (max-width: 1180px) {
+  .provider-leads-page [class*="lead-list"],
+  .provider-leads-page [class*="leads-list"],
+  .provider-leads-page [class*="cards"],
+  .provider-leads-page [class*="results"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .provider-leads-page [class*="layout"],
+  .provider-leads-page [class*="content-grid"],
+  .provider-leads-page [class*="main-grid"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 700px) {
+  .provider-leads-page article {
+    min-height: auto;
+    padding: 21px !important;
+    border-radius: 22px !important;
+  }
+
+  .provider-leads-page article dl,
+  .provider-leads-page article [class*="meta"],
+  .provider-leads-page article [class*="details"] {
+    grid-template-columns: 1fr;
+  }
+
+  .provider-leads-page article form {
+    grid-template-columns: 1fr;
+  }
+
+  .provider-leads-page article form button,
+  .provider-leads-page article [class*="unlock"] {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* =========================================================
+   FINAL LEAD GRID
+   Echter Container: topoffer-leads-list
+   ========================================================= */
+
+.provider-leads-page .topoffer-leads-list,
+.provider-leads-page .premium-leads-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  align-items: stretch !important;
+  gap: 22px !important;
+  width: 100% !important;
+}
+
+/* Einzelne Lead-Karte */
+
+.provider-leads-page .topoffer-lead-card {
+  position: relative;
+  display: flex !important;
+  flex-direction: column !important;
+  min-width: 0 !important;
+  min-height: 430px !important;
+  height: 100% !important;
+  padding: 26px !important;
+  overflow: hidden;
+  border: 1px solid rgba(121, 165, 235, 0.19) !important;
+  border-radius: 27px !important;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(57, 165, 255, 0.15),
+      transparent 38%
+    ),
+    radial-gradient(
+      circle at 0% 100%,
+      rgba(133, 86, 255, 0.1),
+      transparent 44%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(20, 38, 74, 0.98),
+      rgba(7, 16, 37, 0.99)
+    ) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.055),
+    0 25px 70px rgba(0, 0, 0, 0.26) !important;
+  transition:
+    transform 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease !important;
+}
+
+.provider-leads-page .topoffer-lead-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      125deg,
+      rgba(71, 193, 255, 0.07),
+      transparent 38%,
+      rgba(127, 91, 255, 0.07)
+    );
+  transition: opacity 200ms ease;
+}
+
+.provider-leads-page .topoffer-lead-card:hover {
+  transform: translateY(-7px) !important;
+  border-color: rgba(91, 199, 255, 0.43) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 38px 95px rgba(0, 0, 0, 0.38),
+    0 0 55px rgba(53, 147, 255, 0.1) !important;
+}
+
+.provider-leads-page .topoffer-lead-card:hover::after {
+  opacity: 1;
+}
+
+/* Kartenkopf */
+
+.provider-leads-page .topoffer-card-header {
+  position: relative;
+  z-index: 1;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 18px !important;
+  margin-bottom: 22px !important;
+}
+
+.provider-leads-page .topoffer-card-badges {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 7px !important;
+}
+
+.provider-leads-page .topoffer-card-badges span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 11px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+  color: #b8c5da;
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.provider-leads-page .topoffer-card-badges span:first-child {
+  border-color: rgba(73, 228, 170, 0.18);
+  background: rgba(53, 204, 148, 0.09);
+  color: #69edb8;
+  box-shadow: 0 0 25px rgba(53, 204, 148, 0.08);
+}
+
+/* Titel */
+
+.provider-leads-page .topoffer-lead-card h2,
+.provider-leads-page .topoffer-lead-card h3 {
+  position: relative;
+  z-index: 1;
+  margin: 0 !important;
+  color: #ffffff !important;
+  font-size: clamp(25px, 2vw, 32px) !important;
+  font-weight: 900 !important;
+  line-height: 1.08 !important;
+  letter-spacing: -0.045em !important;
+}
+
+.provider-leads-page .topoffer-lead-card h2 + p,
+.provider-leads-page .topoffer-lead-card h3 + p {
+  margin-top: 10px !important;
+  color: #d7e1f2 !important;
+  font-size: 15px !important;
+  font-weight: 750 !important;
+}
+
+/* Inhalt */
+
+.provider-leads-page .topoffer-lead-card p {
+  position: relative;
+  z-index: 1;
+  color: #92a1ba;
+  line-height: 1.65;
+}
+
+.provider-leads-page .topoffer-lead-card dl,
+.provider-leads-page .topoffer-lead-card [class*="meta"],
+.provider-leads-page .topoffer-lead-card [class*="details"] {
+  position: relative;
+  z-index: 1;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  margin-top: 20px !important;
+}
+
+.provider-leads-page .topoffer-lead-card dl > div,
+.provider-leads-page .topoffer-lead-card [class*="meta"] > div,
+.provider-leads-page .topoffer-lead-card [class*="details"] > div {
+  padding: 13px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.065);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+/* Kaufbereich unten */
+
+.provider-leads-page .topoffer-lead-card form,
+.provider-leads-page .topoffer-lead-card [class*="actions"],
+.provider-leads-page .topoffer-lead-card [class*="footer"] {
+  position: relative;
+  z-index: 1;
+  margin-top: auto !important;
+  padding-top: 25px !important;
+}
+
+.provider-leads-page .topoffer-lead-card form {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: end !important;
+  gap: 18px !important;
+}
+
+.provider-leads-page .topoffer-lead-card form strong {
+  display: block;
+  color: #ffffff;
+  font-size: 27px;
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.provider-leads-page .topoffer-lead-card form small {
+  display: block;
+  margin-top: 8px;
+  color: #75849f;
+  font-size: 10px;
+}
+
+/* Button */
+
+.provider-leads-page .topoffer-lead-card button {
+  min-width: 175px !important;
+  min-height: 55px !important;
+  padding: 0 21px !important;
+  border-radius: 16px !important;
+  background:
+    linear-gradient(
+      110deg,
+      #31bdf6,
+      #4484fa 55%,
+      #765ef4
+    ) !important;
+  box-shadow:
+    0 18px 42px rgba(55, 126, 247, 0.29),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Hauptlayout: Kartenbereich erhält mehr Platz */
+
+.provider-leads-page .topoffer-content-grid,
+.provider-leads-page .topoffer-main-grid,
+.provider-leads-page [class*="topoffer-layout"] {
+  grid-template-columns: minmax(0, 1fr) 310px !important;
+  align-items: start !important;
+  gap: 26px !important;
+}
+
+/* Große Bildschirme: weiterhin zwei breite, luxuriöse Karten */
+
+@media (min-width: 1800px) {
+  .provider-leads-page .topoffer-leads-list,
+  .provider-leads-page .premium-leads-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .provider-leads-page .topoffer-lead-card {
+    min-height: 450px !important;
+  }
+}
+
+/* Tablet */
+
+@media (max-width: 1250px) {
+  .provider-leads-page .topoffer-leads-list,
+  .provider-leads-page .premium-leads-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .provider-leads-page .topoffer-content-grid,
+  .provider-leads-page .topoffer-main-grid,
+  .provider-leads-page [class*="topoffer-layout"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 700px) {
+  .provider-leads-page .topoffer-leads-list,
+  .provider-leads-page .premium-leads-grid {
+    gap: 16px !important;
+  }
+
+  .provider-leads-page .topoffer-lead-card {
+    min-height: auto !important;
+    padding: 21px !important;
+    border-radius: 21px !important;
+  }
+
+  .provider-leads-page .topoffer-card-header {
+    display: grid !important;
+  }
+
+  .provider-leads-page .topoffer-lead-card dl,
+  .provider-leads-page .topoffer-lead-card [class*="meta"],
+  .provider-leads-page .topoffer-lead-card [class*="details"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .provider-leads-page .topoffer-lead-card form {
+    grid-template-columns: 1fr !important;
+  }
+
+  .provider-leads-page .topoffer-lead-card button {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+/* =========================================================
+   DEFINITIVER 2-SPALTEN-FIX
+   Überschreibt alle vorherigen Breakpoints
+   ========================================================= */
+
+@media (min-width: 850px) {
+  .provider-leads-page .topoffer-leads-list,
+  .provider-leads-page .topoffer-leads-list.premium-leads-grid,
+  .provider-leads-page .premium-leads-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 20px !important;
+    width: 100% !important;
+    align-items: stretch !important;
+  }
+
+  .provider-leads-page .topoffer-lead-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 390px !important;
+    margin: 0 !important;
+  }
+}
+
+@media (min-width: 1900px) {
+  .provider-leads-page .topoffer-leads-list,
+  .provider-leads-page .topoffer-leads-list.premium-leads-grid,
+  .provider-leads-page .premium-leads-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 849px) {
+  .provider-leads-page .topoffer-leads-list,
+  .provider-leads-page .premium-leads-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Finaler Karten-Fix */
+
+.provider-leads-page .topoffer-lead-card {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  min-height: 360px !important;
+  margin: 0 !important;
+}
+
+@media (max-width: 760px) {
+  .provider-leads-page .topoffer-leads-list {
+    grid-template-columns: 1fr !important;
+  }
+}
