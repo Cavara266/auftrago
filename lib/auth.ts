@@ -189,6 +189,9 @@ export async function createSession(user: AuthUser): Promise<Session> {
     sameSite: "lax",
     path: "/",
     maxAge: SESSION_DURATION_SECONDS,
+    ...(process.env.NODE_ENV === "production"
+      ? { domain: ".auftrago.ch" }
+      : {}),
   });
 
   return {
@@ -205,6 +208,10 @@ export async function clearSession(): Promise<void> {
     sameSite: "lax",
     path: "/",
     maxAge: 0,
+    expires: new Date(0),
+    ...(process.env.NODE_ENV === "production"
+      ? { domain: ".auftrago.ch" }
+      : {}),
   });
 }
 

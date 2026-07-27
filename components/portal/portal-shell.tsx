@@ -28,7 +28,7 @@ const navigation = [
     icon: "◎",
   },
   {
-    href: "/credits",
+    href: "/portal/guthaben",
     label: "Credits",
     icon: "◉",
   },
