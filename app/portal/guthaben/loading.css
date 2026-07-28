@@ -1,0 +1,223 @@
+.credits-loading {
+  position: relative;
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  overflow: hidden;
+  padding: 30px 20px;
+  background:
+    radial-gradient(
+      circle at 15% 10%,
+      rgba(55, 190, 255, 0.16),
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at 90% 15%,
+      rgba(118, 78, 255, 0.16),
+      transparent 38%
+    ),
+    linear-gradient(
+      180deg,
+      #071326,
+      #020713
+    );
+  color: #ffffff;
+}
+
+.credits-loading *,
+.credits-loading *::before,
+.credits-loading *::after {
+  box-sizing: border-box;
+}
+
+.credits-loading__orb {
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 999px;
+  filter: blur(120px);
+  pointer-events: none;
+}
+
+.credits-loading__orb--one {
+  top: -250px;
+  left: -220px;
+  background: rgba(46, 191, 255, 0.2);
+}
+
+.credits-loading__orb--two {
+  right: -240px;
+  bottom: -250px;
+  background: rgba(112, 77, 255, 0.2);
+}
+
+.credits-loading__card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 620px);
+  padding: 48px;
+  border: 1px solid rgba(133, 173, 235, 0.15);
+  border-radius: 32px;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(72, 185, 255, 0.1),
+      transparent 42%
+    ),
+    rgba(7, 16, 35, 0.94);
+  box-shadow:
+    0 40px 100px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  text-align: center;
+}
+
+.credits-loading__icon {
+  display: grid;
+  width: 76px;
+  height: 76px;
+  margin: 0 auto;
+  place-items: center;
+  border: 1px solid rgba(255, 216, 74, 0.18);
+  border-radius: 23px;
+  background: rgba(255, 216, 74, 0.08);
+  box-shadow: 0 0 40px rgba(255, 204, 50, 0.08);
+}
+
+.credits-loading__icon span {
+  color: #ffd84e;
+  font-size: 34px;
+  animation: credits-pulse 1.25s ease-in-out infinite;
+}
+
+.credits-loading__eyebrow {
+  display: block;
+  margin-top: 24px;
+  color: #66d4ff;
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.17em;
+}
+
+.credits-loading h1 {
+  margin: 14px 0 0;
+  font-size: clamp(34px, 6vw, 53px);
+  font-weight: 950;
+  letter-spacing: -0.055em;
+}
+
+.credits-loading p {
+  max-width: 440px;
+  margin: 14px auto 0;
+  color: #8090aa;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.credits-loading__progress {
+  height: 8px;
+  margin-top: 30px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.credits-loading__progress span {
+  display: block;
+  width: 42%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    #35c3ff,
+    #6577ff,
+    #9b63ff
+  );
+  animation: credits-progress 1.3s ease-in-out infinite;
+}
+
+.credits-loading__skeletons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 11px;
+  margin-top: 22px;
+}
+
+.credits-loading__skeletons div {
+  height: 92px;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 17px;
+  background:
+    linear-gradient(
+      100deg,
+      rgba(255, 255, 255, 0.025) 20%,
+      rgba(255, 255, 255, 0.07) 40%,
+      rgba(255, 255, 255, 0.025) 60%
+    );
+  background-size: 220% 100%;
+  animation: credits-shimmer 1.4s linear infinite;
+}
+
+.credits-loading__retry {
+  display: inline-flex;
+  min-height: 50px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 25px;
+  border: 1px solid rgba(94, 197, 255, 0.18);
+  border-radius: 14px;
+  padding: 0 20px;
+  background: rgba(61, 173, 255, 0.08);
+  color: #9ce4ff;
+  font-size: 10px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+@keyframes credits-progress {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  100% {
+    transform: translateX(340%);
+  }
+}
+
+@keyframes credits-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(0.78);
+  }
+}
+
+@keyframes credits-shimmer {
+  from {
+    background-position: 180% 0;
+  }
+
+  to {
+    background-position: -80% 0;
+  }
+}
+
+@media (max-width: 620px) {
+  .credits-loading__card {
+    padding: 34px 20px;
+    border-radius: 25px;
+  }
+
+  .credits-loading__skeletons {
+    grid-template-columns: 1fr;
+  }
+
+  .credits-loading__skeletons div {
+    height: 64px;
+  }
+}

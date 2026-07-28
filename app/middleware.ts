@@ -4,6 +4,12 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
+  if (pathname === "/credits") {
+    return NextResponse.redirect(
+      new URL("/portal/guthaben", request.url)
+    );
+  }
+
   const isPortalRoute = pathname.startsWith("/portal");
   const isAdminRoute = pathname.startsWith("/admin");
 
