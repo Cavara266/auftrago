@@ -8,20 +8,35 @@ import { requireUser } from "@/lib/auth";
 const creditPackages = {
   starter: {
     title: "Starter",
-    credits: 50,
-    amount: 5000,
-  },
-  business: {
-    title: "Business",
-    credits: 120,
-    amount: 10000,
+    credits: 20,
+    amount: 2900,
   },
   pro: {
     title: "Pro",
-    credits: 300,
-    amount: 25000,
+    credits: 50,
+    amount: 6900,
   },
-};
+  business: {
+    title: "Business",
+    credits: 100,
+    amount: 12900,
+  },
+  growth: {
+    title: "Growth",
+    credits: 250,
+    amount: 24900,
+  },
+  premium: {
+    title: "Premium",
+    credits: 600,
+    amount: 52900,
+  },
+  enterprise: {
+    title: "Enterprise",
+    credits: 1200,
+    amount: 99900,
+  },
+} as const;
 
 export async function startCheckoutAction(formData: FormData) {
   const packageId = String(formData.get("packageId") || "").trim();
