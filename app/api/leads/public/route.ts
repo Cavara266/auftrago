@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import { sendMail } from "@/lib/mail/mail";
+import { sendNewLeadNotifications } from "@/lib/new-lead-notification";
 import {
   getCategoryByService,
   getService,
@@ -76,6 +78,20 @@ function createDescription(
   return lines.length > 0
     ? lines.join("\n")
     : "Keine weiteren Angaben vorhanden.";
+}
+
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (character) => {
+    const entities: Record<string, string> = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;",
+    };
+
+    return entities[character] ?? character;
+  });
 }
 
 function createExpiryDate() {
@@ -247,13 +263,151 @@ export async function POST(request: Request) {
       },
       select: {
         id: true,
+        title: true,
+        description: true,
+        region: true,
+        category: true,
+        postalCode: true,
+        city: true,
+        price: true,
       },
     });
+
+    console.log("PUBLIC LEAD CREATED:", {
+      leadId: lead.id,
+      title: lead.title,
+      category: lead.category,
+      region: lead.region,
+    });
+
+    let providerNotifications = {
+      approvedProviders: 0,
+      emailEnabledProviders: 0,
+      matchingProviders: 0,
+      sent: 0,
+      failed: 0,
+    };
+
+    try {
+      providerNotifications =
+        await sendNewLeadNotifications({
+          lead,
+          estimatedValue: service.leadPrice,
+        });
+
+      console.log(
+        "PUBLIC LEAD NOTIFICATIONS COMPLETED:",
+        {
+          leadId: lead.id,
+          ...providerNotifications,
+        }
+      );
+    } catch (notificationError) {
+      console.error(
+        "PUBLIC LEAD NOTIFICATION ERROR:",
+        {
+          leadId: lead.id,
+          error: notificationError,
+        }
+      );
+    }
+
+    let internalMailSent = false;
+    let internalMailError: string | null = null;
+
+    try {
+      const recipient =
+        process.env.MAIL_TO?.trim() ||
+        process.env.CONTACT_EMAIL?.trim() ||
+        "info@auftrago.ch";
+
+      const safeDescription =
+        escapeHtml(completeDescription);
+
+      await sendMail({
+        to: recipient,
+        subject:
+          `Neue Auftrago Anfrage: ${service.name} in ${city}`,
+        text: `
+Neue Anfrage über Auftrago
+
+Lead-ID: ${lead.id}
+Dienstleistung: ${service.name}
+Kategorie: ${category.name}
+Leadpreis: ${service.leadPrice} Credits
+
+KONTAKT
+Name: ${name}
+E-Mail: ${email}
+Telefon: ${phone}
+
+ADRESSE
+${street}
+${postalCode} ${city}
+
+ANGABEN
+${completeDescription}
+        `.trim(),
+        html: `
+          <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827">
+            <h2>Neue Auftrago Anfrage</h2>
+
+            <p>
+              <strong>Lead-ID:</strong> ${escapeHtml(lead.id)}<br>
+              <strong>Dienstleistung:</strong> ${escapeHtml(service.name)}<br>
+              <strong>Kategorie:</strong> ${escapeHtml(category.name)}<br>
+              <strong>Leadpreis:</strong> ${service.leadPrice} Credits
+            </p>
+
+            <h3>Kontakt</h3>
+
+            <p>
+              <strong>Name:</strong> ${escapeHtml(name)}<br>
+              <strong>E-Mail:</strong> ${escapeHtml(email)}<br>
+              <strong>Telefon:</strong> ${escapeHtml(phone)}
+            </p>
+
+            <h3>Adresse</h3>
+
+            <p>
+              ${escapeHtml(street)}<br>
+              ${escapeHtml(postalCode)} ${escapeHtml(city)}
+            </p>
+
+            <h3>Alle Angaben</h3>
+
+            <pre style="white-space:pre-wrap;font-family:Arial,sans-serif;background:#f3f4f6;padding:16px;border-radius:10px">${safeDescription}</pre>
+          </div>
+        `,
+      });
+
+      internalMailSent = true;
+
+      console.log("PUBLIC INTERNAL MAIL SENT:", {
+        leadId: lead.id,
+        recipient,
+      });
+    } catch (mailError) {
+      internalMailError =
+        mailError instanceof Error
+          ? mailError.message
+          : "Interner Mailversand fehlgeschlagen.";
+
+      console.error("PUBLIC INTERNAL MAIL ERROR:", {
+        leadId: lead.id,
+        error: mailError,
+      });
+    }
 
     return NextResponse.json(
       {
         success: true,
         leadId: lead.id,
+        notifications: providerNotifications,
+        internalMail: {
+          sent: internalMailSent,
+          error: internalMailError,
+        },
       },
       {
         status: 201,
