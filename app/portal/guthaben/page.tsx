@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
 import { startCheckoutAction } from "./actions";
+import "./luxury.css";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
