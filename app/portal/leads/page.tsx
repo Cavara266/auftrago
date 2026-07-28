@@ -380,30 +380,16 @@ export default async function PortalLeadsPage({
     )
   );
 
-  const sortedLeads = [...leads].sort((a, b) => {
-    const aMatch = isMatchingProvider(
-      a.region,
-      a.category,
-      provider.region,
-      provider.category
-    );
-
-    const bMatch = isMatchingProvider(
-      b.region,
-      b.category,
-      provider.region,
-      provider.category
-    );
-
-    if (aMatch === bMatch) {
-      return (
-        b.createdAt.getTime() -
-        a.createdAt.getTime()
-      );
-    }
-
-    return aMatch ? -1 : 1;
-  });
+  /*
+   * Neue Kundenanfragen stehen immer zuerst.
+   * Matching beeinflusst nur noch die Anzeige,
+   * nicht mehr die Reihenfolge.
+   */
+  const sortedLeads = [...leads].sort(
+    (a, b) =>
+      b.createdAt.getTime() -
+      a.createdAt.getTime()
+  );
 
   const sortedFixedOrders = [...fixedOrders].sort(
     (a, b) => {
