@@ -158,38 +158,6 @@ export default function PortalShell({ children }: PortalShellProps) {
           ))}
         </div>
 
-        {pathname === "/portal" && (
-          <Link
-            href="/portal/guthaben"
-            style={{
-              position: "fixed",
-              right: "28px",
-              bottom: "28px",
-              zIndex: 100,
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "10px",
-              minHeight: "58px",
-              padding: "0 24px",
-              borderRadius: "18px",
-              border: "1px solid rgba(255, 221, 86, 0.45)",
-              background:
-                "linear-gradient(135deg, #ffd84d 0%, #ffb800 100%)",
-              color: "#0a1020",
-              fontSize: "15px",
-              fontWeight: 900,
-              textDecoration: "none",
-              boxShadow:
-                "0 18px 50px rgba(255, 190, 0, 0.28)",
-            }}
-          >
-            <span style={{ fontSize: "20px" }}>🪙</span>
-            Credits sofort kaufen
-            <span>→</span>
-          </Link>
-        )}
-
         <main className={styles.main}>
           {children}
         </main>
