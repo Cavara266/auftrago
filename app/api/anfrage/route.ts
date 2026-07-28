@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
+import { sendMail } from "@/lib/mail/mail";
 
 import { prisma } from "@/lib/db";
 import { sendNewLeadNotifications } from "@/lib/new-lead-notification";
@@ -289,32 +289,20 @@ ${trackingText}
 
     /*
      * Zusätzliche interne Benachrichtigung an Auftrago.
-     * Ein Fehler hier verhindert nicht die Speicherung des Leads
-     * und nicht die Anbieter-Benachrichtigung.
+     * Die interne Mail läuft über dasselbe funktionierende
+     * Infomaniak-SMTP-System wie die Anbieter-Mails.
      */
     let internalMailSent = false;
     let internalMailError = "";
 
     try {
-      const apiKey = process.env.RESEND_API_KEY;
-
-      if (!apiKey) {
-        throw new Error("RESEND_API_KEY fehlt.");
-      }
-
-      const resend = new Resend(apiKey);
-
       const mailTo =
-        process.env.CONTACT_EMAIL || "info@auftrago.ch";
+        process.env.MAIL_TO?.trim() ||
+        process.env.CONTACT_EMAIL?.trim() ||
+        "info@auftrago.ch";
 
-      const mailFrom =
-        process.env.FROM_EMAIL ||
-        "Auftrago <info@auftrago.ch>";
-
-      const info = await resend.emails.send({
-        from: mailFrom,
+      await sendMail({
         to: mailTo,
-        replyTo: email || "info@auftrago.ch",
         subject: `Neue Auftrago Anfrage: ${service} in ${safeCity}`,
         text: `
 Neue Anfrage über Auftrago
@@ -336,15 +324,61 @@ ${description}
 Leadpreis im Portal: ${price} Credits
 Lead-ID: ${lead.id}
         `.trim(),
+        html: `
+          <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827">
+            <h2>Neue Auftrago Anfrage</h2>
+
+            <p>
+              <strong>Dienstleistung:</strong> ${service}<br>
+              <strong>Ort:</strong> ${safeCity}<br>
+              <strong>Lead-ID:</strong> ${lead.id}
+            </p>
+
+            <h3>Kontakt</h3>
+
+            <p>
+              <strong>Anrede:</strong> ${fallback(salutation)}<br>
+              <strong>Name / Firma:</strong> ${fallback(name)}<br>
+              <strong>Telefon:</strong> ${fallback(phone)}<br>
+              <strong>E-Mail:</strong> ${fallback(email)}<br>
+              <strong>Erreichbarkeit:</strong> ${fallback(phoneAvailability)}
+            </p>
+
+            <h3>Adresse</h3>
+
+            <p>
+              ${fallback(street)}<br>
+              ${fallback(postalCode)} ${fallback(city)}<br>
+              ${fallback(region)}
+            </p>
+
+            <h3>Beschreibung</h3>
+
+            <pre style="white-space:pre-wrap;font-family:Arial,sans-serif">${description}</pre>
+
+            <p>
+              <strong>Leadpreis:</strong> ${price} Credits
+            </p>
+          </div>
+        `,
       });
 
-      console.log("INTERNAL RESEND INFO:", info);
       internalMailSent = true;
+
+      console.log("INTERNAL SMTP MAIL SENT:", {
+        leadId: lead.id,
+        recipient: mailTo,
+      });
     } catch (error) {
       internalMailError =
-        error instanceof Error ? error.message : "Mailfehler";
+        error instanceof Error
+          ? error.message
+          : "Interner Mailfehler";
 
-      console.error("INTERNAL RESEND ERROR:", error);
+      console.error("INTERNAL SMTP MAIL ERROR:", {
+        leadId: lead.id,
+        error,
+      });
     }
 
     return NextResponse.json({
