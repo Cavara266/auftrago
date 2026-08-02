@@ -3,18 +3,134 @@ import {
   NextResponse,
 } from "next/server";
 
-export function middleware(request: NextRequest) {
+const ADMIN_COOKIE_NAME = "auftrago_admin_session";
+const SESSION_DURATION_SECONDS = 60 * 60 * 8;
+
+function bytesToHex(bytes: ArrayBuffer): string {
+  return Array.from(new Uint8Array(bytes))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function createSignature(
+  value: string,
+  secret: string,
+): Promise<string> {
+  const encoder = new TextEncoder();
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    {
+      name: "HMAC",
+      hash: "SHA-256",
+    },
+    false,
+    ["sign"],
+  );
+
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    encoder.encode(value),
+  );
+
+  return bytesToHex(signature);
+}
+
+function safeCompare(
+  first: string,
+  second: string,
+): boolean {
+  if (first.length !== second.length) {
+    return false;
+  }
+
+  let difference = 0;
+
+  for (let index = 0; index < first.length; index += 1) {
+    difference |=
+      first.charCodeAt(index) ^
+      second.charCodeAt(index);
+  }
+
+  return difference === 0;
+}
+
+async function hasValidAdminSession(
+  request: NextRequest,
+): Promise<boolean> {
+  const signingSecret =
+    process.env.ADMIN_SECRET ||
+    process.env.ADMIN_PASSWORD;
+
+  if (!signingSecret) {
+    console.error(
+      "ADMIN_SECRET oder ADMIN_PASSWORD fehlt.",
+    );
+
+    return false;
+  }
+
+  const cookieValue =
+    request.cookies.get(ADMIN_COOKIE_NAME)?.value;
+
+  if (!cookieValue) {
+    return false;
+  }
+
+  const [timestampText, receivedSignature] =
+    cookieValue.split(".");
+
+  if (!timestampText || !receivedSignature) {
+    return false;
+  }
+
+  const timestamp = Number(timestampText);
+
+  if (!Number.isFinite(timestamp)) {
+    return false;
+  }
+
+  const currentTimestamp = Math.floor(Date.now() / 1000);
+  const sessionAge = currentTimestamp - timestamp;
+
+  if (
+    sessionAge < 0 ||
+    sessionAge > SESSION_DURATION_SECONDS
+  ) {
+    return false;
+  }
+
+  const expectedSignature = await createSignature(
+    timestampText,
+    signingSecret,
+  );
+
+  return safeCompare(
+    receivedSignature,
+    expectedSignature,
+  );
+}
+
+export async function middleware(
+  request: NextRequest,
+) {
   const pathname = request.nextUrl.pathname;
   const host =
     request.headers.get("host")?.split(":")[0] || "";
 
   /*
-   * Immer dieselbe Hauptdomain verwenden.
-   * So bleiben Login und Cookies stabil.
+   * Einheitliche Hauptdomain.
+   * Dadurch bleiben Cookies und Login stabil.
    */
+  const isStripeSubscriptionWebhook =
+    pathname === "/api/stripe/subscription-webhook";
+
   if (
     process.env.NODE_ENV === "production" &&
-    host === "auftrago.ch"
+    host === "auftrago.ch" &&
+    !isStripeSubscriptionWebhook
   ) {
     const target = request.nextUrl.clone();
 
@@ -26,80 +142,76 @@ export function middleware(request: NextRequest) {
   }
 
   /*
-   * Alte Anbieter-Routen direkt ins neue Portal schicken.
+   * Alte Anbieter-Routen.
    */
   if (pathname === "/credits") {
     return NextResponse.redirect(
       new URL("/portal/guthaben", request.url),
-      307
+      307,
     );
   }
 
   if (pathname === "/dashboard") {
     return NextResponse.redirect(
       new URL("/portal", request.url),
-      307
+      307,
     );
   }
 
   if (pathname === "/leads") {
     return NextResponse.redirect(
       new URL("/portal/leads", request.url),
-      307
+      307,
     );
   }
 
   if (pathname.startsWith("/leads/")) {
+    const leadId = pathname.replace("/leads/", "");
+
     return NextResponse.redirect(
-      new URL("/portal/leads", request.url),
-      307
+      new URL(`/portal/leads/${leadId}`, request.url),
+      307,
     );
   }
 
-  const isPortalRoute =
-    pathname === "/portal" ||
-    pathname.startsWith("/portal/");
+  /*
+   * Admin-Login und Admin-API dürfen nie durch
+   * die Admin-Weiterleitung blockiert werden.
+   */
+  const isPublicAdminRoute =
+    pathname === "/admin-login" ||
+    pathname === "/api/admin-login" ||
+    pathname === "/api/admin-logout";
 
+  if (isPublicAdminRoute) {
+    return NextResponse.next();
+  }
+
+  /*
+   * Ausschliesslich echte /admin-Routen schützen.
+   * /anbieter, /portal und öffentliche Seiten
+   * werden davon nicht beeinflusst.
+   */
   const isAdminRoute =
     pathname === "/admin" ||
     pathname.startsWith("/admin/");
 
-  const portalSession = request.cookies.get(
-    "auftrago_session"
-  )?.value;
-
-  const adminSession = request.cookies.get(
-    "auftrago_admin"
-  )?.value;
-
-  if (isPortalRoute && !portalSession) {
-    const loginUrl = new URL(
-      "/login",
-      request.url
-    );
-
-    loginUrl.searchParams.set(
-      "redirect",
-      pathname
-    );
-
-    return NextResponse.redirect(loginUrl);
-  }
-
   if (isAdminRoute) {
-    const adminSecret =
-      process.env.ADMIN_SECRET;
+    const validSession =
+      await hasValidAdminSession(request);
 
-    if (
-      !adminSecret ||
-      adminSession !== adminSecret
-    ) {
-      return NextResponse.redirect(
-        new URL(
-          "/admin-login",
-          request.url
-        )
+    if (!validSession) {
+      const loginUrl = new URL(
+        "/admin-login",
+        request.url,
       );
+
+      loginUrl.searchParams.set(
+        "callbackUrl",
+        `${pathname}${request.nextUrl.search}`,
+      );
+
+      return NextResponse.redirect(loginUrl);
     }
   }
 
@@ -110,8 +222,12 @@ export const config = {
   matcher: [
     "/credits",
     "/dashboard",
+    "/leads",
     "/leads/:path*",
-    "/portal/:path*",
+    "/admin",
     "/admin/:path*",
+    "/admin-login",
+    "/api/admin-login",
+    "/api/admin-logout",
   ],
 };
