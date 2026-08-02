@@ -1,0 +1,8 @@
+{
+  "appUrl": "https://auftrago.ch",
+  "productId": "prod_UyyFs0sFBMduD6",
+  "priceId": "price_1Tz0IdJzn0dPpvjkWgo9835r",
+  "webhookId": "we_1Tz0IeJzn0dPpvjk1kmIwa62",
+  "webhookUrl": "https://auftrago.ch/api/stripe/subscription-webhook",
+  "webhookSecretCreated": true
+}

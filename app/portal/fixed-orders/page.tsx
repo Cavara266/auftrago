@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { getSession } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -103,16 +103,15 @@ function normalizeSort(value?: string): SortOption {
 export default async function PortalFixedOrdersPage({
   searchParams,
 }: PortalFixedOrdersPageProps) {
-  const session = await getSession();
-  const sessionEmail = session?.user?.email;
+  const user = await requireUser();
 
-  if (!sessionEmail) {
-    redirect("/login");
+  if (!user) {
+    redirect("/login?redirect=/portal/fixed-orders");
   }
 
   const provider = await prisma.provider.findUnique({
     where: {
-      email: sessionEmail.trim().toLowerCase(),
+      id: user.id,
     },
     select: {
       id: true,
@@ -127,8 +126,8 @@ export default async function PortalFixedOrdersPage({
     redirect("/login");
   }
 
-  if (provider.status !== "APPROVED") {
-    redirect("/portal");
+  if (provider.status === "BLOCKED") {
+    redirect("/login?error=provider-blocked");
   }
 
   const query = searchParams?.query?.trim() || "";

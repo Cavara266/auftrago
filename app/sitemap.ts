@@ -1,5 +1,9 @@
 import type { MetadataRoute } from "next";
 
+import { serviceCatalog } from "@/lib/service-catalog";
+
+import { categoryCatalog } from "@/lib/category-catalog";
+
 import { prisma } from "@/lib/prisma";
 import { citiesSeo } from "@/lib/city-data";
 import { regions } from "@/lib/region-data";
@@ -38,6 +42,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: path === "" ? 1 : 0.65,
   }));
 
+
+  const categoryEntries: MetadataRoute.Sitemap =
+    categoryCatalog.map((category) => ({
+      url: `${seoConfig.siteUrl}/kategorie/${category.slug}`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.82,
+    }));
+
   const serviceEntries: MetadataRoute.Sitemap = services.map((service) => ({
     url: `${seoConfig.siteUrl}/leistungen/${service}`,
     lastModified: now,
@@ -58,6 +71,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: "weekly",
     priority: 0.7,
   }));
+
+
+  /*
+   * Region × Dienstleistung
+   * Beispiele:
+   * /region/aargau/umzugsreinigung
+   * /region/zuerich/fensterreinigung
+   */
+
+  const regionServiceEntries: MetadataRoute.Sitemap =
+    regions.flatMap((region) =>
+      serviceCatalog.map((service) => ({
+        url: `${seoConfig.siteUrl}/region/${region.slug}/${service.slug}`,
+        lastModified: now,
+        changeFrequency: "weekly" as const,
+        priority: 0.72,
+      })),
+    );
 
   const combinationEntries: MetadataRoute.Sitemap = services.flatMap(
     (service) =>
@@ -118,9 +149,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const allEntries: MetadataRoute.Sitemap = [
     ...staticEntries,
+    ...categoryEntries,
     ...serviceEntries,
     ...cityEntries,
     ...regionEntries,
+    ...regionServiceEntries,
     ...combinationEntries,
     ...databaseEntries,
   ];

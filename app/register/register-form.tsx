@@ -1,7 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import {
+  useState,
+  type FormEvent,
+} from "react";
 
 const regions = [
   "Aargau",
@@ -12,43 +14,109 @@ const regions = [
   "Solothurn",
   "Zug",
   "St. Gallen",
+  "Thurgau",
+  "Schaffhausen",
+  "Schwyz",
+  "Glarus",
+  "Graubünden",
+  "Tessin",
+  "Waadt",
+  "Genf",
+  "Wallis",
+  "Neuenburg",
+  "Jura",
+  "Freiburg",
+  "Nidwalden",
+  "Obwalden",
+  "Uri",
+  "Appenzell Ausserrhoden",
+  "Appenzell Innerrhoden",
+  "Gesamte Schweiz",
 ];
 
 const categories = [
   "Hauswartung",
   "Reinigung",
+  "Umzugsreinigung",
+  "Unterhaltsreinigung",
+  "Fensterreinigung",
   "Gartenpflege",
   "Maler",
   "Gipser",
   "Sanitär",
   "Elektriker",
   "Umzug",
+  "Transport",
   "Entsorgung",
+  "Immobilien",
+  "Treuhand",
+  "Versicherungen",
+  "Solaranlagen",
+  "Wärmepumpen",
+  "Andere Dienstleistung",
 ];
 
+type RegistrationResponse = {
+  ok?: boolean;
+  error?: string;
+  checkoutUrl?: string;
+  redirectUrl?: string;
+};
+
 export default function RegisterForm() {
-  const router = useRouter();
+  const [error, setError] =
+    useState("");
 
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  const [
+    showPassword,
+    setShowPassword,
+  ] = useState(false);
+
+  async function handleSubmit(
+    event: FormEvent<HTMLFormElement>,
+  ) {
     event.preventDefault();
 
     setError("");
     setLoading(true);
 
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(
+      event.currentTarget,
+    );
 
     const payload = {
-      companyName: String(formData.get("companyName") || "").trim(),
-      contactName: String(formData.get("contactName") || "").trim(),
-      email: String(formData.get("email") || "").trim().toLowerCase(),
-      phone: String(formData.get("phone") || "").trim(),
-      region: String(formData.get("region") || "").trim(),
-      category: String(formData.get("category") || "").trim(),
-      password: String(formData.get("password") || ""),
+      companyName: String(
+        formData.get("companyName") || "",
+      ).trim(),
+
+      contactName: String(
+        formData.get("contactName") || "",
+      ).trim(),
+
+      email: String(
+        formData.get("email") || "",
+      )
+        .trim()
+        .toLowerCase(),
+
+      phone: String(
+        formData.get("phone") || "",
+      ).trim(),
+
+      region: String(
+        formData.get("region") || "",
+      ).trim(),
+
+      category: String(
+        formData.get("category") || "",
+      ).trim(),
+
+      password: String(
+        formData.get("password") || "",
+      ),
     };
 
     if (
@@ -59,47 +127,87 @@ export default function RegisterForm() {
       !payload.category ||
       !payload.password
     ) {
-      setError("Bitte alle Pflichtfelder ausfüllen.");
+      setError(
+        "Bitte alle Pflichtfelder ausfüllen.",
+      );
+
       setLoading(false);
       return;
     }
 
-    if (payload.password.length < 6) {
-      setError("Das Passwort muss mindestens 6 Zeichen haben.");
+    if (payload.password.length < 8) {
+      setError(
+        "Das Passwort muss mindestens 8 Zeichen haben.",
+      );
+
       setLoading(false);
       return;
     }
 
     try {
-      const response = await fetch("/api/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        "/api/register",
+        {
+          method: "POST",
 
-      const data = await response.json();
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+
+          body: JSON.stringify(payload),
+        },
+      );
+
+      const data =
+        (await response.json()) as RegistrationResponse;
 
       if (!response.ok || !data.ok) {
-        setError(data.error || "Registrierung fehlgeschlagen.");
+        setError(
+          data.error ||
+            "Registrierung fehlgeschlagen.",
+        );
+
         return;
       }
 
-      router.push("/login?message=registered");
+      if (data.checkoutUrl) {
+        window.location.assign(
+          data.checkoutUrl,
+        );
+
+        return;
+      }
+
+      window.location.assign(
+        data.redirectUrl ||
+          "/subscription-required",
+      );
     } catch {
-      setError("Serverfehler. Bitte später erneut versuchen.");
+      setError(
+        "Serverfehler. Bitte später erneut versuchen.",
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="register-form">
-      {error ? <div className="register-error">{error}</div> : null}
+    <form
+      onSubmit={handleSubmit}
+      className="register-form"
+    >
+      {error ? (
+        <div className="register-error">
+          {error}
+        </div>
+      ) : null}
 
       <div className="register-field">
-        <label htmlFor="companyName">Firmenname *</label>
+        <label htmlFor="companyName">
+          Firmenname *
+        </label>
+
         <input
           id="companyName"
           name="companyName"
@@ -110,7 +218,10 @@ export default function RegisterForm() {
       </div>
 
       <div className="register-field">
-        <label htmlFor="contactName">Kontaktperson *</label>
+        <label htmlFor="contactName">
+          Kontaktperson *
+        </label>
+
         <input
           id="contactName"
           name="contactName"
@@ -121,7 +232,10 @@ export default function RegisterForm() {
       </div>
 
       <div className="register-field">
-        <label htmlFor="email">E-Mail *</label>
+        <label htmlFor="email">
+          E-Mail *
+        </label>
+
         <input
           id="email"
           name="email"
@@ -133,7 +247,10 @@ export default function RegisterForm() {
       </div>
 
       <div className="register-field">
-        <label htmlFor="phone">Telefon</label>
+        <label htmlFor="phone">
+          Telefon
+        </label>
+
         <input
           id="phone"
           name="phone"
@@ -143,14 +260,28 @@ export default function RegisterForm() {
       </div>
 
       <div className="register-field">
-        <label htmlFor="region">Region *</label>
-        <select id="region" name="region" required defaultValue="">
-          <option value="" disabled>
+        <label htmlFor="region">
+          Hauptregion *
+        </label>
+
+        <select
+          id="region"
+          name="region"
+          required
+          defaultValue=""
+        >
+          <option
+            value=""
+            disabled
+          >
             Region auswählen
           </option>
 
           {regions.map((region) => (
-            <option key={region} value={region}>
+            <option
+              key={region}
+              value={region}
+            >
               {region}
             </option>
           ))}
@@ -158,46 +289,110 @@ export default function RegisterForm() {
       </div>
 
       <div className="register-field">
-        <label htmlFor="category">Kategorie *</label>
-        <select id="category" name="category" required defaultValue="">
-          <option value="" disabled>
-            Kategorie auswählen
+        <label htmlFor="category">
+          Hauptdienstleistung *
+        </label>
+
+        <select
+          id="category"
+          name="category"
+          required
+          defaultValue=""
+        >
+          <option
+            value=""
+            disabled
+          >
+            Dienstleistung auswählen
           </option>
 
-          {categories.map((category) => (
-            <option key={category} value={category}>
-              {category}
-            </option>
-          ))}
+          {categories.map(
+            (category) => (
+              <option
+                key={category}
+                value={category}
+              >
+                {category}
+              </option>
+            ),
+          )}
         </select>
       </div>
 
       <div className="register-field">
-        <label htmlFor="password">Passwort *</label>
+        <label htmlFor="password">
+          Passwort *
+        </label>
 
         <div className="register-password-row">
           <input
             id="password"
             name="password"
-            type={showPassword ? "text" : "password"}
-            placeholder="Mindestens 6 Zeichen"
+            type={
+              showPassword
+                ? "text"
+                : "password"
+            }
+            placeholder="Mindestens 8 Zeichen"
             autoComplete="new-password"
-            minLength={6}
+            minLength={8}
             required
           />
 
           <button
             type="button"
             className="register-password-toggle"
-            onClick={() => setShowPassword((value) => !value)}
+            onClick={() =>
+              setShowPassword(
+                (current) => !current,
+              )
+            }
           >
-            {showPassword ? "Ausblenden" : "Anzeigen"}
+            {showPassword
+              ? "Ausblenden"
+              : "Anzeigen"}
           </button>
         </div>
       </div>
 
-      <button type="submit" className="register-submit" disabled={loading}>
-        {loading ? "Wird registriert..." : "Anbieter-Konto erstellen"}
+      <div
+        style={{
+          marginTop: "16px",
+          padding: "15px",
+          border:
+            "1px solid rgba(245, 191, 73, 0.22)",
+          borderRadius: "13px",
+          background:
+            "rgba(245, 191, 73, 0.06)",
+          color: "#c8ccd5",
+          fontSize: "13px",
+          lineHeight: 1.65,
+        }}
+      >
+        <strong
+          style={{
+            display: "block",
+            color: "#f2ca68",
+            marginBottom: "5px",
+          }}
+        >
+          14 Tage kostenlos testen
+        </strong>
+
+        Danach CHF 69.– pro Monat.
+        Die Zahlungsmethode wird sicher über
+        Stripe hinterlegt. Das Abonnement kann
+        online verwaltet werden.
+      </div>
+
+      <button
+        type="submit"
+        className="register-submit"
+        disabled={loading}
+      >
+        {loading
+          ? "Konto wird erstellt..."
+          : "Konto erstellen und kostenlos testen"}
       </button>
     </form>
   );

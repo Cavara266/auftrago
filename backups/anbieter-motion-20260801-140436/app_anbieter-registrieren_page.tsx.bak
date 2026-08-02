@@ -1,0 +1,507 @@
+import Link from "next/link";
+
+import AnbieterRegistrierenForm from "@/components/anbieter-registrieren-form";
+
+import styles from "./anbieter.module.css";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+const platformNumbers = [
+  {
+    value: "38’000+",
+    label: "vermittelte Aufträge",
+  },
+  {
+    value: "6’500+",
+    label: "registrierte Anbieter",
+  },
+  {
+    value: "420+",
+    label: "Dienstleistungen",
+  },
+  {
+    value: "26",
+    label: "Kantone",
+  },
+];
+
+const includedFeatures = [
+  {
+    icon: "◎",
+    title: "Neue Kundenanfragen",
+    text: "Entdecke passende Leads aus deinen gewünschten Regionen und Dienstleistungen.",
+  },
+  {
+    icon: "⚡",
+    title: "Bestätigte Fixaufträge",
+    text: "Übernimm ausgewählte Aufträge mit bestätigtem Leistungsumfang und Auftragswert.",
+  },
+  {
+    icon: "◇",
+    title: "Integriertes CRM",
+    text: "Verwalte Kontakte, Offerten, Termine und den aktuellen Status deiner Kunden.",
+  },
+  {
+    icon: "▤",
+    title: "Rechnungen & Übersicht",
+    text: "Behalte Käufe, Transaktionen und wichtige Unternehmensdaten zentral im Blick.",
+  },
+  {
+    icon: "⌖",
+    title: "Individuelles Matching",
+    text: "Lege Regionen und Dienstleistungen fest, damit du relevantere Chancen erhältst.",
+  },
+  {
+    icon: "↗",
+    title: "Schneller Marktzugang",
+    text: "Starte ohne langwierige Freigabe und passe dein Firmenprofil jederzeit selbst an.",
+  },
+];
+
+const steps = [
+  {
+    number: "01",
+    title: "Firma registrieren",
+    text: "Erstelle dein Anbieterprofil in wenigen Minuten.",
+  },
+  {
+    number: "02",
+    title: "Testphase aktivieren",
+    text: "Hinterlege deine Zahlungsmethode sicher über Stripe.",
+  },
+  {
+    number: "03",
+    title: "Chancen entdecken",
+    text: "Öffne neue Leads und bestätigte Fixaufträge im Portal.",
+  },
+  {
+    number: "04",
+    title: "Neue Kunden gewinnen",
+    text: "Kontaktiere passende Interessenten und baue dein Geschäft aus.",
+  },
+];
+
+const faqItems = [
+  {
+    question: "Wann wird die erste Monatsgebühr abgerechnet?",
+    answer:
+      "Die ersten 14 Tage sind kostenlos. Danach wird die Mitgliedschaft automatisch mit CHF 69.– pro Monat verlängert.",
+  },
+  {
+    question: "Kann ich die Mitgliedschaft wieder kündigen?",
+    answer:
+      "Ja. Du kannst deine Mitgliedschaft und Zahlungsmethode über das sichere Stripe-Kundenportal verwalten.",
+  },
+  {
+    question: "Sind die Lead-Kosten in der Mitgliedschaft enthalten?",
+    answer:
+      "Die Mitgliedschaft bezahlt den Zugang zur Plattform. Credits für einzelne Kundenkontakte werden separat gekauft.",
+  },
+  {
+    question: "Muss mein Anbieterprofil zuerst manuell geprüft werden?",
+    answer:
+      "Neue Anbieter werden direkt freigeschaltet. Bei Verstössen oder Qualitätsproblemen kann ein Konto nachträglich gesperrt werden.",
+  },
+  {
+    question: "Kann ich meine Regionen und Dienstleistungen ändern?",
+    answer:
+      "Ja. Regionen, Dienstleistungen und Benachrichtigungen lassen sich jederzeit im Anbieterportal bearbeiten.",
+  },
+];
+
+export default function AnbieterRegistrierenPage() {
+  return (
+    <main className={styles.page}>
+      <div className={styles.ambientOne} />
+      <div className={styles.ambientTwo} />
+
+      <header className={styles.header}>
+        <Link href="/" className={styles.logo}>
+          <span>A</span>
+
+          <div>
+            <strong>Auftrago</strong>
+            <small>Für Anbieter</small>
+          </div>
+        </Link>
+
+        <nav className={styles.headerActions}>
+          <span>Bereits registriert?</span>
+
+          <Link href="/login" className={styles.loginButton}>
+            Einloggen
+          </Link>
+        </nav>
+      </header>
+
+      <section className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <div className={styles.eyebrow}>
+            <i />
+            Die Schweizer Auftragsplattform
+          </div>
+
+          <h1>
+            Mehr Aufträge.
+            <span>Weniger Akquise.</span>
+          </h1>
+
+          <p className={styles.heroDescription}>
+            Erhalte neue Kundenanfragen aus deiner Region, übernimm
+            bestätigte Fixaufträge und verwalte dein Geschäft in einem
+            modernen Anbieterportal.
+          </p>
+
+          <div className={styles.trustRow}>
+            <span>
+              <b>✓</b>
+              14 Tage kostenlos
+            </span>
+
+            <span>
+              <b>✓</b>
+              Jederzeit verwaltbar
+            </span>
+
+            <span>
+              <b>✓</b>
+              Keine Einrichtungsgebühr
+            </span>
+          </div>
+
+          <div className={styles.heroActions}>
+            <a href="#registrieren" className={styles.primaryCta}>
+              Kostenlos starten
+              <span>→</span>
+            </a>
+
+            <a href="#so-funktionierts" className={styles.secondaryCta}>
+              So funktioniert Auftrago
+            </a>
+          </div>
+
+          <div className={styles.heroProof}>
+            <div className={styles.avatarStack}>
+              <span>CH</span>
+              <span>AG</span>
+              <span>ZH</span>
+              <span>LU</span>
+            </div>
+
+            <p>
+              <strong>Unternehmen aus der ganzen Schweiz</strong>
+              nutzen Auftrago für neue Kundenchancen.
+            </p>
+          </div>
+        </div>
+
+        <aside className={styles.checkoutCard}>
+          <div className={styles.checkoutTop}>
+            <span className={styles.checkoutLabel}>
+              Anbieter-Mitgliedschaft
+            </span>
+
+            <span className={styles.popularBadge}>Professional</span>
+          </div>
+
+          <div className={styles.trialBadge}>
+            14 Tage kostenlos testen
+          </div>
+
+          <div className={styles.price}>
+            <strong>CHF 69.–</strong>
+            <span>
+              pro Monat
+              <small>nach der kostenlosen Testphase</small>
+            </span>
+          </div>
+
+          <div className={styles.checkoutDivider} />
+
+          <ul className={styles.checkoutBenefits}>
+            <li>Vollständiger Anbieterportal-Zugang</li>
+            <li>Neue Leads und Fixaufträge entdecken</li>
+            <li>CRM und Kontaktverwaltung inklusive</li>
+            <li>Regionen und Leistungen selbst verwalten</li>
+            <li>Keine Einrichtungsgebühr</li>
+          </ul>
+
+          <a href="#registrieren" className={styles.checkoutButton}>
+            14 Tage kostenlos starten
+            <span>→</span>
+          </a>
+
+          <p className={styles.checkoutSecurity}>
+            <span>🔒</span>
+            Sichere Abrechnung über Stripe. Heute wird keine
+            Monatsgebühr belastet.
+          </p>
+        </aside>
+      </section>
+
+      <section className={styles.numbers}>
+        {platformNumbers.map((item) => (
+          <article key={item.label}>
+            <strong>{item.value}</strong>
+            <span>{item.label}</span>
+          </article>
+        ))}
+      </section>
+
+      <section className={styles.valueSection}>
+        <div className={styles.sectionHeading}>
+          <span>Warum Auftrago?</span>
+
+          <h2>
+            Ein System für Unternehmen,
+            <em> die wachsen möchten.</em>
+          </h2>
+
+          <p>
+            Keine unübersichtlichen Tabellen und keine verstreuten
+            Kundenkontakte. Auftrago verbindet Akquise, Leadverwaltung
+            und CRM an einem Ort.
+          </p>
+        </div>
+
+        <div className={styles.featureGrid}>
+          {includedFeatures.map((feature) => (
+            <article key={feature.title}>
+              <div className={styles.featureIcon}>{feature.icon}</div>
+
+              <h3>{feature.title}</h3>
+
+              <p>{feature.text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="so-funktionierts" className={styles.stepsSection}>
+        <div className={styles.sectionHeading}>
+          <span>Einfach starten</span>
+
+          <h2>
+            Von der Registrierung
+            <em> zum nächsten Auftrag.</em>
+          </h2>
+        </div>
+
+        <div className={styles.steps}>
+          {steps.map((step) => (
+            <article key={step.number}>
+              <span>{step.number}</span>
+
+              <h3>{step.title}</h3>
+
+              <p>{step.text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.comparisonSection}>
+        <div className={styles.comparisonCopy}>
+          <span className={styles.sectionKicker}>
+            Weniger Aufwand. Mehr Möglichkeiten.
+          </span>
+
+          <h2>
+            Deine Zeit gehört deinen Kunden –
+            <em> nicht der mühsamen Akquise.</em>
+          </h2>
+
+          <p>
+            Auftrago hilft dir dabei, neue Chancen schneller zu
+            entdecken, Kontakte zu organisieren und deine Auslastung
+            gezielt zu erhöhen.
+          </p>
+        </div>
+
+        <div className={styles.comparisonGrid}>
+          <article className={styles.withoutCard}>
+            <span>Ohne zentrale Plattform</span>
+
+            <ul>
+              <li>Kunden aktiv suchen</li>
+              <li>Werbung ohne Erfolgsgarantie</li>
+              <li>Kontakte in verschiedenen Listen</li>
+              <li>Kein strukturierter Überblick</li>
+            </ul>
+          </article>
+
+          <article className={styles.withCard}>
+            <div className={styles.recommendedBadge}>
+              Mit Auftrago
+            </div>
+
+            <span>Dein digitales Anbieterportal</span>
+
+            <ul>
+              <li>Neue Kundenchancen entdecken</li>
+              <li>Regionen und Leistungen konfigurieren</li>
+              <li>Leads und Fixaufträge zentral verwalten</li>
+              <li>CRM, Rechnungen und Aktivitäten inklusive</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section className={styles.roiSection}>
+        <div className={styles.roiCopy}>
+          <span>Ein sinnvoller Geschäftsentscheid</span>
+
+          <h2>
+            Bereits ein gewonnener Auftrag kann die Mitgliedschaft
+            mehrfach finanzieren.
+          </h2>
+
+          <p>
+            Die Mitgliedschaft kostet CHF 69.– pro Monat. Welchen Wert
+            bereits ein einziger zusätzlicher Auftrag für dein
+            Unternehmen hat, entscheidest du anhand deiner eigenen
+            Dienstleistungen und Margen.
+          </p>
+        </div>
+
+        <div className={styles.roiCard}>
+          <div>
+            <span>Monatliche Mitgliedschaft</span>
+            <strong>CHF 69.–</strong>
+          </div>
+
+          <i>→</i>
+
+          <div>
+            <span>Dein nächster Auftrag</span>
+            <strong>Mehr Umsatzpotenzial</strong>
+          </div>
+
+          <small>
+            Der tatsächliche Erfolg hängt unter anderem von Region,
+            Leistung, Reaktionszeit und Angebotsqualität ab.
+          </small>
+        </div>
+      </section>
+
+      <section id="registrieren" className={styles.registrationSection}>
+        <div className={styles.registrationCopy}>
+          <span className={styles.sectionKicker}>
+            Jetzt Anbieter werden
+          </span>
+
+          <h2>
+            Dein nächster Kunde
+            <em> könnte bereits warten.</em>
+          </h2>
+
+          <p>
+            Erstelle dein Firmenprofil, aktiviere die kostenlose
+            14-Tage-Testphase und entdecke das vollständige
+            Anbieterportal.
+          </p>
+
+          <div className={styles.registrationChecklist}>
+            <span>
+              <b>01</b>
+              Konto erstellen
+            </span>
+
+            <span>
+              <b>02</b>
+              Zahlungsmethode sicher hinterlegen
+            </span>
+
+            <span>
+              <b>03</b>
+              Anbieterportal sofort nutzen
+            </span>
+          </div>
+
+          <div className={styles.registrationPromise}>
+            <strong>14 Tage kostenlos</strong>
+
+            <span>
+              Danach CHF 69.– pro Monat. Credits für einzelne
+              Kundenkontakte werden separat gekauft.
+            </span>
+          </div>
+        </div>
+
+        <div className={styles.formCard}>
+          <div className={styles.formHeading}>
+            <div>
+              <span>Anbieter-Konto</span>
+              <h3>Jetzt kostenlos starten</h3>
+            </div>
+
+            <small>ca. 2 Minuten</small>
+          </div>
+
+          <AnbieterRegistrierenForm />
+        </div>
+      </section>
+
+      <section className={styles.faqSection}>
+        <div className={styles.sectionHeading}>
+          <span>Häufige Fragen</span>
+
+          <h2>
+            Klarheit vor
+            <em> deiner Registrierung.</em>
+          </h2>
+        </div>
+
+        <div className={styles.faqList}>
+          {faqItems.map((item) => (
+            <details key={item.question}>
+              <summary>
+                {item.question}
+                <span>+</span>
+              </summary>
+
+              <p>{item.answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.finalCta}>
+        <div>
+          <span>Bereit für neue Kundenchancen?</span>
+
+          <h2>Starte jetzt 14 Tage kostenlos.</h2>
+
+          <p>
+            Erstelle dein Anbieterprofil und erhalte Zugang zur
+            vollständigen Auftrago-Plattform.
+          </p>
+        </div>
+
+        <a href="#registrieren">
+          Kostenlos registrieren
+          <span>→</span>
+        </a>
+      </section>
+
+      <footer className={styles.footer}>
+        <Link href="/" className={styles.footerLogo}>
+          Auftrago
+        </Link>
+
+        <p>
+          Die Schweizer Plattform für regionale Dienstleistungen.
+        </p>
+
+        <div>
+          <Link href="/login">Anbieter-Login</Link>
+          <Link href="/agb">AGB</Link>
+          <Link href="/datenschutz">Datenschutz</Link>
+          <Link href="/impressum">Impressum</Link>
+        </div>
+      </footer>
+    </main>
+  );
+}

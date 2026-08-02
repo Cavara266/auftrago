@@ -122,6 +122,150 @@ function formatDate(
   }).format(date);
 }
 
+function formatMembershipDate(date: Date | null) {
+  if (!date) {
+    return "Noch nicht verfügbar";
+  }
+
+  return new Intl.DateTimeFormat("de-CH", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
+
+function getRemainingTrialDays(periodEnd: Date | null) {
+  if (!periodEnd) {
+    return null;
+  }
+
+  const difference =
+    new Date(periodEnd).getTime() - Date.now();
+
+  return Math.max(
+    0,
+    Math.ceil(difference / (1000 * 60 * 60 * 24)),
+  );
+}
+
+function getMembershipInformation(provider: {
+  subscriptionExempt: boolean;
+  subscriptionStatus: string;
+  subscriptionCurrentPeriodEnd: Date | null;
+  subscriptionCancelAtPeriodEnd: boolean;
+}) {
+  const status = String(
+    provider.subscriptionStatus || "INACTIVE",
+  ).toUpperCase();
+
+  if (provider.subscriptionExempt) {
+    return {
+      eyebrow: "Bestandsanbieter",
+      title: "Dauerhaft kostenlos",
+      description:
+        "Dein Unternehmen nutzt Auftrago ohne monatliche Grundgebühr.",
+      statusLabel: "Mitgliedschaft aktiv",
+      priceLabel: "CHF 0.–",
+      dateLabel: "Keine Abbuchung",
+      tone: "free",
+      buttonLabel: "Mitgliedschaft ansehen",
+    };
+  }
+
+  if (status === "TRIALING") {
+    const remainingDays = getRemainingTrialDays(
+      provider.subscriptionCurrentPeriodEnd,
+    );
+
+    return {
+      eyebrow: "Kostenlose Testphase",
+      title:
+        remainingDays === null
+          ? "Testphase aktiv"
+          : `Noch ${remainingDays} ${
+              remainingDays === 1 ? "Tag" : "Tage"
+            } kostenlos`,
+      description:
+        "Danach wird die Mitgliedschaft automatisch für CHF 69.– pro Monat verlängert.",
+      statusLabel: "Testphase aktiv",
+      priceLabel: "Danach CHF 69.–",
+      dateLabel: provider.subscriptionCurrentPeriodEnd
+        ? `Erste Abbuchung: ${formatMembershipDate(
+            provider.subscriptionCurrentPeriodEnd,
+          )}`
+        : "Abrechnung nach der Testphase",
+      tone: "trial",
+      buttonLabel: "Zahlung verwalten",
+    };
+  }
+
+  if (status === "ACTIVE") {
+    return {
+      eyebrow: "Auftrago Professional",
+      title: "Mitgliedschaft aktiv",
+      description:
+        "Dein vollständiger Zugang zum Anbieterportal ist aktiv.",
+      statusLabel: "Aktiv",
+      priceLabel: "CHF 69.– / Monat",
+      dateLabel: provider.subscriptionCurrentPeriodEnd
+        ? `Nächste Abbuchung: ${formatMembershipDate(
+            provider.subscriptionCurrentPeriodEnd,
+          )}`
+        : "Automatische Monatsabrechnung",
+      tone: "active",
+      buttonLabel: "Abo verwalten",
+    };
+  }
+
+  if (
+    status === "CANCELED" ||
+    status === "CANCELLED" ||
+    provider.subscriptionCancelAtPeriodEnd
+  ) {
+    return {
+      eyebrow: "Mitgliedschaft",
+      title: "Abo gekündigt",
+      description:
+        "Dein Zugang bleibt bis zum Ende der aktuellen Abrechnungsperiode bestehen.",
+      statusLabel: "Gekündigt",
+      priceLabel: "Keine weitere Verlängerung",
+      dateLabel: provider.subscriptionCurrentPeriodEnd
+        ? `Zugang bis: ${formatMembershipDate(
+            provider.subscriptionCurrentPeriodEnd,
+          )}`
+        : "Enddatum noch nicht verfügbar",
+      tone: "cancelled",
+      buttonLabel: "Mitgliedschaft ansehen",
+    };
+  }
+
+  if (status === "PAST_DUE" || status === "UNPAID") {
+    return {
+      eyebrow: "Zahlung erforderlich",
+      title: "Zahlung ausstehend",
+      description:
+        "Bitte aktualisiere deine Zahlungsmethode, damit dein Zugang aktiv bleibt.",
+      statusLabel: "Zahlung offen",
+      priceLabel: "CHF 69.– / Monat",
+      dateLabel: "Zahlungsmethode prüfen",
+      tone: "warning",
+      buttonLabel: "Zahlung verwalten",
+    };
+  }
+
+  return {
+    eyebrow: "Auftrago Mitgliedschaft",
+    title: "Mitgliedschaft aktivieren",
+    description:
+      "Aktiviere deinen Anbieterzugang und nutze das vollständige Portal.",
+    statusLabel: "Nicht aktiv",
+    priceLabel: "CHF 69.– / Monat",
+    dateLabel: "14 Tage kostenlos testen",
+    tone: "inactive",
+    buttonLabel: "Mitgliedschaft starten",
+  };
+}
+
 function getAgeLabel(date: Date) {
   const difference =
     Date.now() - new Date(date).getTime();
@@ -266,6 +410,18 @@ export default async function PortalDashboardPage() {
     }),
   ]);
 
+  const membership =
+    getMembershipInformation({
+      subscriptionExempt:
+        provider.subscriptionExempt,
+      subscriptionStatus:
+        provider.subscriptionStatus,
+      subscriptionCurrentPeriodEnd:
+        provider.subscriptionCurrentPeriodEnd,
+      subscriptionCancelAtPeriodEnd:
+        provider.subscriptionCancelAtPeriodEnd,
+    });
+
   const creditStatus = getCreditStatus(
     provider.credits
   );
@@ -401,23 +557,279 @@ export default async function PortalDashboardPage() {
             </div>
           </div>
 
-          <div className="provider-hero__spotlight">
-            <span className="provider-hero__spotlight-label">
-              Bestätigte Aufträge verfügbar
-            </span>
+          <div
+            style={{
+              display: "flex",
+              minHeight: "310px",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              padding: "24px",
+              border: "1px solid rgba(255,255,255,0.10)",
+              borderRadius: "24px",
+              background:
+                "linear-gradient(155deg, rgba(16,24,42,0.98), rgba(7,12,24,0.99))",
+              boxShadow:
+                "0 24px 60px rgba(0,0,0,0.26), inset 0 1px 0 rgba(255,255,255,0.04)",
+              overflow: "hidden",
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                  gap: "14px",
+                }}
+              >
+                <div>
+                  <span
+                    style={{
+                      display: "block",
+                      color: "#7c8aa0",
+                      fontSize: "10px",
+                      fontWeight: 900,
+                      letterSpacing: "0.13em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Auftrago Mitgliedschaft
+                  </span>
 
-            <strong>
-              {availableFixedOrderCount}
-            </strong>
+                  <strong
+                    style={{
+                      display: "block",
+                      marginTop: "8px",
+                      color: "#ffffff",
+                      fontSize: "19px",
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {membership.eyebrow}
+                  </strong>
+                </div>
 
-            <p>
-              Fixaufträge können ohne erneute
-              Offertenerstellung übernommen werden.
-            </p>
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "7px",
+                    flexShrink: 0,
+                    padding: "8px 11px",
+                    border:
+                      membership.tone === "free"
+                        ? "1px solid rgba(250,204,21,0.20)"
+                        : "1px solid rgba(74,222,128,0.20)",
+                    borderRadius: "999px",
+                    background:
+                      membership.tone === "free"
+                        ? "rgba(250,204,21,0.08)"
+                        : "rgba(34,197,94,0.08)",
+                    color:
+                      membership.tone === "free"
+                        ? "#fde68a"
+                        : "#86efac",
+                    fontSize: "10px",
+                    fontWeight: 900,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  <span
+                    style={{
+                      width: "7px",
+                      height: "7px",
+                      borderRadius: "50%",
+                      background:
+                        membership.tone === "free"
+                          ? "#facc15"
+                          : "#4ade80",
+                    }}
+                  />
 
-            <Link href="/portal/fixed-orders">
-              Jetzt Fixaufträge ansehen
-              <span aria-hidden="true">↗</span>
+                  {membership.statusLabel}
+                </span>
+              </div>
+
+              <div
+                style={{
+                  height: "1px",
+                  margin: "20px 0",
+                  background:
+                    "linear-gradient(90deg, rgba(255,255,255,0.12), transparent)",
+                }}
+              />
+
+              <strong
+                style={{
+                  display: "block",
+                  color:
+                    membership.tone === "free"
+                      ? "#fde68a"
+                      : "#ffffff",
+                  fontSize: "30px",
+                  lineHeight: 1.05,
+                  letterSpacing: "-0.04em",
+                }}
+              >
+                {membership.title}
+              </strong>
+
+              <p
+                style={{
+                  margin: "10px 0 0",
+                  color: "#8b98ab",
+                  fontSize: "12px",
+                  lineHeight: 1.6,
+                }}
+              >
+                {membership.description}
+              </p>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "9px",
+                  marginTop: "20px",
+                }}
+              >
+                <div
+                  style={{
+                    padding: "13px",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: "13px",
+                    background: "rgba(255,255,255,0.025)",
+                  }}
+                >
+                  <span
+                    style={{
+                      display: "block",
+                      color: "#64748b",
+                      fontSize: "9px",
+                      fontWeight: 900,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Plan
+                  </span>
+
+                  <strong
+                    style={{
+                      display: "block",
+                      marginTop: "6px",
+                      color: "#e8edf5",
+                      fontSize: "12px",
+                    }}
+                  >
+                    {membership.tone === "free"
+                      ? "Bestandsanbieter"
+                      : membership.tone === "trial"
+                        ? "Testphase"
+                        : "Professional"}
+                  </strong>
+                </div>
+
+                <div
+                  style={{
+                    padding: "13px",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: "13px",
+                    background: "rgba(255,255,255,0.025)",
+                  }}
+                >
+                  <span
+                    style={{
+                      display: "block",
+                      color: "#64748b",
+                      fontSize: "9px",
+                      fontWeight: 900,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Preis
+                  </span>
+
+                  <strong
+                    style={{
+                      display: "block",
+                      marginTop: "6px",
+                      color: "#e8edf5",
+                      fontSize: "12px",
+                    }}
+                  >
+                    {membership.priceLabel}
+                  </strong>
+                </div>
+
+                <div
+                  style={{
+                    gridColumn: "1 / -1",
+                    padding: "13px",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: "13px",
+                    background: "rgba(255,255,255,0.025)",
+                  }}
+                >
+                  <span
+                    style={{
+                      display: "block",
+                      color: "#64748b",
+                      fontSize: "9px",
+                      fontWeight: 900,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Abrechnung
+                  </span>
+
+                  <strong
+                    style={{
+                      display: "block",
+                      marginTop: "6px",
+                      color: "#e8edf5",
+                      fontSize: "12px",
+                      lineHeight: 1.35,
+                    }}
+                  >
+                    {membership.dateLabel}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            <Link
+              href={
+                membership.tone === "inactive"
+                  ? "/subscription-required"
+                  : "/portal/abo"
+              }
+              style={{
+                display: "flex",
+                minHeight: "48px",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginTop: "20px",
+                padding: "12px 15px",
+                border:
+                  membership.tone === "free"
+                    ? "1px solid rgba(250,204,21,0.18)"
+                    : "1px solid rgba(125,211,252,0.18)",
+                borderRadius: "13px",
+                background:
+                  membership.tone === "free"
+                    ? "rgba(250,204,21,0.07)"
+                    : "rgba(56,189,248,0.08)",
+                color:
+                  membership.tone === "free"
+                    ? "#fde68a"
+                    : "#dff6ff",
+                fontSize: "12px",
+                fontWeight: 900,
+                textDecoration: "none",
+              }}
+            >
+              {membership.buttonLabel}
+              <span aria-hidden="true">→</span>
             </Link>
           </div>
         </section>

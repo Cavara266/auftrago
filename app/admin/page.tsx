@@ -107,6 +107,12 @@ export default async function AdminDashboardPage() {
     pendingProviderCount,
     approvedProviderCount,
     blockedProviderCount,
+    activeSubscriptionCount,
+    trialSubscriptionCount,
+    manualSubscriptionCount,
+    paymentProblemSubscriptionCount,
+    cancelledSubscriptionCount,
+    noLeadAccessCount,
     providersToday,
     providersLast7,
     providersPrevious7,
@@ -213,6 +219,60 @@ export default async function AdminDashboardPage() {
     prisma.provider.count({ where: { status: "PENDING" } }),
     prisma.provider.count({ where: { status: "APPROVED" } }),
     prisma.provider.count({ where: { status: "BLOCKED" } }),
+
+    prisma.provider.count({
+      where: {
+        subscriptionExempt: false,
+        subscriptionStatus: "ACTIVE",
+      },
+    }),
+
+    prisma.provider.count({
+      where: {
+        subscriptionExempt: false,
+        subscriptionStatus: "TRIALING",
+      },
+    }),
+
+    prisma.provider.count({
+      where: {
+        subscriptionExempt: true,
+      },
+    }),
+
+    prisma.provider.count({
+      where: {
+        subscriptionStatus: {
+          in: ["PAST_DUE", "UNPAID", "INCOMPLETE"],
+        },
+      },
+    }),
+
+    prisma.provider.count({
+      where: {
+        OR: [
+          {
+            subscriptionStatus: {
+              in: ["CANCELED", "CANCELLED"],
+            },
+          },
+          {
+            subscriptionCancelAtPeriodEnd: true,
+          },
+        ],
+      },
+    }),
+
+    prisma.provider.count({
+      where: {
+        status: "APPROVED",
+        subscriptionExempt: false,
+        subscriptionStatus: {
+          notIn: ["ACTIVE", "TRIALING"],
+        },
+      },
+    }),
+
     prisma.provider.count({ where: { createdAt: { gte: today } } }),
     prisma.provider.count({ where: { createdAt: { gte: last7Days } } }),
     prisma.provider.count({
@@ -824,6 +884,175 @@ export default async function AdminDashboardPage() {
             <b>Jetzt prüfen →</b>
           </Link>
         ) : null}
+
+        <section
+          style={{
+            marginBottom: 24,
+            overflow: "hidden",
+            border: "1px solid rgba(56,189,248,0.18)",
+            borderRadius: 28,
+            background:
+              "radial-gradient(circle at 90% 0%, rgba(56,189,248,0.14), transparent 34%), linear-gradient(145deg, rgba(15,23,42,0.98), rgba(7,11,20,0.98))",
+            padding: 26,
+          }}
+          aria-label="Abonnements und Lead-Zugriff"
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              gap: 20,
+              flexWrap: "wrap",
+            }}
+          >
+            <div>
+              <span
+                style={{
+                  color: "#7dd3fc",
+                  fontSize: 11,
+                  fontWeight: 900,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Anbieter-Mitgliedschaften
+              </span>
+
+              <h2
+                style={{
+                  marginTop: 9,
+                  marginBottom: 7,
+                  color: "#ffffff",
+                  fontSize: 27,
+                }}
+              >
+                Abonnements & Lead-Zugriff
+              </h2>
+
+              <p
+                style={{
+                  margin: 0,
+                  color: "#94a3b8",
+                  lineHeight: 1.65,
+                }}
+              >
+                Aktive Stripe-Abos, Testphasen, manuelle Freigaben und
+                gesperrte Anbieter zentral überwachen.
+              </p>
+            </div>
+
+            <Link
+              href="/admin/providers"
+              className="admin-btn admin-btn-primary"
+            >
+              Anbieter-Abos verwalten
+            </Link>
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(170px, 1fr))",
+              gap: 12,
+              marginTop: 22,
+            }}
+          >
+            {[
+              {
+                label: "Aktive Abos",
+                value: activeSubscriptionCount,
+                detail: "Stripe ACTIVE",
+                color: "#86efac",
+                href: "/admin/providers?subscription=ACTIVE",
+              },
+              {
+                label: "Testphase",
+                value: trialSubscriptionCount,
+                detail: "Stripe TRIALING",
+                color: "#fde68a",
+                href: "/admin/providers?subscription=TRIALING",
+              },
+              {
+                label: "Manuell frei",
+                value: manualSubscriptionCount,
+                detail: "Admin-Ausnahme",
+                color: "#c4b5fd",
+                href: "/admin/providers?subscription=MANUAL",
+              },
+              {
+                label: "Zahlung offen",
+                value: paymentProblemSubscriptionCount,
+                detail: "Past due / unpaid",
+                color: "#fdba74",
+                href: "/admin/providers?subscription=PAYMENT_PROBLEM",
+              },
+              {
+                label: "Gekündigt",
+                value: cancelledSubscriptionCount,
+                detail: "Beendet oder vorgemerkt",
+                color: "#fda4af",
+                href: "/admin/providers?subscription=CANCELLED",
+              },
+              {
+                label: "Kein Lead-Zugriff",
+                value: noLeadAccessCount,
+                detail: "Genehmigt, aber ohne Abo",
+                color: "#fca5a5",
+                href: "/admin/providers?subscription=NO_ACCESS",
+              },
+            ].map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                style={{
+                  display: "block",
+                  padding: 17,
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: 17,
+                  background: "rgba(255,255,255,0.035)",
+                  textDecoration: "none",
+                }}
+              >
+                <span
+                  style={{
+                    display: "block",
+                    color: "#94a3b8",
+                    fontSize: 10,
+                    fontWeight: 900,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {item.label}
+                </span>
+
+                <strong
+                  style={{
+                    display: "block",
+                    marginTop: 10,
+                    color: item.color,
+                    fontSize: 30,
+                    lineHeight: 1,
+                  }}
+                >
+                  {item.value}
+                </strong>
+
+                <small
+                  style={{
+                    display: "block",
+                    marginTop: 8,
+                    color: "#64748b",
+                  }}
+                >
+                  {item.detail}
+                </small>
+              </Link>
+            ))}
+          </div>
+        </section>
 
         <section
           style={{

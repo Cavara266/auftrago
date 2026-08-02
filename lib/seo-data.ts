@@ -1,61 +1,14 @@
-export const services = [
-  "reinigung",
-  "umzugsreinigung",
-  "hauswartung",
-  "treppenhausreinigung",
-  "bueroreinigung",
-  "gartenpflege",
-  "umzug",
-  "transport",
-  "entsorgung",
-  "maler",
-  "bodenleger",
-  "elektriker",
-  "sanitaer",
-  "fensterreinigung",
-  "baureinigung",
-  "end-reinigung",
-  "gebaeudereinigung",
-  "winterdienst",
-  "kellerraeumung",
-  "moebeltransport",
-  "wohnungsreinigung",
-  "unterhaltsreinigung",
-  "praxisreinigung",
-  "fassadenreinigung",
-  "heckenschnitt",
-  "rasenpflege",
-  "liegenschaftsunterhalt",
-  "hausmeisterservice",
-  "raeumung",
-  "estrichraeumung",
-  "hauswartfirma",
-  "hauswartservice",
-  "hauswartarbeiten",
-  "gartenunterhalt",
-  "baumschnitt",
-  "entruempelung",
-  "haushaltsaufloesung",
-  "glasreinigung",
-  "storenreinigung",
-  "wintergartenreinigung",
-  "kleintransport",
-  "firmenumzug",
-  "privatumzug",
-  "dachreinigung",
-  "dachwartung",
-  "sanitaerservice",
-  "heizungsservice",
-  "elektroinstallationen",
-  "elektroservice",
-  "parkettlegen",
-  "laminat-verlegen",
-  "objektbetreuung",
-  "bueroumzug",
-  "lagerraeumung",
-  "schneeraeumung",
-  "salzdienst",
-];
+import {
+  serviceLabels,
+  services,
+} from "@/lib/service-catalog";
+
+export {
+  serviceCatalog,
+  serviceCategoryBySlug,
+  serviceLabels,
+  services,
+} from "@/lib/service-catalog";
 
 export const cities = [
   "zuerich",
@@ -190,6 +143,7 @@ function capitalizeWord(word: string) {
 
 export function formatText(value: string) {
   if (labelMap[value]) return labelMap[value];
+  if (serviceLabels[value]) return serviceLabels[value];
 
   return value
     .split("-")

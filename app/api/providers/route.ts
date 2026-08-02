@@ -219,7 +219,7 @@ export async function POST(req: Request) {
         category,
         description: description || null,
         credits: 0,
-        status: "PENDING",
+        status: "APPROVED",
       },
       select: {
         id: true,

@@ -1,0 +1,224 @@
+export type Region = {
+  slug: string;
+  name: string;
+  shortName: string;
+  description: string;
+  longDescription: string;
+  popularServices: string[];
+  cities: string[];
+};
+
+export const regions: Region[] = [
+  {
+    slug: "aargau",
+    description: "Regionale Anbieter und Dienstleistungen im Kanton Aargau vergleichen.",
+    longDescription: "Vergleiche regionale Anbieter im Kanton Aargau für Reinigung, Umzug, Handwerk, Garten, Immobilien und viele weitere Dienstleistungen. Mit Auftrago beschreibst du deinen Auftrag einmal und erhältst passende Offerten von Anbietern aus deiner Region.",
+    popularServices: [
+      "reinigung",
+      "umzugsreinigung",
+      "hauswartung",
+      "umzug",
+      "gartenpflege",
+      "maler",
+      "elektriker",
+      "sanitaer"
+    ],
+    longDescription: "Vergleiche regionale Anbieter im Kanton Aargau für Reinigung, Umzug, Handwerk, Garten, Immobilien und viele weitere Dienstleistungen. Mit Auftrago beschreibst du deinen Auftrag einmal und erhältst passende Offerten von Anbietern aus deiner Region.",
+    popularServices: [
+      "reinigung",
+      "umzugsreinigung",
+      "hauswartung",
+      "umzug",
+      "gartenpflege",
+      "maler",
+      "elektriker",
+      "sanitaer"
+    ],
+    name: "Kanton Aargau",
+    shortName: "Aargau",
+    cities: [
+      "aarau",
+      "baden",
+      "wohlen",
+      "mellingen",
+      "lenzburg",
+      "zofingen",
+      "rheinfelden",
+      "brugg",
+      "spreitenbach",
+      "oftringen",
+      "villmergen",
+      "dottikon",
+      "suhr",
+      "reinach-ag",
+      "muri-ag",
+    ],
+  },
+  {
+    slug: "zuerich",
+    description: "Regionale Anbieter und Dienstleistungen im Kanton Zürich vergleichen.",
+    longDescription: "Finde passende Anbieter im Kanton Zürich und vergleiche Offerten für Reinigung, Umzug, Handwerk, Gartenpflege, Immobilien und weitere Dienstleistungen. Auftrago verbindet dich mit regionalen Fachbetrieben.",
+    popularServices: [
+      "reinigung",
+      "umzugsreinigung",
+      "fensterreinigung",
+      "umzug",
+      "hauswartung",
+      "maler",
+      "elektriker",
+      "gartenpflege"
+    ],
+    longDescription: "Finde passende Anbieter im Kanton Zürich und vergleiche Offerten für Reinigung, Umzug, Handwerk, Gartenpflege, Immobilien und weitere Dienstleistungen. Auftrago verbindet dich mit regionalen Fachbetrieben.",
+    popularServices: [
+      "reinigung",
+      "umzugsreinigung",
+      "fensterreinigung",
+      "umzug",
+      "hauswartung",
+      "maler",
+      "elektriker",
+      "gartenpflege"
+    ],
+    name: "Kanton Zürich",
+    shortName: "Zürich",
+    cities: [
+      "zuerich",
+      "winterthur",
+      "uster",
+      "dietikon",
+      "buelach",
+      "waedenswil",
+      "duebendorf",
+      "kloten",
+      "opfikon",
+      "thalwil",
+      "adliswil",
+      "horgen",
+      "regensdorf",
+      "schlieren",
+      "meilen",
+    ],
+  },
+  {
+    slug: "luzern",
+    description: "Regionale Anbieter und Dienstleistungen im Kanton Luzern vergleichen.",
+    longDescription: "Vergleiche Dienstleister im Kanton Luzern für Reinigung, Hauswartung, Umzug, Transport, Garten und Handwerk. Stelle kostenlos eine Anfrage und erhalte passende Offerten aus der Region.",
+    popularServices: [
+      "reinigung",
+      "umzugsreinigung",
+      "hauswartung",
+      "umzug",
+      "transport",
+      "gartenpflege",
+      "maler",
+      "sanitaer"
+    ],
+    longDescription: "Vergleiche Dienstleister im Kanton Luzern für Reinigung, Hauswartung, Umzug, Transport, Garten und Handwerk. Stelle kostenlos eine Anfrage und erhalte passende Offerten aus der Region.",
+    popularServices: [
+      "reinigung",
+      "umzugsreinigung",
+      "hauswartung",
+      "umzug",
+      "transport",
+      "gartenpflege",
+      "maler",
+      "sanitaer"
+    ],
+    name: "Kanton Luzern",
+    shortName: "Luzern",
+    cities: [
+      "luzern",
+      "kriens",
+      "emmen",
+      "horw",
+      "sursee",
+      "ebikon",
+      "malters",
+      "hochdorf",
+    ],
+  },
+  {
+    slug: "basel",
+    description: "Regionale Anbieter und Dienstleistungen in der Region Basel vergleichen.",
+    longDescription: "Finde regionale Anbieter in Basel und Umgebung für Reinigung, Umzug, Handwerk, Gartenpflege und Immobilienservices. Vergleiche mehrere Offerten kostenlos und unverbindlich.",
+    popularServices: [
+      "reinigung",
+      "umzugsreinigung",
+      "fensterreinigung",
+      "umzug",
+      "entsorgung",
+      "maler",
+      "elektriker",
+      "sanitaer"
+    ],
+    longDescription: "Finde regionale Anbieter in Basel und Umgebung für Reinigung, Umzug, Handwerk, Gartenpflege und Immobilienservices. Vergleiche mehrere Offerten kostenlos und unverbindlich.",
+    popularServices: [
+      "reinigung",
+      "umzugsreinigung",
+      "fensterreinigung",
+      "umzug",
+      "entsorgung",
+      "maler",
+      "elektriker",
+      "sanitaer"
+    ],
+    name: "Basel",
+    shortName: "Basel",
+    cities: [
+      "basel",
+      "liestal",
+      "muttenz",
+      "allschwil",
+      "pratteln",
+      "binningen",
+      "therwil",
+      "reinach-bl",
+    ],
+  },
+  {
+    slug: "bern",
+    description: "Regionale Anbieter und Dienstleistungen im Kanton Bern vergleichen.",
+    longDescription: "Vergleiche Anbieter im Kanton Bern für Reinigung, Umzug, Hauswartung, Handwerk, Garten und weitere Dienstleistungen. Mit Auftrago findest du passende regionale Fachbetriebe für deinen Auftrag.",
+    popularServices: [
+      "reinigung",
+      "umzugsreinigung",
+      "hauswartung",
+      "umzug",
+      "gartenpflege",
+      "maler",
+      "elektriker",
+      "sanitaer"
+    ],
+    longDescription: "Vergleiche Anbieter im Kanton Bern für Reinigung, Umzug, Hauswartung, Handwerk, Garten und weitere Dienstleistungen. Mit Auftrago findest du passende regionale Fachbetriebe für deinen Auftrag.",
+    popularServices: [
+      "reinigung",
+      "umzugsreinigung",
+      "hauswartung",
+      "umzug",
+      "gartenpflege",
+      "maler",
+      "elektriker",
+      "sanitaer"
+    ],
+    name: "Kanton Bern",
+    shortName: "Bern",
+    cities: [
+      "bern",
+      "thun",
+      "biel",
+      "burgdorf",
+      "langenthal",
+      "interlaken",
+      "muri-bei-bern",
+    ],
+  },
+];
+
+export function getRegionBySlug(slug: string) {
+  return regions.find((region) => region.slug === slug);
+}
+
+
+export function getRegion(slug: string) {
+  return getRegionBySlug(slug);
+}

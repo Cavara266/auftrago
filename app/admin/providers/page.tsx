@@ -1,8 +1,11 @@
 import Link from "next/link";
+import type { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { sendProviderApprovalMail } from "@/lib/provider-approval-mail";
+import { hasSubscriptionAccess } from "@/lib/provider-subscription";
+import { updateSubscriptionExemption } from "./[id]/subscription-actions";
 import SetProviderPassword from "./set-provider-password";
 
 type ProviderStatus = "PENDING" | "APPROVED" | "BLOCKED";
@@ -45,6 +48,156 @@ function formatMoney(amountInRappen: number) {
     currency: "CHF",
     minimumFractionDigits: 2,
   }).format(amountInRappen / 100);
+}
+
+function formatOptionalDate(date: Date | null) {
+  if (!date) return "–";
+
+  return new Intl.DateTimeFormat("de-CH", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
+
+function getSubscriptionPresentation(provider: {
+  status: string;
+  subscriptionExempt: boolean;
+  subscriptionStatus: string | null;
+  subscriptionCancelAtPeriodEnd: boolean;
+}) {
+  const status = String(
+    provider.subscriptionStatus || "INACTIVE"
+  ).toUpperCase();
+
+  const hasAccess =
+    provider.status === "APPROVED" &&
+    hasSubscriptionAccess(provider);
+
+  if (provider.subscriptionExempt) {
+    return {
+      label: "Manuell",
+      detail: "Admin-Freischaltung",
+      className: "subscription-manual",
+      hasAccess,
+    };
+  }
+
+  if (
+    provider.subscriptionCancelAtPeriodEnd &&
+    ["ACTIVE", "TRIALING"].includes(status)
+  ) {
+    return {
+      label: "Gekündigt",
+      detail: "Zugang bis Periodenende",
+      className: "subscription-cancelled",
+      hasAccess,
+    };
+  }
+
+  if (status === "ACTIVE") {
+    return {
+      label: "Aktiv",
+      detail: "Stripe-Abonnement",
+      className: "subscription-active",
+      hasAccess,
+    };
+  }
+
+  if (status === "TRIALING") {
+    return {
+      label: "Testphase",
+      detail: "Stripe Trial",
+      className: "subscription-trial",
+      hasAccess,
+    };
+  }
+
+  if (
+    ["PAST_DUE", "UNPAID", "INCOMPLETE"].includes(status)
+  ) {
+    return {
+      label: "Zahlung offen",
+      detail: status,
+      className: "subscription-warning",
+      hasAccess,
+    };
+  }
+
+  if (["CANCELED", "CANCELLED"].includes(status)) {
+    return {
+      label: "Gekündigt",
+      detail: "Kein aktives Abo",
+      className: "subscription-cancelled",
+      hasAccess,
+    };
+  }
+
+  return {
+    label: "Kein Abo",
+    detail: "Lead-Zugriff gesperrt",
+    className: "subscription-inactive",
+    hasAccess,
+  };
+}
+
+function getSubscriptionWhere(
+  filter: string,
+): Prisma.ProviderWhereInput {
+  if (filter === "ACTIVE") {
+    return {
+      subscriptionExempt: false,
+      subscriptionStatus: "ACTIVE",
+    };
+  }
+
+  if (filter === "TRIALING") {
+    return {
+      subscriptionExempt: false,
+      subscriptionStatus: "TRIALING",
+    };
+  }
+
+  if (filter === "MANUAL") {
+    return {
+      subscriptionExempt: true,
+    };
+  }
+
+  if (filter === "PAYMENT_PROBLEM") {
+    return {
+      subscriptionStatus: {
+        in: ["PAST_DUE", "UNPAID", "INCOMPLETE"],
+      },
+    };
+  }
+
+  if (filter === "CANCELLED") {
+    return {
+      OR: [
+        {
+          subscriptionStatus: {
+            in: ["CANCELED", "CANCELLED"],
+          },
+        },
+        {
+          subscriptionCancelAtPeriodEnd: true,
+        },
+      ],
+    };
+  }
+
+  if (filter === "NO_ACCESS") {
+    return {
+      status: "APPROVED",
+      subscriptionExempt: false,
+      subscriptionStatus: {
+        notIn: ["ACTIVE", "TRIALING"],
+      },
+    };
+  }
+
+  return {};
 }
 
 async function updateProvider(formData: FormData) {
@@ -223,12 +376,16 @@ export default async function AdminProvidersPage({
   searchParams?: {
     q?: string;
     status?: string;
+    subscription?: string;
     message?: string;
     error?: string;
   };
 }) {
   const q = String(searchParams?.q || "").trim();
   const statusFilter = String(searchParams?.status || "ALL").trim();
+  const subscriptionFilter = String(
+    searchParams?.subscription || "ALL"
+  ).trim();
   const message = String(searchParams?.message || "").trim();
   const error = String(searchParams?.error || "").trim();
 
@@ -250,6 +407,9 @@ export default async function AdminProvidersPage({
             : {},
           statusFilter !== "ALL"
             ? { status: statusFilter as ProviderStatus }
+            : {},
+          subscriptionFilter !== "ALL"
+            ? getSubscriptionWhere(subscriptionFilter)
             : {},
         ],
       },
@@ -282,6 +442,28 @@ export default async function AdminProvidersPage({
     ? Math.round((approvedCount / totalProviders) * 100)
     : 0;
 
+  const activeSubscriptionCount = allProviders.filter(
+    (provider) =>
+      !provider.subscriptionExempt &&
+      provider.subscriptionStatus === "ACTIVE"
+  ).length;
+
+  const trialSubscriptionCount = allProviders.filter(
+    (provider) =>
+      !provider.subscriptionExempt &&
+      provider.subscriptionStatus === "TRIALING"
+  ).length;
+
+  const manualSubscriptionCount = allProviders.filter(
+    (provider) => provider.subscriptionExempt
+  ).length;
+
+  const providersWithLeadAccess = allProviders.filter(
+    (provider) =>
+      provider.status === "APPROVED" &&
+      hasSubscriptionAccess(provider)
+  ).length;
+
   return (
     <main className="providers-page">
       <style suppressHydrationWarning>{`
@@ -307,7 +489,7 @@ export default async function AdminProvidersPage({
         .stat-label{display:block;color:#94a3b8;font-size:11px;font-weight:900;letter-spacing:.10em;text-transform:uppercase}
         .stat-value{display:block;margin-top:24px;font-size:32px;line-height:1;font-weight:950;letter-spacing:-.04em}
         .stat-note{display:block;margin-top:11px;color:#64748b;font-size:12px}
-        .toolbar{display:grid;grid-template-columns:minmax(0,1fr) 220px auto auto;gap:12px;margin-top:26px;padding:18px;border-radius:24px;background:rgba(15,23,42,.78);border:1px solid rgba(255,255,255,.09);backdrop-filter:blur(18px)}
+        .toolbar{display:grid;grid-template-columns:minmax(0,1fr) 190px 210px auto auto;gap:12px;margin-top:26px;padding:18px;border-radius:24px;background:rgba(15,23,42,.78);border:1px solid rgba(255,255,255,.09);backdrop-filter:blur(18px)}
         .field{width:100%;min-height:48px;padding:0 15px;border-radius:14px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.055);color:#f8fafc;outline:none}
         .field::placeholder{color:#64748b}
         .field:focus{border-color:rgba(56,189,248,.55);box-shadow:0 0 0 4px rgba(56,189,248,.08)}
@@ -334,6 +516,21 @@ export default async function AdminProvidersPage({
         .status-blocked{color:#fecaca;background:rgba(239,68,68,.10);border:1px solid rgba(239,68,68,.20)}
         .status-blocked:before{background:#ef4444}
         .credit{font-weight:950;color:#fde68a}
+        .subscription-badge{display:inline-flex;align-items:center;padding:7px 10px;border-radius:999px;font-size:11px;font-weight:900;white-space:nowrap}
+        .subscription-active{color:#bbf7d0;background:rgba(34,197,94,.10);border:1px solid rgba(34,197,94,.24)}
+        .subscription-trial{color:#fde68a;background:rgba(250,204,21,.10);border:1px solid rgba(250,204,21,.24)}
+        .subscription-manual{color:#ddd6fe;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.26)}
+        .subscription-warning{color:#fed7aa;background:rgba(249,115,22,.11);border:1px solid rgba(249,115,22,.25)}
+        .subscription-cancelled{color:#fecdd3;background:rgba(244,63,94,.10);border:1px solid rgba(244,63,94,.24)}
+        .subscription-inactive{color:#fecaca;background:rgba(239,68,68,.10);border:1px solid rgba(239,68,68,.22)}
+        .subscription-detail{display:block;margin-top:6px;color:#64748b;font-size:11px}
+        .subscription-access{display:block;margin-top:7px;font-size:11px;font-weight:900}
+        .subscription-access-yes{color:#86efac}
+        .subscription-access-no{color:#fca5a5}
+        .subscription-panel{margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.08)}
+        .subscription-panel-grid{display:grid;gap:10px;margin-top:14px}
+        .subscription-panel-row{display:flex;justify-content:space-between;gap:14px;color:#94a3b8;font-size:12px}
+        .subscription-panel-row strong{color:#f8fafc;text-align:right}
         .muted{color:#94a3b8;font-size:13px}
         .row-actions{display:flex;gap:8px;align-items:center;justify-content:flex-end}
         .mini{min-height:37px;padding:0 12px;border-radius:11px;font-size:12px}
@@ -404,6 +601,10 @@ export default async function AdminProvidersPage({
           <div className="stat"><span className="stat-label">Credits</span><strong className="stat-value">{totalCredits}</strong><span className="stat-note">Aktuelle Kontostände</span></div>
           <div className="stat"><span className="stat-label">Leadkäufe</span><strong className="stat-value">{totalPurchases}</strong><span className="stat-note">Alle Anbieter</span></div>
           <div className="stat"><span className="stat-label">Umsatz</span><strong className="stat-value">{formatMoney(totalRevenue)}</strong><span className="stat-note">Bezahlte Creditpakete</span></div>
+          <div className="stat"><span className="stat-label">Aktive Abos</span><strong className="stat-value">{activeSubscriptionCount}</strong><span className="stat-note">Stripe ACTIVE</span></div>
+          <div className="stat"><span className="stat-label">Testphase</span><strong className="stat-value">{trialSubscriptionCount}</strong><span className="stat-note">Stripe TRIALING</span></div>
+          <div className="stat"><span className="stat-label">Manuell frei</span><strong className="stat-value">{manualSubscriptionCount}</strong><span className="stat-note">Admin-Ausnahmen</span></div>
+          <div className="stat"><span className="stat-label">Lead-Zugriff</span><strong className="stat-value">{providersWithLeadAccess}</strong><span className="stat-note">Aktuell freigeschaltet</span></div>
         </section>
 
         <form className="toolbar">
@@ -414,6 +615,21 @@ export default async function AdminProvidersPage({
             <option value="APPROVED">Genehmigt</option>
             <option value="BLOCKED">Gesperrt</option>
           </select>
+
+          <select
+            className="field"
+            name="subscription"
+            defaultValue={subscriptionFilter}
+          >
+            <option value="ALL">Alle Abos</option>
+            <option value="ACTIVE">Aktive Abos</option>
+            <option value="TRIALING">Testphase</option>
+            <option value="MANUAL">Manuell freigeschaltet</option>
+            <option value="PAYMENT_PROBLEM">Zahlung offen</option>
+            <option value="CANCELLED">Gekündigt</option>
+            <option value="NO_ACCESS">Kein Lead-Zugriff</option>
+          </select>
+
           <button type="submit" className="button button-primary">Suchen</button>
           <Link href="/admin/providers" className="button button-secondary">Zurücksetzen</Link>
         </form>
@@ -437,6 +653,7 @@ export default async function AdminProvidersPage({
                     <tr>
                       <th>Anbieter</th>
                       <th>Status</th>
+                      <th>Abo & Zugriff</th>
                       <th>Region / Kategorie</th>
                       <th>Credits</th>
                       <th>Leadkäufe</th>
@@ -447,6 +664,9 @@ export default async function AdminProvidersPage({
                   </thead>
                   <tbody>
                     {providers.map((provider) => {
+                      const subscription =
+                        getSubscriptionPresentation(provider);
+
                       const creditRevenue = provider.creditPurchases
                         .filter((purchase) => purchase.status === "paid")
                         .reduce((sum, purchase) => sum + purchase.amount, 0);
@@ -463,6 +683,29 @@ export default async function AdminProvidersPage({
                             </div>
                           </td>
                           <td><span className={statusClass(provider.status)}>{statusLabel(provider.status)}</span></td>
+                          <td>
+                            <span
+                              className={`subscription-badge ${subscription.className}`}
+                            >
+                              {subscription.label}
+                            </span>
+
+                            <span className="subscription-detail">
+                              {subscription.detail}
+                            </span>
+
+                            <span
+                              className={`subscription-access ${
+                                subscription.hasAccess
+                                  ? "subscription-access-yes"
+                                  : "subscription-access-no"
+                              }`}
+                            >
+                              {subscription.hasAccess
+                                ? "✓ Leads freigeschaltet"
+                                : "✕ Leads gesperrt"}
+                            </span>
+                          </td>
                           <td><div className="muted">{provider.region || "Keine Region"}</div><div className="provider-sub">{provider.category || "Keine Kategorie"}</div></td>
                           <td><span className="credit">{provider.credits}</span></td>
                           <td><strong>{provider.purchases.length}</strong></td>
@@ -492,6 +735,9 @@ export default async function AdminProvidersPage({
               </div>
 
               {providers.map((provider) => {
+                const subscription =
+                  getSubscriptionPresentation(provider);
+
                 const creditRevenue = provider.creditPurchases
                   .filter((purchase) => purchase.status === "paid")
                   .reduce((sum, purchase) => sum + purchase.amount, 0);
@@ -538,6 +784,117 @@ export default async function AdminProvidersPage({
                             <input type="hidden" name="id" value={provider.id} />
                             <input type="hidden" name="status" value="BLOCKED" />
                             <button className="button button-danger" style={{ width: "100%" }}>🔴 Anbieter sperren</button>
+                          </form>
+                        </div>
+
+                        <div className="subscription-panel">
+                          <h3>Abonnement & Lead-Zugriff</h3>
+
+                          <span
+                            className={`subscription-badge ${subscription.className}`}
+                          >
+                            {subscription.label}
+                          </span>
+
+                          <span
+                            className={`subscription-access ${
+                              subscription.hasAccess
+                                ? "subscription-access-yes"
+                                : "subscription-access-no"
+                            }`}
+                          >
+                            {subscription.hasAccess
+                              ? "✓ Anbieter kann Leads ansehen"
+                              : "✕ Lead-Zugriff ist gesperrt"}
+                          </span>
+
+                          <div className="subscription-panel-grid">
+                            <div className="subscription-panel-row">
+                              <span>Stripe-Status</span>
+                              <strong>
+                                {provider.subscriptionStatus || "INACTIVE"}
+                              </strong>
+                            </div>
+
+                            <div className="subscription-panel-row">
+                              <span>Abo gestartet</span>
+                              <strong>
+                                {formatOptionalDate(
+                                  provider.subscriptionStartedAt
+                                )}
+                              </strong>
+                            </div>
+
+                            <div className="subscription-panel-row">
+                              <span>Nächste Zahlung / Ablauf</span>
+                              <strong>
+                                {formatOptionalDate(
+                                  provider.subscriptionCurrentPeriodEnd
+                                )}
+                              </strong>
+                            </div>
+
+                            <div className="subscription-panel-row">
+                              <span>Kündigung vorgemerkt</span>
+                              <strong>
+                                {provider.subscriptionCancelAtPeriodEnd
+                                  ? "Ja"
+                                  : "Nein"}
+                              </strong>
+                            </div>
+
+                            <div className="subscription-panel-row">
+                              <span>Stripe-Kunde</span>
+                              <strong>
+                                {provider.stripeCustomerId
+                                  ? "Vorhanden"
+                                  : "Nicht vorhanden"}
+                              </strong>
+                            </div>
+
+                            <div className="subscription-panel-row">
+                              <span>Stripe-Abonnement</span>
+                              <strong>
+                                {provider.stripeSubscriptionId
+                                  ? "Vorhanden"
+                                  : "Nicht vorhanden"}
+                              </strong>
+                            </div>
+                          </div>
+
+                          <form
+                            action={updateSubscriptionExemption}
+                            style={{ marginTop: 15 }}
+                          >
+                            <input
+                              type="hidden"
+                              name="providerId"
+                              value={provider.id}
+                            />
+
+                            <input
+                              type="hidden"
+                              name="exempt"
+                              value={
+                                provider.subscriptionExempt
+                                  ? "false"
+                                  : "true"
+                              }
+                            />
+
+                            <button
+                              type="submit"
+                              className={
+                                provider.subscriptionExempt
+                                  ? "button button-danger"
+                                  : "button button-primary"
+                              }
+                              style={{ width: "100%" }}
+                            >
+                              {provider.subscriptionExempt
+                                ? "Manuelle Freischaltung entfernen"
+                                : "Manuell für Leads freischalten"}
+                            </button>
                           </form>
                         </div>
 

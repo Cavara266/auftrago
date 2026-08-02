@@ -1,0 +1,350 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { requireUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import styles from "./abo.module.css";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+type SearchParams = {
+  success?: string;
+  cancelled?: string;
+  error?: string;
+};
+
+type AboPageProps = {
+  searchParams?: Promise<SearchParams> | SearchParams;
+};
+
+function formatDate(date: Date | null): string {
+  if (!date) {
+    return "Noch nicht verfügbar";
+  }
+
+  return new Intl.DateTimeFormat("de-CH", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
+
+function getStatusLabel(
+  status: string,
+  subscriptionExempt: boolean,
+): string {
+  if (subscriptionExempt) {
+    return "Dauerhaft kostenlos";
+  }
+
+  switch (status.toUpperCase()) {
+    case "ACTIVE":
+      return "Aktiv";
+
+    case "TRIALING":
+      return "Testphase aktiv";
+
+    case "PAST_DUE":
+      return "Zahlung ausstehend";
+
+    case "UNPAID":
+      return "Nicht bezahlt";
+
+    case "CANCELED":
+    case "CANCELLED":
+      return "Gekündigt";
+
+    case "INCOMPLETE":
+      return "Zahlung nicht abgeschlossen";
+
+    case "INCOMPLETE_EXPIRED":
+      return "Zahlung abgelaufen";
+
+    default:
+      return "Kein aktives Abonnement";
+  }
+}
+
+export default async function AboPage({
+  searchParams,
+}: AboPageProps) {
+  const params = await Promise.resolve(searchParams ?? {});
+
+  const user = await requireUser();
+
+  if (!user) {
+    redirect("/login?redirect=/portal/abo");
+  }
+
+  const provider = await prisma.provider.findUnique({
+    where: {
+      id: user.id,
+    },
+    select: {
+      id: true,
+      companyName: true,
+      contactName: true,
+      email: true,
+      status: true,
+      subscriptionExempt: true,
+      subscriptionStatus: true,
+      subscriptionCurrentPeriodEnd: true,
+      subscriptionCancelAtPeriodEnd: true,
+      subscriptionStartedAt: true,
+      subscriptionCancelledAt: true,
+      stripeCustomerId: true,
+      stripeSubscriptionId: true,
+    },
+  });
+
+  if (!provider) {
+    redirect("/login?error=provider-not-found");
+  }
+
+  if (provider.status === "BLOCKED") {
+    redirect("/login?error=provider-blocked");
+  }
+
+  const subscriptionStatus =
+    provider.subscriptionStatus || "INACTIVE";
+
+  const hasActiveSubscription =
+    provider.subscriptionExempt ||
+    ["ACTIVE", "TRIALING"].includes(
+      subscriptionStatus.toUpperCase(),
+    );
+
+  return (
+    <main className={styles.page}>
+      <div className={styles.backgroundGlow} />
+
+      <div className={styles.container}>
+        <header className={styles.hero}>
+          <div className={styles.heroContent}>
+            <span className={styles.eyebrow}>
+              Auftrago Mitgliedschaft
+            </span>
+
+            <h1>
+              Dein Anbieter-
+              <em>Abonnement</em>
+            </h1>
+
+            <p>
+              Verwalte deinen Plattformzugang, deine Rechnungen
+              und deine Zahlungsmethode an einem Ort.
+            </p>
+          </div>
+
+          <Link
+            href="/portal"
+            className={styles.backButton}
+          >
+            Zurück zum Portal
+          </Link>
+        </header>
+
+        {params.success === "1" && (
+          <div className={styles.successMessage}>
+            Die Zahlung war erfolgreich. Dein Abonnement wird
+            automatisch aktiviert.
+          </div>
+        )}
+
+        {params.cancelled === "1" && (
+          <div className={styles.noticeMessage}>
+            Der Zahlungsvorgang wurde abgebrochen.
+          </div>
+        )}
+
+        {params.error && (
+          <div className={styles.errorMessage}>
+            Die Aktion konnte nicht abgeschlossen werden.
+            Bitte versuche es erneut.
+          </div>
+        )}
+
+        <section className={styles.statusGrid}>
+          <article className={styles.statusCard}>
+            <span>Mitgliedschaft</span>
+
+            <strong
+              className={
+                hasActiveSubscription
+                  ? styles.activeStatus
+                  : styles.pendingStatus
+              }
+            >
+              {getStatusLabel(
+                subscriptionStatus,
+                provider.subscriptionExempt,
+              )}
+            </strong>
+
+            <small>{provider.companyName}</small>
+          </article>
+
+          <article className={styles.statusCard}>
+            <span>Monatlicher Preis</span>
+
+            <strong>
+              {provider.subscriptionExempt
+                ? "CHF 0.–"
+                : "CHF 69.–"}
+            </strong>
+
+            <small>
+              Credits werden weiterhin separat gekauft.
+            </small>
+          </article>
+
+          <article className={styles.statusCard}>
+            <span>Nächste Abrechnung</span>
+
+            <strong className={styles.dateValue}>
+              {provider.subscriptionExempt
+                ? "Dauerhaft"
+                : formatDate(
+                    provider.subscriptionCurrentPeriodEnd,
+                  )}
+            </strong>
+
+            <small>
+              {provider.subscriptionCancelAtPeriodEnd
+                ? "Kündigung zum Periodenende"
+                : "Automatische monatliche Verlängerung"}
+            </small>
+          </article>
+        </section>
+
+        <section className={styles.membership}>
+          <div className={styles.membershipContent}>
+            <span className={styles.eyebrow}>
+              Auftrago für Anbieter
+            </span>
+
+            <h2>
+              Mehr Aufträge.
+              <br />
+              Mehr Wachstum.
+            </h2>
+
+            <p>
+              Mit der Auftrago-Mitgliedschaft erhält dein
+              Unternehmen Zugriff auf Kundenanfragen, Leads,
+              das CRM und das vollständige Anbieterportal.
+            </p>
+
+            <div className={styles.features}>
+              <div>Vollständiger Anbieterportal-Zugang</div>
+              <div>Neue Kundenanfragen und Leads</div>
+              <div>Lead- und Angebotsverwaltung</div>
+              <div>CRM und Aktivitätenübersicht</div>
+              <div>Rechnungen und Zahlungsübersicht</div>
+              <div>Online jederzeit selbst verwaltbar</div>
+            </div>
+          </div>
+
+          <aside className={styles.priceCard}>
+            <span>Auftrago Anbieter</span>
+
+            <strong>
+              {provider.subscriptionExempt
+                ? "Kostenlos"
+                : "CHF 69.–"}
+            </strong>
+
+            <small>
+              {provider.subscriptionExempt
+                ? "Bestandsanbieter-Vorteil"
+                : "pro Monat · automatische Abrechnung"}
+            </small>
+
+            {provider.subscriptionExempt ? (
+              <div className={styles.exemptBox}>
+                Dein Unternehmen gehört zu unseren bestehenden
+                Anbietern. Deshalb bleibt dein Zugang dauerhaft
+                kostenlos.
+              </div>
+            ) : hasActiveSubscription ? (
+              <form
+                action="/api/subscription/portal"
+                method="POST"
+              >
+                <button
+                  type="submit"
+                  className={styles.primaryButton}
+                >
+                  Abonnement verwalten
+                </button>
+              </form>
+            ) : (
+              <form
+                action="/api/subscription/checkout"
+                method="POST"
+              >
+                <button
+                  type="submit"
+                  className={styles.primaryButton}
+                >
+                  Jetzt für CHF 69.– starten
+                </button>
+              </form>
+            )}
+
+            {!provider.subscriptionExempt &&
+              provider.stripeCustomerId &&
+              !hasActiveSubscription && (
+                <form
+                  action="/api/subscription/portal"
+                  method="POST"
+                >
+                  <button
+                    type="submit"
+                    className={styles.secondaryButton}
+                  >
+                    Zahlung verwalten
+                  </button>
+                </form>
+              )}
+          </aside>
+        </section>
+
+        <section className={styles.infoGrid}>
+          <article>
+            <span>01</span>
+
+            <h3>Automatische Abrechnung</h3>
+
+            <p>
+              Die Monatsgebühr wird über Stripe automatisch
+              über die hinterlegte Zahlungsmethode abgerechnet.
+            </p>
+          </article>
+
+          <article>
+            <span>02</span>
+
+            <h3>Selbst verwalten</h3>
+
+            <p>
+              Zahlungsmethode, Rechnungen und Kündigung können
+              direkt im sicheren Stripe-Portal verwaltet werden.
+            </p>
+          </article>
+
+          <article>
+            <span>03</span>
+
+            <h3>Credits separat</h3>
+
+            <p>
+              Die Mitgliedschaft bezahlt den Plattformzugang.
+              Credits für einzelne Leads werden separat gekauft.
+            </p>
+          </article>
+        </section>
+      </div>
+    </main>
+  );
+}

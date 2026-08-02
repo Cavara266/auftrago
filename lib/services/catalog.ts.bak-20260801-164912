@@ -1,0 +1,10 @@
+import {
+  services as legacyServices,
+} from "@/lib/seo-data";
+
+import type {
+  ServiceDefinition,
+} from "./types";
+
+export const services =
+  legacyServices as ServiceDefinition[];

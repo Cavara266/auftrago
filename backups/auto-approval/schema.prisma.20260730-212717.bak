@@ -1,0 +1,807 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum LeadStatus {
+  OPEN
+  CONTACTED
+  APPOINTMENT_SET
+  OFFER_SENT
+  WON
+  LOST
+  NO_OFFER
+}
+
+enum OfferStatus {
+  SENT
+  ACCEPTED
+  DECLINED
+}
+
+enum ProviderStatus {
+  PENDING
+  APPROVED
+  BLOCKED
+}
+
+enum FixedOrderStatus {
+  OPEN
+  RESERVED
+  SOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum QuestionType {
+  TEXT
+  TEXTAREA
+  NUMBER
+  DATE
+  SELECT
+  MULTI_SELECT
+  BOOLEAN
+  EMAIL
+  PHONE
+  ADDRESS
+  FILE
+}
+
+enum ServiceStatus {
+  ACTIVE
+  INACTIVE
+  DRAFT
+}
+
+enum CategoryStatus {
+  ACTIVE
+  INACTIVE
+  DRAFT
+}
+
+model Provider {
+  id          String         @id @default(uuid())
+  email       String         @unique
+  password    String
+  companyName String
+  contactName String
+  phone       String?
+  credits     Int            @default(0)
+  status      ProviderStatus @default(PENDING)
+
+  slug String? @unique
+
+  region   String?
+  category String?
+
+  logoUrl     String?
+  website     String?
+  description String?
+  address     String?
+  postalCode  String?
+  city        String?
+
+  serviceCategories  String[] @default([])
+  serviceRegions     String[] @default([])
+  serviceCities      String[] @default([])
+  servicePostalCodes String[] @default([])
+
+  receiveLeadEmails Boolean @default(true)
+
+  receiveAllLeadEmails Boolean @default(false)
+
+  // ============================
+  // Stripe Subscription
+  // ============================
+
+  subscriptionExempt Boolean @default(false)
+
+  stripeCustomerId String? @unique
+
+  stripeSubscriptionId String? @unique
+
+  subscriptionStatus String @default("INACTIVE")
+
+  subscriptionCurrentPeriodEnd DateTime?
+
+  subscriptionCancelAtPeriodEnd Boolean @default(false)
+
+  subscriptionStartedAt DateTime?
+
+  subscriptionCancelledAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  purchases       LeadPurchase[]
+  creditPurchases CreditPurchase[]
+  activities      ProviderActivity[]
+  fixedOrders     FixedOrder[]
+  invoices        Invoice[]
+
+  providerServices ProviderService[]
+
+  @@index([status])
+  @@index([slug])
+  @@index([createdAt])
+  @@index([updatedAt])
+}
+
+model ServiceCategory {
+  id String @id @default(uuid())
+
+  slug        String  @unique
+  name        String
+  description String?
+  icon        String?
+
+  status CategoryStatus @default(ACTIVE)
+
+  sortOrder Int @default(0)
+
+  seoTitle       String?
+  seoDescription String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  services Service[]
+
+  @@index([status])
+  @@index([sortOrder])
+  @@index([createdAt])
+}
+
+model Service {
+  id String @id @default(uuid())
+
+  categoryId String
+  category   ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  slug        String  @unique
+  name        String
+  description String?
+  icon        String?
+
+  status ServiceStatus @default(ACTIVE)
+
+  leadPrice Int @default(20)
+
+  maxPurchases Int @default(4)
+  lifetimeDays Int @default(7)
+
+  requiresLocation Boolean @default(true)
+  requiresDate     Boolean @default(false)
+  allowsFiles      Boolean @default(true)
+
+  sortOrder Int @default(0)
+
+  seoTitle       String?
+  seoDescription String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  questions        ServiceQuestion[]
+  leads            Lead[]
+  providerServices ProviderService[]
+  fixedOrders      FixedOrder[]
+
+  @@index([categoryId])
+  @@index([status])
+  @@index([sortOrder])
+  @@index([leadPrice])
+  @@index([createdAt])
+}
+
+model ServiceQuestion {
+  id String @id @default(uuid())
+
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  key         String
+  label       String
+  description String?
+  placeholder String?
+
+  type QuestionType
+
+  required Boolean @default(false)
+  active   Boolean @default(true)
+
+  sortOrder Int @default(0)
+
+  options Json?
+
+  validation Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  answers LeadAnswer[]
+
+  @@unique([serviceId, key])
+  @@index([serviceId])
+  @@index([active])
+  @@index([sortOrder])
+}
+
+model ProviderService {
+  id String @id @default(uuid())
+
+  providerId String
+  provider   Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  active Boolean @default(true)
+
+  regions     String[] @default([])
+  cities      String[] @default([])
+  postalCodes String[] @default([])
+
+  travelRadiusKm Int?
+
+  minimumOrderValueCents Int?
+  maximumOrderValueCents Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([providerId, serviceId])
+  @@index([providerId])
+  @@index([serviceId])
+  @@index([active])
+}
+
+model Lead {
+  id          String @id @default(uuid())
+  title       String
+  description String
+
+  name  String
+  email String
+  phone String
+
+  region   String
+  category String
+  price    Int
+
+  postalCode String?
+  city       String?
+
+  street String?
+
+  serviceId String?
+  service   Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
+  requestedDate DateTime?
+  flexibleDate  Boolean   @default(false)
+
+  budgetMinCents Int?
+  budgetMaxCents Int?
+
+  customerType String?
+  source       String?
+  language     String  @default("de")
+
+  maxPurchases Int       @default(4)
+  expiresAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  purchases LeadPurchase[]
+  answers   LeadAnswer[]
+  files     LeadFile[]
+
+  @@index([createdAt])
+  @@index([expiresAt])
+  @@index([category])
+  @@index([region])
+  @@index([postalCode])
+  @@index([city])
+  @@index([serviceId])
+  @@index([serviceId, region])
+  @@index([category, region])
+  @@index([expiresAt, createdAt])
+}
+
+model LeadAnswer {
+  id String @id @default(uuid())
+
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  questionId String?
+  question   ServiceQuestion? @relation(fields: [questionId], references: [id], onDelete: SetNull)
+
+  questionKey   String
+  questionLabel String
+
+  valueText    String?
+  valueNumber  Float?
+  valueBoolean Boolean?
+  valueDate    DateTime?
+  valueJson    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([leadId, questionKey])
+  @@index([leadId])
+  @@index([questionId])
+  @@index([questionKey])
+}
+
+model LeadFile {
+  id String @id @default(uuid())
+
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  name     String
+  url      String
+  mimeType String?
+  size     Int?
+
+  createdAt DateTime @default(now())
+
+  @@index([leadId])
+  @@index([createdAt])
+}
+
+model LeadPurchase {
+  id         String     @id @default(uuid())
+  providerId String
+  leadId     String
+  price      Int
+  status     LeadStatus @default(OPEN)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  notes      LeadNote[]
+  messages   LeadMessage[]
+  activities LeadActivity[]
+  offers     LeadOffer[]
+
+  @@unique([providerId, leadId])
+  @@index([providerId])
+  @@index([leadId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([providerId, createdAt])
+}
+
+model LeadNote {
+  id             String @id @default(uuid())
+  leadPurchaseId String
+  content        String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  leadPurchase LeadPurchase @relation(fields: [leadPurchaseId], references: [id], onDelete: Cascade)
+
+  @@index([leadPurchaseId])
+  @@index([createdAt])
+}
+
+model LeadMessage {
+  id             String @id @default(uuid())
+  leadPurchaseId String
+  sender         String
+  message        String
+
+  createdAt DateTime @default(now())
+
+  leadPurchase LeadPurchase @relation(fields: [leadPurchaseId], references: [id], onDelete: Cascade)
+
+  @@index([leadPurchaseId])
+  @@index([createdAt])
+}
+
+model LeadActivity {
+  id             String @id @default(uuid())
+  leadPurchaseId String
+  type           String
+  description    String
+
+  createdAt DateTime @default(now())
+
+  leadPurchase LeadPurchase @relation(fields: [leadPurchaseId], references: [id], onDelete: Cascade)
+
+  @@index([leadPurchaseId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([leadPurchaseId, createdAt])
+}
+
+model LeadOffer {
+  id             String      @id @default(uuid())
+  leadPurchaseId String
+  title          String
+  description    String?
+  amount         Float
+  status         OfferStatus @default(SENT)
+  pdfUrl         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  leadPurchase LeadPurchase @relation(fields: [leadPurchaseId], references: [id], onDelete: Cascade)
+
+  @@index([leadPurchaseId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model CreditPurchase {
+  id              String  @id @default(uuid())
+  providerId      String
+  stripeSessionId String  @unique
+  packageId       String?
+  credits         Int
+  amount          Int
+  currency        String  @default("chf")
+  status          String  @default("paid")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([providerId, createdAt])
+}
+
+model ProviderActivity {
+  id          String  @id @default(uuid())
+  providerId  String
+  event       String
+  description String?
+  page        String?
+  leadId      String?
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+
+  createdAt DateTime @default(now())
+
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+  @@index([providerId, createdAt])
+  @@index([event, createdAt])
+  @@index([leadId])
+  @@index([createdAt])
+}
+
+model SmartPricingSettings {
+  id String @id @default("default")
+
+  enabled Boolean @default(true)
+
+  firstAfterDays       Int @default(3)
+  firstDiscountPercent Int @default(15)
+
+  secondAfterDays       Int @default(5)
+  secondDiscountPercent Int @default(30)
+
+  thirdAfterDays       Int @default(6)
+  thirdDiscountPercent Int @default(50)
+
+  minimumPrice       Int     @default(10)
+  resetAfterPurchase Boolean @default(true)
+  label              String  @default("Smart Deal")
+  showCountdown      Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PasswordResetToken {
+  id String @id @default(uuid())
+
+  email     String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([expiresAt])
+  @@index([email, expiresAt])
+}
+
+model FixedOrder {
+  id String @id @default(uuid())
+
+  title       String
+  description String?
+  category    String
+  region      String?
+
+  serviceId String?
+  service   Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
+  customerFirstName String
+  customerLastName  String
+  customerEmail     String?
+  customerPhone     String
+
+  street     String
+  postalCode String
+  city       String
+
+  executionDate DateTime?
+  flexibleDate  Boolean   @default(false)
+
+  orderValueCents       Int
+  commissionPercent     Int @default(25)
+  commissionAmountCents Int
+
+  status FixedOrderStatus @default(OPEN)
+
+  buyerId String?
+  buyer   Provider? @relation(fields: [buyerId], references: [id], onDelete: SetNull)
+
+  stripeCheckoutSessionId String? @unique
+  stripePaymentIntentId   String? @unique
+
+  reservedAt  DateTime?
+  soldAt      DateTime?
+  completedAt DateTime?
+  cancelledAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  invoice Invoice?
+
+  @@index([status])
+  @@index([category])
+  @@index([region])
+  @@index([postalCode])
+  @@index([city])
+  @@index([serviceId])
+  @@index([buyerId])
+  @@index([executionDate])
+  @@index([createdAt])
+}
+
+model Invoice {
+  id String @id @default(uuid())
+
+  invoiceNumber String @unique
+
+  providerId String
+  provider   Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  fixedOrderId String     @unique
+  fixedOrder   FixedOrder @relation(fields: [fixedOrderId], references: [id], onDelete: Cascade)
+
+  stripePaymentIntentId String?
+
+  amountCents Int
+  status      String  @default("PAID")
+  pdfUrl      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([providerId])
+  @@index([fixedOrderId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([providerId, createdAt])
+}
+
+enum SeoContentStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+model SeoCity {
+  id String @id @default(uuid())
+
+  slug    String  @unique
+  name    String
+  canton  String
+  region  String?
+  country String  @default("Schweiz")
+
+  introduction String?
+  localContent String?
+
+  seoTitle       String?
+  seoDescription String?
+  canonicalUrl   String?
+
+  neighboringCities String[] @default([])
+
+  status    SeoContentStatus @default(DRAFT)
+  indexable Boolean          @default(true)
+  sortOrder Int              @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  landingPages SeoLandingPage[]
+
+  @@index([status])
+  @@index([canton])
+  @@index([region])
+  @@index([sortOrder])
+  @@index([createdAt])
+}
+
+model SeoServicePage {
+  id String @id @default(uuid())
+
+  slug        String  @unique
+  name        String
+  shortName   String?
+  description String?
+  content     String?
+
+  priceMinCents Int?
+  priceMaxCents Int?
+  priceUnit     String?
+
+  seoTitle       String?
+  seoDescription String?
+  canonicalUrl   String?
+
+  benefits        String[] @default([])
+  relatedServices String[] @default([])
+
+  status    SeoContentStatus @default(DRAFT)
+  indexable Boolean          @default(true)
+  sortOrder Int              @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  landingPages SeoLandingPage[]
+  faqs         SeoFaq[]
+
+  @@index([status])
+  @@index([sortOrder])
+  @@index([createdAt])
+}
+
+model SeoLandingPage {
+  id String @id @default(uuid())
+
+  cityId String
+  city   SeoCity @relation(fields: [cityId], references: [id], onDelete: Cascade)
+
+  serviceId String
+  service   SeoServicePage @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  slug String @unique
+
+  headline     String?
+  introduction String?
+  content      String?
+
+  seoTitle       String?
+  seoDescription String?
+  canonicalUrl   String?
+
+  customPriceMinCents Int?
+  customPriceMaxCents Int?
+
+  status    SeoContentStatus @default(DRAFT)
+  indexable Boolean          @default(true)
+  featured  Boolean          @default(false)
+
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([cityId, serviceId])
+  @@index([cityId])
+  @@index([serviceId])
+  @@index([status])
+  @@index([indexable])
+  @@index([publishedAt])
+  @@index([createdAt])
+}
+
+model SeoFaq {
+  id String @id @default(uuid())
+
+  serviceId String?
+  service   SeoServicePage? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  question String
+  answer   String
+
+  status    SeoContentStatus @default(ACTIVE)
+  sortOrder Int              @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([serviceId])
+  @@index([status])
+  @@index([sortOrder])
+}
+
+model SeoArticle {
+  id String @id @default(uuid())
+
+  slug     String  @unique
+  title    String
+  excerpt  String?
+  content  String?
+  category String?
+  imageUrl String?
+
+  seoTitle       String?
+  seoDescription String?
+  canonicalUrl   String?
+
+  status    SeoContentStatus @default(DRAFT)
+  indexable Boolean          @default(true)
+  featured  Boolean          @default(false)
+
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status])
+  @@index([category])
+  @@index([featured])
+  @@index([publishedAt])
+  @@index([createdAt])
+}
+
+model SeoRedirect {
+  id String @id @default(uuid())
+
+  sourcePath      String  @unique
+  destinationPath String
+  permanent       Boolean @default(true)
+  active          Boolean @default(true)
+
+  note String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active])
+  @@index([permanent])
+  @@index([createdAt])
+}
+
+model SeoSetting {
+  id String @id @default(uuid())
+
+  key         String  @unique
+  value       Json
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+}

@@ -71,7 +71,7 @@ model Provider {
   contactName String
   phone       String?
   credits     Int            @default(0)
-  status      ProviderStatus @default(PENDING)
+  status      ProviderStatus @default(APPROVED)
 
   slug String? @unique
 
@@ -90,8 +90,29 @@ model Provider {
   serviceCities      String[] @default([])
   servicePostalCodes String[] @default([])
 
-  receiveLeadEmails    Boolean @default(true)
+  receiveLeadEmails Boolean @default(true)
+
   receiveAllLeadEmails Boolean @default(false)
+
+  // ============================
+  // Stripe Subscription
+  // ============================
+
+  subscriptionExempt Boolean @default(false)
+
+  stripeCustomerId String? @unique
+
+  stripeSubscriptionId String? @unique
+
+  subscriptionStatus String @default("INACTIVE")
+
+  subscriptionCurrentPeriodEnd DateTime?
+
+  subscriptionCancelAtPeriodEnd Boolean @default(false)
+
+  subscriptionStartedAt DateTime?
+
+  subscriptionCancelledAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

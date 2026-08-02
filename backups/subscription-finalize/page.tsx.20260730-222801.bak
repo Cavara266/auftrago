@@ -1,0 +1,253 @@
+import Link from "next/link";
+
+import { redirect } from "next/navigation";
+
+import { requireUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+
+import {
+  hasSubscriptionAccess,
+} from "@/lib/provider-subscription";
+
+import styles from "./subscription-required.module.css";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+type PageProps = {
+  searchParams?: Promise<{
+    success?: string;
+    cancelled?: string;
+    error?: string;
+  }>;
+};
+
+function getStatusText(
+  status: string,
+) {
+  switch (
+    String(status).toUpperCase()
+  ) {
+    case "PAST_DUE":
+      return "Die letzte Zahlung konnte nicht abgebucht werden.";
+
+    case "UNPAID":
+      return "Deine Mitgliedschaft ist momentan nicht bezahlt.";
+
+    case "CANCELED":
+    case "CANCELLED":
+      return "Deine Mitgliedschaft wurde beendet.";
+
+    case "INCOMPLETE":
+      return "Die Einrichtung deiner Mitgliedschaft wurde noch nicht abgeschlossen.";
+
+    default:
+      return "Für den Zugriff auf das Anbieterportal wird eine aktive Mitgliedschaft benötigt.";
+  }
+}
+
+export default async function SubscriptionRequiredPage({
+  searchParams,
+}: PageProps) {
+  const params =
+    (await searchParams) || {};
+
+  const user = await requireUser();
+
+  if (!user) {
+    redirect(
+      "/login?redirect=/subscription-required",
+    );
+  }
+
+  const provider =
+    await prisma.provider.findUnique({
+      where: {
+        id: user.id,
+      },
+
+      select: {
+        companyName: true,
+        status: true,
+        subscriptionExempt: true,
+        subscriptionStatus: true,
+        stripeCustomerId: true,
+      },
+    });
+
+  if (!provider) {
+    redirect("/login");
+  }
+
+  if (provider.status === "BLOCKED") {
+    redirect(
+      "/login?error=provider-blocked",
+    );
+  }
+
+  if (
+    hasSubscriptionAccess(provider)
+  ) {
+    redirect("/portal");
+  }
+
+  return (
+    <main className={styles.page}>
+      <div className={styles.glow} />
+
+      <div className={styles.container}>
+        <section className={styles.hero}>
+          <span className={styles.eyebrow}>
+            Auftrago Anbieter-Mitgliedschaft
+          </span>
+
+          <h1>
+            Starte mit
+            <em>Auftrago.</em>
+          </h1>
+
+          <p>
+            Hallo {provider.companyName}.
+            Dein Konto wurde automatisch
+            freigeschaltet. Aktiviere jetzt
+            deine Mitgliedschaft und erhalte
+            Zugang zum vollständigen
+            Anbieterportal.
+          </p>
+        </section>
+
+        {params.success === "1" ? (
+          <div className={styles.success}>
+            Die Zahlungsmethode wurde erfolgreich
+            hinterlegt. Stripe aktiviert deine
+            Mitgliedschaft automatisch. Lade die
+            Seite in wenigen Sekunden erneut.
+          </div>
+        ) : null}
+
+        {params.cancelled === "1" ? (
+          <div className={styles.notice}>
+            Der Zahlungsvorgang wurde abgebrochen.
+            Dein Konto bleibt gespeichert und du
+            kannst jederzeit fortfahren.
+          </div>
+        ) : null}
+
+        {params.error ? (
+          <div className={styles.error}>
+            Der Stripe-Checkout konnte nicht
+            geöffnet werden. Bitte versuche es
+            erneut.
+          </div>
+        ) : null}
+
+        <section className={styles.grid}>
+          <article className={styles.content}>
+            <span className={styles.eyebrow}>
+              Alles für dein Wachstum
+            </span>
+
+            <h2>
+              Mehr Kunden.
+              <br />
+              Mehr Aufträge.
+            </h2>
+
+            <p>
+              {getStatusText(
+                provider.subscriptionStatus,
+              )}
+            </p>
+
+            <div className={styles.features}>
+              <div>
+                Vollständiger Zugang zu neuen Leads
+              </div>
+
+              <div>
+                Bestätigte Fixaufträge übernehmen
+              </div>
+
+              <div>
+                CRM und Kundenkontakte verwalten
+              </div>
+
+              <div>
+                Offerten und Aktivitäten organisieren
+              </div>
+
+              <div>
+                Rechnungen zentral herunterladen
+              </div>
+
+              <div>
+                Mitgliedschaft online verwalten
+              </div>
+            </div>
+          </article>
+
+          <aside className={styles.priceCard}>
+            <span>Auftrago Anbieter</span>
+
+            <div className={styles.trial}>
+              30 Tage kostenlos
+            </div>
+
+            <strong>
+              CHF 69.–
+            </strong>
+
+            <small>
+              pro Monat nach der kostenlosen
+              Testphase
+            </small>
+
+            <form
+              action="/api/subscription/checkout"
+              method="POST"
+            >
+              <button
+                type="submit"
+                className={styles.primaryButton}
+              >
+                Jetzt kostenlos starten
+              </button>
+            </form>
+
+            {provider.stripeCustomerId ? (
+              <form
+                action="/api/subscription/portal"
+                method="POST"
+              >
+                <button
+                  type="submit"
+                  className={styles.secondaryButton}
+                >
+                  Zahlung verwalten
+                </button>
+              </form>
+            ) : null}
+
+            <div className={styles.security}>
+              <span>✓ Sichere Abrechnung über Stripe</span>
+              <span>✓ Automatische Monatsabrechnung</span>
+              <span>✓ Online verwaltbar</span>
+              <span>✓ Credits separat erhältlich</span>
+            </div>
+          </aside>
+        </section>
+
+        <footer className={styles.footer}>
+          <Link href="/">
+            Zur Auftrago-Startseite
+          </Link>
+
+          <Link href="/api/logout">
+            Abmelden
+          </Link>
+        </footer>
+      </div>
+    </main>
+  );
+}

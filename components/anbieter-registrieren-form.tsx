@@ -6,13 +6,17 @@ type RegistrationResponse = {
   ok?: boolean;
   error?: string;
   message?: string;
+  checkoutUrl?: string;
+  redirectUrl?: string;
 };
 
 export default function AnbieterRegistrierenForm() {
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
     event.preventDefault();
 
     if (sending) {
@@ -25,91 +29,149 @@ export default function AnbieterRegistrierenForm() {
     const form = event.currentTarget;
     const formData = new FormData(form);
 
-    const password = String(formData.get("password") || "");
+    const password = String(
+      formData.get("password") || "",
+    );
+
     const passwordConfirmation = String(
-      formData.get("passwordConfirmation") || ""
+      formData.get("passwordConfirmation") || "",
     );
 
     if (password.length < 8) {
       setMessage(
-        "❌ Das Passwort muss mindestens 8 Zeichen lang sein."
+        "❌ Das Passwort muss mindestens 8 Zeichen lang sein.",
       );
       setSending(false);
       return;
     }
 
     if (password !== passwordConfirmation) {
-      setMessage("❌ Die eingegebenen Passwörter stimmen nicht überein.");
+      setMessage(
+        "❌ Die eingegebenen Passwörter stimmen nicht überein.",
+      );
       setSending(false);
       return;
     }
 
     const providerPayload = {
-      companyName: String(formData.get("firma") || "").trim(),
-      contactName: String(
-        formData.get("kontaktperson") || ""
+      companyName: String(
+        formData.get("firma") || "",
       ).trim(),
-      phone: String(formData.get("telefon") || "").trim(),
-      email: String(formData.get("email") || "")
+
+      contactName: String(
+        formData.get("kontaktperson") || "",
+      ).trim(),
+
+      phone: String(
+        formData.get("telefon") || "",
+      ).trim(),
+
+      email: String(
+        formData.get("email") || "",
+      )
         .trim()
         .toLowerCase(),
+
       password,
-      website: String(formData.get("website") || "").trim(),
-      region: String(formData.get("ort") || "").trim(),
-      services: String(formData.get("leistungen") || "").trim(),
-      message: String(formData.get("nachricht") || "").trim(),
+
+      website: String(
+        formData.get("website") || "",
+      ).trim(),
+
+      region: String(
+        formData.get("ort") || "",
+      ).trim(),
+
+      category: String(
+        formData.get("leistungen") || "",
+      ).trim(),
+
+      description: String(
+        formData.get("nachricht") || "",
+      ).trim(),
     };
 
     try {
-      const response = await fetch("/api/providers", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        "/api/register",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          credentials: "include",
+
+          body: JSON.stringify(
+            providerPayload,
+          ),
         },
-        body: JSON.stringify(providerPayload),
-      });
+      );
 
       const result =
         (await response
           .json()
-          .catch(() => null)) as RegistrationResponse | null;
+          .catch(() => null)) as
+          | RegistrationResponse
+          | null;
 
-      if (!response.ok || result?.ok === false) {
+      if (
+        !response.ok ||
+        result?.ok === false
+      ) {
         throw new Error(
           result?.error ||
             result?.message ||
-            "Das Anbieterkonto konnte nicht erstellt werden."
+            "Das Anbieterkonto konnte nicht erstellt werden.",
         );
       }
 
       setMessage(
-        "✅ Vielen Dank für deine Registrierung. Wir prüfen deine Firma persönlich. Du erhältst eine E-Mail, sobald dein Konto freigegeben wurde."
+        "✅ Dein Konto wurde erstellt. Du wirst jetzt zur sicheren Aktivierung weitergeleitet.",
       );
 
-      form.reset();
+      if (result?.checkoutUrl) {
+        window.location.assign(
+          result.checkoutUrl,
+        );
+        return;
+      }
+
+      window.location.assign(
+        result?.redirectUrl ||
+          "/subscription-required",
+      );
     } catch (error) {
-      console.error("PROVIDER REGISTRATION ERROR:", error);
+      console.error(
+        "PROVIDER REGISTRATION ERROR:",
+        error,
+      );
 
       setMessage(
         `❌ Registrierung fehlgeschlagen. ${
           error instanceof Error
             ? error.message
             : "Bitte versuche es erneut."
-        }`
+        }`,
       );
-    } finally {
+
       setSending(false);
     }
   }
 
   return (
-    <form className="anbieter-form" onSubmit={handleSubmit}>
+    <form
+      className="anbieter-form"
+      onSubmit={handleSubmit}
+    >
       <div className="form-row">
         <input
           name="firma"
           placeholder="Firmenname *"
           autoComplete="organization"
           required
+          disabled={sending}
         />
 
         <input
@@ -117,6 +179,7 @@ export default function AnbieterRegistrierenForm() {
           placeholder="Kontaktperson *"
           autoComplete="name"
           required
+          disabled={sending}
         />
       </div>
 
@@ -127,6 +190,7 @@ export default function AnbieterRegistrierenForm() {
           placeholder="Telefon *"
           autoComplete="tel"
           required
+          disabled={sending}
         />
 
         <input
@@ -135,6 +199,7 @@ export default function AnbieterRegistrierenForm() {
           placeholder="E-Mail *"
           autoComplete="email"
           required
+          disabled={sending}
         />
       </div>
 
@@ -144,6 +209,7 @@ export default function AnbieterRegistrierenForm() {
           type="url"
           placeholder="Website, z. B. https://firma.ch"
           autoComplete="url"
+          disabled={sending}
         />
 
         <input
@@ -151,6 +217,7 @@ export default function AnbieterRegistrierenForm() {
           placeholder="Ort / Region *"
           autoComplete="address-level2"
           required
+          disabled={sending}
         />
       </div>
 
@@ -158,11 +225,13 @@ export default function AnbieterRegistrierenForm() {
         name="leistungen"
         placeholder="Dienstleistungen * z. B. Hauswartung, Reinigung, Gartenpflege, Umzug"
         required
+        disabled={sending}
       />
 
       <textarea
         name="nachricht"
-        placeholder="Nachricht / Einsatzgebiet / zusätzliche Informationen"
+        placeholder="Einsatzgebiet / zusätzliche Informationen"
+        disabled={sending}
       />
 
       <div className="form-row">
@@ -173,6 +242,7 @@ export default function AnbieterRegistrierenForm() {
           autoComplete="new-password"
           minLength={8}
           required
+          disabled={sending}
         />
 
         <input
@@ -182,31 +252,39 @@ export default function AnbieterRegistrierenForm() {
           autoComplete="new-password"
           minLength={8}
           required
+          disabled={sending}
         />
       </div>
 
       <p
         style={{
           margin: 0,
-          fontSize: 14,
-          lineHeight: 1.6,
+          fontSize: 12,
+          lineHeight: 1.65,
           opacity: 0.7,
         }}
       >
-        Das Passwort muss mindestens 8 Zeichen enthalten. Dein Konto wird
-        erst nach der persönlichen Prüfung durch Auftrago freigeschaltet.
+        Dein Konto wird sofort freigeschaltet.
+        Anschliessend startest du deine
+        14-tägige kostenlose Testphase über
+        Stripe.
       </p>
 
-      <button type="submit" disabled={sending}>
+      <button
+        type="submit"
+        disabled={sending}
+      >
         {sending
           ? "Konto wird erstellt..."
-          : "Anbieterkonto erstellen"}
+          : "14 Tage kostenlos starten"}
       </button>
 
       {message ? (
         <p
           className={
-            message.startsWith("✅") ? "mega-success" : "mega-error"
+            message.startsWith("✅")
+              ? "mega-success"
+              : "mega-error"
           }
           aria-live="polite"
         >

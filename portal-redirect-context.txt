@@ -1,0 +1,1068 @@
+
+==================================================
+DATEI: app/portal/leads/page.tsx
+==================================================
+1-import Link from "next/link";
+2-import { redirect } from "next/navigation";
+3-import { prisma } from "@/lib/prisma";
+4:import { requireUser } from "@/lib/auth";
+5-import { buyLeadAction } from "./actions";
+6-import { getLeadPricing } from "@/lib/lead-pricing";
+7-import "./lead-center.css";
+8-
+9-export const runtime = "nodejs";
+10-export const dynamic = "force-dynamic";
+11-export const revalidate = 0;
+12-
+13-type PageProps = {
+14-  searchParams?: Promise<{
+15-    error?: string;
+16-    message?: string;
+17-    region?: string;
+18-    category?: string;
+19-  }>;
+20-};
+21-
+22-const regions = [
+23-  "Aargau",
+24-  "Appenzell Ausserrhoden",
+25-  "Appenzell Innerrhoden",
+26-  "Basel-Landschaft",
+27-  "Basel-Stadt",
+28-  "Bern",
+29-  "Freiburg",
+--
+262-  if (minutes < 60) {
+263-    return `Vor ${minutes} Min.`;
+264-  }
+265-
+266-  const hours = Math.floor(minutes / 60);
+267-
+268-  if (hours < 24) {
+269-    return `Vor ${hours} Std.`;
+270-  }
+271-
+272-  const days = Math.floor(hours / 24);
+273-
+274-  return `Vor ${days} Tagen`;
+275-}
+276-
+277-export default async function PortalLeadsPage({
+278-  searchParams,
+279-}: PageProps) {
+280-  const params = searchParams
+281-    ? await searchParams
+282-    : undefined;
+283-
+284-  const selectedRegion = params?.region || "";
+285-  const selectedCategory = params?.category || "";
+286-
+287:  const user = await requireUser();
+288-
+289-  if (!user) {
+290:    redirect("/login");
+291-  }
+292-
+293:  const provider = await prisma.provider.findUnique({
+294-    where: {
+295-      id: user.id,
+296-    },
+297-    include: {
+298-      purchases: {
+299-        select: {
+300-          leadId: true,
+301-        },
+302-      },
+303-      providerServices: {
+304-        where: {
+305-          active: true,
+306-        },
+307-        include: {
+308-          service: {
+309-            select: {
+310-              id: true,
+311-              name: true,
+312-              slug: true,
+313-              category: {
+314-                select: {
+315-                  name: true,
+316-                  slug: true,
+317-                },
+318-              },
+319-            },
+320-          },
+321-        },
+322-      },
+323-    },
+324-  });
+325-
+326-  if (!provider) {
+327:    redirect("/login");
+328-  }
+329-
+330-  const [leads, fixedOrders] = await Promise.all([
+331-    prisma.lead.findMany({
+332-      where: {
+333-        ...(selectedRegion
+334-          ? { region: selectedRegion }
+335-          : {}),
+336-        ...(selectedCategory
+337-          ? { category: selectedCategory }
+338-          : {}),
+339-      },
+340-      orderBy: {
+341-        createdAt: "desc",
+342-      },
+343-    }),
+344-
+345-    prisma.fixedOrder.findMany({
+346-      where: {
+347-        status: "OPEN",
+348-        buyerId: null,
+349-        ...(selectedRegion
+350-          ? { region: selectedRegion }
+351-          : {}),
+352-        ...(selectedCategory
+
+==================================================
+DATEI: app/portal/fixed-orders/page.tsx
+==================================================
+1-import Link from "next/link";
+2-import { redirect } from "next/navigation";
+3-
+4:import { getSession } from "@/lib/auth";
+5-import { prisma } from "@/lib/prisma";
+6-
+7-export const runtime = "nodejs";
+8-export const dynamic = "force-dynamic";
+9-export const revalidate = 0;
+10-
+11-type PortalFixedOrdersPageProps = {
+12-  searchParams?: {
+13-    query?: string;
+14-    region?: string;
+15-    category?: string;
+16-    sort?: string;
+17-  };
+18-};
+19-
+20-type SortOption = "newest" | "value-desc" | "price-asc" | "date-asc";
+21-
+22-function formatCurrency(cents: number) {
+23-  return new Intl.NumberFormat("de-CH", {
+24-    style: "currency",
+25-    currency: "CHF",
+26-    minimumFractionDigits: 2,
+27-  }).format(cents / 100);
+28-}
+29-
+--
+81-      classes: "border-amber-400/25 bg-amber-400/10 text-amber-300",
+82-    };
+83-  }
+84-
+85-  return {
+86-    label: "Verfügbar",
+87-    classes: "border-emerald-400/25 bg-emerald-400/10 text-emerald-300",
+88-  };
+89-}
+90-
+91-function normalizeSort(value?: string): SortOption {
+92-  if (
+93-    value === "value-desc" ||
+94-    value === "price-asc" ||
+95-    value === "date-asc"
+96-  ) {
+97-    return value;
+98-  }
+99-
+100-  return "newest";
+101-}
+102-
+103-export default async function PortalFixedOrdersPage({
+104-  searchParams,
+105-}: PortalFixedOrdersPageProps) {
+106:  const session = await getSession();
+107-  const sessionEmail = session?.user?.email;
+108-
+109-  if (!sessionEmail) {
+110:    redirect("/login");
+111-  }
+112-
+113:  const provider = await prisma.provider.findUnique({
+114-    where: {
+115-      email: sessionEmail.trim().toLowerCase(),
+116-    },
+117-    select: {
+118-      id: true,
+119-      email: true,
+120-      companyName: true,
+121-      status: true,
+122-      region: true,
+123-    },
+124-  });
+125-
+126-  if (!provider) {
+127:    redirect("/login");
+128-  }
+129-
+130-  if (provider.status !== "APPROVED") {
+131:    redirect("/portal");
+132-  }
+133-
+134-  const query = searchParams?.query?.trim() || "";
+135-  const region = searchParams?.region?.trim() || "";
+136-  const category = searchParams?.category?.trim() || "";
+137-  const sort = normalizeSort(searchParams?.sort);
+138-
+139-  const orderBy =
+140-    sort === "value-desc"
+141-      ? { orderValueCents: "desc" as const }
+142-      : sort === "price-asc"
+143-        ? { commissionAmountCents: "asc" as const }
+144-        : sort === "date-asc"
+145-          ? { executionDate: "asc" as const }
+146-          : { createdAt: "desc" as const };
+147-
+148-  const [fixedOrders, regionsRaw, categoriesRaw, myOrdersCount] =
+149-    await Promise.all([
+150-      prisma.fixedOrder.findMany({
+151-        where: {
+152-          status: "OPEN",
+153-          buyerId: null,
+154-          ...(query
+155-            ? {
+156-                OR: [
+
+==================================================
+DATEI: app/portal/meine-leads/page.tsx
+==================================================
+1-import Link from "next/link";
+2-import { redirect } from "next/navigation";
+3-import { prisma } from "@/lib/prisma";
+4:import { requireUser } from "@/lib/auth";
+5-import "./crm-center.css";
+6-
+7-export const dynamic = "force-dynamic";
+8-
+9-type PageProps = {
+10-  searchParams?: Promise<{
+11-    status?: string;
+12-  }>;
+13-};
+14-
+15-const statusLabels: Record<string, string> = {
+16-  OPEN: "Offene Anfrage",
+17-  CONTACTED: "Kontaktiert",
+18-  APPOINTMENT_SET: "Termin abgemacht",
+19-  OFFER_SENT: "Offerte geschickt",
+20-  WON: "Auftrag gewonnen",
+21-  LOST: "Auftrag verloren",
+22-  NO_OFFER: "Kein Angebot",
+23-};
+24-
+25-const statusShortLabels: Record<string, string> = {
+26-  OPEN: "Neu",
+27-  CONTACTED: "Kontakt",
+28-  APPOINTMENT_SET: "Termin",
+29-  OFFER_SENT: "Offerte",
+--
+142-    case "OFFER_SENT":
+143-      return 78;
+144-
+145-    case "WON":
+146-      return 100;
+147-
+148-    case "LOST":
+149-    case "NO_OFFER":
+150-      return 100;
+151-
+152-    default:
+153-      return 10;
+154-  }
+155-}
+156-
+157-export default async function MeineLeadsPage({
+158-  searchParams,
+159-}: PageProps) {
+160-  const params = searchParams
+161-    ? await searchParams
+162-    : undefined;
+163-
+164-  const selectedStatus =
+165-    params?.status || "";
+166-
+167:  const user = await requireUser();
+168-
+169-  if (!user) {
+170:    redirect("/login");
+171-  }
+172-
+173-  const provider =
+174:    await prisma.provider.findUnique({
+175-      where: {
+176-        id: user.id,
+177-      },
+178-      include: {
+179-        purchases: {
+180-          include: {
+181-            lead: true,
+182-            notes: {
+183-              orderBy: {
+184-                createdAt: "desc",
+185-              },
+186-            },
+187-            messages: {
+188-              orderBy: {
+189-                createdAt: "desc",
+190-              },
+191-            },
+192-            activities: {
+193-              orderBy: {
+194-                createdAt: "desc",
+195-              },
+196-            },
+197-          },
+198-          orderBy: {
+199-            createdAt: "desc",
+200-          },
+201-        },
+202-      },
+203-    });
+204-
+205-  if (!provider) {
+206:    redirect("/login");
+207-  }
+208-
+209-  const purchases = provider.purchases;
+210-
+211-  const filteredPurchases =
+212-    selectedStatus
+213-      ? purchases.filter(
+214-          (purchase) =>
+215-            purchase.status ===
+216-            selectedStatus
+217-        )
+218-      : purchases;
+219-
+220-  const openCount = purchases.filter(
+221-    (purchase) =>
+222-      purchase.status === "OPEN" ||
+223-      purchase.status === "CONTACTED"
+224-  ).length;
+225-
+226-  const appointmentCount =
+227-    purchases.filter(
+228-      (purchase) =>
+229-        purchase.status ===
+230-        "APPOINTMENT_SET"
+231-    ).length;
+
+==================================================
+DATEI: app/portal/guthaben/page.tsx
+==================================================
+1-import Link from "next/link";
+2-import { redirect } from "next/navigation";
+3-import { prisma } from "@/lib/prisma";
+4:import { requireUser } from "@/lib/auth";
+5-import { startCheckoutAction } from "./actions";
+6-import "./luxury.css";
+7-
+8-export const runtime = "nodejs";
+9-export const dynamic = "force-dynamic";
+10-export const revalidate = 0;
+11-
+12-const creditPackages = [
+13-  {
+14-    id: "starter",
+15-    title: "Starter",
+16-    credits: 20,
+17-    price: "CHF 29",
+18-    pricePerCredit: "CHF 1.45",
+19-    badge: "Zum Starten",
+20-    description:
+21-      "Ideal für erste Freischaltungen und den Einstieg bei Auftrago.",
+22-    highlight: false,
+23-    benefits: [
+24-      "20 Credits sofort verfügbar",
+25-      "Keine monatlichen Kosten",
+26-      "Credits verfallen nicht",
+27-    ],
+28-  },
+29-  {
+--
+153-    return "Die Zahlung wurde abgebrochen. Es wurden keine Kosten belastet.";
+154-  }
+155-
+156-  switch (params?.error) {
+157-    case "invalid":
+158-      return "Das ausgewählte Credit-Paket ist ungültig.";
+159-
+160-    case "provider-missing":
+161-      return "Es wurde kein Anbieterprofil gefunden.";
+162-
+163-    case "stripe":
+164-      return "Der Stripe-Checkout konnte nicht gestartet werden.";
+165-
+166-    default:
+167-      return "";
+168-  }
+169-}
+170-
+171-export default async function GuthabenPage({
+172-  searchParams,
+173-}: {
+174-  searchParams?: Promise<SearchParams>;
+175-}) {
+176-  const params = searchParams ? await searchParams : undefined;
+177-
+178:  const user = await requireUser();
+179-
+180-  if (!user) {
+181:    redirect("/login");
+182-  }
+183-
+184-  if (user.status !== "APPROVED") {
+185:    redirect("/login");
+186-  }
+187-
+188:  const provider = await prisma.provider.findUnique({
+189-    where: {
+190-      id: user.id,
+191-    },
+192-    include: {
+193-      creditPurchases: {
+194-        orderBy: {
+195-          createdAt: "desc",
+196-        },
+197-        take: 20,
+198-      },
+199-    },
+200-  });
+201-
+202-  if (!provider) {
+203:    redirect("/login");
+204-  }
+205-
+206-  const successMessage = getSuccessMessage(params);
+207-  const errorMessage = getErrorMessage(params);
+208-
+209-  const totalPurchasedCredits = provider.creditPurchases
+210-    .filter((purchase) => purchase.status === "paid")
+211-    .reduce((total, purchase) => total + purchase.credits, 0);
+212-
+213-  const totalSpentRappen = provider.creditPurchases
+214-    .filter((purchase) => purchase.status === "paid")
+215-    .reduce((total, purchase) => total + purchase.amount, 0);
+216-
+217-  return (
+218-    <main className="page">
+219-      <section className="creditx-hero">
+220-        <div className="container creditx-shell">
+221-          <div className="creditx-top">
+222-            <div>
+223-              <span className="eyebrow">Guthaben</span>
+224-
+225-              <h1>Credits kaufen. Aufträge sichern.</h1>
+226-
+227-              <p>
+228-                Lade dein Guthaben auf und schalte passende Kundenkontakte
+
+==================================================
+DATEI: app/portal/rechnungen/page.tsx
+==================================================
+1-import Link from "next/link";
+2-import { redirect } from "next/navigation";
+3-import { prisma } from "@/lib/prisma";
+4:import { requireUser } from "@/lib/auth";
+5-
+6-export const dynamic = "force-dynamic";
+7-
+8-function formatCurrency(cents: number) {
+9-  return new Intl.NumberFormat("de-CH", {
+10-    style: "currency",
+11-    currency: "CHF",
+12-    minimumFractionDigits: 2,
+13-  }).format(cents / 100);
+14-}
+15-
+16-function formatDate(date: Date) {
+17-  return new Intl.DateTimeFormat("de-CH", {
+18-    day: "2-digit",
+19-    month: "2-digit",
+20-    year: "numeric",
+21-  }).format(date);
+22-}
+23-
+24-function getStatusInformation(status: string) {
+25-  if (status === "PAID") {
+26-    return {
+27-      label: "Bezahlt",
+28-      classes:
+29-        "border-emerald-400/25 bg-emerald-400/10 text-emerald-300",
+30-    };
+31-  }
+32-
+33-  return {
+34-    label: status,
+35-    classes:
+36-      "border-white/15 bg-white/[0.05] text-slate-300",
+37-  };
+38-}
+39-
+40-export default async function ProviderInvoicesPage() {
+41:  const user = await requireUser();
+42-
+43:  const provider = await prisma.provider.findUnique({
+44-    where: {
+45-      id: user.id,
+46-    },
+47-    select: {
+48-      id: true,
+49-      companyName: true,
+50-      status: true,
+51-      invoices: {
+52-        orderBy: {
+53-          createdAt: "desc",
+54-        },
+55-        select: {
+56-          id: true,
+57-          invoiceNumber: true,
+58-          amountCents: true,
+59-          status: true,
+60-          stripePaymentIntentId: true,
+61-          createdAt: true,
+62-          fixedOrder: {
+63-            select: {
+64-              id: true,
+65-              title: true,
+66-              category: true,
+67-              orderValueCents: true,
+68-              city: true,
+69-              postalCode: true,
+70-              soldAt: true,
+71-            },
+72-          },
+73-        },
+74-      },
+75-    },
+76-  });
+77-
+78-  if (!provider) {
+79:    redirect("/login");
+80-  }
+81-
+82-  const totalPaid = provider.invoices
+83-    .filter((invoice) => invoice.status === "PAID")
+84-    .reduce(
+85-      (sum, invoice) => sum + invoice.amountCents,
+86-      0
+87-    );
+88-
+89-  return (
+90-    <main className="min-h-screen bg-[#070b14] px-4 py-8 text-white sm:px-6 lg:px-8">
+91-      <div className="mx-auto max-w-6xl">
+92-        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+93-          <div>
+94-            <Link
+95-              href="/portal"
+96-              className="inline-flex items-center gap-2 text-sm font-semibold text-slate-400 transition hover:text-white"
+97-            >
+98-              ← Zurück zum Anbieterportal
+99-            </Link>
+100-
+101-            <p className="mt-6 text-xs font-black uppercase tracking-[0.2em] text-amber-300">
+102-              Auftrago Rechnungen
+103-            </p>
+104-
+
+==================================================
+DATEI: app/portal/transaktionen/page.tsx
+==================================================
+1-import Link from "next/link";
+2-import { redirect } from "next/navigation";
+3-import { prisma } from "@/lib/prisma";
+4:import { requireUser } from "@/lib/auth";
+5-import "./transaction-center.css";
+6-
+7-export const runtime = "nodejs";
+8-export const dynamic = "force-dynamic";
+9-export const revalidate = 0;
+10-
+11-type PageProps = {
+12-  searchParams?: Promise<{
+13-    type?: string;
+14-  }>;
+15-};
+16-
+17-type TransactionItem = {
+18-  id: string;
+19-  type: "credit" | "lead";
+20-  title: string;
+21-  description: string;
+22-  meta: string;
+23-  credits: number;
+24-  date: Date;
+25-  href: string | null;
+26-  status: string;
+27-  amountLabel?: string;
+28-};
+29-
+--
+125-
+126-    case "WON":
+127-      return "Auftrag gewonnen";
+128-
+129-    case "LOST":
+130-      return "Nicht gewonnen";
+131-
+132-    case "NO_OFFER":
+133-      return "Keine Offerte";
+134-
+135-    default:
+136-      return "Offen";
+137-  }
+138-}
+139-
+140-export default async function TransaktionenPage({
+141-  searchParams,
+142-}: PageProps) {
+143-  const params = searchParams
+144-    ? await searchParams
+145-    : undefined;
+146-
+147-  const selectedType =
+148-    params?.type || "all";
+149-
+150:  const user = await requireUser();
+151-
+152-  if (!user) {
+153:    redirect("/login");
+154-  }
+155-
+156-  if (user.status !== "APPROVED") {
+157:    redirect(
+158-      "/login?error=provider-not-approved"
+159-    );
+160-  }
+161-
+162-  const provider =
+163:    await prisma.provider.findUnique({
+164-      where: {
+165-        id: user.id,
+166-      },
+167-      include: {
+168-        creditPurchases: {
+169-          orderBy: {
+170-            createdAt: "desc",
+171-          },
+172-        },
+173-
+174-        purchases: {
+175-          orderBy: {
+176-            createdAt: "desc",
+177-          },
+178-          include: {
+179-            lead: true,
+180-          },
+181-        },
+182-      },
+183-    });
+184-
+185-  if (!provider) {
+186:    redirect("/login");
+187-  }
+188-
+189-  const now = new Date();
+190-
+191-  const startOfMonth = new Date(
+192-    now.getFullYear(),
+193-    now.getMonth(),
+194-    1
+195-  );
+196-
+197-  const paidCreditPurchases =
+198-    provider.creditPurchases.filter(
+199-      (purchase) =>
+200-        purchase.status.toLowerCase() ===
+201-        "paid"
+202-    );
+203-
+204-  const totalCreditsAdded =
+205-    paidCreditPurchases.reduce(
+206-      (sum, purchase) =>
+207-        sum + purchase.credits,
+208-      0
+209-    );
+210-
+211-  const totalCreditsSpent =
+
+==================================================
+DATEI: app/portal/profil/page.tsx
+==================================================
+1-import Link from "next/link";
+2-import { redirect } from "next/navigation";
+3-import { prisma } from "@/lib/prisma";
+4:import { requireUser } from "@/lib/auth";
+5-import { updateProviderProfileAction } from "./actions";
+6-import "./profile-center.css";
+7-
+8-export const runtime = "nodejs";
+9-export const dynamic = "force-dynamic";
+10-export const revalidate = 0;
+11-
+12-type PageProps = {
+13-  searchParams?: Promise<{
+14-    message?: string;
+15-    error?: string;
+16-  }>;
+17-};
+18-
+19-const regions = [
+20-  "Aargau",
+21-  "Appenzell Ausserrhoden",
+22-  "Appenzell Innerrhoden",
+23-  "Basel-Landschaft",
+24-  "Basel-Stadt",
+25-  "Bern",
+26-  "Freiburg",
+27-  "Genf",
+28-  "Glarus",
+29-  "Graubünden",
+--
+209-
+210-  if (!provider.category) {
+211-    recommendations.push("Hauptdienstleistung definieren");
+212-  }
+213-
+214-  if (!provider.website) {
+215-    recommendations.push("Webseite hinterlegen");
+216-  }
+217-
+218-  if (!provider.description) {
+219-    recommendations.push("Firmenbeschreibung verfassen");
+220-  }
+221-
+222-  if (!provider.address || !provider.postalCode || !provider.city) {
+223-    recommendations.push("Firmenadresse vervollständigen");
+224-  }
+225-
+226-  return recommendations;
+227-}
+228-
+229-export default async function ProviderProfilePage({
+230-  searchParams,
+231-}: PageProps) {
+232-  const params = searchParams ? await searchParams : undefined;
+233-
+234:  const user = await requireUser();
+235-
+236-  if (!user) {
+237:    redirect("/login");
+238-  }
+239-
+240-  if (user.status !== "APPROVED") {
+241:    redirect("/login?error=provider-not-approved");
+242-  }
+243-
+244:  const provider = await prisma.provider.findUnique({
+245-    where: {
+246-      id: user.id,
+247-    },
+248-    include: {
+249-      purchases: {
+250-        select: {
+251-          id: true,
+252-          status: true,
+253-          price: true,
+254-        },
+255-      },
+256-      creditPurchases: {
+257-        select: {
+258-          id: true,
+259-          credits: true,
+260-          status: true,
+261-        },
+262-      },
+263-    },
+264-  });
+265-
+266-  if (!provider) {
+267:    redirect("/login");
+268-  }
+269-
+270-  const completion = getProfileCompletion(provider);
+271-  const recommendations = getMissingRecommendations(provider);
+272-  const initials = getInitials(provider.companyName);
+273-
+274-  const wonLeads = provider.purchases.filter(
+275-    (purchase) => purchase.status === "WON"
+276-  ).length;
+277-
+278-  const purchasedLeads = provider.purchases.length;
+279-
+280-  const successRate =
+281-    purchasedLeads > 0
+282-      ? Math.round((wonLeads / purchasedLeads) * 100)
+283-      : 0;
+284-
+285-  const totalCreditsPurchased = provider.creditPurchases
+286-    .filter((purchase) => purchase.status.toLowerCase() === "paid")
+287-    .reduce((sum, purchase) => sum + purchase.credits, 0);
+288-
+289-  const profileStrength =
+290-    completion >= 85
+291-      ? "Sehr stark"
+292-      : completion >= 65
+
+==================================================
+DATEI: app/portal/einstellungen/page.tsx
+==================================================
+1-import { redirect } from "next/navigation";
+2-
+3:import { requireUser } from "@/lib/auth";
+4-import { prisma } from "@/lib/prisma";
+5-import { updatePortalSettingsAction } from "./actions";
+6-import MatchingCenter from "./matching-center";
+7-import "./matching-center.css";
+8-
+9-export const runtime = "nodejs";
+10-export const dynamic = "force-dynamic";
+11-export const revalidate = 0;
+12-
+13-const cantons = [
+14-  "Aargau",
+15-  "Appenzell Ausserrhoden",
+16-  "Appenzell Innerrhoden",
+17-  "Basel-Landschaft",
+18-  "Basel-Stadt",
+19-  "Bern",
+20-  "Freiburg",
+21-  "Genf",
+22-  "Glarus",
+23-  "Graubünden",
+24-  "Jura",
+25-  "Luzern",
+26-  "Neuenburg",
+27-  "Nidwalden",
+28-  "Obwalden",
+29-  "Schaffhausen",
+30-  "Schwyz",
+31-  "Solothurn",
+32-  "St. Gallen",
+33-  "Tessin",
+34-  "Thurgau",
+35-  "Uri",
+36-  "Waadt",
+37-  "Wallis",
+38-  "Zug",
+39-  "Zürich",
+40-];
+41-
+42-type PageProps = {
+43-  searchParams?: Promise<{
+44-    saved?: string;
+45-  }>;
+46-};
+47-
+48-export default async function PortalSettingsPage({
+49-  searchParams,
+50-}: PageProps) {
+51:  const user = await requireUser();
+52-
+53-  if (!user) {
+54:    redirect("/login");
+55-  }
+56-
+57-  if (user.status !== "APPROVED") {
+58:    redirect("/login?error=provider-not-approved");
+59-  }
+60-
+61-  const params = searchParams
+62-    ? await searchParams
+63-    : undefined;
+64-
+65-  const [provider, services] = await Promise.all([
+66:    prisma.provider.findUnique({
+67-      where: {
+68-        id: user.id,
+69-      },
+70-      include: {
+71-        providerServices: {
+72-          where: {
+73-            active: true,
+74-          },
+75-          select: {
+76-            serviceId: true,
+77-          },
+78-        },
+79-      },
+80-    }),
+81-
+82-    prisma.service.findMany({
+83-      include: {
+84-        category: true,
+85-      },
+86-      orderBy: [
+87-        {
+88-          category: {
+89-            sortOrder: "asc",
+90-          },
+91-        },
+92-        {
+93-          sortOrder: "asc",
+94-        },
+95-        {
+96-          name: "asc",
+97-        },
+98-      ],
+99-    }),
+100-  ]);
+101-
+102-  if (!provider) {
+103:    redirect("/login");
+104-  }
+105-
+106-  const serializedServices = services.map((service) => ({
+107-    id: service.id,
+108-    name: service.name,
+109-    categorySlug: service.category.slug,
+110-    categoryName: service.category.name,
+111-  }));
+112-
+113-  return (
+114-    <MatchingCenter
+115-      action={updatePortalSettingsAction}
+116-      saved={params?.saved === "1"}
+117-      cantons={cantons}
+118-      services={serializedServices}
+119-      initialServiceIds={provider.providerServices.map(
+120-        (entry) => entry.serviceId
+121-      )}
+122-      initialRegions={provider.serviceRegions}
+123-      initialCities={provider.serviceCities}
+124-      initialPostalCodes={provider.servicePostalCodes}
+125-      initialReceiveLeadEmails={provider.receiveLeadEmails}
+126-      initialReceiveAllLeadEmails={
+127-        provider.receiveAllLeadEmails
+128-      }
+
+==================================================
+DATEI: app/portal/abo/page.tsx
+==================================================
+1-import Link from "next/link";
+2-import { redirect } from "next/navigation";
+3:import { getSession } from "@/lib/auth";
+4-import { prisma } from "@/lib/prisma";
+5-import styles from "./abo.module.css";
+6-
+7-export const dynamic = "force-dynamic";
+8-export const revalidate = 0;
+9-
+10-type SearchParams = {
+11-  success?: string;
+12-  cancelled?: string;
+13-  error?: string;
+14-};
+15-
+16-type AboPageProps = {
+17-  searchParams?: Promise<SearchParams> | SearchParams;
+18-};
+19-
+20-function formatDate(date: Date | null): string {
+21-  if (!date) {
+22-    return "Noch nicht verfügbar";
+23-  }
+24-
+25-  return new Intl.DateTimeFormat("de-CH", {
+26-    day: "2-digit",
+27-    month: "2-digit",
+28-    year: "numeric",
+--
+48-      return "Zahlung ausstehend";
+49-
+50-    case "UNPAID":
+51-      return "Nicht bezahlt";
+52-
+53-    case "CANCELED":
+54-    case "CANCELLED":
+55-      return "Gekündigt";
+56-
+57-    case "INCOMPLETE":
+58-      return "Zahlung nicht abgeschlossen";
+59-
+60-    case "INCOMPLETE_EXPIRED":
+61-      return "Zahlung abgelaufen";
+62-
+63-    default:
+64-      return "Kein aktives Abonnement";
+65-  }
+66-}
+67-
+68-export default async function AboPage({
+69-  searchParams,
+70-}: AboPageProps) {
+71-  const params = await Promise.resolve(searchParams ?? {});
+72-
+73:  const session = await getSession();
+74-
+75-  const sessionEmail = session?.user?.email
+76-    ?.trim()
+77-    .toLowerCase();
+78-
+79-  if (!sessionEmail) {
+80:    redirect("/login?callbackUrl=/portal/abo");
+81-  }
+82-
+83:  const provider = await prisma.provider.findUnique({
+84-    where: {
+85-      email: sessionEmail,
+86-    },
+87-    select: {
+88-      id: true,
+89-      companyName: true,
+90-      contactName: true,
+91-      email: true,
+92-      status: true,
+93-      subscriptionExempt: true,
+94-      subscriptionStatus: true,
+95-      subscriptionCurrentPeriodEnd: true,
+96-      subscriptionCancelAtPeriodEnd: true,
+97-      subscriptionStartedAt: true,
+98-      subscriptionCancelledAt: true,
+99-      stripeCustomerId: true,
+100-      stripeSubscriptionId: true,
+101-    },
+102-  });
+103-
+104-  if (!provider) {
+105:    redirect("/login?error=provider-not-found");
+106-  }
+107-
+108-  if (provider.status !== "APPROVED") {
+109:    redirect("/login?error=provider-not-approved");
+110-  }
+111-
+112-  const subscriptionStatus =
+113-    provider.subscriptionStatus || "INACTIVE";
+114-
+115-  const hasActiveSubscription =
+116-    provider.subscriptionExempt ||
+117-    ["ACTIVE", "TRIALING"].includes(
+118-      subscriptionStatus.toUpperCase(),
+119-    );
+120-
+121-  return (
+122-    <main className={styles.page}>
+123-      <div className={styles.backgroundGlow} />
+124-
+125-      <div className={styles.container}>
+126-        <header className={styles.hero}>
+127-          <div className={styles.heroContent}>
+128-            <span className={styles.eyebrow}>
+129-              Auftrago Mitgliedschaft
+130-            </span>
+131-
+132-            <h1>
+133-              Dein Anbieter-
+134-              <em>Abonnement</em>

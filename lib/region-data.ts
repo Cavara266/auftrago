@@ -1,251 +1,169 @@
 export type Region = {
   slug: string;
   name: string;
+  shortName: string;
   description: string;
   longDescription: string;
-  cities: string[];
   popularServices: string[];
+  cities: string[];
 };
 
 export const regions: Region[] = [
   {
-    slug: "zuerich",
-    name: "Zürich",
-    description:
-      "Zürich ist einer der wichtigsten Standorte für regionale Dienstleistungen in der Schweiz.",
-    longDescription:
-      "Zürich ist die grösste Wirtschaftsregion der Schweiz und bietet eine sehr hohe Nachfrage nach regionalen Dienstleistungen. Besonders häufig gesucht werden Reinigungsfirmen, Hauswartungen, Umzugsfirmen, Gartenpflege, Fensterreinigung, Entsorgung und Transport. Über Auftrago können Privatpersonen, Verwaltungen und Unternehmen passende Anbieter in Zürich und Umgebung finden und Offerten vergleichen.",
-    cities: [
-      "Zürich",
-      "Winterthur",
-      "Uster",
-      "Dietikon",
-      "Wetzikon",
-      "Bülach",
-      "Horgen",
-      "Meilen",
-      "Schlieren",
-      "Dübendorf",
-      "Wallisellen",
-      "Opfikon",
-      "Kloten",
-      "Regensdorf",
-      "Adliswil",
-      "Thalwil",
-      "Wädenswil",
-      "Volketswil",
-      "Küsnacht",
-      "Männedorf",
-      "Affoltern am Albis",
-    ],
-    popularServices: [
-      "Reinigung",
-      "Umzugsreinigung",
-      "Hauswartung",
-      "Fensterreinigung",
-      "Gartenpflege",
-      "Umzug",
-      "Transport",
-      "Entsorgung",
-    ],
-  },
-  {
     slug: "aargau",
-    name: "Aargau",
-    description:
-      "Im Aargau suchen viele Privatkunden, Verwaltungen und Firmen regionale Anbieter.",
-    longDescription:
-      "Der Kanton Aargau verbindet viele Städte, Gemeinden und Wirtschaftsstandorte. In Aarau, Baden, Brugg, Lenzburg, Wohlen, Wettingen und Umgebung werden regelmässig Anbieter für Reinigung, Hauswartung, Umzug, Gartenpflege, Fensterreinigung und Entsorgung gesucht. Auftrago hilft dabei, regionale Firmen schneller zu finden und Offerten einfacher zu vergleichen.",
-    cities: [
-      "Aarau",
-      "Baden",
-      "Brugg",
-      "Lenzburg",
-      "Wohlen",
-      "Zofingen",
-      "Rheinfelden",
-      "Wettingen",
-      "Spreitenbach",
-      "Mellingen",
-      "Neuenhof",
-      "Windisch",
-      "Suhr",
-      "Oftringen",
-      "Frick",
-      "Muri",
-      "Oberentfelden",
-      "Unterentfelden",
-    ],
+    description: "Regionale Anbieter und Dienstleistungen im Kanton Aargau vergleichen.",
+    longDescription: "Vergleiche regionale Anbieter im Kanton Aargau für Reinigung, Umzug, Handwerk, Garten, Immobilien und viele weitere Dienstleistungen. Mit Auftrago beschreibst du deinen Auftrag einmal und erhältst passende Offerten von Anbietern aus deiner Region.",
     popularServices: [
-      "Reinigung",
-      "Hauswartung",
-      "Umzugsreinigung",
-      "Gartenpflege",
-      "Fensterreinigung",
-      "Entsorgung",
-      "Transport",
+      "reinigung",
+      "umzugsreinigung",
+      "hauswartung",
+      "umzug",
+      "gartenpflege",
+      "maler",
+      "elektriker",
+      "sanitaer"
+    ],
+    name: "Kanton Aargau",
+    shortName: "Aargau",
+    cities: [
+      "aarau",
+      "baden",
+      "wohlen",
+      "mellingen",
+      "lenzburg",
+      "zofingen",
+      "rheinfelden",
+      "brugg",
+      "spreitenbach",
+      "oftringen",
+      "villmergen",
+      "dottikon",
+      "suhr",
+      "reinach-ag",
+      "muri-ag",
     ],
   },
   {
-    slug: "basel",
-    name: "Basel",
-    description:
-      "Basel und Umgebung sind wichtige Regionen für private und gewerbliche Dienstleistungen.",
-    longDescription:
-      "Basel ist ein bedeutender Wirtschaftsstandort mit vielen Wohnungen, Firmen, Praxen, Büros und Liegenschaften. Entsprechend hoch ist die Nachfrage nach Reinigung, Büroreinigung, Hauswartung, Umzug, Entsorgung und Gartenpflege. Auftrago unterstützt Kunden dabei, regionale Anbieter in Basel und Umgebung zu vergleichen.",
-    cities: [
-      "Basel",
-      "Riehen",
-      "Binningen",
-      "Birsfelden",
-      "Münchenstein",
-      "Allschwil",
-      "Muttenz",
-      "Pratteln",
-      "Liestal",
-      "Reinach BL",
-    ],
+    slug: "zuerich",
+    description: "Regionale Anbieter und Dienstleistungen im Kanton Zürich vergleichen.",
+    longDescription: "Finde passende Anbieter im Kanton Zürich und vergleiche Offerten für Reinigung, Umzug, Handwerk, Gartenpflege, Immobilien und weitere Dienstleistungen. Auftrago verbindet dich mit regionalen Fachbetrieben.",
     popularServices: [
-      "Reinigung",
-      "Büroreinigung",
-      "Hauswartung",
-      "Umzug",
-      "Entsorgung",
-      "Fensterreinigung",
+      "reinigung",
+      "umzugsreinigung",
+      "fensterreinigung",
+      "umzug",
+      "hauswartung",
+      "maler",
+      "elektriker",
+      "gartenpflege"
     ],
-  },
-  {
-    slug: "bern",
-    name: "Bern",
-    description:
-      "In Bern können Kunden regionale Firmen für viele Dienstleistungen vergleichen.",
-    longDescription:
-      "Bern ist ein wichtiger Standort für Privatkunden, Verwaltungen und Unternehmen. Häufig gesucht werden Anbieter für Reinigung, Umzugsreinigung, Hauswartung, Gartenpflege, Entsorgung, Transport und Fensterreinigung. Auftrago hilft dabei, passende Firmen in Bern und Umgebung schneller zu finden.",
+    name: "Kanton Zürich",
+    shortName: "Zürich",
     cities: [
-      "Bern",
-      "Köniz",
-      "Ostermundigen",
-      "Muri bei Bern",
-      "Thun",
-      "Biel",
-      "Burgdorf",
-      "Langenthal",
-      "Interlaken",
-    ],
-    popularServices: [
-      "Reinigung",
-      "Umzugsreinigung",
-      "Hauswartung",
-      "Gartenpflege",
-      "Umzug",
-      "Transport",
-      "Entsorgung",
+      "zuerich",
+      "winterthur",
+      "uster",
+      "dietikon",
+      "buelach",
+      "waedenswil",
+      "duebendorf",
+      "kloten",
+      "opfikon",
+      "thalwil",
+      "adliswil",
+      "horgen",
+      "regensdorf",
+      "schlieren",
+      "meilen",
     ],
   },
   {
     slug: "luzern",
-    name: "Luzern",
-    description:
-      "Luzern bietet viele lokale Dienstleister für private und gewerbliche Aufträge.",
-    longDescription:
-      "Luzern verbindet Wohngebiete, Gewerbe und Tourismus. Dadurch entstehen viele Anfragen für Reinigung, Hauswartung, Gartenpflege, Umzug, Transport, Fensterreinigung und Entsorgung. Über Auftrago können Kunden regionale Anbieter in Luzern und Umgebung einfacher vergleichen.",
-    cities: ["Luzern", "Emmen", "Kriens", "Horw", "Ebikon", "Sursee"],
+    description: "Regionale Anbieter und Dienstleistungen im Kanton Luzern vergleichen.",
+    longDescription: "Vergleiche Dienstleister im Kanton Luzern für Reinigung, Hauswartung, Umzug, Transport, Garten und Handwerk. Stelle kostenlos eine Anfrage und erhalte passende Offerten aus der Region.",
     popularServices: [
-      "Reinigung",
-      "Hauswartung",
-      "Umzug",
-      "Gartenpflege",
-      "Fensterreinigung",
-      "Entsorgung",
+      "reinigung",
+      "umzugsreinigung",
+      "hauswartung",
+      "umzug",
+      "transport",
+      "gartenpflege",
+      "maler",
+      "sanitaer"
+    ],
+    name: "Kanton Luzern",
+    shortName: "Luzern",
+    cities: [
+      "luzern",
+      "kriens",
+      "emmen",
+      "horw",
+      "sursee",
+      "ebikon",
+      "malters",
+      "hochdorf",
     ],
   },
   {
-    slug: "zug",
-    name: "Zug",
-    description:
-      "In Zug finden Privatkunden und Firmen regionale Anbieter für viele Dienstleistungen.",
-    longDescription:
-      "Zug ist ein starker Wirtschaftsstandort mit vielen Firmen, Wohnungen und Liegenschaften. Besonders gefragt sind Anbieter für Reinigung, Büroreinigung, Hauswartung, Fensterreinigung, Umzug, Gartenpflege und Entsorgung. Auftrago erleichtert den Vergleich regionaler Firmen in Zug.",
-    cities: ["Zug", "Baar", "Cham", "Rotkreuz", "Steinhausen"],
+    slug: "basel",
+    description: "Regionale Anbieter und Dienstleistungen in der Region Basel vergleichen.",
+    longDescription: "Finde regionale Anbieter in Basel und Umgebung für Reinigung, Umzug, Handwerk, Gartenpflege und Immobilienservices. Vergleiche mehrere Offerten kostenlos und unverbindlich.",
     popularServices: [
-      "Reinigung",
-      "Büroreinigung",
-      "Hauswartung",
-      "Fensterreinigung",
-      "Umzug",
-      "Entsorgung",
+      "reinigung",
+      "umzugsreinigung",
+      "fensterreinigung",
+      "umzug",
+      "entsorgung",
+      "maler",
+      "elektriker",
+      "sanitaer"
+    ],
+    name: "Basel",
+    shortName: "Basel",
+    cities: [
+      "basel",
+      "liestal",
+      "muttenz",
+      "allschwil",
+      "pratteln",
+      "binningen",
+      "therwil",
+      "reinach-bl",
     ],
   },
   {
-    slug: "st-gallen",
-    name: "St. Gallen",
-    description:
-      "St. Gallen ist eine wichtige Region für lokale Dienstleistungen in der Ostschweiz.",
-    longDescription:
-      "St. Gallen und die Ostschweiz bieten viele regionale Dienstleister für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung und Transport. Über Auftrago können Kunden passende Anbieter aus der Region finden und Offerten vergleichen.",
-    cities: ["St. Gallen", "Gossau", "Rorschach", "Wil", "Uzwil", "Rapperswil"],
+    slug: "bern",
+    description: "Regionale Anbieter und Dienstleistungen im Kanton Bern vergleichen.",
+    longDescription: "Vergleiche Anbieter im Kanton Bern für Reinigung, Umzug, Hauswartung, Handwerk, Garten und weitere Dienstleistungen. Mit Auftrago findest du passende regionale Fachbetriebe für deinen Auftrag.",
     popularServices: [
-      "Reinigung",
-      "Hauswartung",
-      "Umzug",
-      "Transport",
-      "Gartenpflege",
-      "Entsorgung",
+      "reinigung",
+      "umzugsreinigung",
+      "hauswartung",
+      "umzug",
+      "gartenpflege",
+      "maler",
+      "elektriker",
+      "sanitaer"
     ],
-  },
-  {
-    slug: "schaffhausen",
-    name: "Schaffhausen",
-    description:
-      "In Schaffhausen findest du regionale Anbieter für Reinigung, Hauswartung und weitere Dienstleistungen.",
-    longDescription:
-      "Schaffhausen hat eine starke regionale Struktur. Viele Kunden suchen Dienstleister aus der Nähe, die flexibel reagieren können. Besonders häufig gefragt sind Reinigung, Hauswartung, Gartenpflege, Umzug, Transport und Entsorgung.",
-    cities: ["Schaffhausen", "Neuhausen", "Beringen", "Thayngen"],
-    popularServices: [
-      "Reinigung",
-      "Hauswartung",
-      "Gartenpflege",
-      "Umzug",
-      "Transport",
-      "Entsorgung",
-    ],
-  },
-  {
-    slug: "thurgau",
-    name: "Thurgau",
-    description:
-      "Im Thurgau werden regionale Anbieter für private und gewerbliche Aufträge gesucht.",
-    longDescription:
-      "Der Thurgau bietet viele regionale Anbieter für Reinigung, Hauswartung, Gartenpflege, Umzug, Entsorgung und Transport. Besonders in Frauenfeld, Kreuzlingen und Arbon entstehen regelmässig private und gewerbliche Dienstleistungsanfragen.",
-    cities: ["Frauenfeld", "Kreuzlingen", "Arbon", "Weinfelden", "Romanshorn"],
-    popularServices: [
-      "Reinigung",
-      "Hauswartung",
-      "Gartenpflege",
-      "Umzug",
-      "Entsorgung",
-      "Transport",
-    ],
-  },
-  {
-    slug: "solothurn",
-    name: "Solothurn",
-    description:
-      "Solothurn ist ein regionaler Standort mit vielen Dienstleistungsanfragen.",
-    longDescription:
-      "In Solothurn und Umgebung suchen Privatkunden, Verwaltungen und Unternehmen Anbieter für Reinigung, Hauswartung, Umzug, Gartenpflege, Entsorgung und Fensterreinigung. Auftrago hilft, regionale Firmen einfacher zu vergleichen.",
-    cities: ["Solothurn", "Olten", "Grenchen", "Zuchwil"],
-    popularServices: [
-      "Reinigung",
-      "Hauswartung",
-      "Umzug",
-      "Fensterreinigung",
-      "Gartenpflege",
-      "Entsorgung",
+    name: "Kanton Bern",
+    shortName: "Bern",
+    cities: [
+      "bern",
+      "thun",
+      "biel",
+      "burgdorf",
+      "langenthal",
+      "interlaken",
+      "muri-bei-bern",
     ],
   },
 ];
 
-export function getRegion(slug: string) {
+export function getRegionBySlug(slug: string) {
   return regions.find((region) => region.slug === slug);
+}
+
+
+export function getRegion(slug: string) {
+  return getRegionBySlug(slug);
 }

@@ -1,0 +1,327 @@
+export type ServiceCategory =
+  | "haus-reinigung"
+  | "handwerk"
+  | "umzug-transport"
+  | "garten-aussenbereich"
+  | "immobilien"
+  | "energie-technik"
+  | "it-digital"
+  | "finanzen-beratung";
+
+export type ServiceCatalogItem = {
+  slug: string;
+  name: string;
+  category: ServiceCategory;
+  keywords?: string[];
+};
+
+export const serviceCatalog: ServiceCatalogItem[] = [
+  {
+    slug: "reinigung",
+    name: "Reinigung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "umzugsreinigung",
+    name: "Umzugsreinigung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "hauswartung",
+    name: "Hauswartung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "treppenhausreinigung",
+    name: "Treppenhausreinigung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "bueroreinigung",
+    name: "Bueroreinigung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "gartenpflege",
+    name: "Gartenpflege",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "umzug",
+    name: "Umzug",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "transport",
+    name: "Transport",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "entsorgung",
+    name: "Entsorgung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "maler",
+    name: "Maler",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "bodenleger",
+    name: "Bodenleger",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "elektriker",
+    name: "Elektriker",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "sanitaer",
+    name: "Sanitaer",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "fensterreinigung",
+    name: "Fensterreinigung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "baureinigung",
+    name: "Baureinigung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "end-reinigung",
+    name: "End Reinigung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "gebaeudereinigung",
+    name: "Gebaeudereinigung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "winterdienst",
+    name: "Winterdienst",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "kellerraeumung",
+    name: "Kellerraeumung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "moebeltransport",
+    name: "Moebeltransport",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "wohnungsreinigung",
+    name: "Wohnungsreinigung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "unterhaltsreinigung",
+    name: "Unterhaltsreinigung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "praxisreinigung",
+    name: "Praxisreinigung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "fassadenreinigung",
+    name: "Fassadenreinigung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "heckenschnitt",
+    name: "Heckenschnitt",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "rasenpflege",
+    name: "Rasenpflege",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "liegenschaftsunterhalt",
+    name: "Liegenschaftsunterhalt",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "hausmeisterservice",
+    name: "Hausmeisterservice",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "raeumung",
+    name: "Raeumung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "estrichraeumung",
+    name: "Estrichraeumung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "hauswartfirma",
+    name: "Hauswartfirma",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "hauswartservice",
+    name: "Hauswartservice",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "hauswartarbeiten",
+    name: "Hauswartarbeiten",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "gartenunterhalt",
+    name: "Gartenunterhalt",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "baumschnitt",
+    name: "Baumschnitt",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "entruempelung",
+    name: "Entruempelung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "haushaltsaufloesung",
+    name: "Haushaltsaufloesung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "glasreinigung",
+    name: "Glasreinigung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "storenreinigung",
+    name: "Storenreinigung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "wintergartenreinigung",
+    name: "Wintergartenreinigung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "kleintransport",
+    name: "Kleintransport",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "firmenumzug",
+    name: "Firmenumzug",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "privatumzug",
+    name: "Privatumzug",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "dachreinigung",
+    name: "Dachreinigung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "dachwartung",
+    name: "Dachwartung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "sanitaerservice",
+    name: "Sanitaerservice",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "heizungsservice",
+    name: "Heizungsservice",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "elektroinstallationen",
+    name: "Elektroinstallationen",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "elektroservice",
+    name: "Elektroservice",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "parkettlegen",
+    name: "Parkettlegen",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "laminat-verlegen",
+    name: "Laminat Verlegen",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "objektbetreuung",
+    name: "Objektbetreuung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "bueroumzug",
+    name: "Bueroumzug",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "lagerraeumung",
+    name: "Lagerraeumung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "schneeraeumung",
+    name: "Schneeraeumung",
+    category: "haus-reinigung",
+  },
+  {
+    slug: "salzdienst",
+    name: "Salzdienst",
+    category: "haus-reinigung",
+  },
+];
+
+export const services = serviceCatalog.map(
+  (service) => service.slug,
+);
+
+export const serviceLabels: Record<string, string> =
+  Object.fromEntries(
+    serviceCatalog.map((service) => [
+      service.slug,
+      service.name,
+    ]),
+  );
+
+export const serviceCategoryBySlug: Record<
+  string,
+  ServiceCategory
+> = Object.fromEntries(
+  serviceCatalog.map((service) => [
+    service.slug,
+    service.category,
+  ]),
+) as Record<string, ServiceCategory>;
+
+export function getServiceCatalogItem(slug: string) {
+  return serviceCatalog.find(
+    (service) => service.slug === slug,
+  );
+}
