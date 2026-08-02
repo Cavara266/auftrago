@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import AdminAutoRefresh from "@/components/admin/admin-auto-refresh";
 import { prisma } from "@/lib/prisma";
+import { hasSubscriptionAccess } from "@/lib/provider-subscription";
+import { updateSubscriptionExemption } from "./subscription-actions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -334,6 +336,38 @@ export default async function AdminProviderDetailPage({ params }: PageProps) {
     .filter(Boolean)
     .join(", ");
 
+
+  const hasLeadAccess =
+    provider.status === "APPROVED" &&
+    hasSubscriptionAccess({
+      subscriptionExempt: provider.subscriptionExempt,
+      subscriptionStatus: provider.subscriptionStatus,
+    });
+
+  const normalizedSubscriptionStatus = String(
+    provider.subscriptionStatus || "INACTIVE",
+  ).toUpperCase();
+
+  const subscriptionSource = provider.subscriptionExempt
+    ? "Manuell freigeschaltet"
+    : ["ACTIVE", "TRIALING"].includes(normalizedSubscriptionStatus)
+      ? "Stripe-Abonnement"
+      : "Keine Freischaltung";
+
+  const subscriptionStatusLabel =
+    normalizedSubscriptionStatus === "ACTIVE"
+      ? "Aktiv"
+      : normalizedSubscriptionStatus === "TRIALING"
+        ? "Testphase"
+        : normalizedSubscriptionStatus === "PAST_DUE"
+          ? "Zahlung ausstehend"
+          : normalizedSubscriptionStatus === "CANCELED"
+            ? "Gekündigt"
+            : normalizedSubscriptionStatus === "UNPAID"
+              ? "Unbezahlt"
+              : "Inaktiv";
+
+
   return (
     <main className="provider-crm-page">
       <div className="provider-crm-glow provider-crm-glow-one" />
@@ -458,7 +492,211 @@ export default async function AdminProviderDetailPage({ params }: PageProps) {
           </article>
         </section>
 
-        <section className="provider-crm-kpi-grid">
+  
+      <section
+        style={{
+          marginTop: "24px",
+          marginBottom: "24px",
+          padding: "24px",
+          border: "1px solid rgba(255,255,255,0.12)",
+          borderRadius: "24px",
+          background:
+            "linear-gradient(135deg, rgba(12,22,42,0.96), rgba(23,35,62,0.96))",
+          boxShadow: "0 18px 45px rgba(0,0,0,0.22)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: "20px",
+            flexWrap: "wrap",
+          }}
+        >
+          <div>
+            <small
+              style={{
+                color: "#7dd3fc",
+                fontWeight: 800,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+              }}
+            >
+              Abonnement und Lead-Zugriff
+            </small>
+
+            <h2
+              style={{
+                marginTop: "8px",
+                marginBottom: "6px",
+                fontSize: "26px",
+              }}
+            >
+              {hasLeadAccess
+                ? "Leads freigeschaltet"
+                : "Leads nicht freigeschaltet"}
+            </h2>
+
+            <p
+              style={{
+                margin: 0,
+                color: hasLeadAccess ? "#86efac" : "#fca5a5",
+                fontWeight: 700,
+              }}
+            >
+              {hasLeadAccess
+                ? "Der Anbieter besitzt aktuell Zugriff auf verfügbare Leads."
+                : "Der Anbieter erfüllt aktuell nicht alle Voraussetzungen für den Lead-Zugriff."}
+            </p>
+          </div>
+
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "9px 14px",
+              borderRadius: "999px",
+              background: hasLeadAccess
+                ? "rgba(34,197,94,0.14)"
+                : "rgba(239,68,68,0.14)",
+              border: hasLeadAccess
+                ? "1px solid rgba(34,197,94,0.35)"
+                : "1px solid rgba(239,68,68,0.35)",
+              color: hasLeadAccess ? "#86efac" : "#fca5a5",
+              fontWeight: 800,
+            }}
+          >
+            {hasLeadAccess ? "Zugriff aktiv" : "Zugriff gesperrt"}
+          </span>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+            gap: "12px",
+            marginTop: "22px",
+          }}
+        >
+          {[
+            {
+              label: "Anbieterstatus",
+              value:
+                provider.status === "APPROVED"
+                  ? "Genehmigt"
+                  : provider.status === "BLOCKED"
+                    ? "Gesperrt"
+                    : "Ausstehend",
+            },
+            {
+              label: "Stripe-Status",
+              value: subscriptionStatusLabel,
+            },
+            {
+              label: "Freischaltung",
+              value: subscriptionSource,
+            },
+            {
+              label: "Stripe-Kunde",
+              value: provider.stripeCustomerId
+                ? "Vorhanden"
+                : "Nicht vorhanden",
+            },
+            {
+              label: "Stripe-Abonnement",
+              value: provider.stripeSubscriptionId
+                ? "Vorhanden"
+                : "Nicht vorhanden",
+            },
+            {
+              label: "Nächste Verlängerung",
+              value: provider.subscriptionCurrentPeriodEnd
+                ? formatDate(provider.subscriptionCurrentPeriodEnd)
+                : "Kein Datum",
+            },
+            {
+              label: "Kündigung vorgemerkt",
+              value: provider.subscriptionCancelAtPeriodEnd
+                ? "Ja"
+                : "Nein",
+            },
+            {
+              label: "Manuelle Ausnahme",
+              value: provider.subscriptionExempt
+                ? "Aktiv"
+                : "Nicht aktiv",
+            },
+          ].map((item) => (
+            <div
+              key={item.label}
+              style={{
+                padding: "16px",
+                borderRadius: "16px",
+                background: "rgba(255,255,255,0.045)",
+                border: "1px solid rgba(255,255,255,0.08)",
+              }}
+            >
+              <small
+                style={{
+                  display: "block",
+                  marginBottom: "7px",
+                  color: "#94a3b8",
+                }}
+              >
+                {item.label}
+              </small>
+
+              <strong>{item.value}</strong>
+            </div>
+          ))}
+        </div>
+
+        <form
+          action={updateSubscriptionExemption}
+          style={{
+            display: "flex",
+            gap: "12px",
+            flexWrap: "wrap",
+            marginTop: "22px",
+          }}
+        >
+          <input type="hidden" name="providerId" value={provider.id} />
+          <input
+            type="hidden"
+            name="exempt"
+            value={provider.subscriptionExempt ? "false" : "true"}
+          />
+
+          <button
+            type="submit"
+            className={
+              provider.subscriptionExempt
+                ? "provider-crm-button provider-crm-button-dark"
+                : "provider-crm-button provider-crm-button-primary"
+            }
+          >
+            {provider.subscriptionExempt
+              ? "Manuelle Freischaltung entfernen"
+              : "Manuell für Leads freischalten"}
+          </button>
+        </form>
+
+        <p
+          style={{
+            marginTop: "14px",
+            marginBottom: 0,
+            color: "#94a3b8",
+            fontSize: "13px",
+          }}
+        >
+          Eine manuelle Freischaltung verändert den echten Stripe-Status
+          nicht. Sie erlaubt dem Anbieter lediglich den Zugriff auf die
+          Leads.
+        </p>
+      </section>
+
+      <section className="provider-crm-kpi-grid">
           {[
             {
               label: "Leadkäufe",
