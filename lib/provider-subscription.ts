@@ -14,7 +14,12 @@ export const ACTIVE_SUBSCRIPTION_STATUSES = [
 export function hasSubscriptionAccess(provider: {
   subscriptionExempt: boolean;
   subscriptionStatus: string | null;
+  subscriptionBlocked?: boolean;
 }) {
+  if (provider.subscriptionBlocked) {
+    return false;
+  }
+
   if (provider.subscriptionExempt) {
     return true;
   }
