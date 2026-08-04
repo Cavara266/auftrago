@@ -426,3 +426,347 @@
     display: inline-flex !important;
   }
 }
+
+
+/* =========================================================
+   AUFTRAGO MOBILE HEADER – PREMIUM REDESIGN
+   ========================================================= */
+
+@media (max-width: 1179px) {
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 3000;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(3, 7, 18, 0.98),
+        rgba(5, 10, 24, 0.96)
+      );
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.32);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+
+  .shell {
+    width: min(100% - 28px, 1380px);
+    min-height: 70px;
+    gap: 14px;
+  }
+
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 22px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .desktopNav {
+    display: none !important;
+  }
+
+  .actions {
+    flex: 0 0 auto;
+    gap: 8px;
+  }
+
+  .primaryButton {
+    display: none !important;
+  }
+
+  .searchButton,
+  .mobileButton {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    background:
+      linear-gradient(
+        145deg,
+        rgba(56, 189, 248, 0.95),
+        rgba(99, 102, 241, 0.95)
+      );
+    box-shadow:
+      0 12px 28px rgba(79, 70, 229, 0.26),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    font-size: 18px;
+    font-weight: 900;
+    transition:
+      transform 180ms ease,
+      box-shadow 180ms ease,
+      border-color 180ms ease;
+  }
+
+  .searchButton:active,
+  .mobileButton:active {
+    transform: scale(0.95);
+  }
+
+  .mobileMenu {
+    position: fixed;
+    z-index: 2999;
+    top: 70px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    width: 100%;
+    max-width: none;
+    padding:
+      18px
+      max(18px, env(safe-area-inset-right))
+      max(28px, calc(18px + env(safe-area-inset-bottom)))
+      max(18px, env(safe-area-inset-left));
+
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    background:
+      radial-gradient(
+        circle at 90% 0%,
+        rgba(99, 102, 241, 0.18),
+        transparent 34%
+      ),
+      radial-gradient(
+        circle at 0% 20%,
+        rgba(56, 189, 248, 0.12),
+        transparent 32%
+      ),
+      linear-gradient(
+        180deg,
+        rgba(4, 9, 22, 0.995),
+        rgba(7, 14, 31, 0.995)
+      );
+
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    animation: auftragoMobileMenuIn 220ms ease-out;
+  }
+
+  .mobileMenu::before {
+    content: "Navigation";
+    display: block;
+    margin: 2px 4px 6px;
+    color: rgba(148, 163, 184, 0.9);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .mobileMenu a {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 54px;
+    padding: 0 17px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 16px;
+    background:
+      linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.065),
+        rgba(255, 255, 255, 0.025)
+      );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.035),
+      0 10px 28px rgba(0, 0, 0, 0.12);
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 14px;
+    font-weight: 850;
+    line-height: 1.25;
+    text-decoration: none;
+    transition:
+      transform 160ms ease,
+      border-color 160ms ease,
+      background 160ms ease;
+  }
+
+  .mobileMenu a::after {
+    content: "→";
+    margin-left: auto;
+    padding-left: 14px;
+    color: rgba(125, 211, 252, 0.9);
+    font-size: 17px;
+    font-weight: 900;
+  }
+
+  .mobileMenu a:hover,
+  .mobileMenu a:focus-visible {
+    border-color: rgba(96, 165, 250, 0.38);
+    background:
+      linear-gradient(
+        135deg,
+        rgba(56, 189, 248, 0.13),
+        rgba(99, 102, 241, 0.13)
+      );
+    transform: translateY(-1px);
+    outline: none;
+  }
+
+  .mobileMenu a:last-child {
+    margin-top: 8px;
+    min-height: 58px;
+    justify-content: center;
+    border-color: rgba(96, 165, 250, 0.35);
+    background:
+      linear-gradient(
+        135deg,
+        #38bdf8,
+        #6366f1
+      );
+    box-shadow:
+      0 16px 36px rgba(79, 70, 229, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-size: 15px;
+  }
+
+  .mobileMenu a:last-child::after {
+    content: "↗";
+    margin-left: 10px;
+    padding-left: 0;
+    color: #ffffff;
+  }
+
+  .megaMenu,
+  .regionMenu {
+    display: none !important;
+  }
+
+  .searchOverlay {
+    z-index: 4000;
+    padding:
+      90px
+      max(18px, env(safe-area-inset-right))
+      30px
+      max(18px, env(safe-area-inset-left));
+    background:
+      radial-gradient(
+        circle at 50% 0%,
+        rgba(99, 102, 241, 0.2),
+        transparent 36%
+      ),
+      rgba(2, 5, 14, 0.985);
+  }
+
+  .searchPanel {
+    width: min(100%, 680px);
+    margin: 0 auto;
+    padding: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    background: rgba(10, 17, 35, 0.92);
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.5);
+  }
+
+  .closeSearch {
+    top: 18px;
+    right: 18px;
+  }
+}
+
+@media (max-width: 620px) {
+  .shell {
+    width: calc(100% - 24px);
+    min-height: 66px;
+  }
+
+  .logo {
+    font-size: 20px;
+    letter-spacing: -0.8px;
+  }
+
+  .actions {
+    gap: 7px;
+  }
+
+  .searchButton,
+  .mobileButton {
+    flex-basis: 42px;
+    width: 42px;
+    height: 42px;
+    min-height: 42px;
+    border-radius: 13px;
+  }
+
+  .mobileMenu {
+    top: 66px;
+    padding-top: 14px;
+  }
+
+  .mobileMenu a {
+    min-height: 52px;
+    padding: 0 15px;
+    border-radius: 15px;
+    font-size: 14px;
+  }
+
+  .searchPanel {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .searchPanel h2 {
+    font-size: clamp(25px, 8vw, 34px);
+    letter-spacing: -1.3px;
+  }
+}
+
+@media (max-width: 390px) {
+  .shell {
+    width: calc(100% - 18px);
+  }
+
+  .logo {
+    font-size: 18px;
+  }
+
+  .searchButton,
+  .mobileButton {
+    flex-basis: 39px;
+    width: 39px;
+    height: 39px;
+    min-height: 39px;
+    border-radius: 12px;
+    font-size: 16px;
+  }
+
+  .mobileMenu {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .mobileMenu a {
+    min-height: 50px;
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+}
+
+@keyframes auftragoMobileMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
