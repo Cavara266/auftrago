@@ -96,7 +96,8 @@ export default function SiteHeader() {
           </Link>
 
           <nav className={styles.desktopNav}>
-            <button
+            
+<button
               type="button"
               className={styles.navButton}
               onClick={() => {
@@ -127,10 +128,17 @@ export default function SiteHeader() {
               <span>{regionsOpen ? "−" : "+"}</span>
             </button>
 
-            <Link href="/versicherungen" className={styles.premiumLink}>
-              Versicherungen
-              <small>NEU</small>
-            </Link>
+          <Link
+            href="/preisrechner"
+            className={styles.priceCalculatorLink}
+          >
+            <span className={styles.priceCalculatorSpark}>✦</span>
+            <span className={styles.priceCalculatorText}>
+              <strong>Preisrechner</strong>
+              <small>Sofort berechnen</small>
+            </span>
+          </Link>
+
 
             <Link href="/anbieter-registrieren">Für Anbieter</Link>
           </nav>
