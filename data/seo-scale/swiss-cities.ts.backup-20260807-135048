@@ -1,0 +1,109 @@
+export type SwissCity = {
+  slug: string;
+  name: string;
+  canton: string;
+  region: string;
+};
+
+export const swissCities: SwissCity[] = [
+  { slug: "zuerich", name: "Zürich", canton: "ZH", region: "Zürich" },
+  { slug: "winterthur", name: "Winterthur", canton: "ZH", region: "Zürich" },
+  { slug: "uster", name: "Uster", canton: "ZH", region: "Zürich" },
+  { slug: "duenbendorf", name: "Dübendorf", canton: "ZH", region: "Zürich" },
+  { slug: "dietikon", name: "Dietikon", canton: "ZH", region: "Zürich" },
+  { slug: "waedenswil", name: "Wädenswil", canton: "ZH", region: "Zürich" },
+  { slug: "horgen", name: "Horgen", canton: "ZH", region: "Zürich" },
+  { slug: "meilen", name: "Meilen", canton: "ZH", region: "Zürich" },
+  { slug: "buelach", name: "Bülach", canton: "ZH", region: "Zürich" },
+  { slug: "opfikon", name: "Opfikon", canton: "ZH", region: "Zürich" },
+  { slug: "kloten", name: "Kloten", canton: "ZH", region: "Zürich" },
+  { slug: "schlieren", name: "Schlieren", canton: "ZH", region: "Zürich" },
+  { slug: "adliswil", name: "Adliswil", canton: "ZH", region: "Zürich" },
+  { slug: "regensdorf", name: "Regensdorf", canton: "ZH", region: "Zürich" },
+  { slug: "illnau-effretikon", name: "Illnau-Effretikon", canton: "ZH", region: "Zürich" },
+
+  { slug: "aarau", name: "Aarau", canton: "AG", region: "Aargau" },
+  { slug: "baden", name: "Baden", canton: "AG", region: "Aargau" },
+  { slug: "wettingen", name: "Wettingen", canton: "AG", region: "Aargau" },
+  { slug: "wohlen", name: "Wohlen", canton: "AG", region: "Aargau" },
+  { slug: "brugg", name: "Brugg", canton: "AG", region: "Aargau" },
+  { slug: "zofingen", name: "Zofingen", canton: "AG", region: "Aargau" },
+  { slug: "lenzburg", name: "Lenzburg", canton: "AG", region: "Aargau" },
+  { slug: "rheinfelden", name: "Rheinfelden", canton: "AG", region: "Aargau" },
+  { slug: "spreitenbach", name: "Spreitenbach", canton: "AG", region: "Aargau" },
+
+  { slug: "bern", name: "Bern", canton: "BE", region: "Bern" },
+  { slug: "biel-bienne", name: "Biel/Bienne", canton: "BE", region: "Bern" },
+  { slug: "thun", name: "Thun", canton: "BE", region: "Bern" },
+  { slug: "koeniz", name: "Köniz", canton: "BE", region: "Bern" },
+  { slug: "burgdorf", name: "Burgdorf", canton: "BE", region: "Bern" },
+  { slug: "langenthal", name: "Langenthal", canton: "BE", region: "Bern" },
+  { slug: "ostermundigen", name: "Ostermundigen", canton: "BE", region: "Bern" },
+
+  { slug: "basel", name: "Basel", canton: "BS", region: "Basel" },
+  { slug: "riehen", name: "Riehen", canton: "BS", region: "Basel" },
+  { slug: "liestal", name: "Liestal", canton: "BL", region: "Basel" },
+  { slug: "reinach-bl", name: "Reinach BL", canton: "BL", region: "Basel" },
+  { slug: "allschwil", name: "Allschwil", canton: "BL", region: "Basel" },
+  { slug: "pratteln", name: "Pratteln", canton: "BL", region: "Basel" },
+  { slug: "muttenz", name: "Muttenz", canton: "BL", region: "Basel" },
+
+  { slug: "luzern", name: "Luzern", canton: "LU", region: "Luzern" },
+  { slug: "emmen", name: "Emmen", canton: "LU", region: "Luzern" },
+  { slug: "kriens", name: "Kriens", canton: "LU", region: "Luzern" },
+  { slug: "sursee", name: "Sursee", canton: "LU", region: "Luzern" },
+  { slug: "hochdorf", name: "Hochdorf", canton: "LU", region: "Luzern" },
+
+  { slug: "zug", name: "Zug", canton: "ZG", region: "Zug" },
+  { slug: "baar", name: "Baar", canton: "ZG", region: "Zug" },
+  { slug: "cham", name: "Cham", canton: "ZG", region: "Zug" },
+  { slug: "steinhausen", name: "Steinhausen", canton: "ZG", region: "Zug" },
+
+  { slug: "st-gallen", name: "St. Gallen", canton: "SG", region: "Ostschweiz" },
+  { slug: "rapperswil-jona", name: "Rapperswil-Jona", canton: "SG", region: "Ostschweiz" },
+  { slug: "wil-sg", name: "Wil SG", canton: "SG", region: "Ostschweiz" },
+  { slug: "gossau-sg", name: "Gossau SG", canton: "SG", region: "Ostschweiz" },
+
+  { slug: "frauenfeld", name: "Frauenfeld", canton: "TG", region: "Ostschweiz" },
+  { slug: "kreuzlingen", name: "Kreuzlingen", canton: "TG", region: "Ostschweiz" },
+  { slug: "arbon", name: "Arbon", canton: "TG", region: "Ostschweiz" },
+
+  { slug: "schaffhausen", name: "Schaffhausen", canton: "SH", region: "Schaffhausen" },
+
+  { slug: "solothurn", name: "Solothurn", canton: "SO", region: "Solothurn" },
+  { slug: "olten", name: "Olten", canton: "SO", region: "Solothurn" },
+  { slug: "grenchen", name: "Grenchen", canton: "SO", region: "Solothurn" },
+
+  { slug: "chur", name: "Chur", canton: "GR", region: "Graubünden" },
+  { slug: "davos", name: "Davos", canton: "GR", region: "Graubünden" },
+
+  { slug: "glarus", name: "Glarus", canton: "GL", region: "Glarus" },
+
+  { slug: "schwyz", name: "Schwyz", canton: "SZ", region: "Zentralschweiz" },
+  { slug: "pfäffikon-sz", name: "Pfäffikon SZ", canton: "SZ", region: "Zentralschweiz" },
+
+  { slug: "stans", name: "Stans", canton: "NW", region: "Zentralschweiz" },
+  { slug: "sarnen", name: "Sarnen", canton: "OW", region: "Zentralschweiz" },
+
+  { slug: "freiburg", name: "Freiburg", canton: "FR", region: "Freiburg" },
+
+  { slug: "lausanne", name: "Lausanne", canton: "VD", region: "Waadt" },
+  { slug: "montreux", name: "Montreux", canton: "VD", region: "Waadt" },
+  { slug: "vevey", name: "Vevey", canton: "VD", region: "Waadt" },
+  { slug: "nyon", name: "Nyon", canton: "VD", region: "Waadt" },
+
+  { slug: "genf", name: "Genf", canton: "GE", region: "Genf" },
+
+  { slug: "neuenburg", name: "Neuenburg", canton: "NE", region: "Neuenburg" },
+
+  { slug: "sitten", name: "Sitten", canton: "VS", region: "Wallis" },
+  { slug: "brig", name: "Brig", canton: "VS", region: "Wallis" },
+
+  { slug: "lugano", name: "Lugano", canton: "TI", region: "Tessin" },
+  { slug: "bellinzona", name: "Bellinzona", canton: "TI", region: "Tessin" },
+  { slug: "locarno", name: "Locarno", canton: "TI", region: "Tessin" },
+];
+
+export function getSwissCity(slug: string) {
+  return swissCities.find((city) => city.slug === slug);
+}

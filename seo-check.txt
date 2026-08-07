@@ -1,0 +1,1216 @@
+
+==================== lib/seo-engine/content.ts ====================
+import type { CityProfile } from "@/data/seo/city-profiles";
+import type { ServiceProfile } from "@/data/seo/service-profiles";
+
+function stableIndex(seed: string, length: number) {
+  let hash = 0;
+
+  for (let index = 0; index < seed.length; index += 1) {
+    hash = (hash * 31 + seed.charCodeAt(index)) >>> 0;
+  }
+
+  return length ? hash % length : 0;
+}
+
+function choose(seed: string, values: string[]) {
+  return values[stableIndex(seed, values.length)];
+}
+
+export function buildSeoContent(
+  service: ServiceProfile,
+  city: CityProfile
+) {
+  const seed = `${service.slug}-${city.slug}`;
+
+  const opening = choose(seed, [
+    `Wer in ${city.name} einen passenden Anbieter für ${service.name} sucht, sollte den Auftrag möglichst genau beschreiben und mehrere Rückmeldungen vergleichen.`,
+    `${service.name} in ${city.name} lässt sich einfacher organisieren, wenn Umfang, Termin und gewünschte Zusatzleistungen von Anfang an klar sind.`,
+    `Für ${service.name} in ${city.name} lohnt sich ein Vergleich regionaler Firmen, damit Leistung, Termin und Preis zum Auftrag passen.`,
+  ]);
+
+  const comparison = choose(`${seed}-comparison`, [
+    "Achte darauf, ob Anfahrt, Material, Entsorgung und mögliche Zusatzarbeiten bereits im Preis enthalten sind.",
+    "Vergleiche neben dem Preis auch Erreichbarkeit, Leistungsumfang, Terminbestätigung und den Umgang mit Zusatzaufwand.",
+    "Eine nachvollziehbare Offerte sollte die wichtigsten Arbeiten, Ausschlüsse und Kostenpositionen verständlich ausweisen.",
+  ]);
+
+  return {
+    heroTitle: `${service.name} in ${city.name}`,
+    heroDescription: `${service.description} Erstelle eine kostenlose Anfrage und vergleiche regionale Anbieter in ${city.name} und Umgebung.`,
+    localIntro: `${city.introVariant} ${opening}`,
+    comparisonText: comparison,
+    priceIntro:
+      service.priceFrom && service.priceTo
+        ? `Als grobe Orientierung können Aufträge je nach Umfang zwischen CHF ${service.priceFrom.toLocaleString("de-CH")} und CHF ${service.priceTo.toLocaleString("de-CH")} liegen. Der konkrete Preis hängt von Aufwand, Objekt, Termin, Material und Zusatzleistungen ab.`
+        : "Der Preis hängt von Umfang, Termin, Material, Zugänglichkeit und gewünschten Zusatzleistungen ab.",
+    ctaTitle: `${service.name} in ${city.name} anfragen`,
+    ctaText:
+      "Beschreibe deinen Auftrag kostenlos und unverbindlich. Passende Anbieter können sich direkt bei dir melden.",
+  };
+}
+
+export function buildFaqs(
+  service: ServiceProfile,
+  city: CityProfile
+) {
+  return [
+    {
+      question: `Wie finde ich Anbieter für ${service.name} in ${city.name}?`,
+      answer:
+        "Erstelle auf Auftrago eine möglichst vollständige Anfrage. Regionale Anbieter können sich danach mit einer Offerte oder Rückfrage bei dir melden.",
+    },
+    {
+      question: `Was kostet ${service.name} in ${city.name}?`,
+      answer:
+        service.priceFrom && service.priceTo
+          ? `Je nach Umfang kann der Preis grob zwischen CHF ${service.priceFrom.toLocaleString("de-CH")} und CHF ${service.priceTo.toLocaleString("de-CH")} liegen. Entscheidend sind Aufwand, Objekt, Termin und Zusatzleistungen.`
+          : "Der Preis wird durch Umfang, Aufwand, Termin, Zugänglichkeit und Zusatzleistungen bestimmt.",
+    },
+    {
+      question: "Welche Angaben sollte meine Anfrage enthalten?",
+      answer: `Hilfreich sind insbesondere: ${service.requestTips.join(", ")}.`,
+    },
+    {
+      question: "Ist die Anfrage kostenlos und unverbindlich?",
+      answer:
+        "Ja. Als Kunde kannst du deine Anfrage kostenlos erstellen und selbst entscheiden, ob du eine Offerte annehmen möchtest.",
+    },
+    {
+      question: "Worauf sollte ich beim Vergleich achten?",
+      answer:
+        "Vergleiche Leistungsumfang, Gesamtpreis, Termin, Kommunikation, Erfahrung und mögliche Zusatzkosten.",
+    },
+  ];
+}
+
+==================== lib/seo-engine/internal-links.ts ====================
+import { cityProfiles } from "@/data/seo/city-profiles";
+import {
+  getServiceProfile,
+  serviceProfiles,
+} from "@/data/seo/service-profiles";
+
+export function getRelatedServiceLinks(
+  currentServiceSlug: string,
+  citySlug: string,
+  limit = 8
+) {
+  const current = getServiceProfile(currentServiceSlug);
+  const preferred = current?.related || [];
+
+  const ordered = [
+    ...preferred,
+    ...serviceProfiles.map((service) => service.slug),
+  ];
+
+  return [...new Set(ordered)]
+    .filter((slug) => slug !== currentServiceSlug)
+    .map((slug) => getServiceProfile(slug))
+    .filter((service): service is NonNullable<typeof service> => Boolean(service))
+    .slice(0, limit)
+    .map((service) => ({
+      label: `${service.name}`,
+      href: `/dienstleistung/${service.slug}/${citySlug}`,
+    }));
+}
+
+export function getNearbyCityLinks(
+  currentCitySlug: string,
+  serviceSlug: string,
+  fallbackLimit = 10
+) {
+  const current = cityProfiles.find((city) => city.slug === currentCitySlug);
+  const preferred = current?.nearby || [];
+
+  const ordered = [
+    ...preferred,
+    ...cityProfiles.map((city) => city.slug),
+  ];
+
+  return [...new Set(ordered)]
+    .filter((slug) => slug !== currentCitySlug)
+    .map((slug) => cityProfiles.find((city) => city.slug === slug))
+    .filter((city): city is NonNullable<typeof city> => Boolean(city))
+    .slice(0, fallbackLimit)
+    .map((city) => ({
+      label: city.name,
+      href: `/dienstleistung/${serviceSlug}/${city.slug}`,
+    }));
+}
+
+==================== lib/seo-text.ts ====================
+export function generateSeoText(service: string, city: string) {
+  return `
+${service} in ${city} – regionale Anbieter vergleichen
+
+Wer eine professionelle ${service.toLowerCase()} in ${city} sucht, möchte
+zuverlässige Anbieter, faire Preise und schnelle Rückmeldungen.
+
+Mit Auftrago können Privatpersonen und Unternehmen in ${city}
+kostenlos eine Anfrage erstellen und Offerten von regionalen Firmen erhalten.
+
+Warum ${service.toLowerCase()} in ${city} über Auftrago finden?
+
+• Kostenlose Anfrage
+• Regionale Anbieter
+• Schnelle Offerten
+• Unverbindlicher Vergleich
+• Zeitersparnis bei der Suche
+
+So funktioniert Auftrago:
+
+1. Anfrage online erfassen
+2. Passende Anbieter aus ${city} werden informiert
+3. Offerten vergleichen
+4. Geeignete Firma auswählen
+
+Typische Leistungen im Bereich ${service.toLowerCase()}:
+
+- Beratung
+- Planung
+- Ausführung
+- Wartung
+- Nachbetreuung
+
+Besonders in ${city} werden regelmässig Anfragen für
+${service.toLowerCase()} von Privatkunden,
+Vermietern, Verwaltungen und Unternehmen erstellt.
+
+Viele Auftraggeber möchten mehrere Angebote vergleichen,
+bevor sie sich für einen Anbieter entscheiden.
+Genau dafür wurde Auftrago entwickelt.
+
+Unsere Plattform erleichtert den Vergleich regionaler Firmen
+und hilft dabei, Zeit und Aufwand zu sparen.
+
+Häufige Fragen
+
+Was kostet eine ${service.toLowerCase()} in ${city}?
+
+Die Kosten hängen vom Umfang des Auftrags,
+der Grösse des Objekts und den gewünschten Leistungen ab.
+Über Auftrago können mehrere Offerten verglichen werden.
+
+Wie schnell erhalte ich Offerten?
+
+In vielen Fällen erhalten Kunden bereits innerhalb kurzer Zeit
+erste Rückmeldungen von passenden Firmen.
+
+Ist die Anfrage kostenlos?
+
+Ja, die Anfrage über Auftrago ist kostenlos und unverbindlich.
+
+Kann ich mehrere Angebote vergleichen?
+
+Ja. Genau dafür wurde die Plattform entwickelt.
+
+Jetzt kostenlose Offerten für ${service.toLowerCase()} in ${city} anfragen
+und regionale Anbieter vergleichen.
+`;
+}
+==================== lib/seo.ts ====================
+import type { Metadata } from "next";
+
+export const seoConfig = {
+  siteName: "Auftrago",
+  siteUrl: "https://www.auftrago.ch",
+  locale: "de_CH",
+  language: "de-CH",
+  defaultOgImage: "https://www.auftrago.ch/opengraph-image",
+  titleTemplate: "%s | Auftrago",
+  defaultDescription:
+    "Kostenlos regionale Anbieter für Reinigung, Umzug, Hauswartung, Handwerk, Gartenpflege und weitere Dienstleistungen in der Schweiz vergleichen.",
+} as const;
+
+export type SeoPageType =
+  | "website"
+  | "service"
+  | "city"
+  | "region"
+  | "article";
+
+export type SeoInput = {
+  title: string;
+  description: string;
+  path?: string;
+  keywords?: string[];
+  image?: string;
+  type?: SeoPageType;
+  noindex?: boolean;
+  nofollow?: boolean;
+  publishedTime?: string;
+  modifiedTime?: string;
+  authors?: string[];
+};
+
+export function normalizePath(path = "/") {
+  if (!path || path === "/") return "/";
+  return `/${path.replace(/^\/+|\/+$/g, "")}`;
+}
+
+export function absoluteUrl(path = "/") {
+  const normalizedPath = normalizePath(path);
+  return normalizedPath === "/"
+    ? seoConfig.siteUrl
+    : `${seoConfig.siteUrl}${normalizedPath}`;
+}
+
+export function cleanText(value: string, maxLength?: number) {
+  const text = value.replace(/\s+/g, " ").trim();
+
+  if (!maxLength || text.length <= maxLength) return text;
+
+  const shortened = text.slice(0, Math.max(0, maxLength - 1));
+  const lastSpace = shortened.lastIndexOf(" ");
+
+  return `${shortened.slice(0, lastSpace > 0 ? lastSpace : shortened.length)}…`;
+}
+
+export function createSeoMetadata({
+  title,
+  description,
+  path = "/",
+  keywords = [],
+  image = seoConfig.defaultOgImage,
+  type = "website",
+  noindex = false,
+  nofollow = false,
+  publishedTime,
+  modifiedTime,
+  authors = [],
+}: SeoInput): Metadata {
+  const canonical = absoluteUrl(path);
+  const safeTitle = cleanText(title, 65);
+  const safeDescription = cleanText(description, 165);
+
+  const metadata: Metadata = {
+    metadataBase: new URL(seoConfig.siteUrl),
+    title: safeTitle,
+    description: safeDescription,
+    applicationName: seoConfig.siteName,
+    category: "Dienstleistungen",
+    keywords: [...new Set(keywords.filter(Boolean))],
+    alternates: {
+      canonical,
+      languages: {
+        "de-CH": canonical,
+        "x-default": canonical,
+      },
+    },
+    robots: {
+      index: !noindex,
+      follow: !nofollow,
+      googleBot: {
+        index: !noindex,
+        follow: !nofollow,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
+    },
+    openGraph: {
+      title: safeTitle,
+      description: safeDescription,
+      url: canonical,
+      siteName: seoConfig.siteName,
+      locale: seoConfig.locale,
+      type: type === "article" ? "article" : "website",
+      images: [
+        {
+          url: image,
+          width: 1200,
+          height: 630,
+          alt: safeTitle,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: safeTitle,
+      description: safeDescription,
+      images: [image],
+    },
+  };
+
+  if (type === "article") {
+    metadata.openGraph = {
+      ...metadata.openGraph,
+      type: "article",
+      publishedTime,
+      modifiedTime,
+      authors,
+    };
+  }
+
+  return metadata;
+}
+
+export function serviceCityTitle(service: string, city: string) {
+  return `${service} in ${city} – Anbieter & Offerten`;
+}
+
+export function serviceCityDescription(service: string, city: string) {
+  return `Finde regionale Anbieter für ${service} in ${city}. Auftrag kostenlos beschreiben, Firmen vergleichen und unverbindliche Offerten erhalten.`;
+}
+
+export function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ä/g, "ae")
+    .replace(/ö/g, "oe")
+    .replace(/ü/g, "ue")
+    .replace(/ß/g, "ss")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+==================== lib/seo-data.ts ====================
+import {
+  serviceLabels,
+  services,
+} from "@/lib/service-catalog";
+
+export {
+  serviceCatalog,
+  serviceCategoryBySlug,
+  serviceLabels,
+  services,
+} from "@/lib/service-catalog";
+
+export const cities = [
+  "zuerich",
+  "winterthur",
+  "uster",
+  "dietikon",
+  "wetzikon",
+  "buelach",
+  "horgen",
+  "meilen",
+  "schlieren",
+  "duebendorf",
+  "wallisellen",
+  "opfikon",
+  "kloten",
+  "regensdorf",
+  "adliswil",
+  "kilchberg",
+  "dietlikon",
+  "volketswil",
+  "maennedorf",
+  "kuesnacht",
+  "affoltern-am-albis",
+  "aargau",
+  "aarau",
+  "baden",
+  "brugg",
+  "lenzburg",
+  "wohlen",
+  "zofingen",
+  "rheinfelden",
+  "wettingen",
+  "spreitenbach",
+  "muri",
+  "suhr",
+  "oftringen",
+  "frick",
+  "rohrdorferberg",
+  "basel",
+  "allschwil",
+  "muttenz",
+  "pratteln",
+  "liestal",
+  "reinach-bl",
+  "bern",
+  "thun",
+  "biel",
+  "langenthal",
+  "burgdorf",
+  "interlaken",
+  "luzern",
+  "emmen",
+  "kriens",
+  "horw",
+  "sursee",
+  "zug",
+  "baar",
+  "cham",
+  "st-gallen",
+  "wil",
+  "gossau",
+  "uzwil",
+  "rapperswil",
+  "chur",
+  "domat-ems",
+  "solothurn",
+  "olten",
+  "schaffhausen",
+  "frauenfeld",
+  "kreuzlingen",
+  "arbon",
+  "lausanne",
+  "genf",
+  "sion",
+];
+
+const labelMap: Record<string, string> = {
+  zuerich: "Zürich",
+  bueroreinigung: "Büroreinigung",
+  sanitaer: "Sanitär",
+  sanitaerservice: "Sanitärservice",
+  duebendorf: "Dübendorf",
+  buelach: "Bülach",
+  gebaeudereinigung: "Gebäudereinigung",
+  kellerraeumung: "Kellerräumung",
+  moebeltransport: "Möbeltransport",
+  wohnungsreinigung: "Wohnungsreinigung",
+  unterhaltsreinigung: "Unterhaltsreinigung",
+  praxisreinigung: "Praxisreinigung",
+  fassadenreinigung: "Fassadenreinigung",
+  heckenschnitt: "Heckenschnitt",
+  rasenpflege: "Rasenpflege",
+  liegenschaftsunterhalt: "Liegenschaftsunterhalt",
+  hausmeisterservice: "Hausmeisterservice",
+  raeumung: "Räumung",
+  estrichraeumung: "Estrichräumung",
+  hauswartfirma: "Hauswartfirma",
+  hauswartservice: "Hauswartservice",
+  hauswartarbeiten: "Hauswartarbeiten",
+  gartenunterhalt: "Gartenunterhalt",
+  baumschnitt: "Baumschnitt",
+  entruempelung: "Entrümpelung",
+  haushaltsaufloesung: "Haushaltsauflösung",
+  glasreinigung: "Glasreinigung",
+  storenreinigung: "Storenreinigung",
+  wintergartenreinigung: "Wintergartenreinigung",
+  kleintransport: "Kleintransport",
+  firmenumzug: "Firmenumzug",
+  privatumzug: "Privatumzug",
+  dachreinigung: "Dachreinigung",
+  dachwartung: "Dachwartung",
+  heizungsservice: "Heizungsservice",
+  elektroinstallationen: "Elektroinstallationen",
+  elektroservice: "Elektroservice",
+  parkettlegen: "Parkettlegen",
+  "laminat-verlegen": "Laminat verlegen",
+  objektbetreuung: "Objektbetreuung",
+  bueroumzug: "Büroumzug",
+  lagerraeumung: "Lagerräumung",
+  schneeraeumung: "Schneeräumung",
+  salzdienst: "Salzdienst",
+  "st-gallen": "St. Gallen",
+  "end-reinigung": "Endreinigung",
+  "reinach-bl": "Reinach BL",
+  "domat-ems": "Domat/Ems",
+  "affoltern-am-albis": "Affoltern am Albis",
+};
+
+function capitalizeWord(word: string) {
+  return word.charAt(0).toLocaleUpperCase("de-CH") + word.slice(1);
+}
+
+export function formatText(value: string) {
+  if (labelMap[value]) return labelMap[value];
+  if (serviceLabels[value]) return serviceLabels[value];
+
+  return value
+    .split("-")
+    .map((part) => labelMap[part] || capitalizeWord(part))
+    .join(" ");
+}
+
+export const serviceKeywords: Record<string, string[]> = {
+  reinigung: ["Reinigungsfirma", "Wohnungsreinigung", "Unterhaltsreinigung", "Putzfirma", "Reinigungsservice"],
+  umzugsreinigung: ["Endreinigung", "Wohnungsabgabe", "Abgabereinigung", "Umzugsreinigung mit Abnahmegarantie"],
+  hauswartung: ["Hauswartfirma", "Hauswartservice", "Hauswartarbeiten", "Liegenschaftsunterhalt", "Gebäudeunterhalt", "Hauswart"],
+  treppenhausreinigung: ["Treppenhausreinigung", "Treppenhaus", "Eingangsbereich", "Gemeinschaftsflächen"],
+  bueroreinigung: ["Büroreinigung", "Praxisreinigung", "Gewerbereinigung", "Unterhaltsreinigung Büro"],
+  gartenpflege: ["Gartenunterhalt", "Rasenpflege", "Hecken schneiden", "Gartenservice", "Gärtner"],
+  umzug: ["Umzugsfirma", "Privatumzug", "Firmenumzug", "Zügelunternehmen", "Umzugshilfe"],
+  transport: ["Kleintransport", "Möbeltransport", "Lieferung", "Transportservice"],
+  entsorgung: ["Räumung", "Sperrgut", "Entrümpelung", "Haushaltsauflösung"],
+  maler: ["Malerarbeiten", "Streichen", "Renovation", "Malerfirma"],
+  bodenleger: ["Boden verlegen", "Parkett", "Vinylboden", "Laminat"],
+  elektriker: ["Elektriker", "Elektroarbeiten", "Installation", "Reparatur"],
+  sanitaer: ["Sanitär", "Sanitärservice", "Badumbau", "Wasserinstallation"],
+  fensterreinigung: ["Fensterreinigung", "Fenster putzen", "Glasreinigung", "Storenreinigung"],
+  baureinigung: ["Baustellenreinigung", "Bauschlussreinigung", "Baureinigung"],
+  "end-reinigung": ["Endreinigung", "Übergabereinigung", "Wohnungsabgabe"],
+  gebaeudereinigung: ["Gebäudereinigung", "Objektreinigung", "Unterhaltsreinigung"],
+  winterdienst: ["Winterdienst", "Schneeräumung", "Salzen"],
+  kellerraeumung: ["Kellerräumung", "Estrichräumung", "Entrümpelung"],
+  moebeltransport: ["Möbeltransport", "Transporthilfe", "Zügeltransport"],
+  wohnungsreinigung: ["Wohnungsreinigung", "Reinigungsfirma", "Putzfirma"],
+  unterhaltsreinigung: ["Unterhaltsreinigung", "Regelmässige Reinigung", "Gebäudereinigung"],
+  praxisreinigung: ["Praxisreinigung", "Medizinische Reinigung", "Hygienereinigung"],
+  fassadenreinigung: ["Fassadenreinigung", "Aussenreinigung", "Gebäudereinigung"],
+  heckenschnitt: ["Heckenschnitt", "Hecken schneiden", "Gartenpflege"],
+  rasenpflege: ["Rasenpflege", "Rasen mähen", "Gartenunterhalt"],
+  liegenschaftsunterhalt: ["Liegenschaftsunterhalt", "Hauswartung", "Gebäudeunterhalt"],
+  hausmeisterservice: ["Hausmeisterservice", "Hauswartservice", "Objektbetreuung"],
+  raeumung: ["Räumung", "Entrümpelung", "Entsorgung"],
+  estrichraeumung: ["Estrichräumung", "Kellerräumung", "Entrümpelung"],
+  hauswartfirma: ["Hauswartfirma", "Hauswartung", "Liegenschaftsunterhalt"],
+  hauswartservice: ["Hauswartservice", "Hauswartung", "Gebäudeunterhalt"],
+  hauswartarbeiten: ["Hauswartarbeiten", "Kontrollgänge", "Unterhaltsarbeiten"],
+  gartenunterhalt: ["Gartenunterhalt", "Gartenpflege", "Rasenpflege"],
+  baumschnitt: ["Baumschnitt", "Baumpflege", "Gartenpflege"],
+  entruempelung: ["Entrümpelung", "Räumung", "Entsorgung"],
+  haushaltsaufloesung: ["Haushaltsauflösung", "Räumung", "Entrümpelung"],
+  glasreinigung: ["Glasreinigung", "Fensterreinigung", "Schaufensterreinigung"],
+  storenreinigung: ["Storenreinigung", "Fensterreinigung", "Glasreinigung"],
+  wintergartenreinigung: ["Wintergartenreinigung", "Glasreinigung", "Fensterreinigung"],
+  kleintransport: ["Kleintransport", "Transportservice", "Lieferung"],
+  firmenumzug: ["Firmenumzug", "Umzugsfirma", "Büroumzug"],
+  privatumzug: ["Privatumzug", "Umzugsfirma", "Umzugshilfe"],
+  dachreinigung: ["Dachreinigung", "Aussenreinigung", "Gebäudereinigung"],
+  dachwartung: ["Dachwartung", "Dachunterhalt", "Kontrolle"],
+  sanitaerservice: ["Sanitärservice", "Sanitär", "Reparatur"],
+  heizungsservice: ["Heizungsservice", "Heizung", "Wartung"],
+  elektroinstallationen: ["Elektroinstallationen", "Elektriker", "Elektroarbeiten"],
+  elektroservice: ["Elektroservice", "Elektriker", "Reparatur"],
+  parkettlegen: ["Parkett legen", "Bodenleger", "Parkett"],
+  "laminat-verlegen": ["Laminat verlegen", "Bodenleger", "Boden verlegen"],
+  objektbetreuung: ["Objektbetreuung", "Hauswartung", "Liegenschaftsservice"],
+  bueroumzug: ["Büroumzug", "Firmenumzug", "Umzugsfirma"],
+  lagerraeumung: ["Lagerräumung", "Räumung", "Entsorgung"],
+  schneeraeumung: ["Schneeräumung", "Winterdienst", "Salzen"],
+  salzdienst: ["Salzdienst", "Winterdienst", "Schneeräumung"],
+};
+
+export const cityContent: Record<string, string> = {
+  zuerich: "Zürich ist der grösste Wirtschaftsstandort der Schweiz. Besonders gefragt sind Dienstleistungen für Wohnungen, Büros, Geschäftsräume, Verwaltungen und Liegenschaften.",
+  winterthur: "Winterthur ist ein wichtiger Standort im Kanton Zürich mit vielen Privathaushalten, Unternehmen und Verwaltungen.",
+  uster: "Uster gehört zu den grösseren Städten im Zürcher Oberland. Viele Kunden suchen hier regionale Anbieter für private und gewerbliche Aufträge.",
+  dietikon: "Dietikon liegt zentral im Limmattal und ist stark mit Zürich und dem Aargau verbunden.",
+  wetzikon: "Wetzikon ist ein wichtiger Ort im Zürcher Oberland. Lokale Anbieter sind besonders gefragt.",
+  buelach: "Bülach ist ein regionales Zentrum im Zürcher Unterland. Viele Kunden suchen hier Anbieter für Wohnungen, Häuser und Gewerbeobjekte.",
+  horgen: "Horgen am Zürichsee verbindet Wohnlagen, Unternehmen und Liegenschaften.",
+  meilen: "Meilen liegt direkt am Zürichsee und hat eine starke Nachfrage nach Dienstleistungen für Privathaushalte und Liegenschaften.",
+  schlieren: "Schlieren ist ein wachsender Standort im Limmattal mit vielen Wohnungen, Firmen und Neubauten.",
+  duebendorf: "Dübendorf wächst seit Jahren stark. In der Region werden häufig Anbieter für Wohnungen, Häuser und Gewerberäume gesucht.",
+  aargau: "Der Kanton Aargau verbindet viele Städte, Gemeinden und Wirtschaftsstandorte.",
+  aarau: "Aarau ist ein wichtiger Standort im Aargau. Viele Kunden suchen hier Unterstützung für private und gewerbliche Aufträge.",
+  baden: "Baden zählt zu den wichtigsten Wirtschaftsregionen im Aargau.",
+  brugg: "Brugg ist ein regional bedeutender Standort im Aargau.",
+  lenzburg: "Lenzburg liegt zentral im Aargau und ist für viele Dienstleistungsaufträge gut erreichbar.",
+  wohlen: "Wohlen ist ein wichtiger Ort im Freiamt.",
+  zofingen: "Zofingen ist ein wichtiger Standort für regionale Dienstleistungen im Aargau.",
+  rheinfelden: "Rheinfelden ist eine wichtige Stadt am Rhein mit vielen privaten und gewerblichen Anfragen.",
+  wettingen: "Wettingen gehört zu den grösseren Gemeinden im Aargau.",
+  spreitenbach: "Spreitenbach liegt im Limmattal und hat viele Wohn- und Gewerbeflächen.",
+  basel: "Basel ist ein bedeutender Wirtschaftsstandort mit hoher Nachfrage nach Dienstleistungen für Wohnungen und Firmen.",
+  bern: "Bern ist als Hauptstadt und Wirtschaftsstandort ein wichtiger Markt für regionale Dienstleistungen.",
+  luzern: "Luzern verbindet Wohngebiete, Tourismus und Gewerbe.",
+  zug: "Zug ist ein starker Wirtschaftsstandort mit hoher Nachfrage nach Dienstleistungen für Firmen und Wohnungen.",
+  "st-gallen": "St. Gallen ist ein wichtiges Zentrum in der Ostschweiz.",
+  chur: "Chur ist das Zentrum Graubündens.",
+  solothurn: "Solothurn ist ein regionaler Standort mit vielen privaten und gewerblichen Dienstleistungsanfragen.",
+  schaffhausen: "Schaffhausen hat eine starke regionale Struktur.",
+  thun: "Thun ist ein wichtiger Standort im Berner Oberland.",
+  biel: "Biel ist ein zweisprachiger Wirtschaftsstandort mit vielen Dienstleistungsanfragen.",
+  lausanne: "Lausanne ist ein wichtiger Standort in der Westschweiz.",
+  genf: "Genf ist ein internationaler Standort mit vielen privaten und gewerblichen Dienstleistungsanfragen.",
+  sion: "Sion ist ein wichtiger Standort im Wallis.",
+  frauenfeld: "Frauenfeld ist ein wichtiger Standort im Thurgau.",
+  kreuzlingen: "Kreuzlingen liegt direkt am Bodensee und ist ein wichtiger regionaler Standort.",
+};
+
+export const serviceContent: Record<string, string> = Object.fromEntries(
+  services.map((service) => [
+    service,
+    `${formatText(service)} ist eine gefragte Dienstleistung in der Schweiz. Über Auftrago kannst du passende regionale Anbieter finden, kostenlos eine Anfrage senden und verschiedene Offerten vergleichen.`,
+  ])
+);
+
+export function generateSlugs() {
+  return services.flatMap((service) =>
+    cities.map((city) => `${service}-${city}`)
+
+==================== lib/schema.ts ====================
+import { absoluteUrl, seoConfig } from "@/lib/seo";
+
+export type BreadcrumbSchemaItem = {
+  name: string;
+  path: string;
+};
+
+export function organizationSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": `${seoConfig.siteUrl}/#organization`,
+    name: seoConfig.siteName,
+    url: seoConfig.siteUrl,
+    logo: {
+      "@type": "ImageObject",
+      url: `${seoConfig.siteUrl}/logo.png`,
+    },
+    description: seoConfig.defaultDescription,
+    areaServed: {
+      "@type": "Country",
+      name: "Schweiz",
+    },
+  };
+}
+
+export function websiteSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${seoConfig.siteUrl}/#website`,
+    name: seoConfig.siteName,
+    url: seoConfig.siteUrl,
+    inLanguage: seoConfig.language,
+    publisher: {
+      "@id": `${seoConfig.siteUrl}/#organization`,
+    },
+  };
+}
+
+export function webPageSchema({
+  name,
+  description,
+  path,
+  dateModified,
+}: {
+  name: string;
+  description: string;
+  path: string;
+  dateModified?: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": `${absoluteUrl(path)}#webpage`,
+    url: absoluteUrl(path),
+    name,
+    description,
+    inLanguage: seoConfig.language,
+    isPartOf: {
+      "@id": `${seoConfig.siteUrl}/#website`,
+    },
+    about: {
+      "@id": `${seoConfig.siteUrl}/#organization`,
+    },
+    ...(dateModified ? { dateModified } : {}),
+  };
+}
+
+export function breadcrumbSchema(items: BreadcrumbSchemaItem[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: absoluteUrl(item.path),
+    })),
+  };
+}
+
+export function serviceSchema({
+  name,
+  description,
+  path,
+  areaServed,
+  category,
+}: {
+  name: string;
+  description: string;
+  path: string;
+  areaServed: string[];
+  category?: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "@id": `${absoluteUrl(path)}#service`,
+    name,
+    description,
+    url: absoluteUrl(path),
+    serviceType: category || name,
+    areaServed: areaServed.map((name) => ({
+      "@type": "AdministrativeArea",
+      name,
+    })),
+    provider: {
+      "@id": `${seoConfig.siteUrl}/#organization`,
+    },
+  };
+}
+
+export function itemListSchema(
+  name: string,
+  items: Array<{ name: string; path: string }>
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name,
+    numberOfItems: items.length,
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      url: absoluteUrl(item.path),
+    })),
+  };
+}
+
+==================== lib/city-content.ts ====================
+
+==================== lib/service-content.ts ====================
+
+==================== app/dienstleistung/[service]/[city]/page.tsx ====================
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+
+import FaqSection from "@/components/seo/FaqSection";
+import PriceGuidance from "@/components/seo/PriceGuidance";
+import RequestTips from "@/components/seo/RequestTips";
+import SeoLayout from "@/components/seo/SeoLayout";
+
+import {
+  cityProfiles,
+  getCityProfile,
+} from "@/data/seo/city-profiles";
+
+import {
+  getServiceProfile,
+  serviceProfiles,
+} from "@/data/seo/service-profiles";
+
+import { prisma } from "@/lib/prisma";
+
+import {
+  breadcrumbSchema,
+  serviceSchema,
+  webPageSchema,
+} from "@/lib/schema";
+
+import {
+  createSeoMetadata,
+  serviceCityDescription,
+  serviceCityTitle,
+} from "@/lib/seo";
+
+import {
+  buildFaqs,
+  buildSeoContent,
+} from "@/lib/seo-engine/content";
+
+import {
+  getNearbyCityLinks,
+  getRelatedServiceLinks,
+} from "@/lib/seo-engine/internal-links";
+
+export const revalidate = 3600;
+export const dynamicParams = true;
+
+type PageProps = {
+  params: Promise<{
+    service: string;
+    city: string;
+  }>;
+};
+
+async function getCmsLandingPage(
+  serviceSlug: string,
+  citySlug: string
+) {
+  try {
+    return await prisma.seoLandingPage.findFirst({
+      where: {
+        status: "ACTIVE",
+        city: {
+          slug: citySlug,
+          status: "ACTIVE",
+        },
+        service: {
+          slug: serviceSlug,
+          status: "ACTIVE",
+        },
+      },
+      include: {
+        city: true,
+        service: {
+          include: {
+            faqs: {
+              where: {
+                status: "ACTIVE",
+              },
+              orderBy: {
+                sortOrder: "asc",
+              },
+            },
+          },
+        },
+      },
+    });
+  } catch (error) {
+    console.error(
+      `[SEO] CMS-Seite konnte nicht geladen werden: ${serviceSlug}/${citySlug}`,
+      error
+    );
+
+    return null;
+  }
+}
+
+function centsToFrancs(
+  value: number | null | undefined
+) {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+
+  return value / 100;
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const {
+    service: serviceSlug,
+    city: citySlug,
+  } = await params;
+
+  const [cmsPage, staticService, staticCity] =
+    await Promise.all([
+      getCmsLandingPage(serviceSlug, citySlug),
+      Promise.resolve(
+        getServiceProfile(serviceSlug)
+      ),
+      Promise.resolve(getCityProfile(citySlug)),
+    ]);
+
+  const path =
+    `/dienstleistung/${serviceSlug}/${citySlug}`;
+
+  if (cmsPage) {
+    const title =
+      cmsPage.seoTitle ||
+      cmsPage.service.seoTitle ||
+      `${cmsPage.service.name} in ${cmsPage.city.name} | Auftrago`;
+
+    const description =
+      cmsPage.seoDescription ||
+      cmsPage.service.seoDescription ||
+      cmsPage.introduction ||
+      `Finde passende Anbieter für ${cmsPage.service.name} in ${cmsPage.city.name} und vergleiche regionale Angebote.`;
+
+    const indexable =
+      cmsPage.indexable &&
+      cmsPage.city.indexable &&
+      cmsPage.service.indexable;
+
+    return createSeoMetadata({
+      title,
+      description,
+      path,
+      type: "service",
+      noindex: !indexable,
+      nofollow: !indexable,
+      keywords: [
+        `${cmsPage.service.name} ${cmsPage.city.name}`,
+        `${cmsPage.service.name} in ${cmsPage.city.name}`,
+        `${cmsPage.service.name} Anbieter ${cmsPage.city.name}`,
+        `${cmsPage.service.name} Offerte ${cmsPage.city.name}`,
+        `${cmsPage.service.name} Kosten ${cmsPage.city.name}`,
+      ],
+    });
+  }
+
+  if (!staticService || !staticCity) {
+    return createSeoMetadata({
+      title: "Seite nicht gefunden",
+      description:
+        "Die gewünschte Dienstleistungsseite ist nicht verfügbar.",
+      path,
+      noindex: true,
+      nofollow: true,
+    });
+  }
+
+  return createSeoMetadata({
+    title: serviceCityTitle(
+      staticService.name,
+      staticCity.name
+    ),
+    description: serviceCityDescription(
+      staticService.name,
+      staticCity.name
+    ),
+    path:
+      `/dienstleistung/${staticService.slug}/${staticCity.slug}`,
+    type: "service",
+    keywords: [
+      `${staticService.name} ${staticCity.name}`,
+      `${staticService.name} in ${staticCity.name}`,
+      `${staticService.name} Offerte ${staticCity.name}`,
+      `${staticService.name} Anbieter ${staticCity.name}`,
+      `${staticService.singular} ${staticCity.name}`,
+    ],
+  });
+}
+
+export async function generateStaticParams() {
+  return serviceProfiles.flatMap((service) =>
+    cityProfiles.map((city) => ({
+      service: service.slug,
+      city: city.slug,
+    }))
+  );
+}
+
+export default async function ServiceCityPage({
+  params,
+}: PageProps) {
+  const {
+    service: serviceSlug,
+    city: citySlug,
+  } = await params;
+
+  const [cmsPage, staticService, staticCity] =
+    await Promise.all([
+      getCmsLandingPage(serviceSlug, citySlug),
+      Promise.resolve(
+        getServiceProfile(serviceSlug)
+      ),
+      Promise.resolve(getCityProfile(citySlug)),
+    ]);
+
+  if (
+    !cmsPage &&
+    (!staticService || !staticCity)
+  ) {
+    notFound();
+  }
+
+  if (
+    cmsPage &&
+    (!staticService || !staticCity)
+  ) {
+    return (
+      <CmsOnlyLandingPage
+        cmsPage={cmsPage}
+      />
+    );
+  }
+
+  if (!staticService || !staticCity) {
+    notFound();
+  }
+
+  const staticContent = buildSeoContent(
+    staticService,
+    staticCity
+  );
+
+  const staticFaqs = buildFaqs(
+    staticService,
+    staticCity
+  );
+
+  const path =
+    `/dienstleistung/${staticService.slug}/${staticCity.slug}`;
+
+  const heroTitle =
+    cmsPage?.headline ||
+    staticContent.heroTitle;
+
+  const heroDescription =
+    cmsPage?.introduction ||
+
+==================== app/sitemap.ts ====================
+import type { MetadataRoute } from "next";
+
+import { serviceCatalog } from "@/lib/service-catalog";
+
+import { categoryCatalog } from "@/lib/category-catalog";
+
+import { prisma } from "@/lib/prisma";
+import { citiesSeo } from "@/lib/city-data";
+import { regions } from "@/lib/region-data";
+import { seoConfig } from "@/lib/seo";
+import { services } from "@/lib/seo-data";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 3600;
+
+const staticPages = [
+  "",
+  "/dienstleistungen",
+  "/offerte-anfragen",
+  "/auftrag-erstellen",
+  "/anbieter",
+  "/anbieter-registrieren",
+  "/ueber-uns",
+  "/kontakt",
+  "/datenschutz",
+  "/agb",
+];
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const now = new Date();
+
+  /*
+   * Bestehende Sitemap-Einträge
+   * Diese bleiben vollständig erhalten.
+   */
+
+  const staticEntries: MetadataRoute.Sitemap = staticPages.map((path) => ({
+    url: `${seoConfig.siteUrl}${path}`,
+    lastModified: now,
+    changeFrequency: path === "" ? "daily" : "monthly",
+    priority: path === "" ? 1 : 0.65,
+  }));
+
+
+  const categoryEntries: MetadataRoute.Sitemap =
+    categoryCatalog.map((category) => ({
+      url: `${seoConfig.siteUrl}/kategorie/${category.slug}`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.82,
+    }));
+
+  const serviceEntries: MetadataRoute.Sitemap = services.map((service) => ({
+    url: `${seoConfig.siteUrl}/leistungen/${service}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.8,
+  }));
+
+  const cityEntries: MetadataRoute.Sitemap = citiesSeo.map((city) => ({
+    url: `${seoConfig.siteUrl}/stadt/${city.slug}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.75,
+  }));
+
+  const regionEntries: MetadataRoute.Sitemap = regions.map((region) => ({
+    url: `${seoConfig.siteUrl}/region/${region.slug}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.7,
+  }));
+
+
+  /*
+   * Region × Dienstleistung
+   * Beispiele:
+   * /region/aargau/umzugsreinigung
+   * /region/zuerich/fensterreinigung
+   */
+
+  const regionServiceEntries: MetadataRoute.Sitemap =
+    regions.flatMap((region) =>
+      serviceCatalog.map((service) => ({
+        url: `${seoConfig.siteUrl}/region/${region.slug}/${service.slug}`,
+        lastModified: now,
+        changeFrequency: "weekly" as const,
+        priority: 0.72,
+      })),
+    );
+
+  const combinationEntries: MetadataRoute.Sitemap = services.flatMap(
+    (service) =>
+      citiesSeo.map((city) => ({
+        url: `${seoConfig.siteUrl}/dienstleistung/${service}/${city.slug}`,
+        lastModified: now,
+        changeFrequency: "weekly" as const,
+        priority: 0.7,
+      })),
+  );
+
+  /*
+   * Neue SEO-CMS-Landingpages aus Prisma
+   * Es werden nur aktive und indexierbare Seiten aufgenommen.
+   */
+
+  const databaseLandingPages = await prisma.seoLandingPage.findMany({
+    where: {
+      status: "ACTIVE",
+      indexable: true,
+      city: {
+        status: "ACTIVE",
+        indexable: true,
+      },
+      service: {
+        status: "ACTIVE",
+        indexable: true,
+      },
+    },
+    select: {
+      updatedAt: true,
+      city: {
+        select: {
+          slug: true,
+        },
+      },
+      service: {
+        select: {
+          slug: true,
+        },
+      },
+    },
+  });
+
+  const databaseEntries: MetadataRoute.Sitemap = databaseLandingPages.map(
+    (page) => ({
+      url: `${seoConfig.siteUrl}/dienstleistung/${page.service.slug}/${page.city.slug}`,
+      lastModified: page.updatedAt,
+      changeFrequency: "weekly",
+      priority: 0.75,
+    }),
+  );
+
+  /*
+   * Alle bestehenden und neuen URLs zusammenführen.
+   * Doppelte URLs werden automatisch entfernt.
+   */
+
+  const allEntries: MetadataRoute.Sitemap = [
+    ...staticEntries,
+    ...categoryEntries,
+    ...serviceEntries,
+    ...cityEntries,
+    ...regionEntries,
+    ...regionServiceEntries,
+    ...combinationEntries,
+    ...databaseEntries,
+  ];
+
+  const uniqueEntries = new Map<string, MetadataRoute.Sitemap[number]>();
+
+  for (const entry of allEntries) {
+    const existingEntry = uniqueEntries.get(entry.url);
+
+    if (!existingEntry) {
+      uniqueEntries.set(entry.url, entry);
+      continue;
+    }
+
+    const existingDate = existingEntry.lastModified
+      ? new Date(existingEntry.lastModified).getTime()
+      : 0;
+
+    const newDate = entry.lastModified
+      ? new Date(entry.lastModified).getTime()
+      : 0;
+
+    if (newDate >= existingDate) {
+      uniqueEntries.set(entry.url, entry);
+    }
+  }
+
+  return Array.from(uniqueEntries.values());
+}

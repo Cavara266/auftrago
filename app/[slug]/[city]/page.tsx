@@ -1,0 +1,35 @@
+export const revalidate = 86400;
+export const dynamicParams = true;
+import ServiceCityPage, {
+  generateMetadata as generateServiceCityMetadata,
+} from "@/app/dienstleistung/[service]/[city]/page";
+
+type Props = {
+  params: Promise<{
+    slug: string;
+    city: string;
+  }>;
+};
+
+
+export async function generateMetadata({ params }: Props) {
+  const { slug, city } = await params;
+
+  return generateServiceCityMetadata({
+    params: Promise.resolve({
+      service: slug,
+      city,
+    }),
+  });
+}
+
+export default async function SeoServiceCityPage({ params }: Props) {
+  const { slug, city } = await params;
+
+  return ServiceCityPage({
+    params: Promise.resolve({
+      service: slug,
+      city,
+    }),
+  });
+}

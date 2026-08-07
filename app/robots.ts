@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import { seoConfig } from "@/lib/seo";
+const BASE_URL = "https://www.auftrago.ch";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -8,23 +8,12 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: [
-          "/admin/",
-          "/api/",
-          "/dashboard/",
-          "/portal/",
-          "/login",
-          "/register",
-          "/credits/",
-          "/checkout/",
-          "/*?*sort=",
-          "/*?*filter=",
-          "/*?*page=",
-          "/*?*query=",
-        ],
       },
     ],
-    sitemap: `${seoConfig.siteUrl}/sitemap.xml`,
-    host: seoConfig.siteUrl,
+    sitemap: [
+      `${BASE_URL}/sitemap.xml`,
+      `${BASE_URL}/sitemap-index.xml`,
+    ],
+    host: BASE_URL,
   };
 }

@@ -4,14 +4,14 @@ export type ServiceProfile = {
   category: string;
   singular: string;
   description: string;
-  shortBenefits?: string[];
+  shortBenefits: string[];
   priceLabel?: string;
   priceFrom?: number;
   priceTo?: number;
   unit?: string;
-  suitableFor?: string[];
-  related?: string[];
-  requestTips?: string[];
+  suitableFor: string[];
+  related: string[];
+  requestTips: string[];
 
   duration?: string;
   seasonality?: string[];
@@ -206,100 +206,6 @@ export const serviceProfiles: ServiceProfile[] = [
       "Sonderabfälle separat erwähnen",
     ],
   },
-
-,
-{
-  slug: "dachreinigung",
-  name: "Dachreinigung",
-  category: "Reinigung",
-  singular: "Dachreinigungsfirma",
-  description: "Professionelle Dachreinigung von Moos, Algen und Verschmutzungen."
-},
-{
-  slug: "fassadenreinigung",
-  name: "Fassadenreinigung",
-  category: "Reinigung",
-  singular: "Fassadenreinigungsfirma",
-  description: "Professionelle Fassadenreinigung."
-},
-{
-  slug: "baureinigung",
-  name: "Baureinigung",
-  category: "Reinigung",
-  singular: "Baureinigung",
-  description: "Baureinigung nach Umbau und Neubau."
-},
-{
-  slug: "teppichreinigung",
-  name: "Teppichreinigung",
-  category: "Reinigung",
-  singular: "Teppichreinigung",
-  description: "Professionelle Teppichreinigung."
-},
-{
-  slug: "dachrinnenreinigung",
-  name: "Dachrinnenreinigung",
-  category: "Reinigung",
-  singular: "Dachrinnenreinigung",
-  description: "Reinigung von Dachrinnen."
-},
-{
-  slug: "solarreinigung",
-  name: "Solarreinigung",
-  category: "Reinigung",
-  singular: "Solarreinigung",
-  description: "Reinigung von Solaranlagen."
-},
-{
-  slug: "garagenreinigung",
-  name: "Garagenreinigung",
-  category: "Reinigung",
-  singular: "Garagenreinigung",
-  description: "Reinigung von Tiefgaragen."
-},
-{
-  slug: "praxisreinigung",
-  name: "Praxisreinigung",
-  category: "Reinigung",
-  singular: "Praxisreinigung",
-  description: "Praxis- und Arztzentrumreinigung."
-},
-{
-  slug: "hotelreinigung",
-  name: "Hotelreinigung",
-  category: "Reinigung",
-  singular: "Hotelreinigung",
-  description: "Reinigung für Hotels."
-},
-{
-  slug: "schulreinigung",
-  name: "Schulreinigung",
-  category: "Reinigung",
-  singular: "Schulreinigung",
-  description: "Reinigung für Schulen."
-},
-{
-  slug: "gartenpflege",
-  name: "Gartenpflege",
-  category: "Hauswartung",
-  singular: "Gartenpflege",
-  description: "Professionelle Gartenpflege."
-},
-{
-  slug: "winterdienst",
-  name: "Winterdienst",
-  category: "Hauswartung",
-  singular: "Winterdienst",
-  description: "Schneeräumung und Glatteisbekämpfung."
-},
-{
-  slug: "hausmeisterservice",
-  name: "Hausmeisterservice",
-  category: "Hauswartung",
-  singular: "Hausmeisterservice",
-  description: "Kompletter Hausmeisterservice."
-}
-
 ];
 
 export function getServiceProfile(slug: string) {

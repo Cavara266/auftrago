@@ -1,0 +1,25 @@
+import type { MetadataRoute } from "next";
+
+const BASE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://www.auftrago.ch";
+
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: {
+      userAgent: "*",
+      allow: "/",
+      disallow: [
+        "/admin/",
+        "/portal/",
+        "/api/",
+        "/login",
+        "/register",
+        "/registrieren",
+      ],
+    },
+    sitemap: [
+      `${BASE_URL}/sitemap.xml`,
+      `${BASE_URL}/sitemap-index.xml`,
+    ],
+  };
+}

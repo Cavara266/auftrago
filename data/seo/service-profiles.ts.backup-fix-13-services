@@ -4,14 +4,14 @@ export type ServiceProfile = {
   category: string;
   singular: string;
   description: string;
-  shortBenefits?: string[];
+  shortBenefits: string[];
   priceLabel?: string;
   priceFrom?: number;
   priceTo?: number;
   unit?: string;
-  suitableFor?: string[];
-  related?: string[];
-  requestTips?: string[];
+  suitableFor: string[];
+  related: string[];
+  requestTips: string[];
 
   duration?: string;
   seasonality?: string[];

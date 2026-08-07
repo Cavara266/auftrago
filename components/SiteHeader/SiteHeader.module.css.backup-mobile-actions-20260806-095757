@@ -790,12 +790,3 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
   }
 }
-
-/* MOBILE-ACTIONS-CLEANUP-START */
-@media (max-width: 1179px) {
-  .searchButton,
-  .premiumLink {
-    display: none !important;
-  }
-}
-/* MOBILE-ACTIONS-CLEANUP-END */

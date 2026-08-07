@@ -1,18 +1,23 @@
 import type { CityProfile } from "@/data/seo/city-profiles";
 import type { ServiceProfile } from "@/data/seo/service-profiles";
-import {
-  choose,
-  chooseMany,
-  stableIndex,
-} from "@/lib/seo-engine/core/variation";
-import {
-  formatPrice,
-  formatPriceRange,
-} from "@/lib/seo-engine/core/price";
 
-import { buildBlocks } from "@/lib/seo-engine/builder";
-import { buildIntroBlock } from "@/lib/seo-engine/blocks/intro";
-import { buildCtaBlock } from "@/lib/seo-engine/blocks/cta";
+function stableIndex(seed: string, length: number) {
+  let hash = 0;
+
+  for (let index = 0; index < seed.length; index += 1) {
+    hash = (hash * 31 + seed.charCodeAt(index)) >>> 0;
+  }
+
+  return length ? hash % length : 0;
+}
+
+function choose(seed: string, values: string[]) {
+  return values[stableIndex(seed, values.length)];
+}
+
+function formatPrice(value: number) {
+  return value.toLocaleString("de-CH");
+}
 
 export function buildSeoContent(
   service: ServiceProfile,

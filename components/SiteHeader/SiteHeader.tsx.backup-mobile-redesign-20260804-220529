@@ -160,19 +160,84 @@ export default function SiteHeader() {
           </div>
         </div>
 
-        
+        {servicesOpen && (
+          <div className={styles.megaMenu}>
+            <div className={styles.megaMenuInner}>
+              <div className={styles.megaIntro}>
+                <span>Alle Dienstleistungen</span>
+                <h2>Finde genau den richtigen Anbieter.</h2>
+                <p>
+                  Reinigung, Handwerk, Umzug, Versicherungen, Immobilien,
+                  Finanzen und digitale Lösungen.
+                </p>
 
-        
+                <Link href="/leistungen" onClick={closeAll}>
+                  Alle Leistungen ansehen →
+                </Link>
+              </div>
 
-        {
-menuOpen && (
-<nav className={styles.mobileMenu}>
-  <Link href="/anbieter" onClick={closeAll}>Anbieter</Link>
-  <Link href="/preisrechner" onClick={closeAll}>💰 Preisrechner</Link>
-  <Link href="/auftrag-erstellen" onClick={closeAll}>Offerte anfragen</Link>
-</nav>
-)
-}
+              <div className={styles.megaGrid}>
+                {groupedServices.map((group) => (
+                  <div key={group.category} className={styles.megaGroup}>
+                    <strong>{group.category}</strong>
+
+                    {group.items.slice(0, 5).map((service) => (
+                      <Link
+                        key={service.slug}
+                        href={`/leistungen/${service.slug}`}
+                        onClick={closeAll}
+                      >
+                        <span>{service.icon}</span>
+                        {service.title}
+                      </Link>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {regionsOpen && (
+          <div className={styles.regionMenu}>
+            <div className={styles.regionGrid}>
+              {regionLinks.map((region) => (
+                <Link key={region.href} href={region.href} onClick={closeAll}>
+                  Anbieter in {region.label}
+                  <span>→</span>
+                </Link>
+              ))}
+
+              <Link href="/region" onClick={closeAll}>
+                Alle Regionen
+                <span>→</span>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {menuOpen && (
+          <div className={styles.mobileMenu}>
+            <Link href="/leistungen" onClick={closeAll}>
+              Dienstleistungen
+            </Link>
+            <Link href="/anbieter" onClick={closeAll}>
+              Anbieter
+            </Link>
+            <Link href="/region" onClick={closeAll}>
+              Regionen
+            </Link>
+            <Link href="/versicherungen" onClick={closeAll}>
+              Versicherungen
+            </Link>
+            <Link href="/anbieter-registrieren" onClick={closeAll}>
+              Für Anbieter
+            </Link>
+            <Link href="/auftrag-erstellen" onClick={closeAll}>
+              Auftrag starten
+            </Link>
+          </div>
+        )}
       </header>
 
       {searchOpen && (

@@ -79,11 +79,7 @@ function getSeoUrls() {
   const urls: string[] = [];
 
   for (const service of serviceProfiles) {
-    if (!service || !service.slug) continue;
-    if (!service || !service.slug) continue;
     for (const city of swissCities) {
-      if (!city || !city.slug) continue;
-      if (!city || !city.slug) continue;
       for (const intent of intents) {
         for (const audience of audiences) {
           for (const modifier of modifiers) {
@@ -128,8 +124,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ];
 
   for (const service of serviceProfiles) {
-    if (!service || !service.slug) continue;
-    if (!service || !service.slug) continue;
     staticEntries.push({
       url: `${BASE_URL}/leistungen/${service.slug}`,
       lastModified: now,
@@ -139,8 +133,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }
 
   for (const city of swissCities) {
-      if (!city || !city.slug) continue;
-      if (!city || !city.slug) continue;
     staticEntries.push({
       url: `${BASE_URL}/stadt/${city.slug}`,
       lastModified: now,
