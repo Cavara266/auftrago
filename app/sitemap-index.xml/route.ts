@@ -1,6 +1,6 @@
 const BASE_URL = "https://www.auftrago.ch";
 
-const SEO_LIMIT = 1000000;
+const SEO_LIMIT = 50000000;
 const CHUNK_SIZE = 50000;
 
 export const dynamic = "force-static";

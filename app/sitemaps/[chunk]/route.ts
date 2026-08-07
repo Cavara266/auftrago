@@ -4,7 +4,7 @@ import { seoServiceSlugs } from "@/data/seo-scale/service-slugs";
 const BASE_URL = "https://www.auftrago.ch";
 
 const CHUNK_SIZE = 50000;
-const SEO_LIMIT = 1000000;
+const SEO_LIMIT = 50000000;
 
 const intents = [
   "kosten",
