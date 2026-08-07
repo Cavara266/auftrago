@@ -128,19 +128,17 @@ export default function SiteHeader() {
               <span>{regionsOpen ? "−" : "+"}</span>
             </button>
 
-          <Link
-            href="/preisrechner"
-            className={styles.priceCalculatorLink}
-          >
-            <span className={styles.priceCalculatorSpark}>✦</span>
-            <span className={styles.priceCalculatorText}>
+
+            
+          <Link href="/preisrechner" className={styles.priceCalculatorLink}>
+            <span className={styles.priceCalculatorIcon}>⌗</span>
+            <span className={styles.priceCalculatorCopy}>
               <strong>Preisrechner</strong>
               <small>Sofort berechnen</small>
             </span>
           </Link>
 
-
-            <Link href="/anbieter-registrieren">Für Anbieter</Link>
+          <Link href="/anbieter-registrieren">Für Anbieter</Link>
           </nav>
 
           <div className={styles.actions}>
