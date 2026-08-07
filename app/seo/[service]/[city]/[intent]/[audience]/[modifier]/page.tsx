@@ -338,6 +338,13 @@ export default async function SeoLandingPage({
     },
   };
 
+
+  const relatedIntents = intents
+    .filter((item) => item !== intent)
+    .slice(0, 6);
+
+  /* SEO_INTERNAL_LINKS_FAST */
+
   return (
     <main
       style={{
@@ -656,7 +663,71 @@ export default async function SeoLandingPage({
         </div>
       </section>
 
-    </main>
+    
+      <section
+        data-seo-internal-links="true"
+        style={{
+          maxWidth: 1180,
+          margin: "0 auto",
+          padding: "40px 24px 80px",
+        }}
+      >
+        <h2>Weitere passende Angebote</h2>
+
+        <div
+          style={{
+            display: "grid",
+            gap: 24,
+            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+          }}
+        >
+          <div>
+            <h3>Weitere Orte</h3>
+            <ul>
+              {relatedCities.map((item) => (
+                <li key={item.slug}>
+                  <Link
+                    href={`/seo/${service.slug}/${item.slug}/${intent}/${audience}/${modifier}`}
+                  >
+                    {service.name} {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3>Weitere Dienstleistungen</h3>
+            <ul>
+              {relatedServices.map((item) => (
+                <li key={item.slug}>
+                  <Link
+                    href={`/seo/${item.slug}/${city.slug}/${intent}/${audience}/${modifier}`}
+                  >
+                    {item.name} {city.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3>Weitere Suchthemen</h3>
+            <ul>
+              {relatedIntents.map((item) => (
+                <li key={item}>
+                  <Link
+                    href={`/seo/${service.slug}/${city.slug}/${item}/${audience}/${modifier}`}
+                  >
+                    {service.name} {city.name} {item}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+</main>
   );
 }
 

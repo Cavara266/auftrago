@@ -1,5 +1,5 @@
-import { serviceProfiles } from "@/data/seo/service-profiles";
 import { swissCities } from "@/data/seo-scale/swiss-cities";
+import { seoServiceSlugs } from "@/data/seo-scale/service-slugs";
 
 const BASE_URL = "https://www.auftrago.ch";
 
@@ -49,6 +49,11 @@ const modifiers = [
   "professionell",
 ] as const;
 
+const validCities = swissCities.filter(
+  (city): city is typeof city & { slug: string } =>
+    Boolean(city && typeof city.slug === "string" && city.slug.length > 0),
+);
+
 function xmlEscape(value: string) {
   return value
     .replaceAll("&", "&amp;")
@@ -58,22 +63,18 @@ function xmlEscape(value: string) {
     .replaceAll("'", "&apos;");
 }
 
-function getSeoUrl(globalIndex: number) {
-  /*
-    Reihenfolge bewusst:
-    Stadt -> Service -> Modifier -> Audience -> Intent
-
-    Dadurch werden schon in den ersten Chunks möglichst viele
-    Gemeinden und Dienstleistungen abgedeckt.
-  */
+function getSeoUrl(globalIndex: number): string | null {
+  if (validCities.length === 0) {
+    return null;
+  }
 
   let n = globalIndex;
 
-  const cityIndex = n % swissCities.length;
-  n = Math.floor(n / swissCities.length);
+  const cityIndex = n % validCities.length;
+  n = Math.floor(n / validCities.length);
 
-  const serviceIndex = n % serviceProfiles.length;
-  n = Math.floor(n / serviceProfiles.length);
+  const serviceIndex = n % seoServiceSlugs.length;
+  n = Math.floor(n / seoServiceSlugs.length);
 
   const modifierIndex = n % modifiers.length;
   n = Math.floor(n / modifiers.length);
@@ -83,29 +84,30 @@ function getSeoUrl(globalIndex: number) {
 
   const intentIndex = n % intents.length;
 
-  const city = swissCities[cityIndex];
-  const service = serviceProfiles[serviceIndex];
+  const citySlug = validCities[cityIndex]?.slug;
+  const serviceSlug = seoServiceSlugs[serviceIndex];
+  const intent = intents[intentIndex];
+  const audience = audiences[audienceIndex];
+  const modifier = modifiers[modifierIndex];
 
-  if (!city?.slug || !service?.slug) {
+  if (
+    !citySlug ||
+    !serviceSlug ||
+    !intent ||
+    !audience ||
+    !modifier
+  ) {
     return null;
   }
 
-  return (
-    `${BASE_URL}/seo/` +
-    `${service.slug}/` +
-    `${city.slug}/` +
-    `${intents[intentIndex]}/` +
-    `${audiences[audienceIndex]}/` +
-    `${modifiers[modifierIndex]}`
-  );
+  return `${BASE_URL}/seo/${serviceSlug}/${citySlug}/${intent}/${audience}/${modifier}`;
 }
 
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: { chunk: string } },
 ) {
   const chunk = Number(params.chunk);
-
   const maxChunks = Math.ceil(SEO_LIMIT / CHUNK_SIZE);
 
   if (
@@ -126,13 +128,15 @@ export async function GET(
   for (let index = start; index < end; index++) {
     const url = getSeoUrl(index);
 
-    if (url) {
-      urls.push(
-        `<url><loc>${xmlEscape(url)}</loc>` +
+    if (!url) continue;
+
+    urls.push(
+      `<url>` +
+        `<loc>${xmlEscape(url)}</loc>` +
         `<changefreq>weekly</changefreq>` +
-        `<priority>0.7</priority></url>`,
-      );
-    }
+        `<priority>0.7</priority>` +
+      `</url>`,
+    );
   }
 
   const xml =
