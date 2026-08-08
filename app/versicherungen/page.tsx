@@ -5,104 +5,212 @@ import styles from "./page.module.css";
 export const metadata: Metadata = {
   title: "Versicherungen vergleichen Schweiz | Auftrago",
   description:
-    "Versicherungen in der Schweiz vergleichen: Krankenkasse, Auto, Hausrat, Haftpflicht, Rechtsschutz, Vorsorge und Firmenversicherungen.",
+    "Versicherungen in der Schweiz vergleichen und passende Anbieter finden. Krankenkasse, Auto, Hausrat, Haftpflicht, Rechtsschutz, Vorsorge, Firmenversicherung und mehr.",
+  keywords: [
+    "Versicherungen Schweiz",
+    "Versicherungen vergleichen",
+    "Versicherungsvergleich Schweiz",
+    "Krankenkasse vergleichen",
+    "Autoversicherung Schweiz",
+    "Hausratversicherung",
+    "Privathaftpflicht",
+    "Rechtsschutzversicherung",
+    "Firmenversicherung Schweiz",
+  ],
 };
 
-const products = [
+const insuranceTypes = [
   {
+    number: "01",
     icon: "✚",
     title: "Krankenkasse",
-    text: "Grundversicherung und Zusatzversicherungen passend vergleichen.",
     query: "Krankenkasse",
+    intro:
+      "Grundversicherung und Zusatzversicherungen gehören zu den wichtigsten laufenden Versicherungskosten vieler Haushalte.",
+    text:
+      "Mit einer strukturierten Anfrage kannst du deinen Bedarf beschreiben und passende Möglichkeiten prüfen. Dabei können unter anderem Franchise, Versicherungsmodell, Zusatzleistungen und persönliche Anforderungen eine Rolle spielen.",
+    points: [
+      "Grundversicherung",
+      "Zusatzversicherung",
+      "Spitalzusatz",
+      "Zahnversicherung",
+    ],
   },
   {
+    number: "02",
     icon: "◆",
     title: "Autoversicherung",
-    text: "Haftpflicht, Teilkasko und Vollkasko für dein Fahrzeug.",
     query: "Autoversicherung",
+    intro:
+      "Für jedes Fahrzeug und jede Nutzung kann eine andere Versicherungsstruktur sinnvoll sein.",
+    text:
+      "Vergleiche Optionen rund um Haftpflicht, Teilkasko und Vollkasko. Faktoren wie Fahrzeugwert, Alter, Nutzung, Selbstbehalt und gewünschte Zusatzdeckungen können die passende Lösung beeinflussen.",
+    points: ["Haftpflicht", "Teilkasko", "Vollkasko", "Zusatzdeckungen"],
   },
   {
+    number: "03",
     icon: "⌂",
-    title: "Hausrat",
-    text: "Dein Zuhause und dein Eigentum sinnvoll absichern.",
+    title: "Hausratversicherung",
     query: "Hausratversicherung",
+    intro:
+      "Hausrat schützt persönliche Gegenstände im Haushalt gegen definierte Risiken.",
+    text:
+      "Ob Wohnung, Einfamilienhaus oder Wohngemeinschaft: Versicherungssumme, Wohnsituation und gewünschte Deckungen sollten zur tatsächlichen Situation passen.",
+    points: ["Hausrat", "Diebstahl", "Elementarschäden", "Zusatzdeckungen"],
   },
   {
+    number: "04",
     icon: "◎",
     title: "Privathaftpflicht",
-    text: "Schutz vor hohen Kosten bei Schäden gegenüber Dritten.",
     query: "Privathaftpflicht",
+    intro:
+      "Eine Haftpflichtversicherung kann bei Schadenersatzforderungen gegenüber Dritten relevant sein.",
+    text:
+      "Sie gehört für viele Haushalte zu den grundlegenden Absicherungen. Unterschiede können unter anderem bei Deckungssummen, Selbstbehalt und Zusatzleistungen bestehen.",
+    points: ["Personenschäden", "Sachschäden", "Mietsachschäden", "Familienlösungen"],
   },
   {
+    number: "05",
     icon: "§",
     title: "Rechtsschutz",
-    text: "Unterstützung bei rechtlichen Konflikten und Streitfällen.",
     query: "Rechtsschutzversicherung",
+    intro:
+      "Rechtliche Konflikte können zeitaufwendig und kostenintensiv werden.",
+    text:
+      "Je nach Versicherung können unterschiedliche Bereiche abgedeckt werden – etwa Privat-, Verkehrs-, Miet- oder Arbeitsrechtsschutz.",
+    points: ["Privatrecht", "Verkehr", "Miete", "Arbeitsrecht"],
   },
   {
+    number: "06",
     icon: "↗",
     title: "Vorsorge & Leben",
-    text: "Langfristige Vorsorge und finanzielle Absicherung planen.",
-    query: "Vorsorgeversicherung",
+    query: "Vorsorge Lebensversicherung",
+    intro:
+      "Langfristige Absicherung betrifft Familie, Einkommen und persönliche Zukunftsplanung.",
+    text:
+      "Lösungen können sich stark unterscheiden. Deshalb ist es sinnvoll, Leistungen, Kosten, Laufzeiten und Bedingungen genau zu prüfen.",
+    points: ["Lebensversicherung", "Erwerbsausfall", "Vorsorge", "Familienabsicherung"],
   },
   {
+    number: "07",
     icon: "▦",
     title: "Firmenversicherung",
-    text: "Versicherungslösungen für KMU und Selbstständige.",
     query: "Firmenversicherung",
+    intro:
+      "Unternehmen benötigen je nach Branche, Grösse und Tätigkeit unterschiedliche Versicherungen.",
+    text:
+      "Von Betriebshaftpflicht über Sach- und Fahrzeugversicherungen bis hin zu Rechtsschutz und weiteren Lösungen können verschiedene Bereiche kombiniert werden.",
+    points: ["Betriebshaftpflicht", "Sachversicherung", "Fahrzeuge", "Rechtsschutz"],
   },
   {
+    number: "08",
     icon: "✦",
-    title: "Andere Versicherung",
-    text: "Dein Anliegen ist nicht dabei? Anfrage direkt beschreiben.",
+    title: "Individuelle Beratung",
     query: "Versicherungsberatung",
+    intro:
+      "Nicht jede Versicherung lässt sich einer Standardkategorie zuordnen.",
+    text:
+      "Beschreibe dein Anliegen individuell. Dadurch können Anbieter besser verstehen, welche Art von Lösung du suchst.",
+    points: ["Individuelle Anfrage", "Speziallösungen", "Beratung", "Vergleich"],
   },
 ];
+
+const faq = [
+  {
+    question: "Wie funktioniert der Versicherungsvergleich über Auftrago?",
+    answer:
+      "Du wählst den gewünschten Versicherungsbereich und beschreibst deinen Bedarf. Anschliessend kann deine Anfrage von passenden Anbietern geprüft werden. Du entscheidest selbst, welche Rückmeldungen oder Angebote du weiterverfolgen möchtest.",
+  },
+  {
+    question: "Ist eine Anfrage über Auftrago verbindlich?",
+    answer:
+      "Eine Anfrage dient zunächst dazu, passende Möglichkeiten und Anbieter zu finden. Ob und zu welchen Bedingungen ein Versicherungsvertrag zustande kommt, entscheidest du anschliessend direkt mit dem jeweiligen Anbieter.",
+  },
+  {
+    question: "Welche Versicherungen kann ich vergleichen?",
+    answer:
+      "Unter anderem Krankenkasse, Autoversicherung, Hausrat, Privathaftpflicht, Rechtsschutz, Vorsorge- und Lebenslösungen sowie Versicherungen für Unternehmen.",
+  },
+  {
+    question: "Kann ich auch als Unternehmen eine Anfrage stellen?",
+    answer:
+      "Ja. Unternehmen und Selbstständige können ihren Versicherungsbedarf ebenfalls beschreiben und beispielsweise Lösungen rund um Betriebshaftpflicht, Sachwerte, Fahrzeuge oder Rechtsschutz anfragen.",
+  },
+  {
+    question: "Was sollte ich vor einem Versicherungswechsel prüfen?",
+    answer:
+      "Prüfe insbesondere Deckungsumfang, Ausschlüsse, Selbstbehalt, Vertragslaufzeit, Kündigungsfristen, Prämien sowie die für dich relevanten Zusatzleistungen. Bei wichtigen oder komplexen Entscheidungen kann eine qualifizierte Beratung sinnvoll sein.",
+  },
+  {
+    question: "Ist die günstigste Versicherung automatisch die beste?",
+    answer:
+      "Nicht unbedingt. Neben dem Preis sind insbesondere Leistungen, Bedingungen, Deckungssummen, Ausschlüsse und Service entscheidend. Ein Vergleich sollte deshalb nicht ausschliesslich über die Prämie erfolgen.",
+  },
+];
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faq.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.answer,
+    },
+  })),
+};
 
 export default function VersicherungenPage() {
   return (
     <main className={styles.page}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+
+      {/* HERO */}
       <section className={styles.hero}>
-        <div className={styles.heroAmbientOne} />
-        <div className={styles.heroAmbientTwo} />
+        <div className={styles.glowA} />
+        <div className={styles.glowB} />
 
         <div className={styles.heroInner}>
           <div className={styles.heroCopy}>
             <div className={styles.badge}>
               <span>✦</span>
-              Versicherungen auf eine neue Art vergleichen
+              Versicherungen vergleichen in der Schweiz
             </div>
 
             <h1>
-              Mehr Klarheit.
+              Deine Versicherung.
               <br />
-              <span>Besser versichert.</span>
+              <span>Besser verglichen.</span>
             </h1>
 
-            <p className={styles.heroText}>
-              Beschreibe kurz, welche Versicherung du suchst. Vergleiche
-              passende Möglichkeiten und entscheide selbst, welches Angebot
-              zu dir passt.
+            <p className={styles.heroLead}>
+              Versicherungen sind komplex. Der Vergleich muss es nicht sein.
+              Beschreibe deinen Bedarf einmal und finde passende Möglichkeiten
+              für Privatpersonen, Familien, Selbstständige und Unternehmen.
             </p>
 
-            <div className={styles.actions}>
-              <a href="#vergleich" className={styles.mainButton}>
-                Versicherung wählen
+            <div className={styles.heroActions}>
+              <a href="#versicherungen" className={styles.primary}>
+                Versicherung auswählen
                 <span>→</span>
               </a>
 
               <Link
                 href="/auftrag-erstellen?query=Versicherungsberatung"
-                className={styles.secondaryButton}
+                className={styles.secondary}
               >
-                Persönliche Anfrage
+                Beratung anfragen
               </Link>
             </div>
 
-            <div className={styles.trust}>
+            <div className={styles.heroFacts}>
               <div>
-                <strong>100%</strong>
-                <span>unverbindliche Anfrage</span>
+                <strong>8+</strong>
+                <span>Versicherungsbereiche</span>
               </div>
 
               <div>
@@ -111,82 +219,65 @@ export default function VersicherungenPage() {
               </div>
 
               <div>
-                <strong>8+</strong>
-                <span>Versicherungsbereiche</span>
+                <strong>1</strong>
+                <span>Anfrage statt langer Suche</span>
               </div>
             </div>
           </div>
 
-          <div className={styles.heroStage}>
-            <div className={styles.stageGlow} />
+          <div className={styles.heroVisual}>
+            <div className={styles.visualGlow} />
 
-            <div className={styles.compareCard}>
-              <div className={styles.compareHeader}>
-                <div className={styles.brandIcon}>A</div>
+            <div className={styles.platformCard}>
+              <div className={styles.platformTop}>
+                <div className={styles.platformLogo}>A</div>
 
                 <div>
                   <small>AUFTRAGO</small>
-                  <strong>Versicherungsvergleich</strong>
+                  <strong>Versicherungen</strong>
                 </div>
 
-                <span className={styles.livePill}>
+                <div className={styles.status}>
                   <b />
-                  Bereit
-                </span>
-              </div>
-
-              <div className={styles.question}>
-                <small>WAS SUCHST DU?</small>
-                <h2>Welche Versicherung möchtest du vergleichen?</h2>
-              </div>
-
-              <div className={styles.quickGrid}>
-                <div>
-                  <span>✚</span>
-                  Krankenkasse
-                </div>
-
-                <div>
-                  <span>◆</span>
-                  Auto
-                </div>
-
-                <div>
-                  <span>⌂</span>
-                  Hausrat
-                </div>
-
-                <div>
-                  <span>▦</span>
-                  Firma
+                  Vergleich
                 </div>
               </div>
 
-              <div className={styles.compareFooter}>
-                <div>
-                  <small>SCHRITT</small>
-                  <strong>01 / 03</strong>
-                </div>
+              <div className={styles.platformQuestion}>
+                <small>DEIN BEDARF</small>
+                <h2>Was möchtest du versichern?</h2>
+                <p>
+                  Wähle einen Bereich und starte deine Anfrage.
+                </p>
+              </div>
 
+              <div className={styles.platformOptions}>
+                <div><span>✚</span>Krankenkasse</div>
+                <div><span>◆</span>Auto</div>
+                <div><span>⌂</span>Hausrat</div>
+                <div><span>▦</span>Firma</div>
+              </div>
+
+              <div className={styles.platformBottom}>
+                <span>Schritt 1 von 3</span>
                 <Link href="/auftrag-erstellen?query=Versicherung">
-                  Vergleich starten
-                  <span>→</span>
+                  Starten →
                 </Link>
               </div>
             </div>
 
-            <div className={`${styles.floatingCard} ${styles.floatingOne}`}>
-              <span>✓</span>
+            <div className={`${styles.floatBox} ${styles.floatOne}`}>
+              <b>✓</b>
               <div>
-                <small>UNVERBINDLICH</small>
-                <strong>Du entscheidest</strong>
+                <small>TRANSPARENT</small>
+                <strong>Optionen vergleichen</strong>
               </div>
             </div>
 
-            <div className={`${styles.floatingCard} ${styles.floatingTwo}`}>
-              <span>⚡</span>
+            <div className={`${styles.floatBox} ${styles.floatTwo}`}>
+              <b>⚡</b>
               <div>
-                <small>SCHNELL</small>
+                <small>EINFACH</small>
                 <strong>Eine Anfrage</strong>
               </div>
             </div>
@@ -194,77 +285,128 @@ export default function VersicherungenPage() {
         </div>
       </section>
 
-      <section id="vergleich" className={styles.products}>
-        <div className={styles.sectionTop}>
+      {/* INTRO */}
+      <section className={styles.intro}>
+        <span className={styles.label}>VERSICHERUNGEN IN DER SCHWEIZ</span>
+
+        <div className={styles.introGrid}>
+          <h2>
+            Versicherungen gehören zum Alltag.
+            <span> Der Überblick oft nicht.</span>
+          </h2>
+
           <div>
-            <span className={styles.sectionLabel}>VERSICHERUNGEN</span>
-            <h2>
-              Was möchtest du
-              <br />
-              vergleichen?
-            </h2>
+            <p>
+              Ob Krankenkasse, Fahrzeug, Wohnung, Rechtsschutz oder
+              Unternehmensversicherung: Die Zahl möglicher Produkte,
+              Leistungen und Tarifvarianten ist gross.
+            </p>
+
+            <p>
+              Gleichzeitig unterscheiden sich persönliche Bedürfnisse erheblich.
+              Eine Versicherung, die für eine Person sinnvoll ist, muss nicht
+              automatisch zu einer anderen Situation passen.
+            </p>
+
+            <p>
+              Genau deshalb ist ein strukturierter Vergleich wichtig.
+              Auftrago soll dir helfen, den ersten Schritt einfacher zu machen:
+              Bedarf beschreiben, passende Möglichkeiten finden und danach
+              fundiert entscheiden.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* INSURANCE TYPES */}
+      <section id="versicherungen" className={styles.insurances}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <span className={styles.label}>VERSICHERUNGSBEREICHE</span>
+            <h2>Was möchtest du versichern?</h2>
           </div>
 
           <p>
-            Wähle einen Bereich. Danach kannst du deinen Bedarf in wenigen
-            Schritten beschreiben und eine unverbindliche Anfrage starten.
+            Wähle den passenden Bereich und erfahre mehr über typische
+            Leistungen, Unterschiede und mögliche Vergleichskriterien.
           </p>
         </div>
 
-        <div className={styles.productGrid}>
-          {products.map((product, index) => (
-            <Link
-              key={product.title}
-              href={`/auftrag-erstellen?query=${encodeURIComponent(
-                product.query
-              )}`}
-              className={styles.productCard}
-            >
-              <div className={styles.productTop}>
-                <span className={styles.productNumber}>
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-
-                <span className={styles.productIcon}>{product.icon}</span>
-
-                <span className={styles.productArrow}>↗</span>
+        <div className={styles.insuranceGrid}>
+          {insuranceTypes.map((item) => (
+            <article key={item.title} className={styles.insuranceCard}>
+              <div className={styles.cardHeader}>
+                <span className={styles.cardNumber}>{item.number}</span>
+                <span className={styles.cardIcon}>{item.icon}</span>
               </div>
 
-              <div>
-                <h3>{product.title}</h3>
-                <p>{product.text}</p>
-              </div>
+              <h3>{item.title}</h3>
 
-              <span className={styles.productLink}>Jetzt vergleichen →</span>
-            </Link>
+              <strong className={styles.cardIntro}>{item.intro}</strong>
+
+              <p>{item.text}</p>
+
+              <ul>
+                {item.points.map((point) => (
+                  <li key={point}>
+                    <span>✓</span>
+                    {point}
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                href={`/auftrag-erstellen?query=${encodeURIComponent(item.query)}`}
+              >
+                {item.title} vergleichen
+                <span>→</span>
+              </Link>
+            </article>
           ))}
         </div>
       </section>
 
-      <section className={styles.experience}>
-        <div className={styles.experienceInner}>
-          <div className={styles.experienceIntro}>
-            <span className={styles.sectionLabel}>EINFACHER ABLAUF</span>
+      {/* WHY COMPARE */}
+      <section className={styles.why}>
+        <div className={styles.whyInner}>
+          <div className={styles.whyCopy}>
+            <span className={styles.label}>WARUM VERGLEICHEN?</span>
 
             <h2>
-              Nicht suchen.
+              Preis ist wichtig.
               <br />
-              <span>Vergleichen.</span>
+              <span>Leistung ist wichtiger.</span>
             </h2>
 
             <p>
-              Statt zahlreiche Websites einzeln zu durchsuchen, beschreibst du
-              deinen Bedarf einmal und kannst passende Lösungen vergleichen.
+              Versicherungen sollten nicht nur anhand einer einzelnen Prämie
+              beurteilt werden. Entscheidend ist, was tatsächlich versichert
+              ist – und unter welchen Bedingungen.
             </p>
+
+            <p>
+              Je nach Produkt können sich Deckungsumfang, Selbstbehalt,
+              Versicherungssumme, Ausschlüsse, Zusatzleistungen und
+              Vertragsbedingungen deutlich unterscheiden.
+            </p>
+
+            <Link
+              href="/auftrag-erstellen?query=Versicherungsvergleich"
+              className={styles.whyButton}
+            >
+              Vergleich starten
+              <span>→</span>
+            </Link>
           </div>
 
-          <div className={styles.steps}>
+          <div className={styles.whyList}>
             <article>
               <span>01</span>
               <div>
-                <h3>Bedarf auswählen</h3>
+                <h3>Leistungen vergleichen</h3>
                 <p>
-                  Versicherung wählen und die wichtigsten Angaben ergänzen.
+                  Prüfe, welche Leistungen enthalten sind und welche Bedingungen
+                  für die Deckung gelten.
                 </p>
               </div>
             </article>
@@ -272,9 +414,10 @@ export default function VersicherungenPage() {
             <article>
               <span>02</span>
               <div>
-                <h3>Anfrage absenden</h3>
+                <h3>Selbstbehalt berücksichtigen</h3>
                 <p>
-                  Deine Anfrage wird strukturiert und übersichtlich erfasst.
+                  Ein tieferer Preis kann mit einem höheren Selbstbehalt oder
+                  anderen Einschränkungen verbunden sein.
                 </p>
               </div>
             </article>
@@ -282,9 +425,21 @@ export default function VersicherungenPage() {
             <article>
               <span>03</span>
               <div>
-                <h3>Vergleichen & entscheiden</h3>
+                <h3>Vertragsbedingungen prüfen</h3>
                 <p>
-                  Du vergleichst passende Möglichkeiten und entscheidest selbst.
+                  Laufzeiten, Kündigungsfristen und Ausschlüsse gehören zu jedem
+                  seriösen Vergleich.
+                </p>
+              </div>
+            </article>
+
+            <article>
+              <span>04</span>
+              <div>
+                <h3>Gesamtpaket beurteilen</h3>
+                <p>
+                  Preis, Leistung und persönliche Anforderungen sollten
+                  gemeinsam betrachtet werden.
                 </p>
               </div>
             </article>
@@ -292,70 +447,331 @@ export default function VersicherungenPage() {
         </div>
       </section>
 
-      <section className={styles.business}>
-        <div className={styles.businessCard}>
-          <div className={styles.businessCopy}>
-            <span className={styles.sectionLabel}>AUCH FÜR UNTERNEHMEN</span>
+      {/* PROCESS */}
+      <section className={styles.process}>
+        <div className={styles.centerHeader}>
+          <span className={styles.label}>SO FUNKTIONIERT AUFTRAGO</span>
+          <h2>Von der Frage zur passenden Lösung.</h2>
+          <p>
+            Der Einstieg soll einfach sein. Du beschreibst, was du suchst –
+            und kannst danach passende Möglichkeiten prüfen.
+          </p>
+        </div>
+
+        <div className={styles.processGrid}>
+          <article>
+            <span className={styles.step}>01</span>
+            <div className={styles.stepIcon}>◎</div>
+            <h3>Versicherung wählen</h3>
+            <p>
+              Wähle den Bereich, der zu deinem Anliegen passt – beispielsweise
+              Krankenkasse, Auto, Hausrat oder Firmenversicherung.
+            </p>
+          </article>
+
+          <article>
+            <span className={styles.step}>02</span>
+            <div className={styles.stepIcon}>≡</div>
+            <h3>Bedarf beschreiben</h3>
+            <p>
+              Ergänze die wichtigsten Angaben, damit Anbieter verstehen,
+              welche Art von Versicherung du suchst.
+            </p>
+          </article>
+
+          <article>
+            <span className={styles.step}>03</span>
+            <div className={styles.stepIcon}>⇄</div>
+            <h3>Möglichkeiten prüfen</h3>
+            <p>
+              Vergleiche Rückmeldungen und Angebote nach deinen persönlichen
+              Kriterien.
+            </p>
+          </article>
+
+          <article>
+            <span className={styles.step}>04</span>
+            <div className={styles.stepIcon}>✓</div>
+            <h3>Selbst entscheiden</h3>
+            <p>
+              Du entscheidest selbst, ob und mit welchem Anbieter du
+              weiterarbeiten möchtest.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      {/* PRIVATE */}
+      <section className={styles.privateSection}>
+        <div className={styles.bigPanel}>
+          <div className={styles.panelCopy}>
+            <span className={styles.label}>FÜR PRIVATPERSONEN</span>
 
             <h2>
-              Firmen richtig
+              Absicherung für
               <br />
-              absichern.
+              Alltag und Zukunft.
             </h2>
 
             <p>
-              Betriebshaftpflicht, Sachversicherung, Fahrzeuge, Rechtsschutz
-              und weitere Lösungen für Unternehmen und Selbstständige.
+              Versicherungen begleiten viele Lebensbereiche. Wohnung, Fahrzeug,
+              Gesundheit, Familie, Recht und Vorsorge können jeweils eigene
+              Anforderungen mit sich bringen.
             </p>
 
-            <Link
-              href="/auftrag-erstellen?query=Firmenversicherung"
-              className={styles.businessButton}
-            >
-              Firmenversicherung anfragen
-              <span>→</span>
+            <p>
+              Deshalb lohnt es sich, bestehende Versicherungen regelmässig zu
+              überprüfen und Veränderungen der persönlichen Situation zu
+              berücksichtigen.
+            </p>
+
+            <div className={styles.checks}>
+              <span>✓ Umzug oder neue Wohnung</span>
+              <span>✓ Neues Fahrzeug</span>
+              <span>✓ Familiengründung</span>
+              <span>✓ Berufliche Veränderung</span>
+              <span>✓ Neue finanzielle Situation</span>
+              <span>✓ Bestehende Verträge überprüfen</span>
+            </div>
+
+            <Link href="/auftrag-erstellen?query=Private Versicherung">
+              Private Versicherung vergleichen →
             </Link>
           </div>
 
-          <div className={styles.businessVisual}>
-            <div className={styles.businessOrbitLarge} />
-            <div className={styles.businessOrbitSmall} />
+          <div className={styles.panelVisual}>
+            <div className={styles.ringOuter} />
+            <div className={styles.ringInner} />
 
-            <div className={styles.businessCenter}>
-              <small>BUSINESS</small>
-              <strong>Auftrago</strong>
-              <span>Insurance</span>
+            <div className={styles.centerCircle}>
+              <small>PRIVAT</small>
+              <strong>Dein Leben</strong>
+              <span>Deine Absicherung</span>
             </div>
 
-            <span className={`${styles.orbitTag} ${styles.tagOne}`}>
-              Betriebshaftpflicht
-            </span>
-
-            <span className={`${styles.orbitTag} ${styles.tagTwo}`}>
-              Fahrzeuge
-            </span>
-
-            <span className={`${styles.orbitTag} ${styles.tagThree}`}>
-              Rechtsschutz
-            </span>
+            <span className={`${styles.orbit} ${styles.orbitA}`}>Gesundheit</span>
+            <span className={`${styles.orbit} ${styles.orbitB}`}>Wohnen</span>
+            <span className={`${styles.orbit} ${styles.orbitC}`}>Mobilität</span>
+            <span className={`${styles.orbit} ${styles.orbitD}`}>Vorsorge</span>
           </div>
         </div>
       </section>
 
-      <section className={styles.bottomCta}>
-        <div>
-          <span className={styles.sectionLabel}>JETZT STARTEN</span>
+      {/* BUSINESS */}
+      <section className={styles.businessSection}>
+        <div className={styles.businessContent}>
+          <span className={styles.label}>FÜR UNTERNEHMEN</span>
 
           <h2>
-            Versicherung vergleichen,
-            <br />
-            ohne komplizierten Umweg.
+            Unternehmen haben andere Risiken.
+            <span> Und brauchen andere Lösungen.</span>
           </h2>
+
+          <div className={styles.businessColumns}>
+            <div>
+              <p>
+                Vom Einzelunternehmen bis zum grösseren KMU unterscheiden sich
+                Versicherungsbedürfnisse nach Branche, Umsatz, Mitarbeitenden,
+                Infrastruktur und Tätigkeit.
+              </p>
+
+              <p>
+                Eine Firma kann beispielsweise Risiken rund um Haftpflicht,
+                Inventar, Fahrzeuge, Rechtsschutz oder Betriebsunterbruch
+                absichern wollen.
+              </p>
+            </div>
+
+            <div>
+              <p>
+                Entscheidend ist, dass Versicherungen zur tatsächlichen
+                Geschäftstätigkeit passen. Unter- oder Überversicherung kann
+                langfristig unnötige Risiken oder Kosten verursachen.
+              </p>
+
+              <p>
+                Über Auftrago können Unternehmen ihren Bedarf beschreiben und
+                passende Versicherungsanbieter oder Beratungen anfragen.
+              </p>
+            </div>
+          </div>
+
+          <div className={styles.businessCards}>
+            <div>
+              <span>01</span>
+              <h3>Betriebshaftpflicht</h3>
+              <p>Schutz vor Haftungsrisiken aus der Geschäftstätigkeit.</p>
+            </div>
+
+            <div>
+              <span>02</span>
+              <h3>Sachversicherung</h3>
+              <p>Absicherung von Inventar, Einrichtungen und Betriebsmitteln.</p>
+            </div>
+
+            <div>
+              <span>03</span>
+              <h3>Fahrzeuge</h3>
+              <p>Versicherung für Geschäftsfahrzeuge und Flotten.</p>
+            </div>
+
+            <div>
+              <span>04</span>
+              <h3>Rechtsschutz</h3>
+              <p>Unterstützung bei geschäftlichen Rechtsfragen.</p>
+            </div>
+          </div>
+
+          <Link
+            href="/auftrag-erstellen?query=Firmenversicherung"
+            className={styles.businessCta}
+          >
+            Firmenversicherung anfragen
+            <span>→</span>
+          </Link>
+        </div>
+      </section>
+
+      {/* CONTENT */}
+      <section className={styles.contentSection}>
+        <div className={styles.contentTitle}>
+          <span className={styles.label}>VERSICHERUNGEN VERSTEHEN</span>
+          <h2>Was bei einem Vergleich wichtig ist.</h2>
+        </div>
+
+        <div className={styles.contentGrid}>
+          <article>
+            <h3>Deckungsumfang</h3>
+            <p>
+              Der Deckungsumfang beschreibt, welche Risiken und Leistungen
+              tatsächlich versichert sind. Zwei Produkte mit ähnlichem Namen
+              können unterschiedliche Leistungen beinhalten.
+            </p>
+          </article>
+
+          <article>
+            <h3>Versicherungssumme</h3>
+            <p>
+              Je nach Versicherung kann eine Versicherungssumme oder maximale
+              Leistung definiert sein. Diese sollte zum tatsächlichen Risiko
+              passen.
+            </p>
+          </article>
+
+          <article>
+            <h3>Selbstbehalt</h3>
+            <p>
+              Der Selbstbehalt bezeichnet den Anteil, den Versicherte im
+              Schadenfall selbst tragen. Ein höherer Selbstbehalt kann
+              Auswirkungen auf die Prämie haben.
+            </p>
+          </article>
+
+          <article>
+            <h3>Ausschlüsse</h3>
+            <p>
+              Nicht jedes Ereignis ist automatisch versichert. Die
+              Versicherungsbedingungen können bestimmte Situationen oder Risiken
+              ausdrücklich ausschliessen.
+            </p>
+          </article>
+
+          <article>
+            <h3>Vertragslaufzeit</h3>
+            <p>
+              Prüfe Laufzeit, Verlängerung und Kündigungsfristen. Diese können
+              beeinflussen, wann ein Wechsel möglich ist.
+            </p>
+          </article>
+
+          <article>
+            <h3>Zusatzleistungen</h3>
+            <p>
+              Assistance, Beratung, Ersatzleistungen oder weitere Services
+              können je nach Produkt unterschiedlich ausgestaltet sein.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      {/* CTA STRIP */}
+      <section className={styles.ctaStrip}>
+        <div>
+          <div>
+            <span className={styles.label}>DEIN NÄCHSTER SCHRITT</span>
+            <h2>Jetzt Versicherungsbedarf beschreiben.</h2>
+            <p>
+              Starte mit einer unverbindlichen Anfrage und prüfe passende
+              Möglichkeiten.
+            </p>
+          </div>
 
           <Link href="/auftrag-erstellen?query=Versicherung">
             Vergleich starten
             <span>→</span>
           </Link>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className={styles.faq}>
+        <div className={styles.faqIntro}>
+          <span className={styles.label}>HÄUFIGE FRAGEN</span>
+
+          <h2>
+            Fragen zum
+            <br />
+            Versicherungsvergleich.
+          </h2>
+
+          <p>
+            Die wichtigsten Punkte rund um Anfragen, Vergleiche und
+            Versicherungen über Auftrago.
+          </p>
+        </div>
+
+        <div className={styles.faqList}>
+          {faq.map((item, index) => (
+            <details key={item.question}>
+              <summary>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                {item.question}
+                <b>+</b>
+              </summary>
+
+              <p>{item.answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      {/* FINAL */}
+      <section className={styles.final}>
+        <div className={styles.finalGlow} />
+
+        <div className={styles.finalInner}>
+          <span className={styles.label}>AUFTRAGO VERSICHERUNGEN</span>
+
+          <h2>
+            Weniger suchen.
+            <br />
+            <span>Besser vergleichen.</span>
+          </h2>
+
+          <p>
+            Beschreibe deine Situation und finde passende Möglichkeiten für
+            deine Versicherung.
+          </p>
+
+          <Link href="/auftrag-erstellen?query=Versicherung">
+            Versicherung vergleichen
+            <span>→</span>
+          </Link>
+
+          <small>
+            Informationen auf dieser Seite dienen der allgemeinen Orientierung
+            und stellen keine individuelle Versicherungs- oder Finanzberatung dar.
+          </small>
         </div>
       </section>
     </main>
