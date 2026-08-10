@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { services } from "@/lib/services";
 import styles from "./SiteHeader/SiteHeader.module.css";
 
+import LanguageSwitcher from "./LanguageSwitcher/LanguageSwitcher";
 const regionLinks = [
   { label: "Zürich", href: "/region/zuerich" },
   { label: "Aargau", href: "/region/aargau" },
@@ -136,7 +137,10 @@ export default function SiteHeader() {
           </nav>
 
           <div className={styles.actions}>
-            <button
+            
+          <LanguageSwitcher />
+
+          <button
               type="button"
               className={styles.searchButton}
               onClick={() => setSearchOpen(true)}
