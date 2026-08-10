@@ -7,6 +7,7 @@ import { services } from "@/lib/services";
 import styles from "./SiteHeader/SiteHeader.module.css";
 
 import LanguageSwitcher from "./LanguageSwitcher/LanguageSwitcher";
+import { useAuftragoLocale } from "@/lib/use-auftrago-locale";
 const regionLinks = [
   { label: "Zürich", href: "/region/zuerich" },
   { label: "Aargau", href: "/region/aargau" },
@@ -28,6 +29,7 @@ const categoryOrder = [
 ];
 
 export default function SiteHeader() {
+  const { t } = useAuftragoLocale();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -133,7 +135,7 @@ export default function SiteHeader() {
               <small>NEU</small>
             </Link>
 
-            <Link href="/anbieter-registrieren">Für Anbieter</Link>
+            <Link href="/anbieter-registrieren">{t.nav.forProviders}</Link>
           </nav>
 
           <div className={styles.actions}>
@@ -144,7 +146,7 @@ export default function SiteHeader() {
               type="button"
               className={styles.searchButton}
               onClick={() => setSearchOpen(true)}
-              aria-label="Suche öffnen"
+              aria-label={t.search.open}
             >
               Suche
             </button>
@@ -157,7 +159,7 @@ export default function SiteHeader() {
               type="button"
               className={styles.mobileButton}
               onClick={() => setMenuOpen((value) => !value)}
-              aria-label="Menü öffnen"
+              aria-label={t.menu.open}
             >
               {menuOpen ? "✕" : "☰"}
             </button>
@@ -223,9 +225,9 @@ export default function SiteHeader() {
         {
 menuOpen && (
 <nav className={styles.mobileMenu}>
-  <Link href="/anbieter" onClick={closeAll}>Anbieter</Link>
+  <Link href="/anbieter" onClick={closeAll}>{t.nav.providers}</Link>
   <Link href="/preisrechner" onClick={closeAll}>💰 Preisrechner</Link>
-  <Link href="/auftrag-erstellen" onClick={closeAll}>Offerte anfragen</Link>
+  <Link href="/auftrag-erstellen" onClick={closeAll}>{t.nav.requestOffer}</Link>
 </nav>
 )
 }
@@ -237,23 +239,23 @@ menuOpen && (
             type="button"
             className={styles.closeSearch}
             onClick={() => setSearchOpen(false)}
-            aria-label="Suche schliessen"
+            aria-label={t.search.close}
           >
             ✕
           </button>
 
           <div className={styles.searchPanel}>
-            <span className={styles.searchEyebrow}>Auftrago Suche</span>
-            <h2>Wonach suchst du?</h2>
+            <span className={styles.searchEyebrow}>{t.search.eyebrow}</span>
+            <h2>{t.search.title}</h2>
 
             <form onSubmit={handleSearchSubmit}>
               <input
                 autoFocus
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Zum Beispiel Reinigung, Elektriker oder Krankenkasse"
+                placeholder={t.search.placeholder}
               />
-              <button type="submit">Suchen</button>
+              <button type="submit">{t.search.submit}</button>
             </form>
 
             <div className={styles.searchResults}>

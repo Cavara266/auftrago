@@ -100,6 +100,12 @@ export default function LanguageSwitcher() {
       `${COOKIE_KEY}=${nextLocale}; Path=/; Max-Age=31536000; SameSite=Lax`;
 
     document.documentElement.lang = nextLocale;
+    window.dispatchEvent(
+      new CustomEvent("auftrago:locale-change", {
+        detail: nextLocale,
+      })
+    );
+
 
     window.dispatchEvent(
       new CustomEvent("auftrago-language-change", {
