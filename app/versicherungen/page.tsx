@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import styles from "./page.module.css";
+import { getServerLocale } from "@/lib/i18n/server";
+import { translateInsuranceText } from "@/lib/i18n/insurance-translator";
+import { translateReactNode } from "@/lib/i18n/translate-react-node";
+
 
 export const metadata: Metadata = {
   title: "Versicherungen vergleichen Schweiz | Auftrago",
@@ -161,8 +165,11 @@ const faqSchema = {
   })),
 };
 
-export default function VersicherungenPage() {
-  return (
+export default async function VersicherungenPage() {
+  const locale = await getServerLocale();
+  const tr = (value: string) => translateInsuranceText(locale, value);
+
+  const page = (
     <main className={styles.page}>
       <script
         type="application/ld+json"
@@ -776,4 +783,6 @@ export default function VersicherungenPage() {
       </section>
     </main>
   );
+
+  return translateReactNode(page, tr);
 }
