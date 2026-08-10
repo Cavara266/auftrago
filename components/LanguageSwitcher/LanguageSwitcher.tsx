@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "./LanguageSwitcher.module.css";
 
-type Locale = "de" | "fr" | "it" | "en";
+type Locale = "de" | "fr" | "it" | "en" | "sq" | "tr" | "pt" | "es";
 
 const languages: {
   code: Locale;
@@ -35,6 +35,30 @@ const languages: {
     name: "English",
     flag: "🇬🇧",
   },
+  {
+    code: "sq",
+    label: "SQ",
+    name: "Shqip",
+    flag: "🇦🇱",
+  },
+  {
+    code: "tr",
+    label: "TR",
+    name: "Türkçe",
+    flag: "🇹🇷",
+  },
+  {
+    code: "pt",
+    label: "PT",
+    name: "Português",
+    flag: "🇵🇹",
+  },
+  {
+    code: "es",
+    label: "ES",
+    name: "Español",
+    flag: "🇪🇸",
+  },
 ];
 
 const STORAGE_KEY = "auftrago-language";
@@ -45,7 +69,11 @@ function isLocale(value: string | null): value is Locale {
     value === "de" ||
     value === "fr" ||
     value === "it" ||
-    value === "en"
+    value === "en" ||
+    value === "sq" ||
+    value === "tr" ||
+    value === "pt" ||
+    value === "es"
   );
 }
 
