@@ -2,6 +2,11 @@ import de from "@/messages/de.json";
 import fr from "@/messages/fr.json";
 import it from "@/messages/it.json";
 import en from "@/messages/en.json";
+import sq from "@/messages/sq.json";
+import tr from "@/messages/tr.json";
+import pt from "@/messages/pt.json";
+import es from "@/messages/es.json";
+
 import type { Locale } from "./config";
 
 const messages = {
@@ -9,6 +14,10 @@ const messages = {
   fr,
   it,
   en,
+  sq,
+  tr,
+  pt,
+  es,
 } as const;
 
 export type Messages = typeof de;

@@ -1,0 +1,56 @@
+{
+  "nav": {
+    "services": "Serviços",
+    "providers": "Prestadores",
+    "regions": "Regiões",
+    "insurance": "Seguros",
+    "forProviders": "Para prestadores",
+    "search": "Pesquisar",
+    "startRequest": "Criar pedido",
+    "priceCalculator": "Calculadora de preços"
+  },
+  "home": {
+    "hero": {
+      "badge": "A plataforma n.º 1 de serviços na Suíça",
+      "title1": "O seu pedido.",
+      "title2": "Perfeitamente realizado.",
+      "text": "Limpeza, profissionais, mudanças ou seguros – ligamos-lhe a prestadores verificados da sua região. Rápido, gratuito e sem compromisso.",
+      "free": "100% gratuito",
+      "fast": "Em menos de 60 segundos",
+      "verified": "Prestadores verificados",
+      "nationwide": "Em toda a Suíça",
+      "placeholder": "O que gostaria de realizar?",
+      "start": "Criar pedido",
+      "popular": "Pedidos populares:",
+      "allCategories": "Todas as categorias"
+    },
+    "categories": {
+      "cleaning": "Limpeza",
+      "trades": "Profissionais",
+      "moving": "Mudanças & transporte",
+      "garden": "Jardim & exterior",
+      "sanitary": "Canalização",
+      "technology": "IT & tecnologia",
+      "insurance": "Seguros",
+      "health": "Saúde",
+      "all": "Todos os serviços"
+    },
+    "matching": {
+      "live": "MATCHING AO VIVO",
+      "distributed": "O seu pedido está a ser distribuído",
+      "yourRequest": "O SEU PEDIDO",
+      "serviceDetected": "Serviço identificado",
+      "regionDetected": "Região identificada",
+      "providersFound": "Prestadores adequados encontrados",
+      "verifiedProviders": "12 prestadores verificados",
+      "viewProviders": "Ver 12 prestadores adequados"
+    }
+  },
+  "footer": {
+    "claim": "A plataforma suíça para limpeza, manutenção de imóveis, mudanças e serviços regionais.",
+    "services": "Serviços populares",
+    "regions": "Regiões da Suíça",
+    "provider": "Registar como prestador",
+    "rights": "Todos os direitos reservados"
+  }
+}

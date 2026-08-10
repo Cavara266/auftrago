@@ -1,0 +1,56 @@
+{
+  "nav": {
+    "services": "Servicios",
+    "providers": "Proveedores",
+    "regions": "Regiones",
+    "insurance": "Seguros",
+    "forProviders": "Para proveedores",
+    "search": "Buscar",
+    "startRequest": "Crear solicitud",
+    "priceCalculator": "Calculadora de precios"
+  },
+  "home": {
+    "hero": {
+      "badge": "La plataforma n.º 1 de servicios en Suiza",
+      "title1": "Tu solicitud.",
+      "title2": "Perfectamente realizada.",
+      "text": "Limpieza, profesionales, mudanzas o seguros – te conectamos con proveedores verificados de tu región. Rápido, gratuito y sin compromiso.",
+      "free": "100% gratis",
+      "fast": "En menos de 60 segundos",
+      "verified": "Proveedores verificados",
+      "nationwide": "En toda Suiza",
+      "placeholder": "¿Qué necesitas realizar?",
+      "start": "Crear solicitud",
+      "popular": "Solicitudes populares:",
+      "allCategories": "Todas las categorías"
+    },
+    "categories": {
+      "cleaning": "Limpieza",
+      "trades": "Profesionales",
+      "moving": "Mudanzas & transporte",
+      "garden": "Jardín & exterior",
+      "sanitary": "Fontanería",
+      "technology": "IT & tecnología",
+      "insurance": "Seguros",
+      "health": "Salud",
+      "all": "Todos los servicios"
+    },
+    "matching": {
+      "live": "MATCHING EN DIRECTO",
+      "distributed": "Tu solicitud se está distribuyendo",
+      "yourRequest": "TU SOLICITUD",
+      "serviceDetected": "Servicio identificado",
+      "regionDetected": "Región identificada",
+      "providersFound": "Proveedores adecuados encontrados",
+      "verifiedProviders": "12 proveedores verificados",
+      "viewProviders": "Ver 12 proveedores adecuados"
+    }
+  },
+  "footer": {
+    "claim": "La plataforma suiza para limpieza, mantenimiento de propiedades, mudanzas y servicios regionales.",
+    "services": "Servicios populares",
+    "regions": "Regiones de Suiza",
+    "provider": "Registrarse como proveedor",
+    "rights": "Todos los derechos reservados"
+  }
+}

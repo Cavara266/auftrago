@@ -1,0 +1,56 @@
+{
+  "nav": {
+    "services": "Shërbimet",
+    "providers": "Ofruesit",
+    "regions": "Rajonet",
+    "insurance": "Sigurimet",
+    "forProviders": "Për ofruesit",
+    "search": "Kërko",
+    "startRequest": "Krijo kërkesë",
+    "priceCalculator": "Llogaritësi i çmimit"
+  },
+  "home": {
+    "hero": {
+      "badge": "Platforma nr. 1 për shërbime në Zvicër",
+      "title1": "Kërkesa juaj.",
+      "title2": "E realizuar perfekt.",
+      "text": "Pastrim, mjeshtër, zhvendosje ose sigurime – ju lidhim me ofrues të verifikuar nga rajoni juaj. Shpejt, falas dhe pa detyrim.",
+      "free": "100% falas",
+      "fast": "Në më pak se 60 sekonda",
+      "verified": "Ofrues të verifikuar",
+      "nationwide": "Në gjithë Zvicrën",
+      "placeholder": "Çfarë dëshironi të realizoni?",
+      "start": "Krijo kërkesë",
+      "popular": "Kërkesa të njohura:",
+      "allCategories": "Të gjitha kategoritë"
+    },
+    "categories": {
+      "cleaning": "Pastrim",
+      "trades": "Mjeshtër",
+      "moving": "Zhvendosje & transport",
+      "garden": "Kopsht & ambient i jashtëm",
+      "sanitary": "Hidraulikë",
+      "technology": "IT & teknologji",
+      "insurance": "Sigurime",
+      "health": "Shëndet",
+      "all": "Të gjitha shërbimet"
+    },
+    "matching": {
+      "live": "PËRPUTHJE LIVE",
+      "distributed": "Kërkesa juaj po shpërndahet",
+      "yourRequest": "KËRKESA JUAJ",
+      "serviceDetected": "Shërbimi u identifikua",
+      "regionDetected": "Rajoni u identifikua",
+      "providersFound": "U gjetën ofrues të përshtatshëm",
+      "verifiedProviders": "12 ofrues të verifikuar",
+      "viewProviders": "Shiko 12 ofrues të përshtatshëm"
+    }
+  },
+  "footer": {
+    "claim": "Platforma zvicerane për pastrim, mirëmbajtje objektesh, zhvendosje dhe shërbime rajonale.",
+    "services": "Shërbime të njohura",
+    "regions": "Rajonet e Zvicrës",
+    "provider": "Regjistrohu si ofrues",
+    "rights": "Të gjitha të drejtat e rezervuara"
+  }
+}

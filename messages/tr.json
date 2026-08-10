@@ -1,0 +1,56 @@
+{
+  "nav": {
+    "services": "Hizmetler",
+    "providers": "Hizmet sağlayıcılar",
+    "regions": "Bölgeler",
+    "insurance": "Sigortalar",
+    "forProviders": "Hizmet sağlayıcılar için",
+    "search": "Ara",
+    "startRequest": "Talep oluştur",
+    "priceCalculator": "Fiyat hesaplayıcı"
+  },
+  "home": {
+    "hero": {
+      "badge": "İsviçre'nin 1 numaralı hizmet platformu",
+      "title1": "Talebiniz.",
+      "title2": "Mükemmel şekilde tamamlandı.",
+      "text": "Temizlik, ustalar, taşınma veya sigorta – sizi bölgenizdeki doğrulanmış hizmet sağlayıcılarla buluşturuyoruz. Hızlı, ücretsiz ve bağlayıcı olmadan.",
+      "free": "%100 ücretsiz",
+      "fast": "60 saniyeden kısa sürede",
+      "verified": "Doğrulanmış sağlayıcılar",
+      "nationwide": "İsviçre genelinde",
+      "placeholder": "Ne yaptırmak istiyorsunuz?",
+      "start": "Talep oluştur",
+      "popular": "Popüler talepler:",
+      "allCategories": "Tüm kategoriler"
+    },
+    "categories": {
+      "cleaning": "Temizlik",
+      "trades": "Ustalar",
+      "moving": "Taşınma & nakliye",
+      "garden": "Bahçe & dış alan",
+      "sanitary": "Sıhhi tesisat",
+      "technology": "IT & teknoloji",
+      "insurance": "Sigortalar",
+      "health": "Sağlık",
+      "all": "Tüm hizmetler"
+    },
+    "matching": {
+      "live": "CANLI EŞLEŞTİRME",
+      "distributed": "Talebiniz dağıtılıyor",
+      "yourRequest": "TALEBİNİZ",
+      "serviceDetected": "Hizmet belirlendi",
+      "regionDetected": "Bölge belirlendi",
+      "providersFound": "Uygun sağlayıcılar bulundu",
+      "verifiedProviders": "12 doğrulanmış sağlayıcı",
+      "viewProviders": "12 uygun sağlayıcıyı görüntüle"
+    }
+  },
+  "footer": {
+    "claim": "Temizlik, bina bakımı, taşınma ve bölgesel hizmetler için İsviçre platformu.",
+    "services": "Popüler hizmetler",
+    "regions": "İsviçre bölgeleri",
+    "provider": "Hizmet sağlayıcı olarak kaydol",
+    "rights": "Tüm hakları saklıdır"
+  }
+}
