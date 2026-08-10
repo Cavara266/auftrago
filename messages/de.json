@@ -1,0 +1,56 @@
+{
+  "nav": {
+    "services": "Dienstleistungen",
+    "providers": "Anbieter",
+    "regions": "Regionen",
+    "insurance": "Versicherungen",
+    "forProviders": "Für Anbieter",
+    "search": "Suche",
+    "startRequest": "Auftrag starten",
+    "priceCalculator": "Preisrechner"
+  },
+  "home": {
+    "hero": {
+      "badge": "Die Nr.1 Plattform für Dienstleistungen in der Schweiz",
+      "title1": "Dein Auftrag.",
+      "title2": "Perfekt erledigt.",
+      "text": "Ob Reinigung, Handwerker, Umzug oder Versicherungen – wir bringen dich mit geprüften Anbietern aus deiner Region zusammen. Schnell, kostenlos und unverbindlich.",
+      "free": "100% kostenlos",
+      "fast": "In unter 60 Sekunden",
+      "verified": "Geprüfte Anbieter",
+      "nationwide": "Schweizweit",
+      "placeholder": "Was möchtest du erledigen lassen?",
+      "start": "Auftrag starten",
+      "popular": "Beliebte Anfragen:",
+      "allCategories": "Alle Kategorien"
+    },
+    "categories": {
+      "cleaning": "Reinigung",
+      "trades": "Handwerker",
+      "moving": "Umzug & Transport",
+      "garden": "Garten & Aussen",
+      "sanitary": "Sanitär",
+      "technology": "IT & Technik",
+      "insurance": "Versicherungen",
+      "health": "Gesundheit",
+      "all": "Alle Services"
+    },
+    "matching": {
+      "live": "LIVE MATCHING",
+      "distributed": "Deine Anfrage wird verteilt",
+      "yourRequest": "DEINE ANFRAGE",
+      "serviceDetected": "Dienstleistung erkannt",
+      "regionDetected": "Region erkannt",
+      "providersFound": "Passende Anbieter gefunden",
+      "verifiedProviders": "12 geprüfte Anbieter",
+      "viewProviders": "12 passende Anbieter ansehen"
+    }
+  },
+  "footer": {
+    "claim": "Die Schweizer Plattform für Reinigung, Hauswartung, Umzug und regionale Dienstleistungen.",
+    "services": "Beliebte Dienstleistungen",
+    "regions": "Regionen Schweiz",
+    "provider": "Als Anbieter registrieren",
+    "rights": "Alle Rechte vorbehalten"
+  }
+}

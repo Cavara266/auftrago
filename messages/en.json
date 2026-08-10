@@ -1,0 +1,56 @@
+{
+  "nav": {
+    "services": "Services",
+    "providers": "Providers",
+    "regions": "Regions",
+    "insurance": "Insurance",
+    "forProviders": "For providers",
+    "search": "Search",
+    "startRequest": "Start request",
+    "priceCalculator": "Price calculator"
+  },
+  "home": {
+    "hero": {
+      "badge": "Switzerland's No.1 platform for services",
+      "title1": "Your request.",
+      "title2": "Perfectly handled.",
+      "text": "Cleaning, trades, moving or insurance – we connect you with verified providers in your region. Fast, free and without obligation.",
+      "free": "100% free",
+      "fast": "In under 60 seconds",
+      "verified": "Verified providers",
+      "nationwide": "Across Switzerland",
+      "placeholder": "What would you like to get done?",
+      "start": "Start request",
+      "popular": "Popular requests:",
+      "allCategories": "All categories"
+    },
+    "categories": {
+      "cleaning": "Cleaning",
+      "trades": "Trades",
+      "moving": "Moving & transport",
+      "garden": "Garden & outdoors",
+      "sanitary": "Plumbing",
+      "technology": "IT & technology",
+      "insurance": "Insurance",
+      "health": "Health",
+      "all": "All services"
+    },
+    "matching": {
+      "live": "LIVE MATCHING",
+      "distributed": "Your request is being distributed",
+      "yourRequest": "YOUR REQUEST",
+      "serviceDetected": "Service detected",
+      "regionDetected": "Region detected",
+      "providersFound": "Matching providers found",
+      "verifiedProviders": "12 verified providers",
+      "viewProviders": "View 12 matching providers"
+    }
+  },
+  "footer": {
+    "claim": "The Swiss platform for cleaning, property maintenance, moving and regional services.",
+    "services": "Popular services",
+    "regions": "Swiss regions",
+    "provider": "Register as a provider",
+    "rights": "All rights reserved"
+  }
+}

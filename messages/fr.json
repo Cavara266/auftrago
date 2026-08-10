@@ -1,0 +1,56 @@
+{
+  "nav": {
+    "services": "Services",
+    "providers": "Prestataires",
+    "regions": "Régions",
+    "insurance": "Assurances",
+    "forProviders": "Pour les prestataires",
+    "search": "Recherche",
+    "startRequest": "Créer une demande",
+    "priceCalculator": "Calculateur de prix"
+  },
+  "home": {
+    "hero": {
+      "badge": "La plateforme n°1 des services en Suisse",
+      "title1": "Votre demande.",
+      "title2": "Parfaitement réalisée.",
+      "text": "Nettoyage, artisans, déménagement ou assurances – nous vous mettons en relation avec des prestataires vérifiés de votre région. Rapide, gratuit et sans engagement.",
+      "free": "100% gratuit",
+      "fast": "En moins de 60 secondes",
+      "verified": "Prestataires vérifiés",
+      "nationwide": "Dans toute la Suisse",
+      "placeholder": "Que souhaitez-vous faire réaliser ?",
+      "start": "Créer une demande",
+      "popular": "Demandes populaires :",
+      "allCategories": "Toutes les catégories"
+    },
+    "categories": {
+      "cleaning": "Nettoyage",
+      "trades": "Artisans",
+      "moving": "Déménagement & transport",
+      "garden": "Jardin & extérieur",
+      "sanitary": "Sanitaire",
+      "technology": "IT & technologie",
+      "insurance": "Assurances",
+      "health": "Santé",
+      "all": "Tous les services"
+    },
+    "matching": {
+      "live": "MISE EN RELATION",
+      "distributed": "Votre demande est distribuée",
+      "yourRequest": "VOTRE DEMANDE",
+      "serviceDetected": "Service identifié",
+      "regionDetected": "Région identifiée",
+      "providersFound": "Prestataires adaptés trouvés",
+      "verifiedProviders": "12 prestataires vérifiés",
+      "viewProviders": "Voir 12 prestataires adaptés"
+    }
+  },
+  "footer": {
+    "claim": "La plateforme suisse pour le nettoyage, la conciergerie, le déménagement et les services régionaux.",
+    "services": "Services populaires",
+    "regions": "Régions de Suisse",
+    "provider": "S'inscrire comme prestataire",
+    "rights": "Tous droits réservés"
+  }
+}

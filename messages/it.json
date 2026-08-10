@@ -1,0 +1,56 @@
+{
+  "nav": {
+    "services": "Servizi",
+    "providers": "Fornitori",
+    "regions": "Regioni",
+    "insurance": "Assicurazioni",
+    "forProviders": "Per i fornitori",
+    "search": "Cerca",
+    "startRequest": "Crea richiesta",
+    "priceCalculator": "Calcolatore prezzi"
+  },
+  "home": {
+    "hero": {
+      "badge": "La piattaforma n.1 per i servizi in Svizzera",
+      "title1": "La tua richiesta.",
+      "title2": "Perfettamente realizzata.",
+      "text": "Pulizie, artigiani, traslochi o assicurazioni – ti mettiamo in contatto con fornitori verificati della tua regione. Rapido, gratuito e senza impegno.",
+      "free": "100% gratuito",
+      "fast": "In meno di 60 secondi",
+      "verified": "Fornitori verificati",
+      "nationwide": "In tutta la Svizzera",
+      "placeholder": "Cosa desideri far eseguire?",
+      "start": "Crea richiesta",
+      "popular": "Richieste popolari:",
+      "allCategories": "Tutte le categorie"
+    },
+    "categories": {
+      "cleaning": "Pulizia",
+      "trades": "Artigiani",
+      "moving": "Trasloco & trasporto",
+      "garden": "Giardino & esterni",
+      "sanitary": "Sanitario",
+      "technology": "IT & tecnologia",
+      "insurance": "Assicurazioni",
+      "health": "Salute",
+      "all": "Tutti i servizi"
+    },
+    "matching": {
+      "live": "MATCHING LIVE",
+      "distributed": "La tua richiesta viene distribuita",
+      "yourRequest": "LA TUA RICHIESTA",
+      "serviceDetected": "Servizio riconosciuto",
+      "regionDetected": "Regione riconosciuta",
+      "providersFound": "Fornitori adatti trovati",
+      "verifiedProviders": "12 fornitori verificati",
+      "viewProviders": "Vedi 12 fornitori adatti"
+    }
+  },
+  "footer": {
+    "claim": "La piattaforma svizzera per pulizie, custodia immobili, traslochi e servizi regionali.",
+    "services": "Servizi popolari",
+    "regions": "Regioni della Svizzera",
+    "provider": "Registrati come fornitore",
+    "rights": "Tutti i diritti riservati"
+  }
+}
