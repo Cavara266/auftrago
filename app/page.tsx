@@ -5,6 +5,8 @@ import Hero from "@/components/home/Hero";
 import LiveLeadsSection from "@/components/live-leads-section";
 import { citiesSeo } from "@/lib/city-data";
 import { regions as regionData } from "@/lib/region-data";
+import { getServerLocale } from "@/lib/i18n/server";
+import { translateHomeText } from "@/lib/i18n/home-translator";
 import {
   formatText,
   services as seoServices,
@@ -112,7 +114,7 @@ const categoryCards = [
   },
 ];
 
-const processSteps = [
+const processStepsBase = [
   {
     number: "01",
     label: "Anfrage",
@@ -147,7 +149,7 @@ const processSteps = [
   },
 ];
 
-const popularServices = [
+const popularServicesBase = [
   ["✦", "Reinigung", "/leistungen/reinigung"],
   [
     "⌂",
@@ -174,7 +176,7 @@ const popularServices = [
   ["◇", "Alle Services", "/dienstleistungen"],
 ];
 
-const advantages = [
+const advantagesBase = [
   {
     icon: "01",
     title: "Keine endlose Suche",
@@ -201,7 +203,7 @@ const advantages = [
   },
 ];
 
-const providerAdvantages = [
+const providerAdvantagesBase = [
   "Konkrete Kundenanfragen",
   "Eigene Regionen auswählen",
   "Passende Leistungen festlegen",
@@ -210,7 +212,7 @@ const providerAdvantages = [
   "Schneller Zugang zu neuen Aufträgen",
 ];
 
-const faqs = [
+const faqsBase = [
   {
     question:
       "Ist eine Anfrage auf Auftrago wirklich kostenlos?",
@@ -250,6 +252,37 @@ const faqs = [
 ];
 
 export default async function HomePage() {
+
+  const locale = await getServerLocale();
+  const tr = (value: string) => translateHomeText(locale, value);
+
+  const processSteps = processStepsBase.map((item) => ({
+    ...item,
+    label: tr(item.label),
+    title: tr(item.title),
+    text: tr(item.text),
+  }));
+
+  const popularServices = popularServicesBase.map(([icon, label, href]) => [
+    icon,
+    tr(label),
+    href,
+  ] as const);
+
+  const advantages = advantagesBase.map((item) => ({
+    ...item,
+    title: tr(item.title),
+    text: tr(item.text),
+  }));
+
+  const providerAdvantages = providerAdvantagesBase.map((item) => tr(item));
+
+  const faqs = faqsBase.map((item) => ({
+    ...item,
+    question: tr(item.question),
+    answer: tr(item.answer),
+  }));
+
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
