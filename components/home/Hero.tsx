@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import styles from "./Hero.module.css";
 
+import { useAuftragoLocale } from "@/lib/use-auftrago-locale";
+import { homeTranslations } from "@/lib/home-i18n";
 const categories = [
   { label: "Reinigung", icon: Sparkles, tone: "blue" },
   { label: "Handwerker", icon: Hammer, tone: "cyan" },
@@ -52,6 +54,9 @@ const mapPoints = [
 const particles = Array.from({ length: 18 }, (_, index) => index);
 
 export default function Hero() {
+  const { locale } = useAuftragoLocale();
+  const t = homeTranslations[locale];
+
   const router = useRouter();
   const [searchValue, setSearchValue] = useState("");
 
@@ -131,7 +136,7 @@ export default function Hero() {
                 name="auftrago-search"
                 value={searchValue}
                 onChange={(event) => setSearchValue(event.target.value)}
-                placeholder="Was möchtest du erledigen lassen?"
+                placeholder={t.placeholder}
                 className={styles.searchInput}
                 autoComplete="off"
                 autoCorrect="off"
@@ -140,7 +145,7 @@ export default function Hero() {
               />
 
               <button type="submit" className={styles.searchButton}>
-                <span>Auftrag starten</span>
+                <span>{t.start}</span>
                 <ArrowRight size={21} />
               </button>
             </form>
@@ -173,8 +178,8 @@ export default function Hero() {
                 <div className={styles.botIcon}>🤖</div>
 
                 <div>
-                  <span>LIVE MATCHING</span>
-                  <strong>Deine Anfrage wird verteilt</strong>
+                  <span>{t.liveMatching}</span>
+                  <strong>{t.distributing}</strong>
                 </div>
 
                 <div className={styles.liveBadge}>
@@ -185,7 +190,7 @@ export default function Hero() {
 
               <div className={styles.requestMapCard}>
                 <div className={styles.requestText}>
-                  <span>DEINE ANFRAGE</span>
+                  <span>{t.request}</span>
                   <strong>
                     Wohnungsreinigung in Aarau,
                     <br />
@@ -259,7 +264,7 @@ export default function Hero() {
                     <CheckCircle2 size={19} />
                   </span>
                   <div>
-                    <strong>Dienstleistung erkannt</strong>
+                    <strong>{t.serviceDetected}</strong>
                     <small>Wohnungsreinigung</small>
                   </div>
                 </div>
@@ -269,7 +274,7 @@ export default function Hero() {
                     <MapPin size={19} />
                   </span>
                   <div>
-                    <strong>Region erkannt</strong>
+                    <strong>{t.regionDetected}</strong>
                     <small>Aarau und Umgebung</small>
                   </div>
                 </div>
@@ -279,14 +284,14 @@ export default function Hero() {
                     <BadgeCheck size={19} />
                   </span>
                   <div>
-                    <strong>Passende Anbieter gefunden</strong>
-                    <small>12 geprüfte Anbieter</small>
+                    <strong>{t.providersFound}</strong>
+                    <small>{t.providersAvailable}</small>
                   </div>
                 </div>
               </div>
 
               <button className={styles.resultButton}>
-                <span>12 passende Anbieter ansehen</span>
+                <span>{t.viewProviders}</span>
                 <ArrowRight size={21} />
                 <span className={styles.avatarStack}>
                   <i>DC</i>
