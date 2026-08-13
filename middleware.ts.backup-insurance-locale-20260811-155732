@@ -158,52 +158,7 @@ export async function middleware(
     );
   }
 
-  
-  /*
-   * Versicherungsseite mit Sprachprefix:
-   * /fr/versicherungen
-   * /en/versicherungen
-   * /it/versicherungen
-   * /sq/versicherungen
-   * /tr/versicherungen
-   * /pt/versicherungen
-   * /es/versicherungen
-   *
-   * Intern wird weiterhin /versicherungen verwendet.
-   */
-  const insuranceLocaleMatch = pathname.match(
-    /^\/(fr|it|en|sq|tr|pt|es)\/versicherungen\/?$/
-  );
-
-  if (insuranceLocaleMatch) {
-    const locale = insuranceLocaleMatch[1];
-    const rewriteUrl = request.nextUrl.clone();
-
-    rewriteUrl.pathname = "/versicherungen";
-
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set("x-auftrago-locale", locale);
-    requestHeaders.set("cookie", [
-      request.headers.get("cookie") ?? "",
-      `auftrago_locale=${locale}`,
-    ].filter(Boolean).join("; "));
-
-    const response = NextResponse.rewrite(rewriteUrl, {
-      request: {
-        headers: requestHeaders,
-      },
-    });
-
-    response.cookies.set("auftrago_locale", locale, {
-      path: "/",
-      maxAge: 31536000,
-      sameSite: "lax",
-    });
-
-    return response;
-  }
-
-if (pathname === "/leads") {
+  if (pathname === "/leads") {
     return NextResponse.redirect(
       new URL("/portal/leads", request.url),
       307,
@@ -265,13 +220,6 @@ if (pathname === "/leads") {
 
 export const config = {
   matcher: [
-    "/fr/versicherungen",
-    "/it/versicherungen",
-    "/en/versicherungen",
-    "/sq/versicherungen",
-    "/tr/versicherungen",
-    "/pt/versicherungen",
-    "/es/versicherungen",
     "/credits",
     "/dashboard",
     "/leads",

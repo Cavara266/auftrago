@@ -1,0 +1,184 @@
+import fs from "node:fs/promises";
+import translateModule from "google-translate-api-x";
+
+const translate =
+  translateModule?.default ??
+  translateModule;
+
+const PAGE = "app/versicherungen/page.tsx";
+const OUT = "lib/i18n/insurance-generated.ts";
+
+const source = await fs.readFile(PAGE, "utf8");
+
+const ignored = [
+  "className",
+  "styles.",
+  "href=",
+  "query=",
+  "https://",
+  "http://",
+  "application/ld+json",
+  "@context",
+  "@type",
+  "schema.org",
+  "translateInsuranceText",
+  "locale",
+];
+
+const results = new Set();
+
+function clean(value) {
+  return value
+    .replace(/\{[^{}]*\}/g, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function add(value) {
+  const text = clean(value);
+
+  if (!text) return;
+  if (text.length < 2) return;
+  if (!/[A-Za-zÄÖÜäöüß]/.test(text)) return;
+
+  if (ignored.some((x) => text.includes(x))) return;
+
+  if (
+    text === "A" ||
+    text === "CH" ||
+    text === "01" ||
+    text === "02" ||
+    text === "03" ||
+    text === "04" ||
+    text === "05" ||
+    text === "06" ||
+    text === "07" ||
+    text === "08"
+  ) {
+    return;
+  }
+
+  results.add(text);
+}
+
+/*
+ * JSX Text:
+ * >Deutscher Text<
+ */
+for (const match of source.matchAll(/>([^<>{][^<>{]*?)</gs)) {
+  add(match[1]);
+}
+
+/*
+ * Strings in TS/JS objects and arrays.
+ */
+for (const match of source.matchAll(/["'`]([^"'`]{2,500})["'`]/gs)) {
+  let text = match[1];
+
+  if (
+    text.startsWith("/") ||
+    text.startsWith("./") ||
+    text.startsWith("../") ||
+    text.includes("${") ||
+    text.includes("styles.") ||
+    /^[a-zA-Z0-9_-]+$/.test(text)
+  ) {
+    continue;
+  }
+
+  add(text);
+}
+
+const texts = [...results].sort((a, b) =>
+  a.localeCompare(b, "de")
+);
+
+console.log(`Gefundene sichtbare Texte: ${texts.length}`);
+
+const languages = {
+  fr: "fr",
+  en: "en",
+  it: "it",
+  sq: "sq",
+  tr: "tr",
+  pt: "pt",
+  es: "es",
+};
+
+const dictionaries = {};
+
+const sleep = (ms) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
+for (const [locale, to] of Object.entries(languages)) {
+  console.log(`\n===== ${locale.toUpperCase()} =====`);
+
+  dictionaries[locale] = {};
+
+  let index = 0;
+
+  for (const text of texts) {
+    index += 1;
+
+    try {
+      const result = await translate(text, {
+        from: "de",
+        to,
+      });
+
+      dictionaries[locale][text] = result.text;
+
+      console.log(
+        `[${index}/${texts.length}] ${text.slice(0, 55)} -> ${result.text.slice(0, 55)}`
+      );
+    } catch (error) {
+      console.error(
+        `FEHLER ${locale}:`,
+        text,
+        error?.message ?? error
+      );
+
+      dictionaries[locale][text] = text;
+    }
+
+    await sleep(120);
+  }
+}
+
+const output = `/*
+ * AUTO-GENERATED
+ * Versicherungen-Seite
+ *
+ * Nicht manuell bearbeiten.
+ * Generiert mit:
+ * node scripts/build-insurance-translations.mjs
+ */
+
+export type InsuranceGeneratedLocale =
+  | "fr"
+  | "en"
+  | "it"
+  | "sq"
+  | "tr"
+  | "pt"
+  | "es";
+
+export type InsuranceGeneratedDictionary =
+  Record<string, string>;
+
+export const insuranceGeneratedDictionaries:
+Record<
+  InsuranceGeneratedLocale,
+  InsuranceGeneratedDictionary
+> =
+${JSON.stringify(dictionaries, null, 2)};
+`;
+
+await fs.writeFile(OUT, output, "utf8");
+
+console.log("\n================================");
+console.log("GENERIERUNG FERTIG");
+console.log("================================");
+console.log(`Texte: ${texts.length}`);
+console.log(`Datei: ${OUT}`);

@@ -1,50 +1,59 @@
-import React from "react";
-import type { ReactNode, ReactElement } from "react";
+import React, { cloneElement, isValidElement, type ReactNode } from "react";
+
+type Translator = (value: string) => string;
 
 export function translateReactNode(
   node: ReactNode,
-  translate: (value: string) => string
+  translate: Translator
 ): ReactNode {
-  if (typeof node === "string") {
-    const leading = node.match(/^\s*/)?.[0] ?? "";
-    const trailing = node.match(/\s*$/)?.[0] ?? "";
-    const clean = node.trim();
-
-    if (!clean) {
-      return node;
-    }
-
-    return `${leading}${translate(clean)}${trailing}`;
+  if (node === null || node === undefined || typeof node === "boolean") {
+    return node;
   }
 
-  if (
-    node === null ||
-    node === undefined ||
-    typeof node === "boolean" ||
-    typeof node === "number"
-  ) {
+  if (typeof node === "string") {
+    return translate(node);
+  }
+
+  if (typeof node === "number") {
     return node;
   }
 
   if (Array.isArray(node)) {
-    return node.map((child, index) => (
-      <React.Fragment key={index}>
-        {translateReactNode(child, translate)}
-      </React.Fragment>
-    ));
+    return node.map((child) => translateReactNode(child, translate));
   }
 
-  if (React.isValidElement(node)) {
-    const element = node as ReactElement<{ children?: ReactNode }>;
-
-    if (!("children" in element.props)) {
-      return element;
-    }
-
-    return React.cloneElement(element, {
-      children: translateReactNode(element.props.children, translate),
-    });
+  if (!isValidElement(node)) {
+    return node;
   }
 
-  return node;
+  const props = node.props as Record<string, unknown>;
+
+  const translatedProps: Record<string, unknown> = {
+    ...props,
+  };
+
+  if (typeof props.title === "string") {
+    translatedProps.title = translate(props.title);
+  }
+
+  if (typeof props.placeholder === "string") {
+    translatedProps.placeholder = translate(props.placeholder);
+  }
+
+  if (typeof props["aria-label"] === "string") {
+    translatedProps["aria-label"] = translate(props["aria-label"]);
+  }
+
+  if (typeof props.alt === "string") {
+    translatedProps.alt = translate(props.alt);
+  }
+
+  if ("children" in props) {
+    translatedProps.children = translateReactNode(
+      props.children as ReactNode,
+      translate
+    );
+  }
+
+  return cloneElement(node, translatedProps);
 }

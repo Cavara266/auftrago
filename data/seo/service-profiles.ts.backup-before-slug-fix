@@ -303,7 +303,5 @@ export const serviceProfiles: ServiceProfile[] = [
 ];
 
 export function getServiceProfile(slug: string) {
-  return serviceProfiles.find(
-    (service) => service && service.slug === slug
-  );
+  return serviceProfiles.find((service) => service.slug === slug);
 }
