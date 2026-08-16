@@ -247,7 +247,7 @@ export default function SiteHeader() {
             <div className={styles.regionGrid}>
               {regionLinks.map((region) => (
                 <Link key={region.href} href={region.href} onClick={closeAll}>
-                  {tr("Fornitori")} {tr("in")} {region.label}
+                  {providerRegionLabel(locale, region.label)}
                   <span>→</span>
                 </Link>
               ))}
