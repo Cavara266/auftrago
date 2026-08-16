@@ -5,6 +5,7 @@ import Script from "next/script";
 
 import SiteHeader from "@/components/site-header";
 import Footer from "@/components/footer";
+import GlobalPageTranslator from "@/components/i18n/GlobalPageTranslator";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.auftrago.ch"),
@@ -208,6 +209,7 @@ export default function RootLayout({
   return (
     <html lang="de-CH">
       <body>
+        <GlobalPageTranslator />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

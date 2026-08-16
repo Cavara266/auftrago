@@ -1,0 +1,19 @@
+import AnbieterPage from "../../anbieter/page";
+import { translateProviderText } from "@/lib/i18n/provider-translator";
+import { translateReactNode } from "@/lib/i18n/translate-react-node";
+import type { Locale } from "@/lib/i18n/config";
+
+const locale: Locale = "es";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export default async function LocalizedAnbieterPage() {
+  const result = await Promise.resolve(AnbieterPage());
+
+  const tr = (value: string) => {
+    return translateProviderText(value, locale);
+  };
+
+  return translateReactNode(result, tr);
+}

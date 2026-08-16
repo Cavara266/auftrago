@@ -1,0 +1,972 @@
+import type { Locale } from "./config";
+import { homeGeneratedDictionaries } from "./home-generated";
+
+type TranslationTable = Record<string, string>;
+
+const headlineTranslations: Partial<Record<Locale, string>> = {
+  fr: "Des demandes adaptées à votre entreprise.",
+  it: "Richieste adatte alla tua attività.",
+  en: "Jobs that match your business.",
+  sq: "Kërkesa që i përshtaten biznesit tënd.",
+  tr: "İşletmenize uygun talepler.",
+  pt: "Pedidos adequados à sua empresa.",
+  es: "Solicitudes que se adaptan a tu negocio.",
+};
+
+const fr: TranslationTable = {
+  "Auftrago – Schweizer Plattform für Dienstleistungen":
+    "Auftrago – Plateforme suisse de services",
+
+  "Kostenlos regionale Anbieter für Reinigung, Umzug, Handwerk, Hauswartung, Garten und viele weitere Dienstleistungen vergleichen.":
+    "Comparez gratuitement des prestataires régionaux pour le nettoyage, le déménagement, l'artisanat, la conciergerie, le jardinage et de nombreux autres services.",
+
+  "Erfasse deinen Auftrag kostenlos und erreiche passende Anbieter aus deiner Region.":
+    "Créez gratuitement votre demande et atteignez des prestataires adaptés dans votre région.",
+
+  "Reinigung": "Nettoyage",
+  "Handwerker": "Artisans",
+  "Umzug & Transport": "Déménagement & transport",
+  "Garten & Umgebung": "Jardin & extérieur",
+  "Hauswartung": "Conciergerie",
+  "Weitere Services": "Autres services",
+  "Umzugsreinigung": "Nettoyage de fin de bail",
+  "Gartenpflege": "Entretien de jardin",
+  "Umzug": "Déménagement",
+  "Transport": "Transport",
+  "Entsorgung": "Débarras",
+  "Fensterreinigung": "Nettoyage de vitres",
+  "Maler": "Peinture",
+  "Elektriker": "Électricien",
+  "Sanitär": "Sanitaire",
+  "Montage": "Montage",
+  "Bodenleger": "Pose de sols",
+  "Renovation": "Rénovation",
+  "Winterdienst": "Service hivernal",
+  "Alle Services": "Tous les services",
+
+  "Anfrage": "Demande",
+  "Matching": "Mise en relation",
+  "Vergleich": "Comparaison",
+  "Erledigt": "Terminé",
+
+  "Dienstleistung, Region und Termin eintragen. Deine Anfrage ist in weniger als einer Minute bereit.":
+    "Indiquez le service, la région et la date. Votre demande est prête en moins d'une minute.",
+
+  "Auftrago findet passende Anbieter.":
+    "Auftrago trouve des prestataires adaptés.",
+
+  "Dein Auftrag wird für geeignete Dienstleister aus deiner Region sichtbar gemacht.":
+    "Votre demande est présentée aux prestataires adaptés de votre région.",
+
+  "Du erhältst passende Rückmeldungen.":
+    "Vous recevez des réponses adaptées.",
+
+  "Vergleiche Preis, Leistung, Verfügbarkeit und Auftreten der Anbieter.":
+    "Comparez les prix, les prestations, les disponibilités et les prestataires.",
+
+  "Du entscheidest, wer den Auftrag erhält.":
+    "Vous décidez qui obtient le mandat.",
+
+  "Keine Annahmepflicht. Du wählst selbst den Anbieter, der am besten passt.":
+    "Aucune obligation d'accepter. Vous choisissez le prestataire qui vous convient le mieux.",
+
+  "Keine endlose Suche": "Fini les recherches interminables",
+  "Regionale Anbieter": "Prestataires régionaux",
+  "Du behältst die Kontrolle": "Vous gardez le contrôle",
+  "Kostenlos für Kunden": "Gratuit pour les clients",
+
+  "Eine Anfrage ersetzt unzählige Telefonate, Suchresultate und einzelne Kontaktformulare.":
+    "Une seule demande remplace d'innombrables appels, recherches et formulaires de contact.",
+
+  "Du erreichst Dienstleister, die in deiner Region tätig sind und zu deinem Auftrag passen.":
+    "Vous atteignez des prestataires actifs dans votre région et adaptés à votre demande.",
+
+  "Du entscheidest selbst, welche Rückmeldung überzeugt und wer den Auftrag erhält.":
+    "Vous décidez vous-même quelle réponse vous convainc et qui obtient le mandat.",
+
+  "Das Erstellen einer Anfrage ist kostenlos und verpflichtet dich zu keiner Annahme.":
+    "La création d'une demande est gratuite et ne vous engage à rien.",
+
+  "Konkrete Kundenanfragen": "Demandes clients concrètes",
+  "Eigene Regionen auswählen": "Choisir ses propres régions",
+  "Passende Leistungen festlegen": "Définir ses prestations",
+  "Keine klassische Kaltakquise": "Pas de prospection à froid classique",
+  "Volle Kostenkontrolle": "Contrôle total des coûts",
+  "Schneller Zugang zu neuen Aufträgen": "Accès rapide à de nouveaux mandats",
+
+  "Ist eine Anfrage auf Auftrago wirklich kostenlos?":
+    "Une demande sur Auftrago est-elle vraiment gratuite?",
+
+  "Ja. Auftraggeber können ihre Anfrage kostenlos und unverbindlich erfassen. Du entscheidest selbst, ob eine Offerte oder Rückmeldung zu deinem Auftrag passt.":
+    "Oui. Les clients peuvent créer gratuitement et sans engagement une demande. Vous décidez vous-même si une offre ou une réponse vous convient.",
+
+  "Welche Dienstleistungen kann ich anfragen?":
+    "Quels services puis-je demander?",
+
+  "Auftrago deckt unter anderem Reinigung, Umzug, Hauswartung, Gartenpflege, Transport, Entsorgung, Malerarbeiten, Elektriker, Sanitär, Renovationen, Versicherungen und viele weitere Bereiche ab.":
+    "Auftrago couvre notamment le nettoyage, le déménagement, la conciergerie, le jardinage, le transport, le débarras, la peinture, l'électricité, le sanitaire, les rénovations, les assurances et de nombreux autres domaines.",
+
+  "Wie schnell erhalte ich Rückmeldungen?":
+    "À quelle vitesse vais-je recevoir des réponses?",
+
+  "Die Reaktionszeit hängt von Region, Dienstleistung, Termin und Verfügbarkeit ab. Eine vollständige Beschreibung und passende Fotos erhöhen die Chance auf schnelle Rückmeldungen.":
+    "Le délai dépend de la région, du service, de la date et de la disponibilité. Une description complète et des photos adaptées augmentent les chances de recevoir rapidement des réponses.",
+
+  "Muss ich eines der Angebote annehmen?":
+    "Suis-je obligé d'accepter une offre?",
+
+  "Nein. Deine Anfrage bleibt unverbindlich. Du kannst Rückmeldungen vergleichen und frei entscheiden, ob du einen Anbieter beauftragen möchtest.":
+    "Non. Votre demande reste sans engagement. Vous pouvez comparer les réponses et décider librement si vous souhaitez mandater un prestataire.",
+
+  "Ist Auftrago schweizweit verfügbar?":
+    "Auftrago est-il disponible dans toute la Suisse?",
+
+  "Ja. Kunden können Anfragen aus verschiedenen Kantonen und Regionen erfassen. Die konkrete Auswahl hängt von den verfügbaren Anbietern in der jeweiligen Umgebung ab.":
+    "Oui. Les clients peuvent créer des demandes dans différents cantons et régions. La sélection dépend des prestataires disponibles dans la région concernée.",
+
+  "Wie funktioniert Auftrago für Anbieter?":
+    "Comment fonctionne Auftrago pour les prestataires?",
+
+  "Registrierte Dienstleister erhalten Zugang zu passenden Kundenanfragen aus ihren gewählten Regionen und Fachbereichen. Relevante Aufträge können gezielt freigeschaltet werden.":
+    "Les prestataires inscrits ont accès aux demandes correspondant à leurs régions et domaines d'activité. Les mandats pertinents peuvent être sélectionnés individuellement.",
+
+  "Über 420 Dienstleistungen entdecken":
+    "Découvrir plus de 420 services",
+
+  "Deine Anfrage": "Votre demande",
+  "Dienstleistung erkannt": "Service identifié",
+  "Anbieter gefunden": "Prestataires trouvés",
+  "Passende Anbieter vergleichen": "Comparer les prestataires adaptés",
+  "12 Anbieter": "12 prestataires",
+  "strukturierte Anfrage.": "demande structurée.",
+  "Kostenlos starten": "Commencer gratuitement",
+  "Anbieter entdecken": "Découvrir les prestataires",
+  "Alle Dienstleistungen": "Tous les services",
+  "Jetzt Anbieter werden": "Devenir prestataire",
+  "Schweizweit verbunden.": "Disponible dans toute la Suisse.",
+  "Finde regionale Anbieter für deine gewünschte Dienstleistung.":
+    "Trouvez des prestataires régionaux pour le service souhaité.",
+  "Beliebte Dienstleistungen": "Services populaires",
+  "Alle Dienstleistungen →": "Tous les services →",
+  "Anbieter und die Nutzung von Auftrago.":
+    "Prestataires et utilisation d'Auftrago.",
+  "Anfrage direkt starten": "Créer une demande",
+  "Erstelle deine Anfrage kostenlos und erreiche passende Anbieter aus deiner Region.":
+    "Créez gratuitement votre demande et atteignez des prestataires adaptés dans votre région.",
+  "Anbieter werden": "Devenir prestataire",
+  "Schweizweit": "Dans toute la Suisse"
+};
+
+const it: TranslationTable = {
+  "perfekt erledigt.": "perfettamente svolto.",
+  "Was möchtest du erledigen lassen?": "Cosa desideri far eseguire?",
+  "Einfacher geht es nicht": "Più semplice di così non si può",
+  "Von null auf": "Da zero a",
+  "Ein klarer Prozess, der dir Zeit spart und passende Dienstleister schneller erreichbar macht.": "Un processo chiaro che ti fa risparmiare tempo e ti permette di raggiungere più rapidamente i fornitori adatti.",
+  "Wohnungsreinigung in Aarau": "Pulizia dell'appartamento ad Aarau",
+  "Läuft": "In corso",
+  "Region erkannt": "Regione riconosciuta",
+  "Aarau und Umgebung": "Aarau e dintorni",
+  "12 passende Betriebe": "12 fornitori adatti",
+  "Dein nächster Schritt": "Il tuo prossimo passo",
+  "Match gefunden": "Corrispondenza trovata",
+  "in deiner Region": "nella tua regione",
+  "Die Nr.1 Plattform für Dienstleistungen in der Schweiz": "La piattaforma n. 1 per i servizi in Svizzera",
+  "Dein Auftrag.": "Il tuo incarico.",
+  "Perfekt erledigt.": "Perfettamente svolto.",
+  "Ob Reinigung, Handwerker, Umzug oder Versicherungen – wir bringen dich mit geprüften Anbietern aus deiner Region zusammen. Schnell, kostenlos und unverbindlich.": "Che si tratti di pulizie, artigiani, traslochi o assicurazioni, ti mettiamo in contatto con fornitori verificati della tua regione. In modo rapido, gratuito e senza impegno.",
+  "Garten & Aussen": "Giardino ed esterni",
+  "IT & Technik": "IT e tecnologia",
+  "Versicherungen": "Assicurazioni",
+  "Gesundheit": "Salute",
+  "Dienstleistungen": "Servizi",
+  "Anbieter": "Fornitori",
+  "Aufträge vermittelt": "Incarichi assegnati",
+  "Kantone": "Cantoni",
+  "Von über 2400 Kunden bewertet": "Valutato da oltre 2400 clienti",
+  "Neue Kundenanfragen": "Nuove richieste dei clienti",
+  "Umzugsreinigung 3.5 Zimmer": "Pulizia di fine locazione · 3,5 locali",
+  "Malerarbeiten Wohnung": "Lavori di pittura nell'appartamento",
+  "Privatumzug mit Möbelmontage": "Trasloco privato con montaggio mobili",
+  "Gartenpflege & Heckenschnitt": "Cura del giardino e taglio delle siepi",
+  "Elektriker für Beleuchtung": "Elettricista per illuminazione",
+  "Hauswartung für Liegenschaft": "Custodia dell'immobile",
+  "Termin flexibel": "Data flessibile",
+  "Innerhalb 2 Wochen": "Entro 2 settimane",
+  "Fixer Termin": "Data fissa",
+  "Nächste Woche": "La prossima settimana",
+  "Schnellstmöglich": "Il prima possibile",
+  "Wiederkehrend": "Ricorrente",
+  "Neu": "Nuovo",
+  "Aktiv": "Attivo",
+  "Top Auftrag": "Incarico top",
+  "Dringend": "Urgente",
+  "Premium": "Premium",
+  "Auftrago Anbieter-Netzwerk": "Rete di fornitori Auftrago",
+  "Servizi": "Servizi",
+  "Aufträge, die zu deinem Betrieb passen.": "Richieste adatte alla tua attività.",
+  "Entdecke aktuelle Anfragen aus verschiedenen Regionen und Fachbereichen. Registrierte Anbieter sehen vollständige Auftragsdetails und Kontaktdaten nach der Freischaltung.": "Scopri richieste attuali provenienti da diverse regioni e settori. I fornitori registrati possono vedere tutti i dettagli della richiesta e i dati di contatto dopo lo sblocco.",
+  "Regionale Anfragen": "Richieste regionali",
+  "Neue Kategorien": "Nuove categorie",
+  "Direkter Kundenkontakt": "Contatto diretto con il cliente",
+  "Aktuelle Kundenanfrage": "Richiesta attuale del cliente",
+  "Vollständige Beschreibung, Adresse, Termin und Kontaktdaten sind nach Freischaltung sichtbar.": "La descrizione completa, l'indirizzo, la data e i dati di contatto sono visibili dopo lo sblocco.",
+  "Freischaltung": "Sblocco",
+  "Auftrag ansehen": "Visualizza richiesta",
+  "Für Schweizer Dienstleister": "Per fornitori di servizi svizzeri",
+  "Kunden suchen bereits.": "I clienti stanno già cercando.",
+  "Sei dort, wenn es zählt.": "Fatti trovare quando conta.",
+  "Registriere deinen Betrieb, wähle deine Regionen und Dienstleistungen und erhalte Zugang zu relevanten Kundenanfragen.": "Registra la tua attività, scegli le tue regioni e i tuoi servizi e ottieni accesso alle richieste dei clienti pertinenti.",
+  "Kostenlos als Anbieter registrieren": "Registrati gratuitamente come fornitore",
+  "So funktioniert es": "Come funziona",
+  "Aufträge aus deinen Regionen": "Richieste dalle tue regioni",
+  "Nur passende Kategorien": "Solo categorie pertinenti",
+  "Jetzt Teil der Plattform werden": "Entra ora nella piattaforma",
+  "Täglich": "Ogni giorno",
+  "Neue Anfragen": "Nuove richieste",
+  "Direkt": "Diretto",
+  "Zum Kundenkontakt": "Contatto con il cliente",
+  "Bereit für deinen Auftrag": "Pronto per la tua richiesta",
+  "Geprüfte Anbieter": "Fornitori verificati",
+  "In unter 60 Sekunden": "In meno di 60 secondi",
+  "100% kostenlos": "100% gratuito",
+  "Beliebte Anfragen:": "Richieste popolari:",
+  "Alle Kategorien": "Tutte le categorie",
+  "Direkt zum passenden Service": "Direttamente al servizio giusto",
+
+  "Reinigung": "Pulizia",
+  "Handwerker": "Artigiani",
+  "Umzug & Transport": "Trasloco & trasporto",
+  "Garten & Umgebung": "Giardino & esterni",
+  "Hauswartung": "Custodia immobili",
+  "Weitere Services": "Altri servizi",
+  "Umzugsreinigung": "Pulizia di fine locazione",
+  "Gartenpflege": "Giardinaggio",
+  "Umzug": "Trasloco",
+  "Transport": "Trasporto",
+  "Entsorgung": "Sgombero",
+  "Fensterreinigung": "Pulizia finestre",
+  "Maler": "Pittore",
+  "Elektriker": "Elettricista",
+  "Sanitär": "Sanitario",
+  "Montage": "Montaggio",
+  "Bodenleger": "Posa pavimenti",
+  "Renovation": "Ristrutturazione",
+  "Winterdienst": "Servizio invernale",
+  "Alle Services": "Tutti i servizi",
+
+  "Anfrage": "Richiesta",
+  "Matching": "Matching",
+  "Vergleich": "Confronto",
+  "Erledigt": "Fatto",
+
+  "Auftrago findet passende Anbieter.":
+    "Auftrago trova fornitori adatti.",
+
+  "Du erhältst passende Rückmeldungen.":
+    "Ricevi risposte adatte.",
+
+  "Du entscheidest, wer den Auftrag erhält.":
+    "Decidi tu chi riceve l'incarico.",
+
+  "Keine endlose Suche": "Nessuna ricerca infinita",
+  "Regionale Anbieter": "Fornitori regionali",
+  "Du behältst die Kontrolle": "Mantieni il controllo",
+  "Kostenlos für Kunden": "Gratuito per i clienti",
+
+  "Konkrete Kundenanfragen": "Richieste concrete dei clienti",
+  "Eigene Regionen auswählen": "Scegli le tue regioni",
+  "Passende Leistungen festlegen": "Definisci i servizi",
+  "Keine klassische Kaltakquise": "Nessuna classica acquisizione a freddo",
+  "Volle Kostenkontrolle": "Pieno controllo dei costi",
+  "Schneller Zugang zu neuen Aufträgen": "Accesso rapido a nuovi incarichi",
+
+  "Ist eine Anfrage auf Auftrago wirklich kostenlos?":
+    "Una richiesta su Auftrago è davvero gratuita?",
+
+  "Welche Dienstleistungen kann ich anfragen?":
+    "Quali servizi posso richiedere?",
+
+  "Wie schnell erhalte ich Rückmeldungen?":
+    "Quanto velocemente riceverò risposte?",
+
+  "Muss ich eines der Angebote annehmen?":
+    "Devo accettare una delle offerte?",
+
+  "Ist Auftrago schweizweit verfügbar?":
+    "Auftrago è disponibile in tutta la Svizzera?",
+
+  "Wie funktioniert Auftrago für Anbieter?":
+    "Come funziona Auftrago per i fornitori?",
+
+  "Über 420 Dienstleistungen entdecken":
+    "Scopri oltre 420 servizi",
+
+  "Deine Anfrage": "La tua richiesta",
+  "Dienstleistung erkannt": "Servizio riconosciuto",
+  "Anbieter gefunden": "Fornitori trovati",
+  "Passende Anbieter vergleichen": "Confronta fornitori adatti",
+  "12 Anbieter": "12 fornitori",
+  "Kostenlos starten": "Inizia gratuitamente",
+  "Anbieter entdecken": "Scopri i fornitori",
+  "Alle Dienstleistungen": "Tutti i servizi",
+  "Jetzt Anbieter werden": "Diventa fornitore",
+  "Schweizweit verbunden.": "Disponibile in tutta la Svizzera.",
+  "Beliebte Dienstleistungen": "Servizi popolari",
+  "Alle Dienstleistungen →": "Tutti i servizi →",
+  "Anfrage direkt starten": "Crea subito una richiesta",
+  "Anbieter werden": "Diventa fornitore",
+  "Schweizweit": "In tutta la Svizzera"
+};
+
+const en: TranslationTable = {
+  "Reinigung": "Cleaning",
+  "Handwerker": "Trades",
+  "Umzug & Transport": "Moving & transport",
+  "Garten & Umgebung": "Garden & outdoors",
+  "Hauswartung": "Property maintenance",
+  "Weitere Services": "More services",
+  "Umzugsreinigung": "End of tenancy cleaning",
+  "Gartenpflege": "Gardening",
+  "Umzug": "Moving",
+  "Transport": "Transport",
+  "Entsorgung": "Disposal",
+  "Fensterreinigung": "Window cleaning",
+  "Maler": "Painting",
+  "Elektriker": "Electrician",
+  "Sanitär": "Plumbing",
+  "Montage": "Assembly",
+  "Bodenleger": "Flooring",
+  "Renovation": "Renovation",
+  "Winterdienst": "Winter service",
+  "Alle Services": "All services",
+
+  "Anfrage": "Request",
+  "Matching": "Matching",
+  "Vergleich": "Compare",
+  "Erledigt": "Done",
+
+  "Auftrago findet passende Anbieter.":
+    "Auftrago finds matching providers.",
+
+  "Du erhältst passende Rückmeldungen.":
+    "You receive relevant responses.",
+
+  "Du entscheidest, wer den Auftrag erhält.":
+    "You decide who gets the job.",
+
+  "Keine endlose Suche": "No endless searching",
+  "Regionale Anbieter": "Regional providers",
+  "Du behältst die Kontrolle": "You stay in control",
+  "Kostenlos für Kunden": "Free for customers",
+
+  "Konkrete Kundenanfragen": "Real customer requests",
+  "Eigene Regionen auswählen": "Choose your regions",
+  "Passende Leistungen festlegen": "Choose your services",
+  "Keine klassische Kaltakquise": "No traditional cold calling",
+  "Volle Kostenkontrolle": "Full cost control",
+  "Schneller Zugang zu neuen Aufträgen": "Fast access to new jobs",
+
+  "Ist eine Anfrage auf Auftrago wirklich kostenlos?":
+    "Is a request on Auftrago really free?",
+
+  "Welche Dienstleistungen kann ich anfragen?":
+    "Which services can I request?",
+
+  "Wie schnell erhalte ich Rückmeldungen?":
+    "How quickly will I receive responses?",
+
+  "Muss ich eines der Angebote annehmen?":
+    "Do I have to accept an offer?",
+
+  "Ist Auftrago schweizweit verfügbar?":
+    "Is Auftrago available throughout Switzerland?",
+
+  "Wie funktioniert Auftrago für Anbieter?":
+    "How does Auftrago work for providers?",
+
+  "Über 420 Dienstleistungen entdecken":
+    "Discover 420+ services",
+
+  "Deine Anfrage": "Your request",
+  "Dienstleistung erkannt": "Service detected",
+  "Anbieter gefunden": "Providers found",
+  "Passende Anbieter vergleichen": "Compare matching providers",
+  "12 Anbieter": "12 providers",
+  "Kostenlos starten": "Start for free",
+  "Anbieter entdecken": "Discover providers",
+  "Alle Dienstleistungen": "All services",
+  "Jetzt Anbieter werden": "Become a provider",
+  "Schweizweit verbunden.": "Connected across Switzerland.",
+  "Beliebte Dienstleistungen": "Popular services",
+  "Alle Dienstleistungen →": "All services →",
+  "Anfrage direkt starten": "Start a request",
+  "Anbieter werden": "Become a provider",
+  "Schweizweit": "Across Switzerland"
+};
+
+
+const universalHomeFallbacks: Partial<
+  Record<Locale, Record<string, string>>
+> = {
+  en: {
+    "Reinigung": "Cleaning",
+    "Handwerker": "Tradespeople",
+    "Umzug": "Moving",
+    "Umzug & Transport": "Moving & transport",
+    "Gartenpflege": "Garden maintenance",
+    "Garten & Umgebung": "Garden & outdoor",
+    "Versicherungen": "Insurance",
+    "Sanitär": "Plumbing",
+    "Alle Dienstleistungen": "All services",
+    "Treppenhausreinigung": "Stairwell cleaning",
+    "Büroreinigung": "Office cleaning",
+    "Fensterreinigung": "Window cleaning",
+    "Baureinigung": "Construction cleaning",
+    "Endreinigung": "Final cleaning",
+    "Unterhaltsreinigung": "Maintenance cleaning",
+    "Praxisreinigung": "Medical practice cleaning",
+    "Fassadenreinigung": "Facade cleaning",
+    "Wohnungsreinigung": "Apartment cleaning",
+    "Umzugsreinigung": "End-of-tenancy cleaning",
+    "Hauswartung": "Property maintenance",
+    "Transport": "Transport",
+    "Entsorgung": "Disposal",
+    "Maler": "Painter",
+    "Elektriker": "Electrician",
+    "Montage": "Assembly",
+    "Bodenleger": "Flooring",
+    "Renovation": "Renovation",
+    "Winterdienst": "Winter service",
+    "Neu": "New",
+  },
+
+  it: {
+    "Reinigung": "Pulizia",
+    "Handwerker": "Artigiani",
+    "Umzug": "Trasloco",
+    "Umzug & Transport": "Trasloco e trasporto",
+    "Gartenpflege": "Cura del giardino",
+    "Garten & Umgebung": "Giardino e spazi esterni",
+    "Versicherungen": "Assicurazioni",
+    "Sanitär": "Sanitario",
+    "Alle Dienstleistungen": "Tutti i servizi",
+    "Treppenhausreinigung": "Pulizia delle scale",
+    "Büroreinigung": "Pulizia uffici",
+    "Fensterreinigung": "Pulizia finestre",
+    "Baureinigung": "Pulizia di cantiere",
+    "Endreinigung": "Pulizia finale",
+    "Unterhaltsreinigung": "Pulizia di manutenzione",
+    "Praxisreinigung": "Pulizia studi medici",
+    "Fassadenreinigung": "Pulizia facciate",
+    "Wohnungsreinigung": "Pulizia dell'appartamento",
+    "Umzugsreinigung": "Pulizia di fine locazione",
+    "Hauswartung": "Custodia immobili",
+    "Transport": "Trasporto",
+    "Entsorgung": "Smaltimento",
+    "Maler": "Imbianchino",
+    "Elektriker": "Elettricista",
+    "Montage": "Montaggio",
+    "Bodenleger": "Posa pavimenti",
+    "Renovation": "Ristrutturazione",
+    "Winterdienst": "Servizio invernale",
+    "Neu": "Nuovo",
+  },
+
+  fr: {
+    "Reinigung": "Nettoyage",
+    "Handwerker": "Artisans",
+    "Umzug": "Déménagement",
+    "Umzug & Transport": "Déménagement et transport",
+    "Gartenpflege": "Entretien de jardin",
+    "Garten & Umgebung": "Jardin et extérieur",
+    "Versicherungen": "Assurances",
+    "Sanitär": "Sanitaire",
+    "Alle Dienstleistungen": "Tous les services",
+    "Treppenhausreinigung": "Nettoyage des cages d’escalier",
+    "Büroreinigung": "Nettoyage de bureaux",
+    "Fensterreinigung": "Nettoyage de vitres",
+    "Baureinigung": "Nettoyage de chantier",
+    "Endreinigung": "Nettoyage final",
+    "Unterhaltsreinigung": "Nettoyage d’entretien",
+    "Praxisreinigung": "Nettoyage de cabinets",
+    "Fassadenreinigung": "Nettoyage de façades",
+    "Wohnungsreinigung": "Nettoyage d’appartement",
+    "Umzugsreinigung": "Nettoyage de fin de bail",
+    "Hauswartung": "Conciergerie",
+    "Transport": "Transport",
+    "Entsorgung": "Débarras",
+    "Maler": "Peintre",
+    "Elektriker": "Électricien",
+    "Montage": "Montage",
+    "Bodenleger": "Pose de sols",
+    "Renovation": "Rénovation",
+    "Winterdienst": "Service hivernal",
+    "Neu": "Nouveau",
+  },
+
+  sq: {
+    "Reinigung": "Pastrim",
+    "Handwerker": "Zejtarë",
+    "Umzug": "Shpërngulje",
+    "Umzug & Transport": "Shpërngulje dhe transport",
+    "Gartenpflege": "Mirëmbajtje kopshti",
+    "Garten & Umgebung": "Kopsht dhe ambient i jashtëm",
+    "Versicherungen": "Sigurime",
+    "Sanitär": "Hidraulikë",
+    "Alle Dienstleistungen": "Të gjitha shërbimet",
+    "Treppenhausreinigung": "Pastrim shkallësh",
+    "Büroreinigung": "Pastrim zyrash",
+    "Fensterreinigung": "Pastrim dritaresh",
+    "Baureinigung": "Pastrim ndërtimi",
+    "Endreinigung": "Pastrim përfundimtar",
+    "Unterhaltsreinigung": "Pastrim mirëmbajtjeje",
+    "Praxisreinigung": "Pastrim ordinancash",
+    "Fassadenreinigung": "Pastrim fasadash",
+    "Wohnungsreinigung": "Pastrim apartamenti",
+    "Umzugsreinigung": "Pastrim pas shpërnguljes",
+    "Hauswartung": "Mirëmbajtje objekti",
+    "Transport": "Transport",
+    "Entsorgung": "Asgjësim",
+    "Maler": "Bojaxhi",
+    "Elektriker": "Elektricist",
+    "Montage": "Montim",
+    "Bodenleger": "Shtrim dyshemeje",
+    "Renovation": "Rinovim",
+    "Winterdienst": "Shërbim dimëror",
+    "Neu": "E re",
+  },
+
+  tr: {
+    "Reinigung": "Temizlik",
+    "Handwerker": "Ustalar",
+    "Umzug": "Taşınma",
+    "Umzug & Transport": "Taşınma ve nakliye",
+    "Gartenpflege": "Bahçe bakımı",
+    "Garten & Umgebung": "Bahçe ve dış alan",
+    "Versicherungen": "Sigorta",
+    "Sanitär": "Tesisat",
+    "Alle Dienstleistungen": "Tüm hizmetler",
+    "Treppenhausreinigung": "Merdiven temizliği",
+    "Büroreinigung": "Ofis temizliği",
+    "Fensterreinigung": "Cam temizliği",
+    "Baureinigung": "İnşaat temizliği",
+    "Endreinigung": "Son temizlik",
+    "Unterhaltsreinigung": "Periyodik temizlik",
+    "Praxisreinigung": "Muayenehane temizliği",
+    "Fassadenreinigung": "Cephe temizliği",
+    "Wohnungsreinigung": "Daire temizliği",
+    "Umzugsreinigung": "Taşınma temizliği",
+    "Hauswartung": "Bina bakımı",
+    "Transport": "Nakliye",
+    "Entsorgung": "Atık bertarafı",
+    "Maler": "Boyacı",
+    "Elektriker": "Elektrikçi",
+    "Montage": "Montaj",
+    "Bodenleger": "Zemin döşeme",
+    "Renovation": "Tadilat",
+    "Winterdienst": "Kış hizmeti",
+    "Neu": "Yeni",
+  },
+
+  pt: {
+    "Reinigung": "Limpeza",
+    "Handwerker": "Profissionais",
+    "Umzug": "Mudança",
+    "Umzug & Transport": "Mudança e transporte",
+    "Gartenpflege": "Manutenção de jardim",
+    "Garten & Umgebung": "Jardim e exterior",
+    "Versicherungen": "Seguros",
+    "Sanitär": "Canalização",
+    "Alle Dienstleistungen": "Todos os serviços",
+    "Treppenhausreinigung": "Limpeza de escadas",
+    "Büroreinigung": "Limpeza de escritórios",
+    "Fensterreinigung": "Limpeza de janelas",
+    "Baureinigung": "Limpeza de obra",
+    "Endreinigung": "Limpeza final",
+    "Unterhaltsreinigung": "Limpeza de manutenção",
+    "Praxisreinigung": "Limpeza de consultórios",
+    "Fassadenreinigung": "Limpeza de fachadas",
+    "Wohnungsreinigung": "Limpeza de apartamento",
+    "Umzugsreinigung": "Limpeza de mudança",
+    "Hauswartung": "Manutenção de imóveis",
+    "Transport": "Transporte",
+    "Entsorgung": "Descarte",
+    "Maler": "Pintor",
+    "Elektriker": "Eletricista",
+    "Montage": "Montagem",
+    "Bodenleger": "Pavimentação",
+    "Renovation": "Renovação",
+    "Winterdienst": "Serviço de inverno",
+    "Neu": "Novo",
+  },
+
+  es: {
+    "Reinigung": "Limpieza",
+    "Handwerker": "Profesionales",
+    "Umzug": "Mudanza",
+    "Umzug & Transport": "Mudanza y transporte",
+    "Gartenpflege": "Mantenimiento de jardín",
+    "Garten & Umgebung": "Jardín y exterior",
+    "Versicherungen": "Seguros",
+    "Sanitär": "Fontanería",
+    "Alle Dienstleistungen": "Todos los servicios",
+    "Treppenhausreinigung": "Limpieza de escaleras",
+    "Büroreinigung": "Limpieza de oficinas",
+    "Fensterreinigung": "Limpieza de ventanas",
+    "Baureinigung": "Limpieza de obra",
+    "Endreinigung": "Limpieza final",
+    "Unterhaltsreinigung": "Limpieza de mantenimiento",
+    "Praxisreinigung": "Limpieza de clínicas",
+    "Fassadenreinigung": "Limpieza de fachadas",
+    "Wohnungsreinigung": "Limpieza de apartamentos",
+    "Umzugsreinigung": "Limpieza de mudanza",
+    "Hauswartung": "Mantenimiento de inmuebles",
+    "Transport": "Transporte",
+    "Entsorgung": "Eliminación de residuos",
+    "Maler": "Pintor",
+    "Elektriker": "Electricista",
+    "Montage": "Montaje",
+    "Bodenleger": "Instalación de suelos",
+    "Renovation": "Renovación",
+    "Winterdienst": "Servicio de invierno",
+    "Neu": "Nuevo",
+  },
+};
+
+
+const finalHomepageTranslations: Partial<
+  Record<Locale, Record<string, string>>
+> = {
+  en: {
+    "Sauberkeit auf höchstem Niveau": "Cleanliness at the highest level",
+    "Profis für jedes Projekt": "Professionals for every project",
+    "Sicher von A nach B": "Safe from A to B",
+    "Alles rund ums Grundstück": "Everything around your property",
+    "Betreuung mit System": "Professional property care",
+    "Über 420 Möglichkeiten": "Over 420 possibilities",
+    "Umzugsreinigung 3.5 Zimmer": "End-of-tenancy cleaning, 3.5 rooms",
+    "Malerarbeiten Wohnung": "Apartment painting",
+    "Privatumzug mit Möbelmontage": "Private move with furniture assembly",
+    "Gartenpflege & Heckenschnitt": "Garden maintenance & hedge trimming",
+    "Elektriker für Beleuchtung": "Electrician for lighting",
+    "Hauswartung für Liegenschaft": "Property maintenance",
+    "Innerhalb 2 Wochen": "Within 2 weeks",
+    "Fixer Termin": "Fixed date",
+    "Nächste Woche": "Next week",
+    "Schnellstmöglich": "As soon as possible",
+    "Wiederkehrend": "Recurring",
+    "Aktiv": "Active",
+    "Dringend": "Urgent",
+    "Top Auftrag": "Top job",
+    "Premium": "Premium",
+    "Aktuelle Kundenanfrage": "Current customer request",
+    "Freischaltung": "Unlock",
+    "Anfrage ansehen": "View request",
+    "Entdecke aktuelle Anfragen aus verschiedenen Regionen und Branchen. Registrierte Anbieter sehen nach der Freischaltung alle Details und Kontaktdaten.": "Discover current requests from different regions and industries. Registered providers can view all details and contact information after unlocking.",
+    "✓ Regionale Anfragen": "✓ Regional requests",
+    "✓ Neue Kategorien": "✓ New categories",
+    "✓ Direkter Kontakt mit dem Kunden": "✓ Direct customer contact",
+    "Für Schweizer Dienstleister": "For Swiss providers",
+    "Registriere deinen Betrieb, wähle deine Regionen und Dienstleistungen und erhalte Zugang zu relevanten Kundenanfragen.": "Register your business, choose your regions and services, and get access to relevant customer requests.",
+    "Aufträge aus deinen Regionen": "Jobs from your regions",
+    "Nur passende Kategorien": "Only relevant categories",
+    "Volle Kostenkontrolle": "Full cost control",
+    "Keine klassische Kaltakquise": "No traditional cold calling",
+    "Auftrago Anbieter-Netzwerk": "Auftrago provider network",
+    "Jetzt Teil der Plattform werden": "Join the platform now",
+    "Kunden suchen bereits.": "Customers are already searching.",
+    "Sei dort, wenn es zählt.": "Be there when it matters.",
+    "Kostenlos als Anbieter registrieren": "Register as a provider for free",
+    "So funktioniert es": "How it works",
+    "Die vollständige Beschreibung, Adresse, Datum und Kontaktdaten sind nach der Freischaltung sichtbar.": "The full description, address, date and contact details are visible after unlocking.",
+  },
+
+  it: {
+    "Sauberkeit auf höchstem Niveau": "Pulizia ai massimi livelli",
+    "Profis für jedes Projekt": "Professionisti per ogni progetto",
+    "Sicher von A nach B": "Da A a B in sicurezza",
+    "Alles rund ums Grundstück": "Tutto per giardino e spazi esterni",
+    "Betreuung mit System": "Gestione professionale dell'immobile",
+    "Über 420 Möglichkeiten": "Oltre 420 possibilità",
+    "Umzugsreinigung 3.5 Zimmer": "Pulizia di fine locazione, 3.5 locali",
+    "Malerarbeiten Wohnung": "Lavori di pittura nell'appartamento",
+    "Privatumzug mit Möbelmontage": "Trasloco privato con montaggio mobili",
+    "Gartenpflege & Heckenschnitt": "Cura del giardino e taglio siepi",
+    "Elektriker für Beleuchtung": "Elettricista per illuminazione",
+    "Hauswartung für Liegenschaft": "Custodia dell'immobile",
+    "Innerhalb 2 Wochen": "Entro 2 settimane",
+    "Fixer Termin": "Data fissa",
+    "Nächste Woche": "La prossima settimana",
+    "Schnellstmöglich": "Il prima possibile",
+    "Wiederkehrend": "Ricorrente",
+    "Aktiv": "Attivo",
+    "Dringend": "Urgente",
+    "Top Auftrag": "Incarico top",
+    "Premium": "Premium",
+    "Aktuelle Kundenanfrage": "Richiesta attuale del cliente",
+    "Freischaltung": "Sblocco",
+    "Anfrage ansehen": "Visualizza richiesta",
+    "Entdecke aktuelle Anfragen aus verschiedenen Regionen und Branchen. Registrierte Anbieter sehen nach der Freischaltung alle Details und Kontaktdaten.": "Scopri richieste attuali provenienti da diverse regioni e settori. Dopo lo sblocco, i fornitori registrati possono vedere tutti i dettagli e i dati di contatto.",
+    "✓ Regionale Anfragen": "✓ Richieste regionali",
+    "✓ Neue Kategorien": "✓ Nuove categorie",
+    "✓ Direkter Kontakt mit dem Kunden": "✓ Contatto diretto con il cliente",
+    "Für Schweizer Dienstleister": "Per fornitori svizzeri",
+    "Registriere deinen Betrieb, wähle deine Regionen und Dienstleistungen und erhalte Zugang zu relevanten Kundenanfragen.": "Registra la tua attività, scegli le regioni e i servizi e accedi a richieste di clienti pertinenti.",
+    "Aufträge aus deinen Regionen": "Incarichi dalle tue regioni",
+    "Nur passende Kategorien": "Solo categorie pertinenti",
+    "Volle Kostenkontrolle": "Pieno controllo dei costi",
+    "Keine klassische Kaltakquise": "Nessuna acquisizione telefonica a freddo",
+    "Auftrago Anbieter-Netzwerk": "Rete di fornitori Auftrago",
+    "Jetzt Teil der Plattform werden": "Entra ora nella piattaforma",
+    "Kunden suchen bereits.": "I clienti stanno già cercando.",
+    "Sei dort, wenn es zählt.": "Fatti trovare quando conta.",
+    "Kostenlos als Anbieter registrieren": "Registrati gratuitamente come fornitore",
+    "So funktioniert es": "Come funziona",
+    "Die vollständige Beschreibung, Adresse, Datum und Kontaktdaten sind nach der Freischaltung sichtbar.": "La descrizione completa, l'indirizzo, la data e i dati di contatto sono visibili dopo lo sblocco.",
+  },
+
+  fr: {
+    "Sauberkeit auf höchstem Niveau": "Une propreté au plus haut niveau",
+    "Profis für jedes Projekt": "Des professionnels pour chaque projet",
+    "Sicher von A nach B": "De A à B en toute sécurité",
+    "Alles rund ums Grundstück": "Tout pour votre jardin et vos extérieurs",
+    "Betreuung mit System": "Gestion professionnelle de votre bien",
+    "Über 420 Möglichkeiten": "Plus de 420 possibilités",
+    "Umzugsreinigung 3.5 Zimmer": "Nettoyage de fin de bail, 3.5 pièces",
+    "Malerarbeiten Wohnung": "Travaux de peinture dans l'appartement",
+    "Privatumzug mit Möbelmontage": "Déménagement privé avec montage de meubles",
+    "Gartenpflege & Heckenschnitt": "Entretien du jardin et taille de haies",
+    "Elektriker für Beleuchtung": "Électricien pour éclairage",
+    "Hauswartung für Liegenschaft": "Conciergerie d'immeuble",
+    "Innerhalb 2 Wochen": "Sous 2 semaines",
+    "Fixer Termin": "Date fixe",
+    "Nächste Woche": "La semaine prochaine",
+    "Schnellstmöglich": "Dès que possible",
+    "Wiederkehrend": "Récurrent",
+    "Aktiv": "Actif",
+    "Dringend": "Urgent",
+    "Top Auftrag": "Mission premium",
+    "Aktuelle Kundenanfrage": "Demande actuelle du client",
+    "Freischaltung": "Déblocage",
+    "Anfrage ansehen": "Voir la demande",
+    "✓ Regionale Anfragen": "✓ Demandes régionales",
+    "✓ Neue Kategorien": "✓ Nouvelles catégories",
+    "✓ Direkter Kontakt mit dem Kunden": "✓ Contact direct avec le client",
+    "Für Schweizer Dienstleister": "Pour les prestataires suisses",
+    "Aufträge aus deinen Regionen": "Missions de vos régions",
+    "Nur passende Kategorien": "Uniquement les catégories pertinentes",
+    "Volle Kostenkontrolle": "Contrôle total des coûts",
+    "Keine klassische Kaltakquise": "Pas de démarchage téléphonique classique",
+  },
+
+  pt: {
+    "Sauberkeit auf höchstem Niveau": "Limpeza ao mais alto nível",
+    "Profis für jedes Projekt": "Profissionais para cada projeto",
+    "Sicher von A nach B": "De A a B em segurança",
+    "Alles rund ums Grundstück": "Tudo para jardim e áreas exteriores",
+    "Betreuung mit System": "Gestão profissional do imóvel",
+    "Über 420 Möglichkeiten": "Mais de 420 possibilidades",
+    "Umzugsreinigung 3.5 Zimmer": "Limpeza de mudança, 3,5 divisões",
+    "Malerarbeiten Wohnung": "Pintura de apartamento",
+    "Privatumzug mit Möbelmontage": "Mudança privada com montagem de móveis",
+    "Gartenpflege & Heckenschnitt": "Manutenção de jardim e corte de sebes",
+    "Elektriker für Beleuchtung": "Eletricista para iluminação",
+    "Hauswartung für Liegenschaft": "Manutenção de imóvel",
+    "Innerhalb 2 Wochen": "Dentro de 2 semanas",
+    "Fixer Termin": "Data fixa",
+    "Nächste Woche": "Próxima semana",
+    "Schnellstmöglich": "O mais rápido possível",
+    "Wiederkehrend": "Recorrente",
+    "Aktiv": "Ativo",
+    "Dringend": "Urgente",
+    "Top Auftrag": "Pedido em destaque",
+    "Aktuelle Kundenanfrage": "Pedido atual do cliente",
+    "Freischaltung": "Desbloqueio",
+    "Anfrage ansehen": "Ver pedido",
+    "✓ Regionale Anfragen": "✓ Pedidos regionais",
+    "✓ Neue Kategorien": "✓ Novas categorias",
+    "✓ Direkter Kontakt mit dem Kunden": "✓ Contacto direto com o cliente",
+    "Für Schweizer Dienstleister": "Para prestadores suíços",
+    "Aufträge aus deinen Regionen": "Pedidos das suas regiões",
+    "Nur passende Kategorien": "Apenas categorias relevantes",
+    "Volle Kostenkontrolle": "Controlo total dos custos",
+    "Keine klassische Kaltakquise": "Sem chamadas comerciais a frio",
+  },
+
+  es: {
+    "Sauberkeit auf höchstem Niveau": "Limpieza al más alto nivel",
+    "Profis für jedes Projekt": "Profesionales para cada proyecto",
+    "Sicher von A nach B": "De A a B con seguridad",
+    "Alles rund ums Grundstück": "Todo para jardín y exteriores",
+    "Betreuung mit System": "Gestión profesional del inmueble",
+    "Über 420 Möglichkeiten": "Más de 420 posibilidades",
+    "Umzugsreinigung 3.5 Zimmer": "Limpieza de mudanza, 3,5 habitaciones",
+    "Malerarbeiten Wohnung": "Pintura de apartamento",
+    "Privatumzug mit Möbelmontage": "Mudanza privada con montaje de muebles",
+    "Gartenpflege & Heckenschnitt": "Mantenimiento de jardín y poda de setos",
+    "Elektriker für Beleuchtung": "Electricista para iluminación",
+    "Hauswartung für Liegenschaft": "Mantenimiento del inmueble",
+    "Innerhalb 2 Wochen": "En 2 semanas",
+    "Fixer Termin": "Fecha fija",
+    "Nächste Woche": "La próxima semana",
+    "Schnellstmöglich": "Lo antes posible",
+    "Wiederkehrend": "Recurrente",
+    "Aktiv": "Activo",
+    "Dringend": "Urgente",
+    "Top Auftrag": "Trabajo destacado",
+    "Aktuelle Kundenanfrage": "Solicitud actual del cliente",
+    "Freischaltung": "Desbloqueo",
+    "Anfrage ansehen": "Ver solicitud",
+    "✓ Regionale Anfragen": "✓ Solicitudes regionales",
+    "✓ Neue Kategorien": "✓ Nuevas categorías",
+    "✓ Direkter Kontakt mit dem Kunden": "✓ Contacto directo con el cliente",
+    "Für Schweizer Dienstleister": "Para proveedores suizos",
+    "Aufträge aus deinen Regionen": "Trabajos de tus regiones",
+    "Nur passende Kategorien": "Solo categorías relevantes",
+    "Volle Kostenkontrolle": "Control total de costes",
+    "Keine klassische Kaltakquise": "Sin llamadas comerciales en frío",
+  },
+
+  tr: {
+    "Sauberkeit auf höchstem Niveau": "En yüksek seviyede temizlik",
+    "Profis für jedes Projekt": "Her proje için profesyoneller",
+    "Sicher von A nach B": "A'dan B'ye güvenle",
+    "Alles rund ums Grundstück": "Bahçe ve dış alanlar için her şey",
+    "Betreuung mit System": "Profesyonel bina yönetimi",
+    "Über 420 Möglichkeiten": "420'den fazla seçenek",
+    "Umzugsreinigung 3.5 Zimmer": "3,5 odalı taşınma temizliği",
+    "Malerarbeiten Wohnung": "Daire boya işleri",
+    "Privatumzug mit Möbelmontage": "Mobilya montajlı özel taşınma",
+    "Gartenpflege & Heckenschnitt": "Bahçe bakımı ve çit budama",
+    "Elektriker für Beleuchtung": "Aydınlatma elektrikçisi",
+    "Hauswartung für Liegenschaft": "Bina bakım hizmeti",
+    "Innerhalb 2 Wochen": "2 hafta içinde",
+    "Fixer Termin": "Sabit tarih",
+    "Nächste Woche": "Gelecek hafta",
+    "Schnellstmöglich": "En kısa sürede",
+    "Wiederkehrend": "Düzenli",
+    "Aktiv": "Aktif",
+    "Dringend": "Acil",
+    "Top Auftrag": "Öne çıkan iş",
+    "Aktuelle Kundenanfrage": "Güncel müşteri talebi",
+    "Freischaltung": "Kilidi aç",
+    "Anfrage ansehen": "Talebi görüntüle",
+    "✓ Regionale Anfragen": "✓ Bölgesel talepler",
+    "✓ Neue Kategorien": "✓ Yeni kategoriler",
+    "✓ Direkter Kontakt mit dem Kunden": "✓ Müşteriyle doğrudan iletişim",
+    "Für Schweizer Dienstleister": "İsviçreli hizmet sağlayıcılar için",
+    "Aufträge aus deinen Regionen": "Bölgelerinizden işler",
+    "Nur passende Kategorien": "Yalnızca uygun kategoriler",
+    "Volle Kostenkontrolle": "Tam maliyet kontrolü",
+    "Keine klassische Kaltakquise": "Klasik soğuk arama yok",
+  },
+
+  sq: {
+    "Sauberkeit auf höchstem Niveau": "Pastërti në nivelin më të lartë",
+    "Profis für jedes Projekt": "Profesionistë për çdo projekt",
+    "Sicher von A nach B": "Nga A në B në mënyrë të sigurt",
+    "Alles rund ums Grundstück": "Gjithçka për kopshtin dhe ambientin e jashtëm",
+    "Betreuung mit System": "Mirëmbajtje profesionale e pronës",
+    "Über 420 Möglichkeiten": "Mbi 420 mundësi",
+    "Umzugsreinigung 3.5 Zimmer": "Pastrim pas zhvendosjes, 3.5 dhoma",
+    "Malerarbeiten Wohnung": "Lyerje apartamenti",
+    "Privatumzug mit Möbelmontage": "Zhvendosje private me montim mobiljesh",
+    "Gartenpflege & Heckenschnitt": "Mirëmbajtje kopshti dhe krasitje",
+    "Elektriker für Beleuchtung": "Elektricist për ndriçim",
+    "Hauswartung für Liegenschaft": "Mirëmbajtje prone",
+    "Innerhalb 2 Wochen": "Brenda 2 javësh",
+    "Fixer Termin": "Datë fikse",
+    "Nächste Woche": "Javën e ardhshme",
+    "Schnellstmöglich": "Sa më shpejt",
+    "Wiederkehrend": "Periodike",
+    "Aktiv": "Aktive",
+    "Dringend": "Urgjente",
+    "Top Auftrag": "Punë kryesore",
+    "Aktuelle Kundenanfrage": "Kërkesa aktuale e klientit",
+    "Freischaltung": "Zhbllokim",
+    "Anfrage ansehen": "Shiko kërkesën",
+    "✓ Regionale Anfragen": "✓ Kërkesa rajonale",
+    "✓ Neue Kategorien": "✓ Kategori të reja",
+    "✓ Direkter Kontakt mit dem Kunden": "✓ Kontakt direkt me klientin",
+    "Für Schweizer Dienstleister": "Për ofruesit zviceranë",
+    "Aufträge aus deinen Regionen": "Punë nga rajonet e tua",
+    "Nur passende Kategorien": "Vetëm kategori të përshtatshme",
+    "Volle Kostenkontrolle": "Kontroll i plotë i kostove",
+    "Keine klassische Kaltakquise": "Pa telefonata të ftohta klasike",
+  },
+};
+
+export function translateHomeText(
+  locale: Locale,
+  value: string
+): string {
+  if (locale === "de") {
+    return value;
+  }
+
+  const finalTranslation =
+    finalHomepageTranslations[locale]?.[value];
+
+  if (finalTranslation) {
+    return finalTranslation;
+  }
+
+  if (
+    value === "Aufträge, die zu deinem Betrieb passen." &&
+    headlineTranslations[locale]
+  ) {
+    return headlineTranslations[locale]!;
+  }
+
+  /*
+   * Manuelle Übersetzungen haben Priorität.
+   * Damit bleiben bewusst korrigierte Texte erhalten.
+   */
+  if (locale === "fr" && fr[value]) {
+    return fr[value];
+  }
+
+  if (locale === "it" && it[value]) {
+    return it[value];
+  }
+
+  if (locale === "en" && en[value]) {
+    return en[value];
+  }
+
+  /*
+   * Danach greifen die automatisch generierten
+   * vollständigen Dictionaries für alle Sprachen.
+   */
+  const universalFallback = universalHomeFallbacks[locale]?.[value];
+  if (universalFallback) {
+    return universalFallback;
+  }
+
+  // Orts-/Kanton-Links ebenfalls sprachabhängig ausgeben.
+  const providerMatch = value.match(/^Anbieter in (.+)$/);
+  if (providerMatch) {
+    const place = providerMatch[1];
+
+    const prefixes: Partial<Record<Locale, string>> = {
+      en: "Providers in",
+      it: "Fornitori in",
+      fr: "Prestataires à",
+      sq: "Ofrues në",
+      tr: "Hizmet sağlayıcılar:",
+      pt: "Prestadores em",
+      es: "Proveedores en",
+    };
+
+    const prefix = prefixes[locale];
+    if (prefix) return `${prefix} ${place}`;
+  }
+
+  const generatedDictionary =
+    homeGeneratedDictionaries[
+      locale as keyof typeof homeGeneratedDictionaries
+    ];
+
+  return generatedDictionary?.[value] ?? value;
+}

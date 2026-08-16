@@ -1,0 +1,40 @@
+import { headers } from "next/headers";
+
+import {
+  defaultLocale,
+  normalizeLocale,
+  type Locale,
+} from "./config";
+
+/*
+ * WICHTIG:
+ *
+ * Cookie/localStorage bestimmen NICHT mehr die Server-Sprache.
+ *
+ * Die URL bzw. Middleware ist die einzige Quelle:
+ *
+ * /anbieter     -> de
+ * /fr/anbieter  -> fr
+ * /it/anbieter  -> it
+ * /en/anbieter  -> en
+ * /sq/anbieter  -> sq
+ * /tr/anbieter  -> tr
+ * /pt/anbieter  -> pt
+ * /es/anbieter  -> es
+ */
+export async function getServerLocale(): Promise<Locale> {
+  try {
+    const headerStore = await headers();
+
+    const headerLocale =
+      headerStore.get("x-auftrago-locale");
+
+    if (headerLocale) {
+      return normalizeLocale(headerLocale);
+    }
+
+    return defaultLocale;
+  } catch {
+    return defaultLocale;
+  }
+}

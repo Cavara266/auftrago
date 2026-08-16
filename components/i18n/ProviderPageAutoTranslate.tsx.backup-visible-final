@@ -1,0 +1,1446 @@
+"use client";
+
+import { useEffect } from "react";
+
+const PROVIDER_HYDRATION_DELAY = 80;
+
+
+type Locale = "de" | "fr" | "it" | "en" | "sq" | "tr" | "pt" | "es";
+
+type Dictionary = Record<string, Partial<Record<Locale, string>>>;
+
+const dictionary: Dictionary = {
+
+  "KLARE INVESTITION": {
+    en: "CLEAR INVESTMENT",
+    fr: "INVESTISSEMENT CLAIR",
+    it: "INVESTIMENTO CHIARO",
+    sq: "INVESTIM I QARTË",
+    tr: "NET YATIRIM",
+    pt: "INVESTIMENTO CLARO",
+    es: "INVERSIÓN CLARA",
+  },
+
+  "Ein zusätzlicher Auftrag kann die Mitgliedschaft mehrfach finanzieren.": {
+    en: "One additional job can pay for the membership several times over.",
+    fr: "Un seul mandat supplémentaire peut financer plusieurs fois l’abonnement.",
+    it: "Un solo incarico aggiuntivo può ripagare più volte l’abbonamento.",
+    sq: "Vetëm një punë shtesë mund ta mbulojë disa herë koston e anëtarësisë.",
+    tr: "Tek bir ek iş, üyelik ücretini birkaç kez karşılayabilir.",
+    pt: "Um único trabalho adicional pode pagar várias vezes o valor da adesão.",
+    es: "Un solo trabajo adicional puede cubrir varias veces el coste de la suscripción.",
+  },
+
+  "Du entscheidest selbst, welche Kundenanfragen für dein Unternehmen interessant sind. Die Mitgliedschaft kostet nach der Testphase CHF 69.– pro Monat.": {
+    en: "You decide which customer requests are relevant for your business. After the trial period, membership costs CHF 69.– per month.",
+    fr: "Vous décidez vous-même quelles demandes clients sont intéressantes pour votre entreprise. Après la période d’essai, l’abonnement coûte CHF 69.– par mois.",
+    it: "Decidi tu quali richieste dei clienti sono interessanti per la tua azienda. Dopo il periodo di prova, l’abbonamento costa CHF 69.– al mese.",
+    sq: "Ti vendos vetë cilat kërkesa të klientëve janë interesante për biznesin tënd. Pas periudhës së provës, anëtarësia kushton CHF 69.– në muaj.",
+    tr: "İşletmeniz için hangi müşteri taleplerinin ilgi çekici olduğuna siz karar verirsiniz. Deneme süresinden sonra üyelik aylık CHF 69.–'dur.",
+    pt: "Você decide quais pedidos de clientes são interessantes para a sua empresa. Após o período de teste, a adesão custa CHF 69.– por mês.",
+    es: "Tú decides qué solicitudes de clientes son interesantes para tu empresa. Después del período de prueba, la suscripción cuesta CHF 69.– al mes.",
+  },
+
+  "MITGLIEDSCHAFT": {
+    en: "MEMBERSHIP",
+    fr: "ABONNEMENT",
+    it: "ABBONAMENTO",
+    sq: "ANËTARËSIA",
+    tr: "ÜYELİK",
+    pt: "ADESÃO",
+    es: "SUSCRIPCIÓN",
+  },
+
+  "pro Monat": {
+    en: "per month",
+    fr: "par mois",
+    it: "al mese",
+    sq: "në muaj",
+    tr: "aylık",
+    pt: "por mês",
+    es: "al mes",
+  },
+
+  "NEUE CHANCE": {
+    en: "NEW OPPORTUNITY",
+    fr: "NOUVELLE OPPORTUNITÉ",
+    it: "NUOVA OPPORTUNITÀ",
+    sq: "MUNDËSI E RE",
+    tr: "YENİ FIRSAT",
+    pt: "NOVA OPORTUNIDADE",
+    es: "NUEVA OPORTUNIDAD",
+  },
+
+  "1 Auftrag": {
+    en: "1 job",
+    fr: "1 mandat",
+    it: "1 incarico",
+    sq: "1 punë",
+    tr: "1 iş",
+    pt: "1 trabalho",
+    es: "1 trabajo",
+  },
+
+  "kann bereits entscheidend sein": {
+    en: "can already make the difference",
+    fr: "peut déjà faire la différence",
+    it: "può già fare la differenza",
+    sq: "mund të bëjë diferencën",
+    tr: "fark yaratmaya yetebilir",
+    pt: "já pode fazer a diferença",
+    es: "ya puede marcar la diferencia",
+  },
+
+  "Vorteile": {
+    en: "Benefits", fr: "Avantages", it: "Vantaggi",
+    sq: "Përfitimet", tr: "Avantajlar", pt: "Vantagens", es: "Ventajas",
+  },
+  "So funktioniert es": {
+    en: "How it works", fr: "Comment ça marche", it: "Come funziona",
+    sq: "Si funksionon", tr: "Nasıl çalışır", pt: "Como funciona", es: "Cómo funciona",
+  },
+  "Einloggen": {
+    en: "Log in", fr: "Se connecter", it: "Accedi",
+    sq: "Hyr", tr: "Giriş yap", pt: "Iniciar sessão", es: "Iniciar sesión",
+  },
+  "Kostenlos starten": {
+    en: "Start for free", fr: "Commencer gratuitement", it: "Inizia gratuitamente",
+    sq: "Fillo falas", tr: "Ücretsiz başla", pt: "Começar grátis", es: "Empezar gratis",
+  },
+
+  "Die Schweizer Plattform für Anbieter": {
+    en: "The Swiss platform for providers",
+    fr: "La plateforme suisse pour les prestataires",
+    it: "La piattaforma svizzera per i fornitori",
+    sq: "Platforma zvicerane për ofruesit",
+    tr: "Hizmet sağlayıcılar için İsviçre platformu",
+    pt: "A plataforma suíça para prestadores",
+    es: "La plataforma suiza para proveedores",
+  },
+  "Aufträge finden": {
+    en: "Find jobs", fr: "Trouvez des mandats", it: "Trova incarichi",
+    sq: "Gjej punë", tr: "İşleri bul", pt: "Encontre trabalhos", es: "Encuentra trabajos",
+  },
+  "jetzt deine Firma.": {
+    en: "now your business.", fr: "pour votre entreprise.", it: "per la tua azienda.",
+    sq: "për biznesin tënd.", tr: "şimdi işletmeniz için.", pt: "agora para a sua empresa.", es: "ahora para tu empresa.",
+  },
+  "Erhalte qualifizierte Kundenanfragen aus deiner Region, übernimm bestätigte Fixaufträge und verwalte Leads, Offerten und Kontakte zentral im Auftrago Firmenportal.": {
+    en: "Receive qualified customer requests from your region, take on confirmed fixed-price jobs and manage leads, quotes and contacts centrally in the Auftrago business portal.",
+    fr: "Recevez des demandes clients qualifiées de votre région, acceptez des mandats confirmés et gérez vos prospects, offres et contacts dans le portail professionnel Auftrago.",
+    it: "Ricevi richieste qualificate dalla tua regione, accetta incarichi confermati e gestisci lead, offerte e contatti nel portale aziendale Auftrago.",
+    sq: "Merr kërkesa të kualifikuara nga rajoni yt, prano punë të konfirmuara dhe menaxho kontaktet dhe ofertat në portalin Auftrago.",
+    tr: "Bölgenizden nitelikli müşteri talepleri alın, onaylanmış işleri üstlenin ve müşteri adaylarını, teklifleri ve kişileri Auftrago işletme portalında yönetin.",
+    pt: "Receba pedidos qualificados da sua região, aceite trabalhos confirmados e gira contactos, propostas e oportunidades no portal empresarial Auftrago.",
+    es: "Recibe solicitudes cualificadas de tu región, acepta trabajos confirmados y gestiona contactos, presupuestos y oportunidades en el portal empresarial de Auftrago.",
+  },
+
+  "14 Tage kostenlos": {
+    en: "14 days free", fr: "14 jours gratuits", it: "14 giorni gratuiti",
+    sq: "14 ditë falas", tr: "14 gün ücretsiz", pt: "14 dias grátis", es: "14 días gratis",
+  },
+  "CHF 69.– danach": {
+    en: "CHF 69.– afterwards", fr: "Puis CHF 69.–", it: "Poi CHF 69.–",
+    sq: "Pastaj CHF 69.–", tr: "Sonrasında CHF 69.–", pt: "Depois CHF 69.–", es: "Después CHF 69.–",
+  },
+  "Sicher über Stripe": {
+    en: "Secure with Stripe", fr: "Sécurisé par Stripe", it: "Sicuro con Stripe",
+    sq: "Sigurt me Stripe", tr: "Stripe ile güvenli", pt: "Seguro com Stripe", es: "Seguro con Stripe",
+  },
+  "Jetzt 14 Tage kostenlos starten": {
+    en: "Start 14 days free now", fr: "Commencer 14 jours gratuitement", it: "Inizia ora 14 giorni gratis",
+    sq: "Fillo tani 14 ditë falas", tr: "Şimdi 14 gün ücretsiz başla", pt: "Começar agora 14 dias grátis", es: "Empieza ahora 14 días gratis",
+  },
+  "Live-Demo entdecken": {
+    en: "Explore live demo", fr: "Découvrir la démo", it: "Scopri la demo",
+    sq: "Shiko demonstrimin", tr: "Canlı demoyu keşfet", pt: "Ver demonstração", es: "Ver demostración",
+  },
+  "Für Schweizer Dienstleistungsfirmen": {
+    en: "For Swiss service companies", fr: "Pour les entreprises de services suisses",
+    it: "Per le aziende di servizi svizzere", sq: "Për kompanitë zvicerane të shërbimeve",
+    tr: "İsviçreli hizmet şirketleri için", pt: "Para empresas suíças de serviços",
+    es: "Para empresas suizas de servicios",
+  },
+  "Neue Kundenchancen ohne aufwendige Eigenakquise.": {
+    en: "New customer opportunities without time-consuming acquisition.",
+    fr: "De nouvelles opportunités clients sans prospection fastidieuse.",
+    it: "Nuove opportunità senza una costosa acquisizione clienti.",
+    sq: "Mundësi të reja pa kërkim të lodhshëm të klientëve.",
+    tr: "Zorlu müşteri araması olmadan yeni fırsatlar.",
+    pt: "Novas oportunidades sem prospeção trabalhosa.",
+    es: "Nuevas oportunidades sin una captación laboriosa.",
+  },
+
+  "NEUE KUNDENANFRAGEN": {
+    en: "NEW CUSTOMER REQUESTS", fr: "NOUVELLES DEMANDES", it: "NUOVE RICHIESTE",
+    sq: "KËRKESA TË REJA", tr: "YENİ MÜŞTERİ TALEPLERİ", pt: "NOVOS PEDIDOS", es: "NUEVAS SOLICITUDES",
+  },
+  "BESTÄTIGTE FIXAUFTRÄGE": {
+    en: "CONFIRMED JOBS", fr: "MANDATS CONFIRMÉS", it: "INCARICHI CONFERMATI",
+    sq: "PUNË TË KONFIRMUARA", tr: "ONAYLANMIŞ İŞLER", pt: "TRABALHOS CONFIRMADOS", es: "TRABAJOS CONFIRMADOS",
+  },
+  "CRM INKLUSIVE": {
+    en: "CRM INCLUDED", fr: "CRM INCLUS", it: "CRM INCLUSO",
+    sq: "CRM I PËRFSHIRË", tr: "CRM DAHİL", pt: "CRM INCLUÍDO", es: "CRM INCLUIDO",
+  },
+  "REGIONALES MATCHING": {
+    en: "REGIONAL MATCHING", fr: "MISE EN RELATION RÉGIONALE", it: "MATCHING REGIONALE",
+    sq: "PËRPUTHJE RAJONALE", tr: "BÖLGESEL EŞLEŞTİRME", pt: "MATCHING REGIONAL", es: "MATCHING REGIONAL",
+  },
+  "14 TAGE KOSTENLOS": {
+    en: "14 DAYS FREE", fr: "14 JOURS GRATUITS", it: "14 GIORNI GRATIS",
+    sq: "14 DITË FALAS", tr: "14 GÜN ÜCRETSİZ", pt: "14 DIAS GRÁTIS", es: "14 DÍAS GRATIS",
+  },
+
+  "vermittelte Aufträge": {
+    en: "jobs facilitated", fr: "mandats transmis", it: "incarichi intermediati",
+    sq: "punë të ndërmjetësuara", tr: "aracılık edilen işler", pt: "trabalhos intermediados", es: "trabajos gestionados",
+  },
+  "Über die Plattform": {
+    en: "Through the platform", fr: "Via la plateforme", it: "Tramite la piattaforma",
+    sq: "Përmes platformës", tr: "Platform üzerinden", pt: "Através da plataforma", es: "A través de la plataforma",
+  },
+  "registrierte Anbieter": {
+    en: "registered providers", fr: "prestataires inscrits", it: "fornitori registrati",
+    sq: "ofrues të regjistruar", tr: "kayıtlı sağlayıcılar", pt: "prestadores registados", es: "proveedores registrados",
+  },
+  "aus der ganzen Schweiz": {
+    en: "from all over Switzerland", fr: "dans toute la Suisse", it: "da tutta la Svizzera",
+    sq: "nga e gjithë Zvicra", tr: "İsviçre'nin her yerinden", pt: "de toda a Suíça", es: "de toda Suiza",
+  },
+  "Dienstleistungen": {
+    en: "Services", fr: "Services", it: "Servizi",
+    sq: "Shërbime", tr: "Hizmetler", pt: "Serviços", es: "Servicios",
+  },
+  "für Unternehmen jeder Grösse": {
+    en: "for businesses of every size", fr: "pour les entreprises de toute taille",
+    it: "per aziende di ogni dimensione", sq: "për biznese të çdo madhësie",
+    tr: "her büyüklükteki işletme için", pt: "para empresas de qualquer dimensão",
+    es: "para empresas de cualquier tamaño",
+  },
+  "Kantone": {
+    en: "Cantons", fr: "Cantons", it: "Cantoni",
+    sq: "Kantone", tr: "Kantonlar", pt: "Cantões", es: "Cantones",
+  },
+  "regionale Auftragschancen": {
+    en: "regional job opportunities", fr: "opportunités régionales", it: "opportunità regionali",
+    sq: "mundësi rajonale", tr: "bölgesel iş fırsatları", pt: "oportunidades regionais", es: "oportunidades regionales",
+  },
+
+  "Ein Portal. Alle Chancen.": {
+    en: "One portal. Every opportunity.", fr: "Un portail. Toutes les opportunités.",
+    it: "Un portale. Tutte le opportunità.", sq: "Një portal. Të gjitha mundësitë.",
+    tr: "Tek portal. Tüm fırsatlar.", pt: "Um portal. Todas as oportunidades.",
+    es: "Un portal. Todas las oportunidades.",
+  },
+  "Dein Unternehmen verdient": {
+    en: "Your business deserves", fr: "Votre entreprise mérite", it: "La tua azienda merita",
+    sq: "Biznesi yt meriton", tr: "İşletmeniz hak ediyor", pt: "A sua empresa merece", es: "Tu empresa merece",
+  },
+  "eine bessere Akquise.": {
+    en: "better customer acquisition.", fr: "une meilleure acquisition.", it: "un'acquisizione migliore.",
+    sq: "një mënyrë më të mirë për klientë.", tr: "daha iyi müşteri kazanımı.", pt: "uma melhor aquisição.", es: "una mejor captación.",
+  },
+  "Statt Kunden mühsam über verschiedene Kanäle zu suchen, bündelt Auftrago Leads, Fixaufträge und deine Kundenverwaltung an einem Ort.": {
+    en: "Instead of searching for customers across multiple channels, Auftrago brings leads, confirmed jobs and customer management together in one place.",
+    fr: "Au lieu de rechercher des clients sur plusieurs canaux, Auftrago réunit prospects, mandats et gestion clients au même endroit.",
+    it: "Invece di cercare clienti su diversi canali, Auftrago riunisce lead, incarichi e gestione clienti in un unico posto.",
+    sq: "Në vend që të kërkosh klientë në shumë kanale, Auftrago bashkon kontaktet, punët dhe menaxhimin e klientëve në një vend.",
+    tr: "Farklı kanallarda müşteri aramak yerine Auftrago müşteri adaylarını, işleri ve müşteri yönetimini tek yerde toplar.",
+    pt: "Em vez de procurar clientes em vários canais, a Auftrago reúne oportunidades, trabalhos e gestão de clientes num só lugar.",
+    es: "En vez de buscar clientes en distintos canales, Auftrago reúne oportunidades, trabajos y gestión de clientes en un solo lugar.",
+  },
+
+  "Neue Leads": {
+    en: "New leads", fr: "Nouveaux prospects", it: "Nuovi lead",
+    sq: "Kontakte të reja", tr: "Yeni müşteri adayları", pt: "Novos contactos", es: "Nuevos contactos",
+  },
+  "Passende Kundenanfragen": {
+    en: "Matching customer requests", fr: "Demandes clients pertinentes", it: "Richieste clienti adatte",
+    sq: "Kërkesa të përshtatshme", tr: "Uygun müşteri talepleri", pt: "Pedidos de clientes adequados", es: "Solicitudes de clientes adecuadas",
+  },
+  "Region und Dienstleistung auswählen": {
+    en: "Choose region and service", fr: "Choisir la région et le service", it: "Scegli regione e servizio",
+    sq: "Zgjidh rajonin dhe shërbimin", tr: "Bölge ve hizmet seçin", pt: "Escolher região e serviço", es: "Elegir región y servicio",
+  },
+  "Mein CRM": {
+    en: "My CRM", fr: "Mon CRM", it: "Il mio CRM",
+    sq: "CRM im", tr: "CRM'im", pt: "O meu CRM", es: "Mi CRM",
+  },
+  "Kontakte zentral verwalten": {
+    en: "Manage contacts centrally", fr: "Gérer les contacts de manière centralisée",
+    it: "Gestisci i contatti centralmente", sq: "Menaxho kontaktet në një vend",
+    tr: "Kişileri merkezi yönetin", pt: "Gerir contactos centralmente", es: "Gestionar contactos de forma centralizada",
+  },
+  "Status, Notizen und Aktivitäten": {
+    en: "Status, notes and activities", fr: "Statut, notes et activités", it: "Stato, note e attività",
+    sq: "Statusi, shënimet dhe aktivitetet", tr: "Durum, notlar ve aktiviteler",
+    pt: "Estado, notas e atividades", es: "Estado, notas y actividades",
+  },
+  "Dein Firmenportal": {
+    en: "Your business portal", fr: "Votre portail professionnel", it: "Il tuo portale aziendale",
+    sq: "Portali i biznesit tënd", tr: "İşletme portalınız", pt: "O seu portal empresarial", es: "Tu portal empresarial",
+  },
+  "Fixaufträge": {
+    en: "Confirmed jobs", fr: "Mandats confirmés", it: "Incarichi confermati",
+    sq: "Punë të konfirmuara", tr: "Onaylanmış işler", pt: "Trabalhos confirmados", es: "Trabajos confirmados",
+  },
+  "Bestätigte Aufträge prüfen": {
+    en: "Review confirmed jobs", fr: "Consulter les mandats confirmés", it: "Controlla gli incarichi confermati",
+    sq: "Shiko punët e konfirmuara", tr: "Onaylanmış işleri inceleyin", pt: "Ver trabalhos confirmados", es: "Revisar trabajos confirmados",
+  },
+  "Auftragswert direkt sichtbar": {
+    en: "Job value immediately visible", fr: "Valeur du mandat directement visible",
+    it: "Valore dell'incarico subito visibile", sq: "Vlera e punës shihet menjëherë",
+    tr: "İş değeri doğrudan görünür", pt: "Valor do trabalho imediatamente visível", es: "Valor del trabajo visible al instante",
+  },
+  "Übersicht": {
+    en: "Overview", fr: "Aperçu", it: "Panoramica",
+    sq: "Përmbledhje", tr: "Genel bakış", pt: "Visão geral", es: "Resumen",
+  },
+  "Alles unter Kontrolle": {
+    en: "Everything under control", fr: "Tout sous contrôle", it: "Tutto sotto controllo",
+    sq: "Gjithçka nën kontroll", tr: "Her şey kontrol altında", pt: "Tudo sob controlo", es: "Todo bajo control",
+  },
+  "Credits, Zahlungen und Rechnungen": {
+    en: "Credits, payments and invoices", fr: "Crédits, paiements et factures",
+    it: "Crediti, pagamenti e fatture", sq: "Kredite, pagesa dhe fatura",
+    tr: "Krediler, ödemeler ve faturalar", pt: "Créditos, pagamentos e faturas", es: "Créditos, pagos y facturas",
+  },
+
+  "Warum Auftrago?": {
+    en: "Why Auftrago?", fr: "Pourquoi Auftrago ?", it: "Perché Auftrago?",
+    sq: "Pse Auftrago?", tr: "Neden Auftrago?", pt: "Porquê Auftrago?", es: "¿Por qué Auftrago?",
+  },
+  "Weniger suchen.": {
+    en: "Search less.", fr: "Cherchez moins.", it: "Cerca meno.",
+    sq: "Kërko më pak.", tr: "Daha az arayın.", pt: "Procure menos.", es: "Busca menos.",
+  },
+  "Schneller handeln.": {
+    en: "Act faster.", fr: "Agissez plus vite.", it: "Agisci più velocemente.",
+    sq: "Vepro më shpejt.", tr: "Daha hızlı hareket edin.", pt: "Aja mais rápido.", es: "Actúa más rápido.",
+  },
+  "Neue Kundenchancen": {
+    en: "New customer opportunities", fr: "Nouvelles opportunités clients", it: "Nuove opportunità",
+    sq: "Mundësi të reja klientësh", tr: "Yeni müşteri fırsatları", pt: "Novas oportunidades", es: "Nuevas oportunidades",
+  },
+  "Entdecke neue Leads aus deinen Regionen und Dienstleistungen.": {
+    en: "Discover new leads from your regions and services.",
+    fr: "Découvrez de nouveaux prospects dans vos régions et services.",
+    it: "Scopri nuovi lead nelle tue regioni e nei tuoi servizi.",
+    sq: "Zbulo kontakte të reja nga rajonet dhe shërbimet e tua.",
+    tr: "Bölgelerinizden ve hizmetlerinizden yeni müşteri adayları keşfedin.",
+    pt: "Descubra novos contactos das suas regiões e serviços.",
+    es: "Descubre nuevos contactos de tus regiones y servicios.",
+  },
+  "Bestätigte Fixaufträge": {
+    en: "Confirmed jobs", fr: "Mandats confirmés", it: "Incarichi confermati",
+    sq: "Punë të konfirmuara", tr: "Onaylanmış işler", pt: "Trabalhos confirmados", es: "Trabajos confirmados",
+  },
+  "Übernimm ausgewählte Aufträge mit bestätigtem Kundeninteresse.": {
+    en: "Take on selected jobs with confirmed customer interest.",
+    fr: "Acceptez des mandats avec un intérêt client confirmé.",
+    it: "Accetta incarichi selezionati con interesse del cliente confermato.",
+    sq: "Prano punë të zgjedhura me interes të konfirmuar të klientit.",
+    tr: "Onaylanmış müşteri ilgisine sahip seçili işleri üstlenin.",
+    pt: "Aceite trabalhos selecionados com interesse confirmado do cliente.",
+    es: "Acepta trabajos seleccionados con interés confirmado del cliente.",
+  },
+  "Integriertes CRM": {
+    en: "Integrated CRM", fr: "CRM intégré", it: "CRM integrato",
+    sq: "CRM i integruar", tr: "Entegre CRM", pt: "CRM integrado", es: "CRM integrado",
+  },
+  "Verwalte Kontakte, Offerten und Aktivitäten zentral im Portal.": {
+    en: "Manage contacts, quotes and activities centrally in the portal.",
+    fr: "Gérez contacts, offres et activités au même endroit.",
+    it: "Gestisci contatti, offerte e attività nel portale.",
+    sq: "Menaxho kontaktet, ofertat dhe aktivitetet në portal.",
+    tr: "Kişileri, teklifleri ve aktiviteleri portalda merkezi yönetin.",
+    pt: "Gira contactos, propostas e atividades no portal.",
+    es: "Gestiona contactos, presupuestos y actividades en el portal.",
+  },
+  "Volle Übersicht": {
+    en: "Full overview", fr: "Vue complète", it: "Panoramica completa",
+    sq: "Pamje e plotë", tr: "Tam genel bakış", pt: "Visão completa", es: "Visión completa",
+  },
+  "Behalte Credits, Rechnungen und Transaktionen jederzeit im Blick.": {
+    en: "Keep an eye on credits, invoices and transactions at all times.",
+    fr: "Gardez à tout moment un œil sur vos crédits, factures et transactions.",
+    it: "Tieni sempre sotto controllo crediti, fatture e transazioni.",
+    sq: "Mbaj gjithmonë nën kontroll kreditë, faturat dhe transaksionet.",
+    tr: "Kredileri, faturaları ve işlemleri her zaman takip edin.",
+    pt: "Acompanhe sempre créditos, faturas e transações.",
+    es: "Controla en todo momento créditos, facturas y transacciones.",
+  },
+
+  "Einfacher Einstieg": {
+    en: "Easy start", fr: "Démarrage simple", it: "Inizio semplice",
+    sq: "Fillim i thjeshtë", tr: "Kolay başlangıç", pt: "Começo simples", es: "Inicio sencillo",
+  },
+  "In wenigen Schritten": {
+    en: "In just a few steps", fr: "En quelques étapes", it: "In pochi passaggi",
+    sq: "Në pak hapa", tr: "Birkaç adımda", pt: "Em poucos passos", es: "En pocos pasos",
+  },
+  "zu neuen Kunden.": {
+    en: "to new customers.", fr: "vers de nouveaux clients.", it: "verso nuovi clienti.",
+    sq: "drejt klientëve të rinj.", tr: "yeni müşterilere.", pt: "até novos clientes.", es: "hacia nuevos clientes.",
+  },
+  "Firma registrieren": {
+    en: "Register company", fr: "Inscrire l'entreprise", it: "Registra l'azienda",
+    sq: "Regjistro kompaninë", tr: "Şirketi kaydedin", pt: "Registar empresa", es: "Registrar empresa",
+  },
+  "Erstelle dein Anbieterprofil in wenigen Minuten.": {
+    en: "Create your provider profile in just a few minutes.",
+    fr: "Créez votre profil prestataire en quelques minutes.",
+    it: "Crea il tuo profilo fornitore in pochi minuti.",
+    sq: "Krijo profilin e ofruesit në pak minuta.",
+    tr: "Sağlayıcı profilinizi birkaç dakikada oluşturun.",
+    pt: "Crie o seu perfil de prestador em poucos minutos.",
+    es: "Crea tu perfil de proveedor en pocos minutos.",
+  },
+  "Testphase starten": {
+    en: "Start trial", fr: "Démarrer l'essai", it: "Avvia la prova",
+    sq: "Fillo provën", tr: "Deneme süresini başlatın", pt: "Iniciar teste", es: "Iniciar prueba",
+  },
+  "Zahlungsmethode sicher über Stripe hinterlegen.": {
+    en: "Securely add your payment method via Stripe.",
+    fr: "Ajoutez votre moyen de paiement en toute sécurité via Stripe.",
+    it: "Aggiungi in sicurezza il metodo di pagamento tramite Stripe.",
+    sq: "Shto në mënyrë të sigurt metodën e pagesës përmes Stripe.",
+    tr: "Ödeme yönteminizi Stripe üzerinden güvenle ekleyin.",
+    pt: "Adicione o método de pagamento de forma segura via Stripe.",
+    es: "Añade de forma segura tu método de pago mediante Stripe.",
+  },
+  "Portal nutzen": {
+    en: "Use the portal", fr: "Utiliser le portail", it: "Usa il portale",
+    sq: "Përdor portalin", tr: "Portalı kullanın", pt: "Usar o portal", es: "Usar el portal",
+  },
+  "Leads, Fixaufträge und CRM sofort entdecken.": {
+    en: "Explore leads, confirmed jobs and CRM immediately.",
+    fr: "Découvrez immédiatement les prospects, mandats et le CRM.",
+    it: "Scopri subito lead, incarichi e CRM.",
+    sq: "Zbulo menjëherë kontaktet, punët dhe CRM.",
+    tr: "Müşteri adaylarını, işleri ve CRM'i hemen keşfedin.",
+    pt: "Explore imediatamente contactos, trabalhos e CRM.",
+    es: "Descubre inmediatamente contactos, trabajos y CRM.",
+  },
+  "Kunden gewinnen": {
+    en: "Win customers", fr: "Gagner des clients", it: "Conquista clienti",
+    sq: "Fito klientë", tr: "Müşteri kazanın", pt: "Conquistar clientes", es: "Conseguir clientes",
+  },
+  "Schnell reagieren und neue Aufträge sichern.": {
+    en: "Respond quickly and secure new jobs.",
+    fr: "Réagissez rapidement et décrochez de nouveaux mandats.",
+    it: "Rispondi rapidamente e assicurati nuovi incarichi.",
+    sq: "Përgjigju shpejt dhe siguro punë të reja.",
+    tr: "Hızlı yanıt verin ve yeni işler kazanın.",
+    pt: "Responda rapidamente e consiga novos trabalhos.",
+    es: "Responde rápido y consigue nuevos trabajos.",
+  },
+
+  "14 Tage kostenlos testen": {
+    en: "Try free for 14 days", fr: "Essayez gratuitement pendant 14 jours",
+    it: "Prova gratis per 14 giorni", sq: "Provo falas për 14 ditë",
+    tr: "14 gün ücretsiz deneyin", pt: "Teste grátis durante 14 dias", es: "Prueba gratis durante 14 días",
+  },
+  "Bereit für deinen": {
+    en: "Ready for your", fr: "Prêt pour votre", it: "Pronto per il tuo",
+    sq: "Gati për", tr: "Hazır mısınız", pt: "Pronto para o seu", es: "Preparado para tu",
+  },
+  "nächsten Auftrag?": {
+    en: "next job?", fr: "prochain mandat ?", it: "prossimo incarico?",
+    sq: "punën e ardhshme?", tr: "sonraki işiniz için?", pt: "próximo trabalho?", es: "próximo trabajo?",
+  },
+  "Registriere deine Firma und erhalte Zugang zum vollständigen Anbieterportal.": {
+    en: "Register your company and get access to the complete provider portal.",
+    fr: "Inscrivez votre entreprise et accédez au portail prestataire complet.",
+    it: "Registra la tua azienda e accedi al portale completo.",
+    sq: "Regjistro kompaninë dhe merr qasje në portalin e plotë.",
+    tr: "Şirketinizi kaydedin ve tam sağlayıcı portalına erişin.",
+    pt: "Registe a sua empresa e aceda ao portal completo.",
+    es: "Registra tu empresa y accede al portal completo.",
+  },
+  "Keine Einrichtungsgebühr": {
+    en: "No setup fee", fr: "Aucun frais d'installation", it: "Nessun costo di attivazione",
+    sq: "Pa tarifë konfigurimi", tr: "Kurulum ücreti yok", pt: "Sem taxa de configuração", es: "Sin cuota de alta",
+  },
+  "Sichere Stripe-Abrechnung": {
+    en: "Secure Stripe billing", fr: "Paiement sécurisé avec Stripe", it: "Pagamento sicuro con Stripe",
+    sq: "Pagesë e sigurt me Stripe", tr: "Güvenli Stripe ödemesi", pt: "Faturação segura com Stripe", es: "Facturación segura con Stripe",
+  },
+  "Mitgliedschaft online verwaltbar": {
+    en: "Manage membership online", fr: "Abonnement gérable en ligne", it: "Abbonamento gestibile online",
+    sq: "Menaxho anëtarësinë online", tr: "Üyeliği çevrimiçi yönetin", pt: "Gerir adesão online", es: "Gestiona la suscripción online",
+  },
+  "Credits separat erhältlich": {
+    en: "Credits available separately", fr: "Crédits disponibles séparément", it: "Crediti disponibili separatamente",
+    sq: "Kredite të disponueshme veçmas", tr: "Krediler ayrıca satın alınabilir", pt: "Créditos disponíveis separadamente", es: "Créditos disponibles por separado",
+  },
+  "Anbieterprofil": {
+    en: "Provider profile", fr: "Profil prestataire", it: "Profilo fornitore",
+    sq: "Profili i ofruesit", tr: "Sağlayıcı profili", pt: "Perfil do prestador", es: "Perfil de proveedor",
+  },
+  "ca. 2 Minuten": {
+    en: "approx. 2 minutes", fr: "env. 2 minutes", it: "circa 2 minuti",
+    sq: "rreth 2 minuta", tr: "yaklaşık 2 dakika", pt: "aprox. 2 minutos", es: "aprox. 2 minutos",
+  },
+
+  "Häufige Fragen": {
+    en: "Frequently asked questions", fr: "Questions fréquentes", it: "Domande frequenti",
+    sq: "Pyetje të shpeshta", tr: "Sık sorulan sorular", pt: "Perguntas frequentes", es: "Preguntas frecuentes",
+  },
+  "Transparent.": {
+    en: "Transparent.", fr: "Transparent.", it: "Trasparente.",
+    sq: "Transparente.", tr: "Şeffaf.", pt: "Transparente.", es: "Transparente.",
+  },
+  "Ohne Überraschungen.": {
+    en: "No surprises.", fr: "Sans surprises.", it: "Senza sorprese.",
+    sq: "Pa surpriza.", tr: "Sürpriz yok.", pt: "Sem surpresas.", es: "Sin sorpresas.",
+  },
+  "Was kostet die Mitgliedschaft?": {
+    en: "How much does membership cost?", fr: "Combien coûte l'abonnement ?", it: "Quanto costa l'abbonamento?",
+    sq: "Sa kushton anëtarësia?", tr: "Üyelik ne kadar?", pt: "Quanto custa a adesão?", es: "¿Cuánto cuesta la suscripción?",
+  },
+  "Die ersten 14 Tage sind kostenlos. Danach kostet die Anbieter-Mitgliedschaft CHF 69.– pro Monat.": {
+    en: "The first 14 days are free. Afterwards, provider membership costs CHF 69.– per month.",
+    fr: "Les 14 premiers jours sont gratuits. Ensuite, l'abonnement prestataire coûte CHF 69.– par mois.",
+    it: "I primi 14 giorni sono gratuiti. In seguito l'abbonamento costa CHF 69.– al mese.",
+    sq: "14 ditët e para janë falas. Më pas anëtarësia kushton CHF 69.– në muaj.",
+    tr: "İlk 14 gün ücretsizdir. Sonrasında sağlayıcı üyeliği aylık CHF 69.–'dur.",
+    pt: "Os primeiros 14 dias são grátis. Depois, a adesão custa CHF 69.– por mês.",
+    es: "Los primeros 14 días son gratis. Después, la suscripción cuesta CHF 69.– al mes.",
+  },
+  "Werden während der Testphase Kosten belastet?": {
+    en: "Are any charges made during the trial?", fr: "Des frais sont-ils prélevés pendant l'essai ?",
+    it: "Ci sono addebiti durante il periodo di prova?", sq: "A ka pagesa gjatë periudhës së provës?",
+    tr: "Deneme süresinde ücret alınır mı?", pt: "Há cobranças durante o período de teste?", es: "¿Se cobra algo durante la prueba?",
+  },
+  "Während der 14-tägigen Testphase wird keine Monatsgebühr belastet. Die Zahlungsmethode wird für die spätere automatische Verlängerung hinterlegt.": {
+    en: "No monthly fee is charged during the 14-day trial. Your payment method is saved for subsequent automatic renewal.",
+    fr: "Aucun abonnement mensuel n'est facturé pendant les 14 jours d'essai. Le moyen de paiement est enregistré pour le renouvellement automatique ultérieur.",
+    it: "Durante i 14 giorni di prova non viene addebitato alcun canone mensile. Il metodo di pagamento viene salvato per il successivo rinnovo automatico.",
+    sq: "Gjatë provës 14-ditore nuk tarifohet pagesë mujore. Metoda e pagesës ruhet për rinovimin automatik të mëvonshëm.",
+    tr: "14 günlük deneme süresinde aylık ücret alınmaz. Ödeme yöntemi sonraki otomatik yenileme için kaydedilir.",
+    pt: "Durante os 14 dias de teste não é cobrada mensalidade. O método de pagamento fica guardado para a renovação automática posterior.",
+    es: "Durante los 14 días de prueba no se cobra cuota mensual. El método de pago queda guardado para la posterior renovación automática.",
+  },
+  "Sind Lead-Credits im Abo enthalten?": {
+    en: "Are lead credits included in the subscription?", fr: "Les crédits de leads sont-ils inclus ?",
+    it: "I crediti lead sono inclusi nell'abbonamento?", sq: "A përfshihen kreditë e kontakteve?",
+    tr: "Müşteri adayı kredileri üyeliğe dahil mi?", pt: "Os créditos de leads estão incluídos?", es: "¿Los créditos de leads están incluidos?",
+  },
+  "Nein. Die Mitgliedschaft bezahlt den Plattformzugang. Credits für einzelne Kundenkontakte werden separat gekauft.": {
+    en: "No. Membership covers access to the platform. Credits for individual customer contacts are purchased separately.",
+    fr: "Non. L'abonnement couvre l'accès à la plateforme. Les crédits pour les contacts clients sont achetés séparément.",
+    it: "No. L'abbonamento copre l'accesso alla piattaforma. I crediti per i singoli contatti si acquistano separatamente.",
+    sq: "Jo. Anëtarësia mbulon qasjen në platformë. Kreditë për kontakte individuale blihen veçmas.",
+    tr: "Hayır. Üyelik platform erişimini kapsar. Bireysel müşteri kişileri için krediler ayrıca satın alınır.",
+    pt: "Não. A adesão paga o acesso à plataforma. Os créditos para contactos individuais são comprados separadamente.",
+    es: "No. La suscripción cubre el acceso a la plataforma. Los créditos para contactos individuales se compran por separado.",
+  },
+  "Kann ich mein Abo verwalten oder kündigen?": {
+    en: "Can I manage or cancel my subscription?", fr: "Puis-je gérer ou résilier mon abonnement ?",
+    it: "Posso gestire o annullare l'abbonamento?", sq: "A mund ta menaxhoj ose anuloj abonimin?",
+    tr: "Üyeliğimi yönetebilir veya iptal edebilir miyim?", pt: "Posso gerir ou cancelar a adesão?", es: "¿Puedo gestionar o cancelar mi suscripción?",
+  },
+  "Ja. Zahlungsmethode, Rechnungen und Mitgliedschaft können über das sichere Stripe-Kundenportal verwaltet werden.": {
+    en: "Yes. Payment method, invoices and membership can be managed through the secure Stripe customer portal.",
+    fr: "Oui. Le moyen de paiement, les factures et l'abonnement peuvent être gérés via le portail client sécurisé Stripe.",
+    it: "Sì. Metodo di pagamento, fatture e abbonamento possono essere gestiti tramite il portale clienti Stripe.",
+    sq: "Po. Metoda e pagesës, faturat dhe anëtarësia mund të menaxhohen përmes portalit të sigurt Stripe.",
+    tr: "Evet. Ödeme yöntemi, faturalar ve üyelik güvenli Stripe müşteri portalından yönetilebilir.",
+    pt: "Sim. O método de pagamento, as faturas e a adesão podem ser geridos no portal seguro da Stripe.",
+    es: "Sí. El método de pago, las facturas y la suscripción pueden gestionarse desde el portal seguro de Stripe.",
+  },
+
+  "Dein Wachstum beginnt hier": {
+    en: "Your growth starts here", fr: "Votre croissance commence ici", it: "La tua crescita inizia qui",
+    sq: "Rritja jote fillon këtu", tr: "Büyümeniz burada başlar", pt: "O seu crescimento começa aqui", es: "Tu crecimiento empieza aquí",
+  },
+  "Starte jetzt 14 Tage kostenlos.": {
+    en: "Start 14 days free now.", fr: "Commencez maintenant 14 jours gratuitement.",
+    it: "Inizia ora 14 giorni gratis.", sq: "Fillo tani 14 ditë falas.",
+    tr: "Şimdi 14 gün ücretsiz başlayın.", pt: "Comece agora 14 dias grátis.", es: "Empieza ahora 14 días gratis.",
+  },
+  "Anbieterprofil erstellen": {
+    en: "Create provider profile", fr: "Créer un profil prestataire", it: "Crea profilo fornitore",
+    sq: "Krijo profilin e ofruesit", tr: "Sağlayıcı profili oluştur", pt: "Criar perfil de prestador", es: "Crear perfil de proveedor",
+  },
+  "Schweizer Plattform für regionale Dienstleistungen.": {
+    en: "Swiss platform for regional services.", fr: "Plateforme suisse de services régionaux.",
+    it: "Piattaforma svizzera per servizi regionali.", sq: "Platformë zvicerane për shërbime rajonale.",
+    tr: "Bölgesel hizmetler için İsviçre platformu.", pt: "Plataforma suíça para serviços regionais.",
+    es: "Plataforma suiza para servicios regionales.",
+  },
+  "Datenschutz": {
+    en: "Privacy", fr: "Confidentialité", it: "Protezione dati",
+    sq: "Privatësia", tr: "Gizlilik", pt: "Privacidade", es: "Privacidad",
+  },
+  "Impressum": {
+    en: "Legal notice", fr: "Mentions légales", it: "Note legali",
+    sq: "Të dhënat ligjore", tr: "Yasal bildirim", pt: "Informação legal", es: "Aviso legal",
+  },
+
+  "Auftrago Firmenportal": {
+    en: "Auftrago business portal", fr: "Portail professionnel Auftrago", it: "Portale aziendale Auftrago",
+    sq: "Portali i biznesit Auftrago", tr: "Auftrago işletme portalı", pt: "Portal empresarial Auftrago", es: "Portal empresarial Auftrago",
+  },
+  "Neue Chancen. Zentral verwaltet.": {
+    en: "New opportunities. Centrally managed.", fr: "Nouvelles opportunités. Gestion centralisée.",
+    it: "Nuove opportunità. Gestione centralizzata.", sq: "Mundësi të reja. Menaxhim qendror.",
+    tr: "Yeni fırsatlar. Merkezi yönetim.", pt: "Novas oportunidades. Gestão centralizada.", es: "Nuevas oportunidades. Gestión centralizada.",
+  },
+  "Leads, Fixaufträge und Kundenkontakte an einem Ort.": {
+    en: "Leads, confirmed jobs and customer contacts in one place.",
+    fr: "Prospects, mandats et contacts clients au même endroit.",
+    it: "Lead, incarichi e contatti clienti in un unico posto.",
+    sq: "Kontaktet, punët dhe klientët në një vend.",
+    tr: "Müşteri adayları, işler ve kişiler tek yerde.",
+    pt: "Contactos, trabalhos e clientes num só lugar.",
+    es: "Contactos, trabajos y clientes en un solo lugar.",
+  },
+  "Passender Treffer": {
+    en: "Matching opportunity", fr: "Opportunité adaptée", it: "Opportunità adatta",
+    sq: "Përputhje e përshtatshme", tr: "Uygun eşleşme", pt: "Oportunidade adequada", es: "Oportunidad adecuada",
+  },
+  "Neue Kundenchance": {
+    en: "New customer opportunity", fr: "Nouvelle opportunité client", it: "Nuova opportunità cliente",
+    sq: "Mundësi e re klienti", tr: "Yeni müşteri fırsatı", pt: "Nova oportunidade", es: "Nueva oportunidad",
+  },
+  "Auftragswert": {
+    en: "Job value", fr: "Valeur du mandat", it: "Valore incarico",
+    sq: "Vlera e punës", tr: "İş değeri", pt: "Valor do trabalho", es: "Valor del trabajo",
+  },
+  "Ansehen": {
+    en: "View", fr: "Voir", it: "Visualizza",
+    sq: "Shiko", tr: "Görüntüle", pt: "Ver", es: "Ver",
+  },
+  "Kontakt freigeschaltet": {
+    en: "Contact unlocked", fr: "Contact débloqué", it: "Contatto sbloccato",
+    sq: "Kontakti u zhbllokua", tr: "Kişi erişimi açıldı", pt: "Contacto desbloqueado", es: "Contacto desbloqueado",
+  },
+};
+
+
+// ===== AUFTRAGO ANBIETER SUPPLEMENT START =====
+const providerPageSupplement: Dictionary = {
+  "Anbieter finden": {
+    "en": "Find providers",
+    "fr": "Trouver des prestataires",
+    "it": "Trova fornitori",
+    "sq": "Gjej ofrues",
+    "tr": "Sağlayıcı bul",
+    "pt": "Encontrar prestadores",
+    "es": "Encontrar proveedores"
+  },
+  "Anbieter erreichen": {
+    "en": "Reach providers",
+    "fr": "Contacter des prestataires",
+    "it": "Raggiungi i fornitori",
+    "sq": "Kontakto ofruesit",
+    "tr": "Sağlayıcılara ulaş",
+    "pt": "Contactar prestadores",
+    "es": "Contactar proveedores"
+  },
+  "Anbieter finden | Regionale Dienstleister Schweiz | Auftrago": {
+    "en": "Find providers | Regional service providers Switzerland | Auftrago",
+    "fr": "Trouver des prestataires | Prestataires régionaux en Suisse | Auftrago",
+    "it": "Trova fornitori | Fornitori di servizi regionali in Svizzera | Auftrago",
+    "sq": "Gjej ofrues | Ofrues rajonalë shërbimesh në Zvicër | Auftrago",
+    "tr": "Sağlayıcı bul | İsviçre bölgesel hizmet sağlayıcıları | Auftrago",
+    "pt": "Encontrar prestadores | Prestadores regionais na Suíça | Auftrago",
+    "es": "Encontrar proveedores | Proveedores regionales en Suiza | Auftrago"
+  },
+  "Passende Anbieter in deiner Region finden | Auftrago": {
+    "en": "Find suitable providers in your region | Auftrago",
+    "fr": "Trouvez des prestataires adaptés dans votre région | Auftrago",
+    "it": "Trova fornitori adatti nella tua regione | Auftrago",
+    "sq": "Gjej ofrues të përshtatshëm në rajonin tënd | Auftrago",
+    "tr": "Bölgenizde uygun sağlayıcıları bulun | Auftrago",
+    "pt": "Encontre prestadores adequados na sua região | Auftrago",
+    "es": "Encuentra proveedores adecuados en tu región | Auftrago"
+  },
+  "Anfrage kostenlos senden": {
+    "en": "Send request for free",
+    "fr": "Envoyer une demande gratuitement",
+    "it": "Invia una richiesta gratuitamente",
+    "sq": "Dërgo kërkesën falas",
+    "tr": "Ücretsiz talep gönder",
+    "pt": "Enviar pedido gratuitamente",
+    "es": "Enviar solicitud gratis"
+  },
+  "Auftrag beschreiben": {
+    "en": "Describe your job",
+    "fr": "Décrivez votre mission",
+    "it": "Descrivi il lavoro",
+    "sq": "Përshkruaj punën",
+    "tr": "İşi açıklayın",
+    "pt": "Descreva o trabalho",
+    "es": "Describe el trabajo"
+  },
+  "Bereit zum Senden": {
+    "en": "Ready to send",
+    "fr": "Prêt à envoyer",
+    "it": "Pronto per l'invio",
+    "sq": "Gati për dërgim",
+    "tr": "Göndermeye hazır",
+    "pt": "Pronto para enviar",
+    "es": "Listo para enviar"
+  },
+  "Besonders gefragt": {
+    "en": "Especially popular",
+    "fr": "Particulièrement demandé",
+    "it": "Particolarmente richiesto",
+    "sq": "Veçanërisht i kërkuar",
+    "tr": "Özellikle talep görüyor",
+    "pt": "Muito procurado",
+    "es": "Especialmente solicitado"
+  },
+  "Direkte Anfrage": {
+    "en": "Direct request",
+    "fr": "Demande directe",
+    "it": "Richiesta diretta",
+    "sq": "Kërkesë direkte",
+    "tr": "Doğrudan talep",
+    "pt": "Pedido direto",
+    "es": "Solicitud directa"
+  },
+  "Du entscheidest": {
+    "en": "You decide",
+    "fr": "Vous décidez",
+    "it": "Decidi tu",
+    "sq": "Ti vendos",
+    "tr": "Siz karar verirsiniz",
+    "pt": "Você decide",
+    "es": "Tú decides"
+  },
+  "Fachbetriebe": {
+    "en": "Specialist companies",
+    "fr": "Entreprises spécialisées",
+    "it": "Aziende specializzate",
+    "sq": "Kompani të specializuara",
+    "tr": "Uzman firmalar",
+    "pt": "Empresas especializadas",
+    "es": "Empresas especializadas"
+  },
+  "Fachservice": {
+    "en": "Specialist service",
+    "fr": "Service spécialisé",
+    "it": "Servizio specializzato",
+    "sq": "Shërbim profesional",
+    "tr": "Uzman hizmet",
+    "pt": "Serviço especializado",
+    "es": "Servicio especializado"
+  },
+  "Hohe Nachfrage": {
+    "en": "High demand",
+    "fr": "Forte demande",
+    "it": "Alta domanda",
+    "sq": "Kërkesë e lartë",
+    "tr": "Yüksek talep",
+    "pt": "Alta procura",
+    "es": "Alta demanda"
+  },
+  "Komplettservice": {
+    "en": "Full service",
+    "fr": "Service complet",
+    "it": "Servizio completo",
+    "sq": "Shërbim i plotë",
+    "tr": "Komple hizmet",
+    "pt": "Serviço completo",
+    "es": "Servicio completo"
+  },
+  "Kurze Wege": {
+    "en": "Short distances",
+    "fr": "Proximité",
+    "it": "Brevi distanze",
+    "sq": "Distanca të shkurtra",
+    "tr": "Kısa mesafeler",
+    "pt": "Curtas distâncias",
+    "es": "Distancias cortas"
+  },
+  "Matching läuft": {
+    "en": "Matching in progress",
+    "fr": "Mise en relation en cours",
+    "it": "Abbinamento in corso",
+    "sq": "Përputhja është në proces",
+    "tr": "Eşleştirme sürüyor",
+    "pt": "Correspondência em curso",
+    "es": "Emparejamiento en curso"
+  },
+  "Passende Zuordnung": {
+    "en": "Suitable matching",
+    "fr": "Mise en relation adaptée",
+    "it": "Abbinamento adatto",
+    "sq": "Përputhje e përshtatshme",
+    "tr": "Uygun eşleştirme",
+    "pt": "Correspondência adequada",
+    "es": "Coincidencia adecuada"
+  },
+  "Regional": {
+    "en": "Regional",
+    "fr": "Régional",
+    "it": "Regionale",
+    "sq": "Rajonale",
+    "tr": "Bölgesel",
+    "pt": "Regional",
+    "es": "Regional"
+  },
+  "Schnell verfügbar": {
+    "en": "Quickly available",
+    "fr": "Rapidement disponible",
+    "it": "Disponibile rapidamente",
+    "sq": "Në dispozicion shpejt",
+    "tr": "Hızlıca müsait",
+    "pt": "Rapidamente disponível",
+    "es": "Disponible rápidamente"
+  },
+  "Selbst entscheiden": {
+    "en": "Decide for yourself",
+    "fr": "Décidez vous-même",
+    "it": "Decidi tu",
+    "sq": "Vendos vetë",
+    "tr": "Kendiniz karar verin",
+    "pt": "Decida você mesmo",
+    "es": "Decide tú mismo"
+  },
+  "Wiederkehrend": {
+    "en": "Recurring",
+    "fr": "Récurrent",
+    "it": "Ricorrente",
+    "sq": "I përsëritur",
+    "tr": "Düzenli",
+    "pt": "Recorrente",
+    "es": "Recurrente"
+  },
+  "Reinigung": {
+    "en": "Cleaning",
+    "fr": "Nettoyage",
+    "it": "Pulizia",
+    "sq": "Pastrim",
+    "tr": "Temizlik",
+    "pt": "Limpeza",
+    "es": "Limpieza"
+  },
+  "Umzugsreinigung": {
+    "en": "Move-out cleaning",
+    "fr": "Nettoyage de fin de bail",
+    "it": "Pulizia di fine locazione",
+    "sq": "Pastrim pas zhvendosjes",
+    "tr": "Taşınma temizliği",
+    "pt": "Limpeza de mudança",
+    "es": "Limpieza de mudanza"
+  },
+  "Hauswartung": {
+    "en": "Property maintenance",
+    "fr": "Conciergerie",
+    "it": "Custodia dell'immobile",
+    "sq": "Mirëmbajtje objekti",
+    "tr": "Bina bakımı",
+    "pt": "Manutenção de imóveis",
+    "es": "Mantenimiento de inmuebles"
+  },
+  "Gartenpflege": {
+    "en": "Garden maintenance",
+    "fr": "Entretien de jardin",
+    "it": "Cura del giardino",
+    "sq": "Mirëmbajtje kopshti",
+    "tr": "Bahçe bakımı",
+    "pt": "Manutenção de jardins",
+    "es": "Mantenimiento de jardines"
+  },
+  "Umzug & Transport": {
+    "en": "Moving & transport",
+    "fr": "Déménagement & transport",
+    "it": "Trasloco & trasporto",
+    "sq": "Zhvendosje & transport",
+    "tr": "Taşınma & nakliye",
+    "pt": "Mudança & transporte",
+    "es": "Mudanza & transporte"
+  },
+  "Entsorgung": {
+    "en": "Disposal",
+    "fr": "Débarras",
+    "it": "Smaltimento",
+    "sq": "Asgjësim",
+    "tr": "Atık bertarafı",
+    "pt": "Eliminação",
+    "es": "Eliminación"
+  },
+  "Malerarbeiten": {
+    "en": "Painting",
+    "fr": "Travaux de peinture",
+    "it": "Lavori di pittura",
+    "sq": "Punime lyerjeje",
+    "tr": "Boya işleri",
+    "pt": "Trabalhos de pintura",
+    "es": "Trabajos de pintura"
+  },
+  "Elektriker": {
+    "en": "Electrician",
+    "fr": "Électricien",
+    "it": "Elettricista",
+    "sq": "Elektricist",
+    "tr": "Elektrikçi",
+    "pt": "Eletricista",
+    "es": "Electricista"
+  },
+  "Sanitär": {
+    "en": "Plumbing",
+    "fr": "Sanitaire",
+    "it": "Idraulica",
+    "sq": "Hidraulik",
+    "tr": "Sıhhi tesisat",
+    "pt": "Canalização",
+    "es": "Fontanería"
+  },
+  "Wohnungsreinigung, Büroreinigung, Unterhalt, Fenster und Spezialreinigung.": {
+    "en": "Home cleaning, office cleaning, maintenance cleaning, windows and specialist cleaning.",
+    "fr": "Nettoyage d'appartements, de bureaux, entretien, vitres et nettoyages spécialisés.",
+    "it": "Pulizia di appartamenti, uffici, manutenzione, finestre e pulizie speciali.",
+    "sq": "Pastrim banesash, zyrash, mirëmbajtje, dritaresh dhe pastrime speciale.",
+    "tr": "Ev, ofis, bakım, pencere ve özel temizlik hizmetleri.",
+    "pt": "Limpeza residencial, escritórios, manutenção, janelas e limpezas especiais.",
+    "es": "Limpieza de viviendas, oficinas, mantenimiento, ventanas y limpiezas especiales."
+  },
+  "Endreinigung, Abgabereinigung, Küche, Bad, Fenster und Wohnungsabgabe.": {
+    "en": "Final cleaning, handover cleaning, kitchen, bathroom, windows and apartment handover.",
+    "fr": "Nettoyage de fin de bail, remise du logement, cuisine, salle de bain et fenêtres.",
+    "it": "Pulizia finale, consegna dell'appartamento, cucina, bagno e finestre.",
+    "sq": "Pastrim përfundimtar, dorëzim banese, kuzhinë, banjë dhe dritare.",
+    "tr": "Son temizlik, teslim temizliği, mutfak, banyo ve pencereler.",
+    "pt": "Limpeza final, entrega do imóvel, cozinha, casa de banho e janelas.",
+    "es": "Limpieza final, entrega de vivienda, cocina, baño y ventanas."
+  },
+  "Liegenschaftsbetreuung, Kontrollgänge, Treppenhaus und Umgebungspflege.": {
+    "en": "Property care, inspections, stairwells and outdoor area maintenance.",
+    "fr": "Entretien d'immeubles, rondes de contrôle, cages d'escalier et extérieurs.",
+    "it": "Gestione immobili, controlli, scale e manutenzione delle aree esterne.",
+    "sq": "Mirëmbajtje objektesh, kontrolle, shkallë dhe ambiente të jashtme.",
+    "tr": "Bina bakımı, kontroller, merdivenler ve çevre bakımı.",
+    "pt": "Manutenção de imóveis, rondas de controlo, escadas e áreas exteriores.",
+    "es": "Mantenimiento de inmuebles, rondas de control, escaleras y exteriores."
+  },
+  "Rasen, Hecken, Saisonpflege, Umgebung und laufender Gartenunterhalt.": {
+    "en": "Lawns, hedges, seasonal care, surroundings and ongoing garden maintenance.",
+    "fr": "Pelouses, haies, entretien saisonnier et entretien régulier du jardin.",
+    "it": "Prati, siepi, cura stagionale e manutenzione continuativa del giardino.",
+    "sq": "Bar, gardhe, mirëmbajtje sezonale dhe kujdes i vazhdueshëm i kopshtit.",
+    "tr": "Çim, çit, sezonluk bakım ve düzenli bahçe bakımı.",
+    "pt": "Relvados, sebes, manutenção sazonal e cuidados regulares do jardim.",
+    "es": "Césped, setos, mantenimiento estacional y cuidado regular del jardín."
+  },
+  "Privatumzug, Firmenumzug, Möbeltransport, Kleintransport und Räumung.": {
+    "en": "Private moves, company moves, furniture transport, small transport and clear-outs.",
+    "fr": "Déménagement privé ou professionnel, transport de meubles et débarras.",
+    "it": "Traslochi privati e aziendali, trasporto mobili e sgomberi.",
+    "sq": "Zhvendosje private dhe biznesi, transport mobiljesh dhe zbrazje.",
+    "tr": "Ev ve şirket taşımaları, mobilya nakliyesi ve boşaltma hizmetleri.",
+    "pt": "Mudanças particulares e empresariais, transporte de móveis e desocupações.",
+    "es": "Mudanzas privadas y empresariales, transporte de muebles y vaciados."
+  },
+  "Entrümpelung, Sperrgut, Keller, Estrich und Haushaltsauflösung.": {
+    "en": "Clear-outs, bulky waste, basements, attics and household clearance.",
+    "fr": "Débarras, encombrants, caves, greniers et vidage de logements.",
+    "it": "Sgomberi, rifiuti ingombranti, cantine, soffitte e svuotamento abitazioni.",
+    "sq": "Zbrazje, mbetje voluminoze, bodrume, papafingo dhe pastrim shtëpie.",
+    "tr": "Boşaltma, hacimli atık, bodrum, çatı katı ve ev tasfiyesi.",
+    "pt": "Desocupações, resíduos volumosos, caves, sótãos e limpeza de casas.",
+    "es": "Vaciados, residuos voluminosos, sótanos, áticos y desalojo de viviendas."
+  },
+  "Innenanstrich, Renovationen, Fassaden und Ausbesserungsarbeiten.": {
+    "en": "Interior painting, renovations, façades and repair work.",
+    "fr": "Peinture intérieure, rénovations, façades et travaux de retouche.",
+    "it": "Pittura interna, ristrutturazioni, facciate e lavori di ritocco.",
+    "sq": "Lyerje e brendshme, renovime, fasada dhe riparime.",
+    "tr": "İç cephe boyası, renovasyon, dış cephe ve onarım işleri.",
+    "pt": "Pintura interior, renovações, fachadas e reparações.",
+    "es": "Pintura interior, renovaciones, fachadas y reparaciones."
+  },
+  "Installationen, Beleuchtung, Reparaturen und technische Kontrollen.": {
+    "en": "Installations, lighting, repairs and technical inspections.",
+    "fr": "Installations, éclairage, réparations et contrôles techniques.",
+    "it": "Installazioni, illuminazione, riparazioni e controlli tecnici.",
+    "sq": "Instalime, ndriçim, riparime dhe kontrolle teknike.",
+    "tr": "Kurulum, aydınlatma, onarım ve teknik kontroller.",
+    "pt": "Instalações, iluminação, reparações e controlos técnicos.",
+    "es": "Instalaciones, iluminación, reparaciones y controles técnicos."
+  },
+  "Armaturen, Leitungen, Küche, Bad und dringende Reparaturen.": {
+    "en": "Fixtures, pipes, kitchen, bathroom and urgent repairs.",
+    "fr": "Robinetterie, conduites, cuisine, salle de bain et réparations urgentes.",
+    "it": "Rubinetteria, tubazioni, cucina, bagno e riparazioni urgenti.",
+    "sq": "Rubineta, tubacione, kuzhinë, banjë dhe riparime urgjente.",
+    "tr": "Armatürler, borular, mutfak, banyo ve acil onarımlar.",
+    "pt": "Torneiras, tubagens, cozinha, casa de banho e reparações urgentes.",
+    "es": "Grifería, tuberías, cocina, baño y reparaciones urgentes."
+  },
+  "Auftrago deckt zahlreiche Dienstleistungsbereiche ab, darunter Reinigung, Umzug, Hauswartung, Gartenpflege, Entsorgung, Handwerk, Sanitär, Elektriker und Versicherungen.": {
+    "en": "Auftrago covers numerous service areas including cleaning, moving, property maintenance, gardening, disposal, trades, plumbing, electricians and insurance.",
+    "fr": "Auftrago couvre de nombreux services, notamment le nettoyage, le déménagement, la conciergerie, le jardinage, le débarras, l'artisanat, le sanitaire, l'électricité et les assurances.",
+    "it": "Auftrago copre numerosi servizi tra cui pulizia, traslochi, manutenzione immobili, giardinaggio, smaltimento, artigianato, idraulica, elettricisti e assicurazioni.",
+    "sq": "Auftrago mbulon shumë fusha shërbimesh, përfshirë pastrim, zhvendosje, mirëmbajtje objekti, kopshtari, asgjësim, zanate, hidraulikë, elektricistë dhe sigurime.",
+    "tr": "Auftrago temizlik, taşınma, bina bakımı, bahçe bakımı, atık bertarafı, zanaat, sıhhi tesisat, elektrik ve sigorta dahil birçok hizmet alanını kapsar.",
+    "pt": "A Auftrago abrange inúmeras áreas, incluindo limpeza, mudanças, manutenção de imóveis, jardinagem, eliminação, serviços técnicos, canalização, eletricidade e seguros.",
+    "es": "Auftrago cubre numerosas áreas, como limpieza, mudanzas, mantenimiento de inmuebles, jardinería, eliminación, oficios, fontanería, electricidad y seguros."
+  },
+  "Auftrago ordnet deine Anfrage geeigneten Kategorien und Regionen zu.": {
+    "en": "Auftrago assigns your request to suitable categories and regions.",
+    "fr": "Auftrago attribue votre demande aux catégories et régions appropriées.",
+    "it": "Auftrago assegna la tua richiesta alle categorie e regioni appropriate.",
+    "sq": "Auftrago e cakton kërkesën tënde në kategoritë dhe rajonet e përshtatshme.",
+    "tr": "Auftrago talebinizi uygun kategori ve bölgelere yönlendirir.",
+    "pt": "A Auftrago atribui o seu pedido às categorias e regiões adequadas.",
+    "es": "Auftrago asigna tu solicitud a las categorías y regiones adecuadas."
+  },
+  "Eine Anfrage erstellen und passende regionale Dienstleister erreichen.": {
+    "en": "Create one request and reach suitable regional service providers.",
+    "fr": "Créez une demande et atteignez des prestataires régionaux adaptés.",
+    "it": "Crea una richiesta e raggiungi fornitori regionali adatti.",
+    "sq": "Krijo një kërkesë dhe kontakto ofrues rajonalë të përshtatshëm.",
+    "tr": "Bir talep oluşturun ve uygun bölgesel sağlayıcılara ulaşın.",
+    "pt": "Crie um pedido e alcance prestadores regionais adequados.",
+    "es": "Crea una solicitud y llega a proveedores regionales adecuados."
+  },
+  "Finde regionale Anbieter für Reinigung, Umzug, Hauswartung, Gartenpflege, Handwerk, Versicherungen und weitere Dienstleistungen in der Schweiz.": {
+    "en": "Find regional providers for cleaning, moving, property maintenance, gardening, trades, insurance and many other services in Switzerland.",
+    "fr": "Trouvez des prestataires régionaux pour le nettoyage, le déménagement, la conciergerie, le jardinage, l'artisanat, les assurances et de nombreux autres services en Suisse.",
+    "it": "Trova fornitori regionali per pulizie, traslochi, manutenzione immobili, giardinaggio, artigianato, assicurazioni e altri servizi in Svizzera.",
+    "sq": "Gjej ofrues rajonalë për pastrim, zhvendosje, mirëmbajtje objekti, kopshtari, zanate, sigurime dhe shërbime të tjera në Zvicër.",
+    "tr": "İsviçre'de temizlik, taşınma, bina bakımı, bahçe, zanaat, sigorta ve diğer hizmetler için bölgesel sağlayıcılar bulun.",
+    "pt": "Encontre prestadores regionais de limpeza, mudanças, manutenção de imóveis, jardinagem, serviços técnicos, seguros e outros serviços na Suíça.",
+    "es": "Encuentra proveedores regionales de limpieza, mudanzas, mantenimiento, jardinería, oficios, seguros y otros servicios en Suiza."
+  },
+  "Passende regionale Dienstleister können deine Anfrage sehen und darauf reagieren.": {
+    "en": "Suitable regional providers can see your request and respond to it.",
+    "fr": "Les prestataires régionaux adaptés peuvent voir votre demande et y répondre.",
+    "it": "I fornitori regionali adatti possono vedere la tua richiesta e rispondere.",
+    "sq": "Ofruesit rajonalë të përshtatshëm mund ta shohin kërkesën tënde dhe të përgjigjen.",
+    "tr": "Uygun bölgesel sağlayıcılar talebinizi görebilir ve yanıtlayabilir.",
+    "pt": "Prestadores regionais adequados podem ver o seu pedido e responder.",
+    "es": "Los proveedores regionales adecuados pueden ver tu solicitud y responder."
+  },
+  "Stelle uns mit, welche Dienstleistung du brauchst, wo der Auftrag stattfindet und wann er ausgeführt werden soll.": {
+    "en": "Tell us which service you need, where the job takes place and when it should be carried out.",
+    "fr": "Indiquez le service dont vous avez besoin, le lieu de la mission et la date souhaitée.",
+    "it": "Indicaci quale servizio ti serve, dove si svolge il lavoro e quando deve essere eseguito.",
+    "sq": "Na trego çfarë shërbimi të duhet, ku zhvillohet puna dhe kur duhet të kryhet.",
+    "tr": "Hangi hizmete ihtiyacınız olduğunu, işin nerede ve ne zaman yapılacağını belirtin.",
+    "pt": "Indique o serviço de que necessita, onde será realizado e quando deverá acontecer.",
+    "es": "Indica qué servicio necesitas, dónde se realizará el trabajo y cuándo debe hacerse."
+  },
+  "Du vergleichst Rückmeldungen und entscheidest selbst, welcher Anbieter zu deinem Auftrag passt.": {
+    "en": "Compare responses and decide which provider is right for your job.",
+    "fr": "Comparez les réponses et choisissez vous-même le prestataire adapté à votre demande.",
+    "it": "Confronta le risposte e decidi quale fornitore è più adatto al tuo lavoro.",
+    "sq": "Krahaso përgjigjet dhe vendos vetë cili ofrues i përshtatet punës tënde.",
+    "tr": "Yanıtları karşılaştırın ve işinize hangi sağlayıcının uygun olduğuna kendiniz karar verin.",
+    "pt": "Compare as respostas e decida qual prestador é adequado ao seu trabalho.",
+    "es": "Compara las respuestas y decide qué proveedor encaja mejor con tu trabajo."
+  },
+  "Das hängt von Region, Dienstleistung, Termin und Verfügbarkeit ab. Vollständige Angaben und gute Fotos erhöhen die Chance auf schnelle Rückmeldungen.": {
+    "en": "It depends on the region, service, date and availability. Complete information and good photos increase the chance of quick responses.",
+    "fr": "Cela dépend de la région, du service, de la date et des disponibilités. Des informations complètes et de bonnes photos augmentent les chances d'obtenir rapidement des réponses.",
+    "it": "Dipende dalla regione, dal servizio, dalla data e dalla disponibilità. Informazioni complete e buone foto aumentano le possibilità di ricevere risposte rapide.",
+    "sq": "Varet nga rajoni, shërbimi, afati dhe disponueshmëria. Informacioni i plotë dhe fotot e mira rrisin mundësinë për përgjigje të shpejta.",
+    "tr": "Bölgeye, hizmete, tarihe ve müsaitliğe bağlıdır. Eksiksiz bilgiler ve iyi fotoğraflar hızlı yanıt alma şansını artırır.",
+    "pt": "Depende da região, do serviço, da data e da disponibilidade. Informações completas e boas fotos aumentam a probabilidade de respostas rápidas.",
+    "es": "Depende de la región, el servicio, la fecha y la disponibilidad. La información completa y buenas fotos aumentan las posibilidades de recibir respuestas rápidas."
+  },
+  "Ist die Anfrage über Auftrago kostenlos?": {
+    "en": "Is a request on Auftrago free?",
+    "fr": "La demande sur Auftrago est-elle gratuite ?",
+    "it": "La richiesta su Auftrago è gratuita?",
+    "sq": "A është kërkesa në Auftrago falas?",
+    "tr": "Auftrago üzerinden talep ücretsiz mi?",
+    "pt": "O pedido na Auftrago é gratuito?",
+    "es": "¿La solicitud en Auftrago es gratuita?"
+  },
+  "Welche Anbieter finde ich auf Auftrago?": {
+    "en": "Which providers can I find on Auftrago?",
+    "fr": "Quels prestataires puis-je trouver sur Auftrago ?",
+    "it": "Quali fornitori posso trovare su Auftrago?",
+    "sq": "Cilët ofrues mund të gjej në Auftrago?",
+    "tr": "Auftrago'da hangi sağlayıcıları bulabilirim?",
+    "pt": "Que prestadores posso encontrar na Auftrago?",
+    "es": "¿Qué proveedores puedo encontrar en Auftrago?"
+  },
+  "Wie schnell erhalte ich Rückmeldungen?": {
+    "en": "How quickly will I receive responses?",
+    "fr": "À quelle vitesse vais-je recevoir des réponses ?",
+    "it": "Quanto velocemente riceverò delle risposte?",
+    "sq": "Sa shpejt do të marr përgjigje?",
+    "tr": "Ne kadar hızlı yanıt alırım?",
+    "pt": "Com que rapidez receberei respostas?",
+    "es": "¿Con qué rapidez recibiré respuestas?"
+  },
+  "Muss ich ein Angebot annehmen?": {
+    "en": "Do I have to accept an offer?",
+    "fr": "Dois-je accepter une offre ?",
+    "it": "Devo accettare un'offerta?",
+    "sq": "A duhet të pranoj një ofertë?",
+    "tr": "Bir teklifi kabul etmek zorunda mıyım?",
+    "pt": "Tenho de aceitar uma proposta?",
+    "es": "¿Tengo que aceptar una oferta?"
+  },
+  "Können sich Firmen auf Auftrago registrieren?": {
+    "en": "Can companies register on Auftrago?",
+    "fr": "Les entreprises peuvent-elles s'inscrire sur Auftrago ?",
+    "it": "Le aziende possono registrarsi su Auftrago?",
+    "sq": "A mund të regjistrohen kompanitë në Auftrago?",
+    "tr": "Şirketler Auftrago'ya kaydolabilir mi?",
+    "pt": "As empresas podem registar-se na Auftrago?",
+    "es": "¿Pueden registrarse empresas en Auftrago?"
+  },
+  "Nein. Deine Anfrage ist unverbindlich. Du kannst Rückmeldungen vergleichen und frei entscheiden, ob du einen Anbieter beauftragen möchtest.": {
+    "en": "No. Your request is non-binding. You can compare responses and freely decide whether you want to hire a provider.",
+    "fr": "Non. Votre demande est sans engagement. Vous pouvez comparer les réponses et décider librement si vous souhaitez engager un prestataire.",
+    "it": "No. La tua richiesta non è vincolante. Puoi confrontare le risposte e decidere liberamente se incaricare un fornitore.",
+    "sq": "Jo. Kërkesa jote nuk është detyruese. Mund të krahasosh përgjigjet dhe të vendosësh lirshëm nëse dëshiron të angazhosh një ofrues.",
+    "tr": "Hayır. Talebiniz bağlayıcı değildir. Yanıtları karşılaştırabilir ve bir sağlayıcıyla çalışıp çalışmayacağınıza özgürce karar verebilirsiniz.",
+    "pt": "Não. O seu pedido não é vinculativo. Pode comparar respostas e decidir livremente se pretende contratar um prestador.",
+    "es": "No. Tu solicitud no es vinculante. Puedes comparar respuestas y decidir libremente si quieres contratar a un proveedor."
+  },
+  "Ja. Auftrago hilft dir, passende regionale Anbieter einfacher zu vergleichen.": {
+    "en": "Yes. Auftrago helps you compare suitable regional providers more easily.",
+    "fr": "Oui. Auftrago vous aide à comparer plus facilement des prestataires régionaux adaptés.",
+    "it": "Sì. Auftrago ti aiuta a confrontare più facilmente fornitori regionali adatti.",
+    "sq": "Po. Auftrago të ndihmon të krahasosh më lehtë ofrues rajonalë të përshtatshëm.",
+    "tr": "Evet. Auftrago uygun bölgesel sağlayıcıları daha kolay karşılaştırmanıza yardımcı olur.",
+    "pt": "Sim. A Auftrago ajuda-o a comparar mais facilmente prestadores regionais adequados.",
+    "es": "Sí. Auftrago te ayuda a comparar más fácilmente proveedores regionales adecuados."
+  },
+  "Ja. Schweizer Dienstleister können sich registrieren, ihre Regionen und Leistungen auswählen und passende Kundenanfragen entdecken.": {
+    "en": "Yes. Swiss service providers can register, select their regions and services and discover suitable customer requests.",
+    "fr": "Oui. Les prestataires suisses peuvent s'inscrire, sélectionner leurs régions et services et découvrir des demandes clients adaptées.",
+    "it": "Sì. I fornitori svizzeri possono registrarsi, scegliere regioni e servizi e trovare richieste clienti adatte.",
+    "sq": "Po. Ofruesit zviceranë mund të regjistrohen, të zgjedhin rajonet dhe shërbimet e tyre dhe të gjejnë kërkesa të përshtatshme.",
+    "tr": "Evet. İsviçreli hizmet sağlayıcıları kayıt olabilir, bölgelerini ve hizmetlerini seçebilir ve uygun müşteri taleplerini görebilir.",
+    "pt": "Sim. Os prestadores suíços podem registar-se, selecionar regiões e serviços e encontrar pedidos adequados.",
+    "es": "Sí. Los proveedores suizos pueden registrarse, elegir sus regiones y servicios y descubrir solicitudes adecuadas."
+  },
+  "Fragen und Antworten": {
+    "en": "Questions and answers",
+    "fr": "Questions et réponses",
+    "it": "Domande e risposte",
+    "sq": "Pyetje dhe përgjigje",
+    "tr": "Sorular ve cevaplar",
+    "pt": "Perguntas e respostas",
+    "es": "Preguntas y respuestas"
+  },
+  "Noch Fragen?": {
+    "en": "Still have questions?",
+    "fr": "Encore des questions ?",
+    "it": "Hai ancora domande?",
+    "sq": "Ke ende pyetje?",
+    "tr": "Başka sorunuz var mı?",
+    "pt": "Ainda tem dúvidas?",
+    "es": "¿Aún tienes preguntas?"
+  },
+  "Alles erklärt.": {
+    "en": "Everything explained.",
+    "fr": "Tout est expliqué.",
+    "it": "Tutto spiegato.",
+    "sq": "Gjithçka e shpjeguar.",
+    "tr": "Her şey açıklandı.",
+    "pt": "Tudo explicado.",
+    "es": "Todo explicado."
+  },
+  "Kostenlose Anfrage starten": {
+    "en": "Start a free request",
+    "fr": "Créer une demande gratuite",
+    "it": "Avvia una richiesta gratuita",
+    "sq": "Fillo një kërkesë falas",
+    "tr": "Ücretsiz talep oluştur",
+    "pt": "Criar pedido gratuito",
+    "es": "Crear solicitud gratuita"
+  },
+  "Als Anbieter registrieren": {
+    "en": "Register as a provider",
+    "fr": "S'inscrire comme prestataire",
+    "it": "Registrati come fornitore",
+    "sq": "Regjistrohu si ofrues",
+    "tr": "Sağlayıcı olarak kaydol",
+    "pt": "Registar como prestador",
+    "es": "Registrarse como proveedor"
+  },
+  "Kostenlos": {
+    "en": "Free",
+    "fr": "Gratuit",
+    "it": "Gratuito",
+    "sq": "Falas",
+    "tr": "Ücretsiz",
+    "pt": "Grátis",
+    "es": "Gratis"
+  },
+  "Unverbindlich": {
+    "en": "No obligation",
+    "fr": "Sans engagement",
+    "it": "Senza impegno",
+    "sq": "Pa detyrim",
+    "tr": "Bağlayıcı değil",
+    "pt": "Sem compromisso",
+    "es": "Sin compromiso"
+  },
+  "Regionale Anbieter": {
+    "en": "Regional providers",
+    "fr": "Prestataires régionaux",
+    "it": "Fornitori regionali",
+    "sq": "Ofrues rajonalë",
+    "tr": "Bölgesel sağlayıcılar",
+    "pt": "Prestadores regionais",
+    "es": "Proveedores regionales"
+  },
+  "Zürich & Umgebung": {
+    "en": "Zurich & surrounding area",
+    "fr": "Zurich et environs",
+    "it": "Zurigo e dintorni",
+    "sq": "Cyrih dhe rrethina",
+    "tr": "Zürih ve çevresi",
+    "pt": "Zurique e arredores",
+    "es": "Zúrich y alrededores"
+  }
+};
+
+Object.assign(dictionary, providerPageSupplement);
+// ===== AUFTRAGO ANBIETER SUPPLEMENT END =====
+
+
+
+// ===== ANBIETER: letzte fehlende sichtbare Texte =====
+Object.assign(dictionary, {
+  "Ist die Anfrage auf Auftrago kostenlos?": {
+    en: "Is a request on Auftrago free of charge?",
+    fr: "La demande sur Auftrago est-elle gratuite ?",
+    it: "La richiesta su Auftrago è gratuita?",
+    sq: "A është kërkesa në Auftrago falas?",
+    tr: "Auftrago'da talep oluşturmak ücretsiz mi?",
+    pt: "O pedido no Auftrago é gratuito?",
+    es: "¿La solicitud en Auftrago es gratuita?",
+  },
+
+  "Ja. Auftraggeber können ihre Anfrage kostenlos und unverbindlich erfassen. Du entscheidest selbst, ob eine Rückmeldung zu deinem Auftrag passt.": {
+    en: "Yes. Customers can submit their request free of charge and without obligation. You decide for yourself whether a response is suitable for your job.",
+    fr: "Oui. Les clients peuvent publier leur demande gratuitement et sans engagement. Vous décidez vous-même si une réponse convient à votre mission.",
+    it: "Sì. I clienti possono inserire la loro richiesta gratuitamente e senza impegno. Decidi tu se una risposta è adatta al tuo incarico.",
+    sq: "Po. Klientët mund ta publikojnë kërkesën e tyre falas dhe pa detyrim. Ti vendos vetë nëse një përgjigje i përshtatet punës tënde.",
+    tr: "Evet. Müşteriler taleplerini ücretsiz ve bağlayıcı olmadan oluşturabilir. Gelen bir yanıtın işinize uygun olup olmadığına siz karar verirsiniz.",
+    pt: "Sim. Os clientes podem publicar o seu pedido gratuitamente e sem compromisso. Você decide se uma resposta é adequada ao seu trabalho.",
+    es: "Sí. Los clientes pueden publicar su solicitud gratuitamente y sin compromiso. Tú decides si una respuesta encaja con tu trabajo.",
+  },
+
+  "Teile uns mit, welche Dienstleistung du brauchst, wo der Auftrag stattfindet und wann er ausgeführt werden soll.": {
+    en: "Tell us which service you need, where the job will take place and when it should be carried out.",
+    fr: "Indiquez-nous le service dont vous avez besoin, où la mission doit avoir lieu et quand elle doit être réalisée.",
+    it: "Indicaci di quale servizio hai bisogno, dove deve essere svolto il lavoro e quando deve essere eseguito.",
+    sq: "Na tregoni se cili shërbim ju nevojitet, ku duhet të kryhet puna dhe kur duhet të realizohet.",
+    tr: "Hangi hizmete ihtiyacınız olduğunu, işin nerede ve ne zaman yapılması gerektiğini bize bildirin.",
+    pt: "Diga-nos de que serviço precisa, onde o trabalho será realizado e quando deverá ser executado.",
+    es: "Indícanos qué servicio necesitas, dónde se realizará el trabajo y cuándo debe llevarse a cabo.",
+  },
+});
+
+function isLocale(value: string | null | undefined): value is Locale {
+  return (
+    value === "de" ||
+    value === "fr" ||
+    value === "it" ||
+    value === "en" ||
+    value === "sq" ||
+    value === "tr" ||
+    value === "pt" ||
+    value === "es"
+  );
+}
+
+function getLocale(): Locale {
+  // URL hat IMMER Prioritaet.
+  // /fr/anbieter -> fr
+  // /it/anbieter -> it
+  // /en/anbieter -> en
+  const pathLocale = window.location.pathname
+    .split("/")
+    .filter(Boolean)[0];
+
+  const supported: Locale[] = [
+    "de",
+    "fr",
+    "it",
+    "en",
+    "sq",
+    "tr",
+    "pt",
+    "es",
+  ];
+
+  if (supported.includes(pathLocale as Locale)) {
+    return pathLocale as Locale;
+  }
+
+  // Nur /anbieter ohne Sprachprefix:
+  const cookieMatch = document.cookie.match(
+    /(?:^|;\\s*)auftrag_locale=(de|fr|it|en|sq|tr|pt|es)(?:;|$)/,
+  );
+
+  if (cookieMatch?.[1]) {
+    return cookieMatch[1] as Locale;
+  }
+
+  return "de";
+}
+
+const originalText = new WeakMap<Text, string>();
+const originalAttributes = new WeakMap<Element, Map<string, string>>();
+
+function translateText(value: string, locale: Locale): string {
+  if (locale === "de") return value;
+
+  const trimmed = value.trim();
+  if (!trimmed) return value;
+
+  const translated = dictionary[trimmed]?.[locale];
+  if (!translated) return value;
+
+  const start = value.match(/^\s*/)?.[0] ?? "";
+  const end = value.match(/\s*$/)?.[0] ?? "";
+
+  return `${start}${translated}${end}`;
+}
+
+function translatePage(locale: Locale) {
+  document.documentElement.lang = locale;
+
+  const walker = document.createTreeWalker(
+    document.body,
+    NodeFilter.SHOW_TEXT,
+  );
+
+  let node = walker.nextNode();
+
+  while (node) {
+    const textNode = node as Text;
+
+    const parent = textNode.parentElement;
+    const tag = parent?.tagName;
+
+    if (
+      parent &&
+      tag !== "SCRIPT" &&
+      tag !== "STYLE" &&
+      tag !== "NOSCRIPT" &&
+      tag !== "CODE" &&
+      tag !== "PRE"
+    ) {
+      if (!originalText.has(textNode)) {
+        originalText.set(textNode, textNode.nodeValue ?? "");
+      }
+
+      const original = originalText.get(textNode) ?? "";
+
+      textNode.nodeValue = translateText(original, locale);
+    }
+
+    node = walker.nextNode();
+  }
+
+  const attributes = ["placeholder", "title", "aria-label"];
+
+  document.querySelectorAll("*").forEach((element) => {
+    let originals = originalAttributes.get(element);
+
+    if (!originals) {
+      originals = new Map<string, string>();
+      originalAttributes.set(element, originals);
+    }
+
+    attributes.forEach((attribute) => {
+      const current = element.getAttribute(attribute);
+
+      if (current !== null && !originals!.has(attribute)) {
+        originals!.set(attribute, current);
+      }
+
+      const original = originals!.get(attribute);
+
+      if (original !== undefined) {
+        element.setAttribute(
+          attribute,
+          translateText(original, locale),
+        );
+      }
+    });
+  });
+}
+
+
+export function translateProviderText(
+  value: string,
+  locale: Locale
+): string {
+  return translateText(value, locale);
+}
+
+export default function ProviderPageAutoTranslate() {
+  useEffect(() => {
+    const locale = getLocale();
+
+    document.documentElement.lang = locale;
+
+    // Wichtig:
+    // /anbieter ist die deutsche Originalseite.
+    // Dort darf KEINE automatische DOM-Übersetzung laufen.
+    if (locale === "de") {
+      return;
+    }
+
+    let destroyed = false;
+    let running = false;
+    let observer: MutationObserver | null = null;
+    let timer: number | null = null;
+
+    const applyTranslation = () => {
+      if (destroyed || running) return;
+
+      running = true;
+
+      try {
+
+      } finally {
+        running = false;
+      }
+    };
+
+    // Erst nach React-Hydration übersetzen.
+    timer = window.setTimeout(() => {
+      if (destroyed) return;
+
+      applyTranslation();
+
+      // Falls dynamische Elemente später erscheinen.
+      observer = new MutationObserver(() => {
+        if (destroyed || running) return;
+
+        window.requestAnimationFrame(() => {
+          applyTranslation();
+        });
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+    }, 250);
+
+    return () => {
+      destroyed = true;
+
+      if (timer !== null) {
+        window.clearTimeout(timer);
+      }
+
+      observer?.disconnect();
+    };
+  }, []);
+
+  return null;
+}

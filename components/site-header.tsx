@@ -7,6 +7,8 @@ import { services } from "@/lib/services";
 import styles from "./SiteHeader/SiteHeader.module.css";
 
 import LanguageSwitcher from "./LanguageSwitcher/LanguageSwitcher";
+import { useAuftragLocale } from "@/lib/use-auftrag-locale";
+import { translateHomeText } from "@/lib/i18n/home-translator";
 import { useAuftragoLocale } from "@/lib/use-auftrago-locale";
 const regionLinks = [
   { label: "Zürich", href: "/region/zuerich" },
@@ -17,18 +19,54 @@ const regionLinks = [
   { label: "Zug", href: "/region/zug" },
 ];
 
+
+// ===== REGION LANGUAGE FINAL START =====
+function providerRegionLabel(locale: string, region: string) {
+  const prefix: Record<string, string> = {
+    de: "Anbieter in",
+    en: "Providers in",
+    fr: "Prestataires à",
+    it: "Fornitori in",
+    sq: "Ofrues në",
+    tr: "Hizmet sağlayıcılar:",
+    pt: "Prestadores em",
+    es: "Proveedores en",
+  };
+
+  return `${prefix[locale] ?? prefix.de} ${region}`;
+}
+
+function allRegionsLabel(locale: string) {
+  const labels: Record<string, string> = {
+    de: "Alle Regionen",
+    en: "All regions",
+    fr: "Toutes les régions",
+    it: "Tutte le regioni",
+    sq: "Të gjitha rajonet",
+    tr: "Tüm bölgeler",
+    pt: "Todas as regiões",
+    es: "Todas las regiones",
+  };
+
+  return labels[locale] ?? labels.de;
+}
+// ===== REGION LANGUAGE FINAL END =====
+
 const categoryOrder = [
   "Haus & Reinigung",
   "Handwerk",
-  "Umzug & Transport",
+  "Trasloco e trasporto",
   "Energie",
-  "Versicherungen",
+  "Assicurazioni",
   "Immobilien",
   "Finanzen",
   "IT & Digital",
 ];
 
 export default function SiteHeader() {
+  const { locale } = useAuftragLocale();
+  const tr = (value: string) => translateHomeText(locale, value);
+
   const { t } = useAuftragoLocale();
   const pathname = usePathname();
   const router = useRouter();
@@ -135,7 +173,7 @@ export default function SiteHeader() {
               <small>NEU</small>
             </Link>
 
-            <Link href="/anbieter-registrieren">{t.nav.forProviders}</Link>
+            <Link href="/anbieter-registrieren">{tr("Für Anbieter")}</Link>
           </nav>
 
           <div className={styles.actions}>
@@ -146,7 +184,7 @@ export default function SiteHeader() {
               type="button"
               className={styles.searchButton}
               onClick={() => setSearchOpen(true)}
-              aria-label={t.search.open}
+              aria-label={tr("Suche öffnen")}
             >
               Suche
             </button>
@@ -159,7 +197,7 @@ export default function SiteHeader() {
               type="button"
               className={styles.mobileButton}
               onClick={() => setMenuOpen((value) => !value)}
-              aria-label={t.menu.open}
+              aria-label={tr("Menü öffnen")}
             >
               {menuOpen ? "✕" : "☰"}
             </button>
@@ -170,8 +208,8 @@ export default function SiteHeader() {
           <div className={styles.megaMenu}>
             <div className={styles.megaMenuInner}>
               <div className={styles.megaIntro}>
-                <span>Alle Dienstleistungen</span>
-                <h2>Finde genau den richtigen Anbieter.</h2>
+                <span>{tr("Alle Dienstleistungen")}</span>
+                <h2>{tr("Finde genau den richtigen Anbieter.")}</h2>
                 <p>
                   Reinigung, Handwerk, Umzug, Versicherungen, Immobilien,
                   Finanzen und digitale Lösungen.
@@ -185,7 +223,7 @@ export default function SiteHeader() {
               <div className={styles.megaGrid}>
                 {groupedServices.map((group) => (
                   <div key={group.category} className={styles.megaGroup}>
-                    <strong>{group.category}</strong>
+                    <strong>{tr(group.category)}</strong>
 
                     {group.items.slice(0, 5).map((service) => (
                       <Link
@@ -194,7 +232,7 @@ export default function SiteHeader() {
                         onClick={closeAll}
                       >
                         <span>{service.icon}</span>
-                        {service.title}
+                        {tr(service.title)}
                       </Link>
                     ))}
                   </div>
@@ -209,13 +247,13 @@ export default function SiteHeader() {
             <div className={styles.regionGrid}>
               {regionLinks.map((region) => (
                 <Link key={region.href} href={region.href} onClick={closeAll}>
-                  Anbieter in {region.label}
+                  {tr("Fornitori")} {tr("in")} {region.label}
                   <span>→</span>
                 </Link>
               ))}
 
               <Link href="/region" onClick={closeAll}>
-                Alle Regionen
+                {allRegionsLabel(locale)}
                 <span>→</span>
               </Link>
             </div>
@@ -225,9 +263,9 @@ export default function SiteHeader() {
         {
 menuOpen && (
 <nav className={styles.mobileMenu}>
-  <Link href="/anbieter" onClick={closeAll}>{t.nav.providers}</Link>
+  <Link href="/anbieter" onClick={closeAll}>{tr("Anbieter")}</Link>
   <Link href="/preisrechner" onClick={closeAll}>💰 Preisrechner</Link>
-  <Link href="/auftrag-erstellen" onClick={closeAll}>{t.nav.requestOffer}</Link>
+  <Link href="/auftrag-erstellen" onClick={closeAll}>{tr("Auftrag starten")}</Link>
 </nav>
 )
 }
@@ -239,23 +277,23 @@ menuOpen && (
             type="button"
             className={styles.closeSearch}
             onClick={() => setSearchOpen(false)}
-            aria-label={t.search.close}
+            aria-label={tr("Suche schliessen")}
           >
             ✕
           </button>
 
           <div className={styles.searchPanel}>
-            <span className={styles.searchEyebrow}>{t.search.eyebrow}</span>
-            <h2>{t.search.title}</h2>
+            <span className={styles.searchEyebrow}>{tr("Auftrag Suche")}</span>
+            <h2>{tr("Wonach suchst du?")}</h2>
 
             <form onSubmit={handleSearchSubmit}>
               <input
                 autoFocus
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder={t.search.placeholder}
+                placeholder={tr("Zum Beispiel Reinigung, Elektriker oder Krankenkasse")}
               />
-              <button type="submit">{t.search.submit}</button>
+              <button type="submit">{tr("Suchen")}</button>
             </form>
 
             <div className={styles.searchResults}>
@@ -268,8 +306,8 @@ menuOpen && (
                   <span>{service.icon}</span>
 
                   <div>
-                    <strong>{service.title}</strong>
-                    <small>{service.category}</small>
+                    <strong>{tr(service.title)}</strong>
+                    <small>{tr(service.category)}</small>
                   </div>
 
                   <b>→</b>

@@ -117,6 +117,18 @@ export async function middleware(
   request: NextRequest,
 ) {
   const pathname = request.nextUrl.pathname;
+
+  // FINAL I18N:
+  // Die URL ist die einzige Wahrheit.
+  // /anbieter = de
+  // /fr/anbieter = fr
+  // usw.
+  const localeMatchFinal = pathname.match(
+    /^\/(de|fr|it|en|sq|tr|pt|es)(?:\/|$)/
+  );
+
+  const urlLocaleFinal =
+    localeMatchFinal?.[1] ?? "de";
   const host =
     request.headers.get("host")?.split(":")[0] || "";
 
@@ -140,6 +152,117 @@ export async function middleware(
 
     return NextResponse.redirect(target, 308);
   }
+  /*
+   * Sprach-Startseiten:
+   * URL-Sprache hat IMMER Vorrang vor bestehendem Cookie.
+   */
+  const rootLocaleMatch = pathname.match(
+    /^\/(de|fr|it|en|sq|tr|pt|es)\/?$/
+  );
+
+  if (rootLocaleMatch) {
+    const locale = rootLocaleMatch[1];
+    const rewriteUrl = request.nextUrl.clone();
+
+    rewriteUrl.pathname = "/";
+
+    const requestHeaders = new Headers(request.headers);
+
+    // URL-Locale explizit an die App weitergeben.
+    requestHeaders.set("x-auftrag-locale", locale);
+
+    // Alten Locale-Cookie aus dem eingehenden Header entfernen
+    // und durch die URL-Sprache ersetzen.
+    const oldCookie = request.headers.get("cookie") ?? "";
+
+    const cleanedCookie = oldCookie
+      .split(";")
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .filter((part) => !part.startsWith("auftrag_locale="));
+
+    cleanedCookie.push(`auftrag_locale=${locale}`);
+
+    requestHeaders.set("cookie", cleanedCookie.join("; "));
+
+    const response = NextResponse.rewrite(rewriteUrl, {
+      request: {
+        headers: requestHeaders,
+      },
+    });
+
+    // Browser-Cookie ebenfalls sofort auf URL-Sprache setzen.
+    response.cookies.set("auftrag_locale", locale, {
+      path: "/",
+      maxAge: 31536000,
+      sameSite: "lax",
+    });
+
+    return response;
+  }
+
+
+
+  /*
+   * Globale Sprach-Routen.
+   *
+   * Beispiele:
+   * /de
+   * /it/anbieter-registrieren
+   * /pt/preise
+   *
+   * Die sichtbare URL behält den Sprach-Prefix.
+   * Intern arbeitet Next.js weiterhin mit den bestehenden Routes.
+   */
+  const localePathMatch = pathname.match(
+    /^\/(de|fr|it|en|sq|tr|pt|es)(\/.*)?$/,
+  );
+
+  if (localePathMatch) {
+    const locale = localePathMatch[1];
+    const remainder = localePathMatch[2] || "/";
+
+    const rewriteUrl = request.nextUrl.clone();
+    rewriteUrl.pathname = remainder;
+
+    const requestHeaders = new Headers(request.headers);
+
+    requestHeaders.set("x-auftrag-locale", locale);
+    requestHeaders.set("x-auftrago-locale", urlLocaleFinal);
+
+    const oldCookie = request.headers.get("cookie") ?? "";
+
+    const cleanedCookies = oldCookie
+      .split(";")
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .filter(
+        (part) =>
+          !part.startsWith("auftrag_locale=") &&
+          !part.startsWith("auftrago_locale="),
+      );
+
+    cleanedCookies.push(`auftrag_locale=${locale}`);
+
+    requestHeaders.set(
+      "cookie",
+      cleanedCookies.join("; "),
+    );
+
+    const response = NextResponse.rewrite(rewriteUrl, {
+      request: {
+        headers: requestHeaders,
+      },
+    });
+
+    response.cookies.set("auftrag_locale", locale, {
+      path: "/",
+      maxAge: 31536000,
+      sameSite: "lax",
+    });
+
+    return response;
+  }
 
   /*
    * Alte Anbieter-Routen.
@@ -159,6 +282,57 @@ export async function middleware(
   }
 
   
+  /*
+   * Lokalisierte Startseite:
+   * /fr
+   * /en
+   * /it
+   * /sq
+   * /tr
+   * /pt
+   * /es
+   *
+   * Intern wird weiterhin / verwendet.
+   */
+  const homeLocaleMatch = pathname.match(
+    /^\/(de|fr|it|en|sq|tr|pt|es)\/?$/
+  );
+
+  if (homeLocaleMatch) {
+    const locale = homeLocaleMatch[1];
+    const rewriteUrl = request.nextUrl.clone();
+
+    rewriteUrl.pathname = "/";
+
+    const requestHeaders = new Headers(request.headers);
+
+    requestHeaders.set("x-auftrago-locale", urlLocaleFinal);
+
+    requestHeaders.set(
+      "cookie",
+      [
+        request.headers.get("cookie") ?? "",
+        `auftrago_locale=${locale}`,
+      ]
+        .filter(Boolean)
+        .join("; "),
+    );
+
+    const response = NextResponse.rewrite(rewriteUrl, {
+      request: {
+        headers: requestHeaders,
+      },
+    });
+
+    response.cookies.set("auftrago_locale", locale, {
+      path: "/",
+      maxAge: 31536000,
+      sameSite: "lax",
+    });
+
+    return response;
+  }
+
   /*
    * Versicherungsseite mit Sprachprefix:
    * /fr/versicherungen
@@ -182,7 +356,7 @@ export async function middleware(
     rewriteUrl.pathname = "/versicherungen";
 
     const requestHeaders = new Headers(request.headers);
-    requestHeaders.set("x-auftrago-locale", locale);
+    requestHeaders.set("x-auftrago-locale", urlLocaleFinal);
     requestHeaders.set("cookie", [
       request.headers.get("cookie") ?? "",
       `auftrago_locale=${locale}`,

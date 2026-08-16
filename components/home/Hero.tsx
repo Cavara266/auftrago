@@ -22,13 +22,14 @@ import {
 } from "lucide-react";
 import styles from "./Hero.module.css";
 
-import { useAuftragoLocale } from "@/lib/use-auftrago-locale";
 import { homeTranslations } from "@/lib/home-i18n";
+import type { Locale } from "@/lib/i18n/config";
+import { translateHomeText } from "@/lib/i18n/home-translator";
 const categories = [
   { label: "Reinigung", icon: Sparkles, tone: "blue" },
   { label: "Handwerker", icon: Hammer, tone: "cyan" },
   { label: "Umzug & Transport", icon: Truck, tone: "cyan" },
-  { label: "Garten & Aussen", icon: Trees, tone: "green" },
+  { label: "Garten & Umgebung", icon: Trees, tone: "green" },
   { label: "Sanitär", icon: Wrench, tone: "orange" },
   { label: "IT & Technik", icon: Laptop, tone: "violet" },
   { label: "Versicherungen", icon: Shield, tone: "gold", featured: true },
@@ -53,9 +54,9 @@ const mapPoints = [
 
 const particles = Array.from({ length: 18 }, (_, index) => index);
 
-export default function Hero() {
-  const { locale } = useAuftragoLocale();
-  const t = homeTranslations[locale];
+export default function Hero({ locale }: { locale: Locale }) {
+const tr = (value: string) => translateHomeText(locale, value);
+  const t = homeTranslations[locale] ?? homeTranslations.de;
 
   const router = useRouter();
   const [searchValue, setSearchValue] = useState("");
@@ -91,37 +92,36 @@ export default function Hero() {
             <div className={styles.topBadge}>
               <span className={styles.badgePulse} />
               <span className={styles.swissIcon}>✚</span>
-              Die Nr.1 Plattform für Dienstleistungen in der Schweiz
+              {t.badge}
             </div>
 
             <h1 className={styles.title}>
-              Dein Auftrag.
+              {t.title1}
               <br />
-              Perfekt <span>erledigt.</span>
+              {t.title2.split(" ")[0]}{" "}
+        <span>{t.title2.split(" ").slice(1).join(" ")}</span>
             </h1>
 
             <p className={styles.description}>
-              Ob Reinigung, Handwerker, Umzug oder Versicherungen – wir bringen dich mit
-              geprüften Anbietern aus deiner Region zusammen. Schnell,
-              kostenlos und unverbindlich.
+              {tr("Ob Reinigung, Handwerker, Umzug oder Versicherungen – wir bringen dich mit geprüften Anbietern aus deiner Region zusammen. Schnell, kostenlos und unverbindlich.")}
             </p>
 
             <div className={styles.benefits}>
               <span>
                 <CheckCircle2 size={18} />
-                100% kostenlos
+                {t.free}
               </span>
               <span>
                 <Clock3 size={18} />
-                In unter 60 Sekunden
+                {t.fast}
               </span>
               <span>
                 <ShieldCheck size={18} />
-                Geprüfte Anbieter
+                {t.verified}
               </span>
               <span>
                 <span className={styles.miniSwiss}>✚</span>
-                Schweizweit
+                {t.nationwide}
               </span>
             </div>
 
@@ -136,7 +136,7 @@ export default function Hero() {
                 name="auftrago-search"
                 value={searchValue}
                 onChange={(event) => setSearchValue(event.target.value)}
-                placeholder={t.placeholder}
+                placeholder={t["Was möchtest du erledigen lassen?"]}
                 className={styles.searchInput}
                 autoComplete="off"
                 autoCorrect="off"
@@ -151,17 +151,17 @@ export default function Hero() {
             </form>
 
             <div className={styles.popular}>
-              <span>Beliebte Anfragen:</span>
-              <button>🧹 Reinigung</button>
-              <button>🔨 Handwerker</button>
-              <button>🚚 Umzug</button>
-              <button>🌿 Garten</button>
+              <span>{t["Beliebte Dienstleistungen"]}:</span>
+              <button>🧹 {t["Reinigung"]}</button>
+              <button>🔨 {t["Handwerker"]}</button>
+              <button>🚚 {t["Umzug"]}</button>
+              <button>🌿 {t["Gartenpflege"]}</button>
               <button
                 type="button"
                 className={styles.insurancePopular}
-                onClick={() => router.push("/auftrag-erstellen?kategorie=Versicherungen")}
+                onClick={() => router.push("/auftrag-erstellen?kategorie=Assicurazioni")}
               >
-                🛡️ Versicherungen <span>NEU</span>
+                🛡️ {t["Versicherungen"]} <span>{tr("Neu")}</span>
               </button>
             </div>
           </div>
@@ -192,9 +192,9 @@ export default function Hero() {
                 <div className={styles.requestText}>
                   <span>{t.request}</span>
                   <strong>
-                    Wohnungsreinigung in Aarau,
+                    {t["Wohnungsreinigung in Aarau"]},
                     <br />
-                    nächstmöglicher Termin.
+                    {tr("Termin flexibel")}
                   </strong>
                 </div>
 
@@ -265,7 +265,7 @@ export default function Hero() {
                   </span>
                   <div>
                     <strong>{t.serviceDetected}</strong>
-                    <small>Wohnungsreinigung</small>
+                    <small>{t["Wohnungsreinigung"]}</small>
                   </div>
                 </div>
 
@@ -275,7 +275,7 @@ export default function Hero() {
                   </span>
                   <div>
                     <strong>{t.regionDetected}</strong>
-                    <small>Aarau und Umgebung</small>
+                    <small>{t["Aarau und Umgebung"]}</small>
                   </div>
                 </div>
 
@@ -305,20 +305,20 @@ export default function Hero() {
         </div>
 
         <div className={styles.categoryHeader}>
-          <h2>Alle Kategorien</h2>
-          <span>Direkt zum passenden Service</span>
+          <h2>{t["Alle Dienstleistungen"]}</h2>
+          <span>{t["Passende Leistungen festlegen"]}</span>
         </div>
 
         <div className={styles.categories}>
           {categories.map(({ label, icon: Icon, tone }, index) => (
             <button
-              key={label}
+              key={tr(label)}
               className={styles.categoryCard}
               style={{ animationDelay: `${index * 0.08}s` }}
             >
               <span className={styles.cardGlow} />
               <Icon className={styles[tone]} size={34} strokeWidth={1.8} />
-              <span>{label}</span>
+              <span>{tr(label)}</span>
             </button>
           ))}
         </div>
@@ -326,24 +326,24 @@ export default function Hero() {
         <div className={styles.statsBar}>
           <div>
             <strong>420+</strong>
-            <span>Dienstleistungen</span>
+            <span>{tr("Dienstleistungen")}</span>
           </div>
           <div>
             <strong>6&apos;500+</strong>
-            <span>Anbieter</span>
+            <span>{tr("Anbieter")}</span>
           </div>
           <div>
             <strong>38&apos;000+</strong>
-            <span>Aufträge vermittelt</span>
+            <span>{tr("Aufträge vermittelt")}</span>
           </div>
           <div>
             <strong>26</strong>
-            <span>Kantone</span>
+            <span>{tr("Kantone")}</span>
           </div>
           <div className={styles.ratingBlock}>
             <span className={styles.stars}>★★★★★</span>
             <strong>4.9/5</strong>
-            <small>Von über 2&apos;400 Kunden bewertet</small>
+            <small>{tr("Von über 2&apos;400 Kunden bewertet")}</small>
           </div>
         </div>
       </div>

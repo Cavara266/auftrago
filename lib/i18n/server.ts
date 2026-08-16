@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { headers } from "next/headers";
 
 import {
   defaultLocale,
@@ -8,12 +8,16 @@ import {
 
 export async function getServerLocale(): Promise<Locale> {
   try {
-    const cookieStore = await cookies();
+    const headerStore = await headers();
 
-    const saved =
-      cookieStore.get("auftrago_locale")?.value;
+    const locale =
+      headerStore.get("x-auftrago-locale");
 
-    return normalizeLocale(saved);
+    if (locale) {
+      return normalizeLocale(locale);
+    }
+
+    return defaultLocale;
   } catch {
     return defaultLocale;
   }

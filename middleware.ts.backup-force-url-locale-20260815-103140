@@ -1,0 +1,388 @@
+import {
+  NextRequest,
+  NextResponse,
+} from "next/server";
+
+const ADMIN_COOKIE_NAME = "auftrago_admin_session";
+const SESSION_DURATION_SECONDS = 60 * 60 * 8;
+
+function bytesToHex(bytes: ArrayBuffer): string {
+  return Array.from(new Uint8Array(bytes))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function createSignature(
+  value: string,
+  secret: string,
+): Promise<string> {
+  const encoder = new TextEncoder();
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    {
+      name: "HMAC",
+      hash: "SHA-256",
+    },
+    false,
+    ["sign"],
+  );
+
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    encoder.encode(value),
+  );
+
+  return bytesToHex(signature);
+}
+
+function safeCompare(
+  first: string,
+  second: string,
+): boolean {
+  if (first.length !== second.length) {
+    return false;
+  }
+
+  let difference = 0;
+
+  for (let index = 0; index < first.length; index += 1) {
+    difference |=
+      first.charCodeAt(index) ^
+      second.charCodeAt(index);
+  }
+
+  return difference === 0;
+}
+
+async function hasValidAdminSession(
+  request: NextRequest,
+): Promise<boolean> {
+  const signingSecret =
+    process.env.ADMIN_SECRET ||
+    process.env.ADMIN_PASSWORD;
+
+  if (!signingSecret) {
+    console.error(
+      "ADMIN_SECRET oder ADMIN_PASSWORD fehlt.",
+    );
+
+    return false;
+  }
+
+  const cookieValue =
+    request.cookies.get(ADMIN_COOKIE_NAME)?.value;
+
+  if (!cookieValue) {
+    return false;
+  }
+
+  const [timestampText, receivedSignature] =
+    cookieValue.split(".");
+
+  if (!timestampText || !receivedSignature) {
+    return false;
+  }
+
+  const timestamp = Number(timestampText);
+
+  if (!Number.isFinite(timestamp)) {
+    return false;
+  }
+
+  const currentTimestamp = Math.floor(Date.now() / 1000);
+  const sessionAge = currentTimestamp - timestamp;
+
+  if (
+    sessionAge < 0 ||
+    sessionAge > SESSION_DURATION_SECONDS
+  ) {
+    return false;
+  }
+
+  const expectedSignature = await createSignature(
+    timestampText,
+    signingSecret,
+  );
+
+  return safeCompare(
+    receivedSignature,
+    expectedSignature,
+  );
+}
+
+export async function middleware(
+  request: NextRequest,
+) {
+  const pathname = request.nextUrl.pathname;
+  const host =
+    request.headers.get("host")?.split(":")[0] || "";
+
+  /*
+   * Einheitliche Hauptdomain.
+   * Dadurch bleiben Cookies und Login stabil.
+   */
+  const isStripeSubscriptionWebhook =
+    pathname === "/api/stripe/subscription-webhook";
+
+  if (
+    process.env.NODE_ENV === "production" &&
+    host === "auftrago.ch" &&
+    !isStripeSubscriptionWebhook
+  ) {
+    const target = request.nextUrl.clone();
+
+    target.hostname = "www.auftrago.ch";
+    target.protocol = "https:";
+    target.port = "";
+
+    return NextResponse.redirect(target, 308);
+  }
+
+
+  /*
+   * Sprach-Startseiten:
+   * /de /fr /it /en /sq /tr /pt /es
+   * werden intern auf / gerendert.
+   * Die sichtbare URL bleibt dabei erhalten.
+   */
+  const rootLocaleMatch = pathname.match(
+    /^\/(de|fr|it|en|sq|tr|pt|es)\/?$/
+  );
+
+  if (rootLocaleMatch) {
+    const locale = rootLocaleMatch[1];
+    const rewriteUrl = request.nextUrl.clone();
+
+    rewriteUrl.pathname = "/";
+
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-auftrag-locale", locale);
+
+    requestHeaders.set(
+      "cookie",
+      [
+        request.headers.get("cookie") ?? "",
+        `auftrag_locale=${locale}`,
+      ]
+        .filter(Boolean)
+        .join("; "),
+    );
+
+    const response = NextResponse.rewrite(rewriteUrl, {
+      request: {
+        headers: requestHeaders,
+      },
+    });
+
+    response.cookies.set("auftrag_locale", locale, {
+      path: "/",
+      maxAge: 31536000,
+      sameSite: "lax",
+    });
+
+    return response;
+  }
+
+  /*
+   * Alte Anbieter-Routen.
+   */
+  if (pathname === "/credits") {
+    return NextResponse.redirect(
+      new URL("/portal/guthaben", request.url),
+      307,
+    );
+  }
+
+  if (pathname === "/dashboard") {
+    return NextResponse.redirect(
+      new URL("/portal", request.url),
+      307,
+    );
+  }
+
+  
+  /*
+   * Lokalisierte Startseite:
+   * /fr
+   * /en
+   * /it
+   * /sq
+   * /tr
+   * /pt
+   * /es
+   *
+   * Intern wird weiterhin / verwendet.
+   */
+  const homeLocaleMatch = pathname.match(
+    /^\/(fr|it|en|sq|tr|pt|es)\/?$/
+  );
+
+  if (homeLocaleMatch) {
+    const locale = homeLocaleMatch[1];
+    const rewriteUrl = request.nextUrl.clone();
+
+    rewriteUrl.pathname = "/";
+
+    const requestHeaders = new Headers(request.headers);
+
+    requestHeaders.set("x-auftrago-locale", locale);
+
+    requestHeaders.set(
+      "cookie",
+      [
+        request.headers.get("cookie") ?? "",
+        `auftrago_locale=${locale}`,
+      ]
+        .filter(Boolean)
+        .join("; "),
+    );
+
+    const response = NextResponse.rewrite(rewriteUrl, {
+      request: {
+        headers: requestHeaders,
+      },
+    });
+
+    response.cookies.set("auftrago_locale", locale, {
+      path: "/",
+      maxAge: 31536000,
+      sameSite: "lax",
+    });
+
+    return response;
+  }
+
+  /*
+   * Versicherungsseite mit Sprachprefix:
+   * /fr/versicherungen
+   * /en/versicherungen
+   * /it/versicherungen
+   * /sq/versicherungen
+   * /tr/versicherungen
+   * /pt/versicherungen
+   * /es/versicherungen
+   *
+   * Intern wird weiterhin /versicherungen verwendet.
+   */
+  const insuranceLocaleMatch = pathname.match(
+    /^\/(fr|it|en|sq|tr|pt|es)\/versicherungen\/?$/
+  );
+
+  if (insuranceLocaleMatch) {
+    const locale = insuranceLocaleMatch[1];
+    const rewriteUrl = request.nextUrl.clone();
+
+    rewriteUrl.pathname = "/versicherungen";
+
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-auftrago-locale", locale);
+    requestHeaders.set("cookie", [
+      request.headers.get("cookie") ?? "",
+      `auftrago_locale=${locale}`,
+    ].filter(Boolean).join("; "));
+
+    const response = NextResponse.rewrite(rewriteUrl, {
+      request: {
+        headers: requestHeaders,
+      },
+    });
+
+    response.cookies.set("auftrago_locale", locale, {
+      path: "/",
+      maxAge: 31536000,
+      sameSite: "lax",
+    });
+
+    return response;
+  }
+
+if (pathname === "/leads") {
+    return NextResponse.redirect(
+      new URL("/portal/leads", request.url),
+      307,
+    );
+  }
+
+  if (pathname.startsWith("/leads/")) {
+    const leadId = pathname.replace("/leads/", "");
+
+    return NextResponse.redirect(
+      new URL(`/portal/leads/${leadId}`, request.url),
+      307,
+    );
+  }
+
+  /*
+   * Admin-Login und Admin-API dürfen nie durch
+   * die Admin-Weiterleitung blockiert werden.
+   */
+  const isPublicAdminRoute =
+    pathname === "/admin-login" ||
+    pathname === "/api/admin-login" ||
+    pathname === "/api/admin-logout";
+
+  if (isPublicAdminRoute) {
+    return NextResponse.next();
+  }
+
+  /*
+   * Ausschliesslich echte /admin-Routen schützen.
+   * /anbieter, /portal und öffentliche Seiten
+   * werden davon nicht beeinflusst.
+   */
+  const isAdminRoute =
+    pathname === "/admin" ||
+    pathname.startsWith("/admin/");
+
+  if (isAdminRoute) {
+    const validSession =
+      await hasValidAdminSession(request);
+
+    if (!validSession) {
+      const loginUrl = new URL(
+        "/admin-login",
+        request.url,
+      );
+
+      loginUrl.searchParams.set(
+        "callbackUrl",
+        `${pathname}${request.nextUrl.search}`,
+      );
+
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: [
+    "/fr",
+    "/it",
+    "/en",
+    "/sq",
+    "/tr",
+    "/pt",
+    "/es",
+    "/fr/versicherungen",
+    "/it/versicherungen",
+    "/en/versicherungen",
+    "/sq/versicherungen",
+    "/tr/versicherungen",
+    "/pt/versicherungen",
+    "/es/versicherungen",
+    "/credits",
+    "/dashboard",
+    "/leads",
+    "/leads/:path*",
+    "/admin",
+    "/admin/:path*",
+    "/admin-login",
+    "/api/admin-login",
+    "/api/admin-logout",
+  ],
+};

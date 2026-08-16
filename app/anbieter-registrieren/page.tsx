@@ -4,6 +4,7 @@ import AnbieterRegistrierenForm from "@/components/anbieter-registrieren-form";
 import AnimatedProviderShowcase from "@/components/anbieter/animated-provider-showcase";
 
 import styles from "./anbieter.module.css";
+import ProviderPageAutoTranslate from "@/components/i18n/ProviderPageAutoTranslate";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -85,6 +86,7 @@ const faq = [
 export default function AnbieterRegistrierenPage() {
   return (
     <main className={styles.page}>
+      <ProviderPageAutoTranslate />
       <div className={styles.noise} />
       <div className={styles.orbOne} />
       <div className={styles.orbTwo} />

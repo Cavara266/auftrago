@@ -1,4 +1,8 @@
+import { getServerLocale } from "@/lib/i18n/server";
+import type { Locale } from "@/lib/i18n/config";
 import Link from "next/link";
+
+import { translateHomeText } from "@/lib/i18n/home-translator";
 
 const showcaseLeads = [
   {
@@ -44,7 +48,7 @@ const showcaseLeads = [
     icon: "🌿",
     title: "Gartenpflege & Heckenschnitt",
     region: "Bern",
-    category: "Garten",
+    category: "Gartenpflege",
     timing: "Nächste Woche",
     credits: 20,
     status: "Aktiv",
@@ -88,7 +92,22 @@ const providerBenefits = [
   "Keine klassische Kaltakquise",
 ];
 
-export default function LiveLeadsSection() {
+export default async function LiveLeadsSection({ locale }: { locale?: Locale } = {}) {
+  const effectiveLocale = locale ?? await getServerLocale();
+
+  const tr = (value: string) => translateHomeText(effectiveLocale, value);
+
+  const leads = showcaseLeads.map((lead) => ({
+    ...lead,
+    title: tr(lead.title),
+    region: tr(lead.region),
+    category: tr(lead.category),
+    timing: tr(lead.timing),
+    status: tr(lead.status),
+  }));
+
+  const benefits = providerBenefits.map(tr);
+
   return (
     <section className="relative overflow-hidden px-5 py-28 sm:px-8 lg:px-12 lg:py-40">
       <style
@@ -176,40 +195,35 @@ export default function LiveLeadsSection() {
                 <span className="lead-live-dot absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-70" />
                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
               </span>
-              Neue Kundenanfragen
+              {tr("Neue Kundenanfragen")}
             </div>
 
             <h2 className="mt-7 max-w-[950px] text-[3.4rem] font-black leading-[0.92] tracking-[-0.07em] sm:text-[5rem] lg:text-[6.2rem]">
-              Aufträge, die zu
-              <span className="block bg-gradient-to-r from-white via-emerald-200 to-sky-300 bg-clip-text text-transparent">
-                deinem Betrieb passen.
-              </span>
-            </h2>
+          {tr("Aufträge, die zu deinem Betrieb passen.")}
+        </h2>
           </div>
 
           <div className="lg:pb-2">
             <p className="text-lg font-medium leading-8 text-slate-400">
-              Entdecke aktuelle Anfragen aus verschiedenen Regionen und
-              Fachbereichen. Registrierte Anbieter sehen vollständige
-              Auftragsdetails und Kontaktdaten nach der Freischaltung.
+              {tr("Entdecke aktuelle Anfragen aus verschiedenen Regionen und Branchen. Registrierte Anbieter sehen nach der Freischaltung alle Details und Kontaktdaten.")}
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3 text-xs font-black text-slate-300">
               <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-2">
-                ✓ Regionale Anfragen
+                {tr("✓ Regionale Anfragen")}
               </span>
               <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-2">
-                ✓ Neue Kategorien
+                {tr("✓ Neue Kategorien")}
               </span>
               <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-2">
-                ✓ Direkter Kundenkontakt
+                {tr("✓ Direkter Kontakt mit dem Kunden")}
               </span>
             </div>
           </div>
         </div>
 
         <div className="mt-16 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {showcaseLeads.map((lead, index) => (
+          {leads.map((lead, index) => (
             <article
               key={`${lead.title}-${lead.region}`}
               className="lead-card-shine group relative min-h-[390px] overflow-hidden rounded-[34px] border border-white/[0.1] bg-[#0a1121]/95 p-6 shadow-[0_28px_90px_rgba(0,0,0,0.35)] transition duration-500 hover:-translate-y-3 hover:border-white/20 hover:shadow-[0_42px_120px_rgba(0,0,0,0.5)] sm:p-7"
@@ -242,7 +256,7 @@ export default function LiveLeadsSection() {
                 </div>
 
                 <p className="mt-8 text-xs font-black uppercase tracking-[0.18em] text-slate-500">
-                  Aktuelle Kundenanfrage
+                  {tr("Aktuelle Kundenanfrage")}
                 </p>
 
                 <h3 className="mt-3 max-w-[330px] text-2xl font-black leading-[1.05] tracking-[-0.045em]">
@@ -254,7 +268,7 @@ export default function LiveLeadsSection() {
                     📍 {lead.region}
                   </span>
                   <span className="rounded-full border border-white/[0.07] bg-white/[0.05] px-3 py-2 text-xs font-bold text-slate-300">
-                    {lead.category}
+                    {tr(lead.category)}
                   </span>
                   <span className="rounded-full border border-white/[0.07] bg-white/[0.05] px-3 py-2 text-xs font-bold text-slate-300">
                     ⏱ {lead.timing}
@@ -265,8 +279,9 @@ export default function LiveLeadsSection() {
                   <div className="flex items-start gap-3">
                     <span className="mt-0.5 text-sm">🔒</span>
                     <p className="text-xs font-medium leading-6 text-slate-400">
-                      Vollständige Beschreibung, Adresse, Termin und
-                      Kontaktdaten sind nach Freischaltung sichtbar.
+                      {tr(
+                    "Die vollständige Beschreibung, Adresse, Datum und Kontaktdaten sind nach der Freischaltung sichtbar."
+                  )}
                     </p>
                   </div>
                 </div>
@@ -274,7 +289,7 @@ export default function LiveLeadsSection() {
                 <div className="mt-auto flex items-end justify-between gap-4 pt-7">
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
-                      Freischaltung
+                      {tr("Freischaltung")}
                     </p>
 
                     <div className="mt-2 flex items-center gap-3">
@@ -297,7 +312,7 @@ export default function LiveLeadsSection() {
                     href="/login"
                     className="group/button inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 px-5 text-sm font-black shadow-[0_16px_45px_rgba(59,130,246,0.25)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_65px_rgba(59,130,246,0.4)]"
                   >
-                    Auftrag ansehen
+                    {tr("Anfrage ansehen")}
                     <span className="ml-2 transition group-hover/button:translate-x-1">
                       →
                     </span>
@@ -316,13 +331,13 @@ export default function LiveLeadsSection() {
           <div className="relative grid gap-12 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
             <div>
               <span className="inline-flex items-center gap-2 rounded-full border border-violet-300/20 bg-violet-400/[0.07] px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-violet-200">
-                🚀 Für Schweizer Dienstleister
+                🚀 {tr("Für Schweizer Dienstleister")}
               </span>
 
               <h3 className="mt-6 max-w-[780px] text-4xl font-black leading-[0.98] tracking-[-0.055em] sm:text-5xl lg:text-6xl">
-                Kunden suchen bereits.
+                {tr("Kunden suchen bereits.")}
                 <span className="block bg-gradient-to-r from-sky-300 via-indigo-300 to-fuchsia-300 bg-clip-text text-transparent">
-                  Sei dort, wenn es zählt.
+                  {tr("Sei dort, wenn es zählt.")}
                 </span>
               </h3>
 
@@ -340,7 +355,7 @@ export default function LiveLeadsSection() {
                   <span className="absolute inset-y-0 -left-24 w-16 rotate-12 bg-white/25 blur-2xl transition duration-700 group-hover:left-[120%]" />
 
                   <span className="relative flex items-center gap-3">
-                    Kostenlos als Anbieter registrieren
+                    {tr("Kostenlos als Anbieter registrieren")}
                     <span className="text-xl transition group-hover:translate-x-1">
                       →
                     </span>
@@ -351,13 +366,13 @@ export default function LiveLeadsSection() {
                   href="/anbieter"
                   className="inline-flex min-h-[62px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-8 font-black transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.07]"
                 >
-                  So funktioniert es
+                  {tr("So funktioniert es")}
                 </Link>
               </div>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              {providerBenefits.map((benefit, index) => (
+              {benefits.map((benefit, index) => (
                 <div
                   key={benefit}
                   className="group rounded-[24px] border border-white/[0.08] bg-black/20 p-5 transition duration-300 hover:-translate-y-1 hover:border-sky-300/20 hover:bg-sky-400/[0.05]"
@@ -382,10 +397,10 @@ export default function LiveLeadsSection() {
                 <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-300">
-                      Auftrago Anbieter-Netzwerk
+                      {tr("Auftrago Anbieter-Netzwerk")}
                     </p>
                     <p className="mt-2 text-xl font-black tracking-[-0.03em]">
-                      Jetzt Teil der Plattform werden
+                      {tr("Jetzt Teil der Plattform werden")}
                     </p>
                   </div>
 
@@ -413,10 +428,10 @@ export default function LiveLeadsSection() {
 
         <div className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-[30px] border border-white/[0.08] bg-white/[0.08] lg:grid-cols-4">
           {[
-            ["420+", "Dienstleistungen"],
-            ["26", "Kantone"],
-            ["Täglich", "Neue Anfragen"],
-            ["Direkt", "Zum Kundenkontakt"],
+            ["420+", tr("Dienstleistungen")],
+            ["26", tr("Kantone")],
+            [tr("Täglich"), tr("Neue Anfragen")],
+            [tr("Direkt"), tr("Zum Kundenkontakt")],
           ].map(([value, label]) => (
             <div
               key={label}

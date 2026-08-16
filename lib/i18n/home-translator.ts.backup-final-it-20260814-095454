@@ -1,0 +1,356 @@
+import type { Locale } from "./config";
+import { homeGeneratedDictionaries } from "./home-generated";
+
+type TranslationTable = Record<string, string>;
+
+const fr: TranslationTable = {
+  "Auftrago – Schweizer Plattform für Dienstleistungen":
+    "Auftrago – Plateforme suisse de services",
+
+  "Kostenlos regionale Anbieter für Reinigung, Umzug, Handwerk, Hauswartung, Garten und viele weitere Dienstleistungen vergleichen.":
+    "Comparez gratuitement des prestataires régionaux pour le nettoyage, le déménagement, l'artisanat, la conciergerie, le jardinage et de nombreux autres services.",
+
+  "Erfasse deinen Auftrag kostenlos und erreiche passende Anbieter aus deiner Region.":
+    "Créez gratuitement votre demande et atteignez des prestataires adaptés dans votre région.",
+
+  "Reinigung": "Nettoyage",
+  "Handwerker": "Artisans",
+  "Umzug & Transport": "Déménagement & transport",
+  "Garten & Umgebung": "Jardin & extérieur",
+  "Hauswartung": "Conciergerie",
+  "Weitere Services": "Autres services",
+  "Umzugsreinigung": "Nettoyage de fin de bail",
+  "Gartenpflege": "Entretien de jardin",
+  "Umzug": "Déménagement",
+  "Transport": "Transport",
+  "Entsorgung": "Débarras",
+  "Fensterreinigung": "Nettoyage de vitres",
+  "Maler": "Peinture",
+  "Elektriker": "Électricien",
+  "Sanitär": "Sanitaire",
+  "Montage": "Montage",
+  "Bodenleger": "Pose de sols",
+  "Renovation": "Rénovation",
+  "Winterdienst": "Service hivernal",
+  "Alle Services": "Tous les services",
+
+  "Anfrage": "Demande",
+  "Matching": "Mise en relation",
+  "Vergleich": "Comparaison",
+  "Erledigt": "Terminé",
+
+  "Dienstleistung, Region und Termin eintragen. Deine Anfrage ist in weniger als einer Minute bereit.":
+    "Indiquez le service, la région et la date. Votre demande est prête en moins d'une minute.",
+
+  "Auftrago findet passende Anbieter.":
+    "Auftrago trouve des prestataires adaptés.",
+
+  "Dein Auftrag wird für geeignete Dienstleister aus deiner Region sichtbar gemacht.":
+    "Votre demande est présentée aux prestataires adaptés de votre région.",
+
+  "Du erhältst passende Rückmeldungen.":
+    "Vous recevez des réponses adaptées.",
+
+  "Vergleiche Preis, Leistung, Verfügbarkeit und Auftreten der Anbieter.":
+    "Comparez les prix, les prestations, les disponibilités et les prestataires.",
+
+  "Du entscheidest, wer den Auftrag erhält.":
+    "Vous décidez qui obtient le mandat.",
+
+  "Keine Annahmepflicht. Du wählst selbst den Anbieter, der am besten passt.":
+    "Aucune obligation d'accepter. Vous choisissez le prestataire qui vous convient le mieux.",
+
+  "Keine endlose Suche": "Fini les recherches interminables",
+  "Regionale Anbieter": "Prestataires régionaux",
+  "Du behältst die Kontrolle": "Vous gardez le contrôle",
+  "Kostenlos für Kunden": "Gratuit pour les clients",
+
+  "Eine Anfrage ersetzt unzählige Telefonate, Suchresultate und einzelne Kontaktformulare.":
+    "Une seule demande remplace d'innombrables appels, recherches et formulaires de contact.",
+
+  "Du erreichst Dienstleister, die in deiner Region tätig sind und zu deinem Auftrag passen.":
+    "Vous atteignez des prestataires actifs dans votre région et adaptés à votre demande.",
+
+  "Du entscheidest selbst, welche Rückmeldung überzeugt und wer den Auftrag erhält.":
+    "Vous décidez vous-même quelle réponse vous convainc et qui obtient le mandat.",
+
+  "Das Erstellen einer Anfrage ist kostenlos und verpflichtet dich zu keiner Annahme.":
+    "La création d'une demande est gratuite et ne vous engage à rien.",
+
+  "Konkrete Kundenanfragen": "Demandes clients concrètes",
+  "Eigene Regionen auswählen": "Choisir ses propres régions",
+  "Passende Leistungen festlegen": "Définir ses prestations",
+  "Keine klassische Kaltakquise": "Pas de prospection à froid classique",
+  "Volle Kostenkontrolle": "Contrôle total des coûts",
+  "Schneller Zugang zu neuen Aufträgen": "Accès rapide à de nouveaux mandats",
+
+  "Ist eine Anfrage auf Auftrago wirklich kostenlos?":
+    "Une demande sur Auftrago est-elle vraiment gratuite?",
+
+  "Ja. Auftraggeber können ihre Anfrage kostenlos und unverbindlich erfassen. Du entscheidest selbst, ob eine Offerte oder Rückmeldung zu deinem Auftrag passt.":
+    "Oui. Les clients peuvent créer gratuitement et sans engagement une demande. Vous décidez vous-même si une offre ou une réponse vous convient.",
+
+  "Welche Dienstleistungen kann ich anfragen?":
+    "Quels services puis-je demander?",
+
+  "Auftrago deckt unter anderem Reinigung, Umzug, Hauswartung, Gartenpflege, Transport, Entsorgung, Malerarbeiten, Elektriker, Sanitär, Renovationen, Versicherungen und viele weitere Bereiche ab.":
+    "Auftrago couvre notamment le nettoyage, le déménagement, la conciergerie, le jardinage, le transport, le débarras, la peinture, l'électricité, le sanitaire, les rénovations, les assurances et de nombreux autres domaines.",
+
+  "Wie schnell erhalte ich Rückmeldungen?":
+    "À quelle vitesse vais-je recevoir des réponses?",
+
+  "Die Reaktionszeit hängt von Region, Dienstleistung, Termin und Verfügbarkeit ab. Eine vollständige Beschreibung und passende Fotos erhöhen die Chance auf schnelle Rückmeldungen.":
+    "Le délai dépend de la région, du service, de la date et de la disponibilité. Une description complète et des photos adaptées augmentent les chances de recevoir rapidement des réponses.",
+
+  "Muss ich eines der Angebote annehmen?":
+    "Suis-je obligé d'accepter une offre?",
+
+  "Nein. Deine Anfrage bleibt unverbindlich. Du kannst Rückmeldungen vergleichen und frei entscheiden, ob du einen Anbieter beauftragen möchtest.":
+    "Non. Votre demande reste sans engagement. Vous pouvez comparer les réponses et décider librement si vous souhaitez mandater un prestataire.",
+
+  "Ist Auftrago schweizweit verfügbar?":
+    "Auftrago est-il disponible dans toute la Suisse?",
+
+  "Ja. Kunden können Anfragen aus verschiedenen Kantonen und Regionen erfassen. Die konkrete Auswahl hängt von den verfügbaren Anbietern in der jeweiligen Umgebung ab.":
+    "Oui. Les clients peuvent créer des demandes dans différents cantons et régions. La sélection dépend des prestataires disponibles dans la région concernée.",
+
+  "Wie funktioniert Auftrago für Anbieter?":
+    "Comment fonctionne Auftrago pour les prestataires?",
+
+  "Registrierte Dienstleister erhalten Zugang zu passenden Kundenanfragen aus ihren gewählten Regionen und Fachbereichen. Relevante Aufträge können gezielt freigeschaltet werden.":
+    "Les prestataires inscrits ont accès aux demandes correspondant à leurs régions et domaines d'activité. Les mandats pertinents peuvent être sélectionnés individuellement.",
+
+  "Über 420 Dienstleistungen entdecken":
+    "Découvrir plus de 420 services",
+
+  "Deine Anfrage": "Votre demande",
+  "Dienstleistung erkannt": "Service identifié",
+  "Anbieter gefunden": "Prestataires trouvés",
+  "Passende Anbieter vergleichen": "Comparer les prestataires adaptés",
+  "12 Anbieter": "12 prestataires",
+  "strukturierte Anfrage.": "demande structurée.",
+  "Kostenlos starten": "Commencer gratuitement",
+  "Anbieter entdecken": "Découvrir les prestataires",
+  "Alle Dienstleistungen": "Tous les services",
+  "Jetzt Anbieter werden": "Devenir prestataire",
+  "Schweizweit verbunden.": "Disponible dans toute la Suisse.",
+  "Finde regionale Anbieter für deine gewünschte Dienstleistung.":
+    "Trouvez des prestataires régionaux pour le service souhaité.",
+  "Beliebte Dienstleistungen": "Services populaires",
+  "Alle Dienstleistungen →": "Tous les services →",
+  "Anbieter und die Nutzung von Auftrago.":
+    "Prestataires et utilisation d'Auftrago.",
+  "Anfrage direkt starten": "Créer une demande",
+  "Erstelle deine Anfrage kostenlos und erreiche passende Anbieter aus deiner Region.":
+    "Créez gratuitement votre demande et atteignez des prestataires adaptés dans votre région.",
+  "Anbieter werden": "Devenir prestataire",
+  "Schweizweit": "Dans toute la Suisse"
+};
+
+const it: TranslationTable = {
+  "Reinigung": "Pulizia",
+  "Handwerker": "Artigiani",
+  "Umzug & Transport": "Trasloco & trasporto",
+  "Garten & Umgebung": "Giardino & esterni",
+  "Hauswartung": "Custodia immobili",
+  "Weitere Services": "Altri servizi",
+  "Umzugsreinigung": "Pulizia di fine locazione",
+  "Gartenpflege": "Giardinaggio",
+  "Umzug": "Trasloco",
+  "Transport": "Trasporto",
+  "Entsorgung": "Sgombero",
+  "Fensterreinigung": "Pulizia finestre",
+  "Maler": "Pittore",
+  "Elektriker": "Elettricista",
+  "Sanitär": "Sanitario",
+  "Montage": "Montaggio",
+  "Bodenleger": "Posa pavimenti",
+  "Renovation": "Ristrutturazione",
+  "Winterdienst": "Servizio invernale",
+  "Alle Services": "Tutti i servizi",
+
+  "Anfrage": "Richiesta",
+  "Matching": "Matching",
+  "Vergleich": "Confronto",
+  "Erledigt": "Fatto",
+
+  "Auftrago findet passende Anbieter.":
+    "Auftrago trova fornitori adatti.",
+
+  "Du erhältst passende Rückmeldungen.":
+    "Ricevi risposte adatte.",
+
+  "Du entscheidest, wer den Auftrag erhält.":
+    "Decidi tu chi riceve l'incarico.",
+
+  "Keine endlose Suche": "Nessuna ricerca infinita",
+  "Regionale Anbieter": "Fornitori regionali",
+  "Du behältst die Kontrolle": "Mantieni il controllo",
+  "Kostenlos für Kunden": "Gratuito per i clienti",
+
+  "Konkrete Kundenanfragen": "Richieste concrete dei clienti",
+  "Eigene Regionen auswählen": "Scegli le tue regioni",
+  "Passende Leistungen festlegen": "Definisci i servizi",
+  "Keine klassische Kaltakquise": "Nessuna classica acquisizione a freddo",
+  "Volle Kostenkontrolle": "Pieno controllo dei costi",
+  "Schneller Zugang zu neuen Aufträgen": "Accesso rapido a nuovi incarichi",
+
+  "Ist eine Anfrage auf Auftrago wirklich kostenlos?":
+    "Una richiesta su Auftrago è davvero gratuita?",
+
+  "Welche Dienstleistungen kann ich anfragen?":
+    "Quali servizi posso richiedere?",
+
+  "Wie schnell erhalte ich Rückmeldungen?":
+    "Quanto velocemente riceverò risposte?",
+
+  "Muss ich eines der Angebote annehmen?":
+    "Devo accettare una delle offerte?",
+
+  "Ist Auftrago schweizweit verfügbar?":
+    "Auftrago è disponibile in tutta la Svizzera?",
+
+  "Wie funktioniert Auftrago für Anbieter?":
+    "Come funziona Auftrago per i fornitori?",
+
+  "Über 420 Dienstleistungen entdecken":
+    "Scopri oltre 420 servizi",
+
+  "Deine Anfrage": "La tua richiesta",
+  "Dienstleistung erkannt": "Servizio riconosciuto",
+  "Anbieter gefunden": "Fornitori trovati",
+  "Passende Anbieter vergleichen": "Confronta fornitori adatti",
+  "12 Anbieter": "12 fornitori",
+  "Kostenlos starten": "Inizia gratuitamente",
+  "Anbieter entdecken": "Scopri i fornitori",
+  "Alle Dienstleistungen": "Tutti i servizi",
+  "Jetzt Anbieter werden": "Diventa fornitore",
+  "Schweizweit verbunden.": "Disponibile in tutta la Svizzera.",
+  "Beliebte Dienstleistungen": "Servizi popolari",
+  "Alle Dienstleistungen →": "Tutti i servizi →",
+  "Anfrage direkt starten": "Crea subito una richiesta",
+  "Anbieter werden": "Diventa fornitore",
+  "Schweizweit": "In tutta la Svizzera"
+};
+
+const en: TranslationTable = {
+  "Reinigung": "Cleaning",
+  "Handwerker": "Trades",
+  "Umzug & Transport": "Moving & transport",
+  "Garten & Umgebung": "Garden & outdoors",
+  "Hauswartung": "Property maintenance",
+  "Weitere Services": "More services",
+  "Umzugsreinigung": "End of tenancy cleaning",
+  "Gartenpflege": "Gardening",
+  "Umzug": "Moving",
+  "Transport": "Transport",
+  "Entsorgung": "Disposal",
+  "Fensterreinigung": "Window cleaning",
+  "Maler": "Painting",
+  "Elektriker": "Electrician",
+  "Sanitär": "Plumbing",
+  "Montage": "Assembly",
+  "Bodenleger": "Flooring",
+  "Renovation": "Renovation",
+  "Winterdienst": "Winter service",
+  "Alle Services": "All services",
+
+  "Anfrage": "Request",
+  "Matching": "Matching",
+  "Vergleich": "Compare",
+  "Erledigt": "Done",
+
+  "Auftrago findet passende Anbieter.":
+    "Auftrago finds matching providers.",
+
+  "Du erhältst passende Rückmeldungen.":
+    "You receive relevant responses.",
+
+  "Du entscheidest, wer den Auftrag erhält.":
+    "You decide who gets the job.",
+
+  "Keine endlose Suche": "No endless searching",
+  "Regionale Anbieter": "Regional providers",
+  "Du behältst die Kontrolle": "You stay in control",
+  "Kostenlos für Kunden": "Free for customers",
+
+  "Konkrete Kundenanfragen": "Real customer requests",
+  "Eigene Regionen auswählen": "Choose your regions",
+  "Passende Leistungen festlegen": "Choose your services",
+  "Keine klassische Kaltakquise": "No traditional cold calling",
+  "Volle Kostenkontrolle": "Full cost control",
+  "Schneller Zugang zu neuen Aufträgen": "Fast access to new jobs",
+
+  "Ist eine Anfrage auf Auftrago wirklich kostenlos?":
+    "Is a request on Auftrago really free?",
+
+  "Welche Dienstleistungen kann ich anfragen?":
+    "Which services can I request?",
+
+  "Wie schnell erhalte ich Rückmeldungen?":
+    "How quickly will I receive responses?",
+
+  "Muss ich eines der Angebote annehmen?":
+    "Do I have to accept an offer?",
+
+  "Ist Auftrago schweizweit verfügbar?":
+    "Is Auftrago available throughout Switzerland?",
+
+  "Wie funktioniert Auftrago für Anbieter?":
+    "How does Auftrago work for providers?",
+
+  "Über 420 Dienstleistungen entdecken":
+    "Discover 420+ services",
+
+  "Deine Anfrage": "Your request",
+  "Dienstleistung erkannt": "Service detected",
+  "Anbieter gefunden": "Providers found",
+  "Passende Anbieter vergleichen": "Compare matching providers",
+  "12 Anbieter": "12 providers",
+  "Kostenlos starten": "Start for free",
+  "Anbieter entdecken": "Discover providers",
+  "Alle Dienstleistungen": "All services",
+  "Jetzt Anbieter werden": "Become a provider",
+  "Schweizweit verbunden.": "Connected across Switzerland.",
+  "Beliebte Dienstleistungen": "Popular services",
+  "Alle Dienstleistungen →": "All services →",
+  "Anfrage direkt starten": "Start a request",
+  "Anbieter werden": "Become a provider",
+  "Schweizweit": "Across Switzerland"
+};
+
+export function translateHomeText(
+  locale: Locale,
+  value: string
+): string {
+  if (locale === "de") {
+    return value;
+  }
+
+  /*
+   * Manuelle Übersetzungen haben Priorität.
+   * Damit bleiben bewusst korrigierte Texte erhalten.
+   */
+  if (locale === "fr" && fr[value]) {
+    return fr[value];
+  }
+
+  if (locale === "it" && it[value]) {
+    return it[value];
+  }
+
+  if (locale === "en" && en[value]) {
+    return en[value];
+  }
+
+  /*
+   * Danach greifen die automatisch generierten
+   * vollständigen Dictionaries für alle Sprachen.
+   */
+  const generatedDictionary =
+    homeGeneratedDictionaries[
+      locale as keyof typeof homeGeneratedDictionaries
+    ];
+
+  return generatedDictionary?.[value] ?? value;
+}

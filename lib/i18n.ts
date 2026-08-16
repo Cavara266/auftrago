@@ -1,4 +1,4 @@
-export type AuftragoLocale = "de" | "fr" | "it" | "en";
+export type AuftragoLocale = "de" | "fr" | "it" | "en" | "sq" | "tr" | "pt" | "es";
 
 export const defaultLocale: AuftragoLocale = "de";
 
@@ -117,7 +117,15 @@ export const translations = {
 } as const;
 
 export function normalizeLocale(value?: string | null): AuftragoLocale {
-  if (value === "fr" || value === "it" || value === "en") {
+  if (
+    value === "fr" ||
+    value === "it" ||
+    value === "en" ||
+    value === "sq" ||
+    value === "tr" ||
+    value === "pt" ||
+    value === "es"
+  ) {
     return value;
   }
 
