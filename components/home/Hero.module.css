@@ -1290,3 +1290,621 @@
     display: none;
   }
 }
+
+/* =========================================================
+   AUFTRAGO MOBILE V2
+   Compact mobile layout
+   Desktop intentionally untouched
+   ========================================================= */
+
+@media (max-width: 640px) {
+
+  /* ---------- overall hero ---------- */
+
+  .hero {
+    overflow-x: hidden;
+  }
+
+  .content {
+    width: 100%;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  /*
+   * Reduce excessively large vertical spacing inherited
+   * from the desktop presentation.
+   */
+  .content > * {
+    scroll-margin-top: 80px;
+  }
+
+
+  /* ---------- matching / showcase ---------- */
+
+  .matchPanel {
+    border-radius: 26px !important;
+    padding: 16px !important;
+  }
+
+  .panel {
+    border-radius: 22px !important;
+    padding: 16px !important;
+  }
+
+  .matchRow {
+    gap: 10px !important;
+  }
+
+  .scannerLine,
+  .particles {
+    display: none !important;
+  }
+
+
+  /* ---------- service categories ---------- */
+
+  .categories {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .categoryCard {
+    min-height: 142px !important;
+    padding: 16px 10px !important;
+    border-radius: 20px !important;
+    gap: 11px !important;
+
+    /*
+     * Mobile does not need the desktop entrance animation.
+     * It makes the page feel slower and creates visual noise.
+     */
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+
+  .categoryCard:hover {
+    transform: none !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.035) !important;
+  }
+
+  .categoryCard svg {
+    width: 42px !important;
+    height: 42px !important;
+    transform: none !important;
+  }
+
+  .categoryCard:hover svg {
+    transform: none !important;
+  }
+
+  .categoryCard > span:last-child {
+    font-size: 14px !important;
+    line-height: 1.25 !important;
+    font-weight: 780 !important;
+    text-align: center !important;
+  }
+
+
+  /* ---------- matching result CTA ---------- */
+
+  .resultButton {
+    min-height: 54px !important;
+    padding: 0 14px !important;
+    border-radius: 16px !important;
+    gap: 8px !important;
+    font-size: 13px !important;
+  }
+
+  .resultButton:hover {
+    transform: none !important;
+  }
+
+  .avatarStack i,
+  .avatarStack b {
+    width: 27px !important;
+    height: 27px !important;
+    margin-left: -6px !important;
+    font-size: 8px !important;
+  }
+
+
+  /* ---------- animation performance ---------- */
+
+  .hero::before,
+  .hero::after {
+    animation-duration: 18s !important;
+  }
+
+  .categoryCard,
+  .matchPanel,
+  .panel,
+  .matchRow {
+    transition-duration: 160ms !important;
+  }
+}
+
+
+/* Extra compact phones */
+@media (max-width: 390px) {
+
+  .content {
+    padding-left: 13px !important;
+    padding-right: 13px !important;
+  }
+
+  .categories {
+    gap: 8px !important;
+  }
+
+  .categoryCard {
+    min-height: 132px !important;
+    padding: 13px 8px !important;
+    border-radius: 18px !important;
+  }
+
+  .categoryCard svg {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .categoryCard > span:last-child {
+    font-size: 13px !important;
+  }
+
+  .matchPanel {
+    padding: 13px !important;
+    border-radius: 23px !important;
+  }
+
+  .panel {
+    padding: 13px !important;
+  }
+
+  .resultButton {
+    min-height: 52px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}
+
+
+/* Respect reduced-motion users and save mobile GPU work */
+@media (max-width: 640px) and (prefers-reduced-motion: reduce) {
+  .hero,
+  .hero *,
+  .hero::before,
+  .hero::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+
+/* =========================================================
+   AUFTRAGO — PREMIUM MOBILE REFINEMENT
+   Hero / Swiss Map / Stats
+   ========================================================= */
+
+@media (max-width: 640px) {
+
+  /* =======================================================
+     1. HERO TYPOGRAPHY
+     ======================================================= */
+
+  .title {
+    max-width: 100%;
+    margin-top: 24px !important;
+    margin-bottom: 0 !important;
+
+    font-size: clamp(3.25rem, 14vw, 4.65rem) !important;
+    line-height: .91 !important;
+    letter-spacing: -0.065em !important;
+    font-weight: 900 !important;
+
+    text-wrap: balance;
+  }
+
+  .title span {
+    display: inline;
+  }
+
+  /*
+   * Slightly calmer visual weight on very narrow displays.
+   * Keeps the gradient word premium instead of oversized.
+   */
+  .title span:last-child {
+    filter: saturate(.96);
+  }
+
+
+  /* =======================================================
+     2. SWISS MAP — CENTERED + SUBTLE FLOAT
+     ======================================================= */
+
+  .requestMapCard {
+    position: relative !important;
+    overflow: hidden !important;
+
+    border-radius: 24px !important;
+    padding: 22px 16px 20px !important;
+
+    background:
+      radial-gradient(
+        circle at 50% 55%,
+        rgba(115, 76, 255, .10),
+        transparent 48%
+      ),
+      linear-gradient(
+        145deg,
+        rgba(18, 28, 61, .94),
+        rgba(10, 18, 43, .96)
+      ) !important;
+
+    border: 1px solid rgba(135, 150, 255, .14) !important;
+
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.045),
+      0 22px 60px rgba(0,0,0,.20) !important;
+  }
+
+  .requestText {
+    position: relative;
+    z-index: 2;
+
+    margin-bottom: 8px !important;
+  }
+
+  .swissMap {
+    position: relative !important;
+
+    width: 100% !important;
+    max-width: 340px !important;
+
+    margin: 18px auto 8px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    transform-origin: center center;
+
+    animation:
+      auftragoSwissFloat 7s
+      cubic-bezier(.45, 0, .55, 1)
+      infinite !important;
+
+    will-change: transform;
+  }
+
+  .swissMap::before {
+    content: "";
+    position: absolute;
+
+    width: 62%;
+    aspect-ratio: 1.5;
+
+    left: 50%;
+    top: 52%;
+
+    transform: translate(-50%, -50%);
+
+    background:
+      radial-gradient(
+        ellipse,
+        rgba(121, 74, 255, .17) 0%,
+        rgba(72, 125, 255, .08) 38%,
+        transparent 72%
+      );
+
+    filter: blur(18px);
+    pointer-events: none;
+
+    animation:
+      auftragoSwissGlow 7s
+      ease-in-out
+      infinite;
+  }
+
+  .swissMap svg {
+    position: relative;
+    z-index: 1;
+
+    display: block !important;
+
+    width: min(88vw, 320px) !important;
+    height: auto !important;
+
+    margin: 0 auto !important;
+
+    overflow: visible;
+
+    filter:
+      drop-shadow(0 14px 28px rgba(53, 101, 255, .13))
+      drop-shadow(0 0 20px rgba(142, 77, 255, .08));
+  }
+
+
+  /* =======================================================
+     3. STATS — COMPACT PREMIUM GLASS
+     ======================================================= */
+
+  .statsBar {
+    position: relative !important;
+
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+
+    width: calc(100% - 32px) !important;
+    margin: 28px auto 0 !important;
+
+    padding: 22px 18px 18px !important;
+    gap: 0 !important;
+
+    overflow: hidden;
+
+    border-radius: 26px !important;
+
+    border: 1px solid rgba(111, 132, 255, .22) !important;
+
+    background:
+      radial-gradient(
+        circle at 5% 0%,
+        rgba(45, 142, 255, .10),
+        transparent 32%
+      ),
+      radial-gradient(
+        circle at 100% 100%,
+        rgba(224, 54, 255, .08),
+        transparent 35%
+      ),
+      rgba(6, 15, 39, .82) !important;
+
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.055),
+      0 25px 70px rgba(0,0,0,.24),
+      0 0 35px rgba(87, 93, 255, .05) !important;
+
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .statsBar::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    padding: 1px;
+    border-radius: inherit;
+
+    background:
+      linear-gradient(
+        120deg,
+        rgba(47, 156, 255, .85),
+        rgba(95, 103, 255, .30) 38%,
+        rgba(217, 52, 255, .70)
+      );
+
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+
+    pointer-events: none;
+  }
+
+  .statsBar > div:not(.ratingBlock) {
+    position: relative;
+
+    min-width: 0;
+    padding: 15px 14px 17px !important;
+  }
+
+  /*
+   * Vertical divider between the two columns.
+   */
+  .statsBar > div:not(.ratingBlock):nth-child(odd)::after {
+    content: "";
+    position: absolute;
+
+    right: 0;
+    top: 17%;
+    bottom: 17%;
+
+    width: 1px;
+
+    background:
+      linear-gradient(
+        transparent,
+        rgba(142, 154, 205, .20),
+        transparent
+      );
+  }
+
+  /*
+   * Horizontal divider after first row.
+   */
+  .statsBar > div:not(.ratingBlock):nth-child(-n+2)::before {
+    content: "";
+    position: absolute;
+
+    left: 12px;
+    right: 12px;
+    bottom: 0;
+
+    height: 1px;
+
+    background:
+      linear-gradient(
+        90deg,
+        transparent,
+        rgba(142, 154, 205, .14),
+        transparent
+      );
+  }
+
+  .statsBar strong {
+    display: block;
+
+    font-size: clamp(1.85rem, 8vw, 2.35rem) !important;
+    line-height: 1 !important;
+
+    letter-spacing: -.045em !important;
+    font-weight: 900 !important;
+
+    color: rgba(255,255,255,.98);
+  }
+
+  .statsBar > div:not(.ratingBlock) > span {
+    display: block;
+
+    margin-top: 7px !important;
+
+    font-size: 12px !important;
+    line-height: 1.3 !important;
+    font-weight: 500 !important;
+
+    color: rgba(190, 200, 225, .62) !important;
+  }
+
+
+  /* Rating becomes full-width footer */
+
+  .ratingBlock {
+    grid-column: 1 / -1 !important;
+
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    grid-template-rows: auto auto !important;
+    align-items: center !important;
+
+    margin-top: 5px !important;
+    padding: 17px 14px 5px !important;
+
+    border-top: 1px solid rgba(145, 155, 205, .12);
+  }
+
+  .stars {
+    grid-column: 1;
+    grid-row: 1;
+
+    display: block;
+
+    font-size: 19px !important;
+    letter-spacing: 1px !important;
+    line-height: 1 !important;
+
+    color: #ffb729;
+
+    filter: drop-shadow(0 3px 12px rgba(255, 180, 38, .18));
+  }
+
+  .ratingBlock strong {
+    grid-column: 2;
+    grid-row: 1;
+
+    font-size: 1.65rem !important;
+    letter-spacing: -.035em !important;
+
+    text-align: right;
+  }
+
+  .ratingBlock small {
+    grid-column: 1 / -1;
+    grid-row: 2;
+
+    margin-top: 9px !important;
+
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+
+    color: rgba(185, 195, 219, .56) !important;
+  }
+}
+
+
+/* =========================================================
+   SWISS MAP MOTION
+   ========================================================= */
+
+@keyframes auftragoSwissFloat {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  24% {
+    transform: translate3d(0, -5px, 0) scale(1.008);
+  }
+
+  50% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  76% {
+    transform: translate3d(0, 3px, 0) scale(.997);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes auftragoSwissGlow {
+  0%,
+  100% {
+    opacity: .55;
+    transform: translate(-50%, -50%) scale(.94);
+  }
+
+  50% {
+    opacity: .9;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 390px) {
+
+  .title {
+    font-size: clamp(3rem, 13.5vw, 3.8rem) !important;
+    letter-spacing: -0.06em !important;
+  }
+
+  .swissMap {
+    max-width: 300px !important;
+  }
+
+  .swissMap svg {
+    width: min(86vw, 292px) !important;
+  }
+
+  .statsBar {
+    width: calc(100% - 26px) !important;
+    padding: 17px 12px 14px !important;
+    border-radius: 23px !important;
+  }
+
+  .statsBar > div:not(.ratingBlock) {
+    padding: 14px 10px 16px !important;
+  }
+
+  .statsBar strong {
+    font-size: 1.8rem !important;
+  }
+}
+
+
+/* Accessibility */
+@media (max-width: 640px) and (prefers-reduced-motion: reduce) {
+  .swissMap,
+  .swissMap::before {
+    animation: none !important;
+  }
+}

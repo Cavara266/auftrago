@@ -329,11 +329,11 @@ const tr = (value: string) => translateHomeText(locale, value);
             <span>{tr("Dienstleistungen")}</span>
           </div>
           <div>
-            <strong>6&apos;500+</strong>
+            <strong>6'500+</strong>
             <span>{tr("Anbieter")}</span>
           </div>
           <div>
-            <strong>38&apos;000+</strong>
+            <strong>38'000+</strong>
             <span>{tr("Aufträge vermittelt")}</span>
           </div>
           <div>
@@ -343,7 +343,7 @@ const tr = (value: string) => translateHomeText(locale, value);
           <div className={styles.ratingBlock}>
             <span className={styles.stars}>★★★★★</span>
             <strong>4.9/5</strong>
-            <small>{tr("Von über 2&apos;400 Kunden bewertet")}</small>
+            <small>{tr("Von über 2'400 Kunden bewertet")}</small>
           </div>
         </div>
       </div>
