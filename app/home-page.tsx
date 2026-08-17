@@ -315,6 +315,57 @@ const tr = (value: string) => translateHomeText(locale, value);
     },
   };
 
+  const tenderCopy = {
+    de: {
+      eyebrow: "NEU FUER ANBIETER",
+      title: "Oeffentliche Ausschreibungen.",
+      accent: "Direkt auf Auftrago.",
+      description:
+        "Entdecke oeffentliche Auftraege aus der ganzen Schweiz, passend zu deiner Branche und Region. Vollstaendige Ausschreibungen sind fuer Anbieter mit aktivem Abo verfuegbar.",
+      live: "Laufend aktualisiert",
+      abo: "Im Anbieter-Abo",
+      preview: "Beispielansicht",
+      locked: "Details mit Anbieter-Abo",
+      cta: "Als Anbieter starten",
+      note: "Kundenanfragen + oeffentliche Ausschreibungen an einem Ort.",
+      canton: "Kanton",
+      deadline: "Eingabefrist",
+    },
+    en: {
+      eyebrow: "NEW FOR PROVIDERS",
+      title: "Public tenders.",
+      accent: "Directly on Auftrago.",
+      description:
+        "Discover public contracts from across Switzerland, matched to your trade and region. Full tender details are available to providers with an active subscription.",
+      live: "Continuously updated",
+      abo: "Provider subscription",
+      preview: "Preview",
+      locked: "Details with provider subscription",
+      cta: "Join as provider",
+      note: "Customer leads + public tenders in one place.",
+      canton: "Canton",
+      deadline: "Deadline",
+    },
+    it: {
+      eyebrow: "NOVITA PER I FORNITORI",
+      title: "Appalti pubblici.",
+      accent: "Direttamente su Auftrago.",
+      description:
+        "Scopri appalti pubblici in tutta la Svizzera, selezionati in base al tuo settore e alla tua regione. I dettagli completi sono disponibili con un abbonamento attivo.",
+      live: "Aggiornati regolarmente",
+      abo: "Abbonamento fornitori",
+      preview: "Anteprima",
+      locked: "Dettagli con abbonamento",
+      cta: "Diventa fornitore",
+      note: "Richieste clienti + appalti pubblici in un unico posto.",
+      canton: "Cantone",
+      deadline: "Scadenza",
+    },
+  } as const;
+
+  const tenderLocale =
+    locale === "it" ? tenderCopy.it : locale === "en" ? tenderCopy.en : tenderCopy.de;
+
   return translateReactNode(
     (
       <main className="overflow-hidden bg-[#030611] text-white">
@@ -496,6 +547,165 @@ const tr = (value: string) => translateHomeText(locale, value);
         Die Komponente wird nicht verändert.
       */}
       <Hero locale={locale} />
+
+      {/* PUBLIC TENDERS - PROVIDER PREMIUM FEATURE */}
+      <section className="relative overflow-hidden border-y border-white/[0.07] bg-[#050b1d] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(circle at 15% 10%, rgba(32,149,255,.13), transparent 32%), radial-gradient(circle at 88% 75%, rgba(198,54,255,.13), transparent 34%)",
+          }}
+        />
+
+        <div className="relative mx-auto max-w-[1280px]">
+          <div className="grid gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:items-center lg:gap-16">
+            <div>
+              <div className="mb-5 flex flex-wrap items-center gap-3">
+                <span className="inline-flex items-center gap-2 rounded-full border border-sky-400/20 bg-sky-400/[0.07] px-4 py-2 text-[11px] font-black tracking-[0.18em] text-sky-300">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(52,211,153,.8)]" />
+                  {tenderLocale.eyebrow}
+                </span>
+
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-[11px] font-bold text-white/55">
+                  {tenderLocale.abo}
+                </span>
+              </div>
+
+              <h2 className="max-w-[720px] text-[2.65rem] font-black leading-[0.96] tracking-[-0.055em] text-white sm:text-[3.8rem] lg:text-[4.5rem]">
+                {tenderLocale.title}
+                <span className="mt-2 block bg-gradient-to-r from-sky-400 via-blue-400 to-fuchsia-400 bg-clip-text text-transparent">
+                  {tenderLocale.accent}
+                </span>
+              </h2>
+
+              <p className="mt-7 max-w-[620px] text-base font-medium leading-7 text-slate-400 sm:text-lg sm:leading-8">
+                {tenderLocale.description}
+              </p>
+
+              <div className="mt-7 flex flex-wrap gap-3 text-sm font-bold text-slate-300">
+                <span className="rounded-full border border-white/10 bg-white/[0.035] px-4 py-2">
+                  ✓ {tenderLocale.live}
+                </span>
+                <span className="rounded-full border border-white/10 bg-white/[0.035] px-4 py-2">
+                  ✓ Schweizweit
+                </span>
+                <span className="rounded-full border border-white/10 bg-white/[0.035] px-4 py-2">
+                  ✓ Branche & Region
+                </span>
+              </div>
+
+              <Link
+                href="/anbieter-registrieren"
+                className="mt-8 inline-flex min-h-[58px] items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 px-7 text-sm font-black text-white shadow-[0_20px_55px_rgba(65,105,255,.28)] transition hover:-translate-y-0.5 hover:shadow-[0_28px_70px_rgba(65,105,255,.36)]"
+              >
+                {tenderLocale.cta}
+                <span className="text-xl">→</span>
+              </Link>
+
+              <p className="mt-4 text-xs font-semibold text-slate-500">
+                {tenderLocale.note}
+              </p>
+            </div>
+
+            <div className="relative">
+              <div className="absolute -inset-8 rounded-[44px] bg-gradient-to-br from-sky-500/10 via-transparent to-fuchsia-500/10 blur-3xl" />
+
+              <div className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[#071027]/90 p-4 shadow-[0_35px_100px_rgba(0,0,0,.38)] backdrop-blur-xl sm:p-6">
+                <div className="mb-4 flex items-center justify-between gap-4 px-1">
+                  <div>
+                    <p className="text-[10px] font-black tracking-[0.2em] text-sky-300">
+                      {tenderLocale.preview}
+                    </p>
+                    <p className="mt-1 text-sm font-bold text-white">
+                      Öffentliche Ausschreibungen
+                    </p>
+                  </div>
+
+                  <span className="inline-flex items-center gap-2 rounded-full bg-emerald-400/[0.08] px-3 py-2 text-[11px] font-black text-emerald-300">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                    LIVE
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {[
+                    {
+                      category: "Reinigung",
+                      title: "Unterhaltsreinigung öffentlicher Gebäude",
+                      canton: "Zürich",
+                      deadline: "12.09.2026",
+                    },
+                    {
+                      category: "Hauswartung",
+                      title: "Gebäudeunterhalt und Hauswartungsleistungen",
+                      canton: "Aargau",
+                      deadline: "18.09.2026",
+                    },
+                    {
+                      category: "Garten & Umgebung",
+                      title: "Pflege und Unterhalt öffentlicher Grünanlagen",
+                      canton: "Bern",
+                      deadline: "24.09.2026",
+                    },
+                  ].map((item) => (
+                    <div
+                      key={item.title}
+                      className="group relative overflow-hidden rounded-[20px] border border-white/[0.08] bg-white/[0.035] p-4 transition hover:border-sky-400/20 hover:bg-white/[0.05] sm:p-5"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <span className="text-[10px] font-black uppercase tracking-[0.16em] text-sky-300">
+                            {item.category}
+                          </span>
+
+                          <h3 className="mt-2 text-base font-black leading-snug text-white sm:text-lg">
+                            {item.title}
+                          </h3>
+
+                          <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-slate-500">
+                            <span>
+                              {tenderLocale.canton}:{" "}
+                              <strong className="text-slate-300">{item.canton}</strong>
+                            </span>
+                            <span>
+                              {tenderLocale.deadline}:{" "}
+                              <strong className="text-slate-300">{item.deadline}</strong>
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.05] text-lg">
+                          🔒
+                        </div>
+                      </div>
+
+                      <div className="mt-4 flex items-center justify-between border-t border-white/[0.07] pt-3">
+                        <span className="text-[11px] font-bold text-slate-500">
+                          {tenderLocale.locked}
+                        </span>
+                        <span className="text-sm font-black text-sky-300">→</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 flex items-center justify-between rounded-2xl border border-violet-400/15 bg-gradient-to-r from-blue-500/[0.08] to-fuchsia-500/[0.08] px-4 py-3">
+                  <div>
+                    <p className="text-[10px] font-black tracking-[0.16em] text-violet-300">
+                      PREMIUM
+                    </p>
+                    <p className="mt-1 text-xs font-bold text-white/80">
+                      Passende Ausschreibungen nach Branche & Region
+                    </p>
+                  </div>
+                  <span className="text-xl">🔒</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* CINEMATIC TRANSITION */}
       <section className="relative border-y border-white/[0.07] bg-[#020510] py-7">

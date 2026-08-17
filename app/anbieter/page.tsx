@@ -510,6 +510,209 @@ export default function AnbieterPage() {
         </div>
       </section>
 
+      {/* PUBLIC TENDERS PREMIUM */}
+      <section className="relative overflow-hidden border-b border-white/[0.08] bg-[#050b1d] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(circle at 12% 15%, rgba(39,149,255,.13), transparent 32%), radial-gradient(circle at 88% 78%, rgba(199,55,255,.12), transparent 34%)",
+          }}
+        />
+
+        <div className="provider-page-grid absolute inset-0 opacity-20" />
+
+        <div className="relative mx-auto max-w-[1500px]">
+          <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center lg:gap-20">
+
+            {/* COPY */}
+            <div>
+              <div className="inline-flex items-center gap-3 rounded-full border border-sky-400/20 bg-sky-400/[0.07] px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-sky-300">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-50" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                </span>
+                Neu im Anbieter-Abo
+              </div>
+
+              <h2 className="mt-7 max-w-[760px] text-[2.8rem] font-black leading-[0.94] tracking-[-0.06em] text-white sm:text-[4rem] lg:text-[4.8rem]">
+                Mehr als nur
+                <span className="provider-page-gradient mt-1 block">
+                  Kundenanfragen.
+                </span>
+              </h2>
+
+              <p className="mt-7 max-w-[650px] text-base font-medium leading-7 text-slate-400 sm:text-lg sm:leading-8">
+                Mit einem aktiven Anbieter-Abo erhältst du zusätzlich Zugriff auf
+                öffentliche Ausschreibungen aus der ganzen Schweiz. Auftrago hilft
+                dir, relevante Aufträge nach Branche und Region schneller zu finden.
+              </p>
+
+              <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                {[
+                  ["✓", "Laufend neue Ausschreibungen"],
+                  ["✓", "Nach Branche gefiltert"],
+                  ["✓", "Nach Region und Kanton"],
+                  ["✓", "Fristen direkt im Überblick"],
+                ].map(([icon, text]) => (
+                  <div
+                    key={text}
+                    className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.035] px-4 py-3 text-sm font-bold text-slate-300"
+                  >
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-emerald-400/10 text-xs text-emerald-300">
+                      {icon}
+                    </span>
+                    {text}
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-8 rounded-[22px] border border-violet-400/15 bg-gradient-to-r from-blue-500/[0.08] to-fuchsia-500/[0.08] p-5">
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-violet-300">
+                  Anbieter Premium
+                </p>
+
+                <p className="mt-2 text-lg font-black text-white">
+                  Kundenanfragen + öffentliche Ausschreibungen.
+                </p>
+
+                <p className="mt-2 text-sm leading-6 text-slate-400">
+                  Alles an einem Ort. Vollständige Ausschreibungsdetails werden nach
+                  Freischaltung des Anbieter-Abos sichtbar.
+                </p>
+              </div>
+
+              <Link
+                href="/anbieter-registrieren"
+                className="group mt-8 inline-flex min-h-[60px] items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-sky-400 via-indigo-500 to-fuchsia-500 px-7 text-sm font-black text-white shadow-[0_22px_70px_rgba(70,89,255,.30)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_30px_90px_rgba(70,89,255,.42)]"
+              >
+                Anbieter-Zugang starten
+                <span className="text-xl transition group-hover:translate-x-1">→</span>
+              </Link>
+            </div>
+
+            {/* PREVIEW DASHBOARD */}
+            <div className="relative">
+              <div className="absolute -inset-8 rounded-[48px] bg-gradient-to-br from-sky-500/10 via-transparent to-fuchsia-500/10 blur-3xl" />
+
+              <div className="provider-page-glass relative overflow-hidden rounded-[32px] border border-white/10 p-4 sm:p-6">
+
+                <div className="mb-5 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-300">
+                      Ausschreibungs-Center
+                    </p>
+                    <h3 className="mt-1 text-xl font-black text-white">
+                      Passende öffentliche Aufträge
+                    </h3>
+                  </div>
+
+                  <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/15 bg-emerald-400/[0.07] px-3 py-2 text-xs font-black text-emerald-300">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.8)]" />
+                    Live
+                  </div>
+                </div>
+
+                <div className="mb-4 flex flex-wrap gap-2">
+                  {["Reinigung", "Hauswartung", "Zürich", "Aargau"].map((filter) => (
+                    <span
+                      key={filter}
+                      className="rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-[11px] font-bold text-slate-400"
+                    >
+                      {filter}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="space-y-3">
+                  {[
+                    {
+                      tag: "REINIGUNG",
+                      title: "Unterhaltsreinigung öffentlicher Gebäude",
+                      place: "Kanton Zürich",
+                      date: "12.09.2026",
+                    },
+                    {
+                      tag: "HAUSWARTUNG",
+                      title: "Gebäudeunterhalt und Hauswartungsleistungen",
+                      place: "Kanton Aargau",
+                      date: "18.09.2026",
+                    },
+                    {
+                      tag: "GARTEN",
+                      title: "Pflege und Unterhalt öffentlicher Grünanlagen",
+                      place: "Kanton Bern",
+                      date: "24.09.2026",
+                    },
+                  ].map((item) => (
+                    <div
+                      key={item.title}
+                      className="relative overflow-hidden rounded-[20px] border border-white/[0.08] bg-[#071027]/80 p-4 sm:p-5"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-black tracking-[0.17em] text-sky-300">
+                            {item.tag}
+                          </p>
+
+                          <h4 className="mt-2 text-base font-black leading-snug text-white sm:text-lg">
+                            {item.title}
+                          </h4>
+
+                          <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-slate-500">
+                            <span>
+                              📍 <strong className="text-slate-300">{item.place}</strong>
+                            </span>
+                            <span>
+                              Frist: <strong className="text-slate-300">{item.date}</strong>
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.05] text-lg">
+                          🔒
+                        </div>
+                      </div>
+
+                      <div className="mt-4 flex items-center justify-between border-t border-white/[0.07] pt-3">
+                        <span className="text-[11px] font-bold text-slate-500">
+                          Details nach Abo-Freischaltung
+                        </span>
+                        <span className="text-sm font-black text-sky-300">
+                          Freischalten →
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  {[
+                    ["24+", "Aktuell"],
+                    ["26", "Kantone"],
+                    ["Live", "Updates"],
+                  ].map(([value, label]) => (
+                    <div
+                      key={label}
+                      className="rounded-2xl border border-white/[0.07] bg-white/[0.03] px-3 py-4 text-center"
+                    >
+                      <strong className="block text-lg font-black text-white">
+                        {value}
+                      </strong>
+                      <span className="mt-1 block text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
+                        {label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
       {/* TRUST */}
       <section className="border-b border-white/[0.08] bg-[#030816]">
         <div className="mx-auto grid max-w-[1500px] grid-cols-2 gap-px bg-white/[0.08] lg:grid-cols-4">

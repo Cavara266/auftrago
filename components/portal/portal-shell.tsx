@@ -23,6 +23,11 @@ const navigation = [
     icon: "⚡",
   },
   {
+    href: "/portal/ausschreibungen",
+    label: "Ausschreibungen",
+    icon: "▤",
+  },
+  {
     href: "/portal/meine-leads",
     label: "Mein CRM",
     icon: "◎",
