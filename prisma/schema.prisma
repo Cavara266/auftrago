@@ -808,3 +808,66 @@ model SeoSetting {
 
   @@index([createdAt])
 }
+
+model CandidateProfile {
+  id String @id @default(uuid())
+
+  email     String? @unique
+  firstName String?
+  lastName  String?
+  phone     String?
+
+  title    String
+  category String
+
+  canton     String
+  city       String?
+  postalCode String?
+  radiusKm   Int     @default(25)
+
+  employmentPercent String?
+  experienceYears   Int?
+
+  languages String[] @default([])
+
+  drivingLicense Boolean @default(false)
+  ownCar         Boolean @default(false)
+
+  availableFrom DateTime?
+  description   String?
+
+  status         String  @default("ACTIVE")
+  isVisible      Boolean @default(true)
+  contactConsent Boolean @default(false)
+
+  // Herkunft des Kandidaten
+  // DIRECT   = direkt auf Auftraggo registriert
+  // CSV      = erlaubter CSV-Import
+  // PARTNER  = Partner/API
+  // EXTERNAL = sonstige freigegebene externe Quelle
+  source           String    @default("DIRECT")
+  externalId       String?
+  sourceUrl        String?
+  importedAt       DateTime?
+  sourceLastSeenAt DateTime?
+  sourceConsent    Boolean   @default(false)
+
+  // Geschützter Lebenslauf
+  cvPath       String?
+  cvFilename   String?
+  cvMimeType   String?
+  cvSize       Int?
+  cvUploadedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([source, externalId])
+  @@index([status])
+  @@index([category])
+  @@index([canton])
+  @@index([city])
+  @@index([isVisible])
+  @@index([source])
+  @@index([externalId])
+}

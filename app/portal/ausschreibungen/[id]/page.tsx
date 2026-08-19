@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTenderDetails } from "@/lib/simap/client";
+import { getServerLocale } from "@/lib/i18n/server";
+import { getTenderTranslations } from "@/lib/i18n/tenders";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +53,7 @@ function stripHtml(value: string): string {
 }
 
 function formatDate(value: unknown): string {
-  if (typeof value !== "string" || !value) return "Keine Angabe";
+  if (typeof value !== "string" || !value) return "";
 
   const date = new Date(value);
 
@@ -71,6 +73,9 @@ export default async function AusschreibungDetailPage({
   searchParams,
 }: PageProps) {
   const { id } = await params;
+
+  const tenderLocale = await getServerLocale();
+  const t = getTenderTranslations(tenderLocale);
   const { publicationId } = await searchParams;
 
   if (!id || !publicationId) {
@@ -79,23 +84,21 @@ export default async function AusschreibungDetailPage({
 
   const details = (await getTenderDetails(
     id,
-    publicationId
+    publicationId,
   )) as UnknownRecord | null;
 
   if (!details) {
     notFound();
   }
 
-  const procurement =
-    (details.procurement as UnknownRecord | undefined) ?? {};
+  const procurement = (details.procurement as UnknownRecord | undefined) ?? {};
 
   const projectInfo =
     (details["project-info"] as UnknownRecord | undefined) ??
     (details.projectInfo as UnknownRecord | undefined) ??
     {};
 
-  const dates =
-    (details.dates as UnknownRecord | undefined) ?? {};
+  const dates = (details.dates as UnknownRecord | undefined) ?? {};
 
   const address =
     (projectInfo.procOfficeAddress as UnknownRecord | undefined) ??
@@ -114,13 +117,13 @@ export default async function AusschreibungDetailPage({
   const authority =
     text(projectInfo.procOfficeName) ||
     text(address.name) ||
-    "Öffentliche Auftraggeberin";
+    t.publicContractingAuthority;
 
   const title =
     text(details.title) ||
     text((details.base as UnknownRecord | undefined)?.title) ||
     text(projectInfo.title) ||
-    "Öffentliche Ausschreibung";
+    t.publicTender;
 
   const descriptionRaw =
     text(procurement.orderDescription) ||
@@ -129,16 +132,13 @@ export default async function AusschreibungDetailPage({
 
   const description = descriptionRaw
     ? stripHtml(descriptionRaw)
-    : "Für diese Ausschreibung liegt derzeit keine ausführliche Beschreibung vor.";
+    : t.noDescription;
 
   const publicationDate =
     dates.publicationDate ??
     (details.base as UnknownRecord | undefined)?.publicationDate;
 
-  const deadline =
-    dates.offerDeadline ??
-    dates.offerValidityDeadline ??
-    null;
+  const deadline = dates.offerDeadline ?? dates.offerValidityDeadline ?? null;
 
   const projectNumber =
     text(details.projectNumber) ||
@@ -149,27 +149,22 @@ export default async function AusschreibungDetailPage({
     text(procurement.constructionCategory) ||
     text(procurement.projectType) ||
     text(details.projectType) ||
-    "Öffentliche Ausschreibung";
+    t.publicTender;
 
-  const phone =
-    typeof address.phone === "string" ? address.phone : "";
+  const phone = typeof address.phone === "string" ? address.phone : "";
 
-  const email =
-    typeof address.email === "string" ? address.email : "";
+  const email = typeof address.email === "string" ? address.email : "";
 
-  const url =
-    text(address.url) ||
-    text(projectInfo.url);
+  const url = text(address.url) || text(projectInfo.url);
 
   return (
     <main className="min-h-screen bg-[#07101f] text-white">
       <div className="mx-auto w-full max-w-[1250px] px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-
         <Link
           href="/portal/ausschreibungen"
           className="inline-flex items-center gap-2 text-sm font-bold text-sky-300 transition hover:text-sky-200"
         >
-          ← Zurück zu den Ausschreibungen
+          ← {t.backToTenders}
         </Link>
 
         <section className="relative mt-6 overflow-hidden rounded-[30px] border border-white/[0.08] bg-[#0a1427] p-6 shadow-2xl sm:p-8 lg:p-10">
@@ -203,16 +198,17 @@ export default async function AusschreibungDetailPage({
             <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4">
                 <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">
-                  Ort
+                  {t.place}
                 </p>
                 <p className="mt-2 font-bold text-white">
-                  {city}{canton ? `, ${canton}` : ""}
+                  {city}
+                  {canton ? `, ${canton}` : ""}
                 </p>
               </div>
 
               <div className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4">
                 <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">
-                  Publiziert
+                  {t.published}
                 </p>
                 <p className="mt-2 font-bold text-white">
                   {formatDate(publicationDate)}
@@ -221,7 +217,7 @@ export default async function AusschreibungDetailPage({
 
               <div className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4">
                 <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">
-                  Eingabefrist
+                  {t.deadline}
                 </p>
                 <p className="mt-2 font-bold text-amber-300">
                   {formatDate(deadline)}
@@ -230,10 +226,10 @@ export default async function AusschreibungDetailPage({
 
               <div className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4">
                 <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">
-                  Projektnummer
+                  {t.projectNumber}
                 </p>
                 <p className="mt-2 font-bold text-white">
-                  {projectNumber || "Keine Angabe"}
+                  {projectNumber || t.noInformation}
                 </p>
               </div>
             </div>
@@ -243,12 +239,10 @@ export default async function AusschreibungDetailPage({
         <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_340px]">
           <section className="rounded-[26px] border border-white/[0.08] bg-[#0a1427] p-6 sm:p-8">
             <p className="text-[11px] font-black uppercase tracking-[0.18em] text-sky-300">
-              Ausschreibungsdetails
+              {t.tenderDetails}
             </p>
 
-            <h2 className="mt-3 text-2xl font-black">
-              Beschreibung
-            </h2>
+            <h2 className="mt-3 text-2xl font-black">{t.detailDescription}</h2>
 
             <div className="mt-5 whitespace-pre-line text-sm font-medium leading-7 text-slate-300 sm:text-base">
               {description}
@@ -258,16 +252,15 @@ export default async function AusschreibungDetailPage({
           <aside className="space-y-5">
             <div className="rounded-[26px] border border-white/[0.08] bg-[#0a1427] p-6">
               <p className="text-[11px] font-black uppercase tracking-[0.18em] text-violet-300">
-                Auftraggeber
+                {t.authority}
               </p>
 
-              <h3 className="mt-3 text-xl font-black">
-                {authority}
-              </h3>
+              <h3 className="mt-3 text-xl font-black">{authority}</h3>
 
               <div className="mt-5 space-y-3 text-sm text-slate-400">
                 <p>
-                  📍 {city}{canton ? `, ${canton}` : ""}
+                  📍 {city}
+                  {canton ? `, ${canton}` : ""}
                 </p>
 
                 {phone && <p>☎ {phone}</p>}
@@ -281,7 +274,7 @@ export default async function AusschreibungDetailPage({
                   rel="noreferrer"
                   className="mt-6 inline-flex min-h-[48px] w-full items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.04] px-5 text-sm font-black transition hover:bg-white/[0.07]"
                 >
-                  Offizielle Stelle öffnen ↗
+                  {t.openOfficialSource} ↗
                 </a>
               )}
             </div>
@@ -291,19 +284,17 @@ export default async function AusschreibungDetailPage({
                 AuftragO Ausschreibungs-Center
               </p>
 
-              <p className="mt-3 font-black text-white">
-                Interessiert an diesem Auftrag?
-              </p>
+              <p className="mt-3 font-black text-white">{t.interestedTitle}</p>
 
               <p className="mt-2 text-sm leading-6 text-slate-400">
-                Prüfe die Ausschreibung und entscheide, ob sie zu deinem Unternehmen passt.
+                {t.interestedText}
               </p>
 
               <Link
                 href="/portal/einstellungen"
                 className="mt-5 inline-flex min-h-[48px] w-full items-center justify-center rounded-2xl bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 px-5 text-sm font-black text-white transition hover:-translate-y-0.5"
               >
-                Matching einstellen →
+                {t.configureMatching} →
               </Link>
             </div>
           </aside>

@@ -9,24 +9,19 @@ import { regions as regionData } from "@/lib/region-data";
 import { getServerLocale } from "@/lib/i18n/server";
 import { translateHomeText } from "@/lib/i18n/home-translator";
 import { translateReactNode } from "@/lib/i18n/translate-react-node";
-import {
-  formatText,
-  services as seoServices,
-} from "@/lib/seo-data";
+import { formatText, services as seoServices } from "@/lib/seo-data";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title:
-    "Auftrago – Schweizer Plattform für Dienstleistungen",
+  title: "Auftrago – Schweizer Plattform für Dienstleistungen",
   description:
     "Kostenlos regionale Anbieter für Reinigung, Umzug, Handwerk, Hauswartung, Garten und viele weitere Dienstleistungen vergleichen.",
   alternates: {
     canonical: "https://www.auftrago.ch",
   },
   openGraph: {
-    title:
-      "Auftrago – Dein Auftrag. Perfekt erledigt.",
+    title: "Auftrago – Dein Auftrag. Perfekt erledigt.",
     description:
       "Erfasse deinen Auftrag kostenlos und erreiche passende Anbieter aus deiner Region.",
     url: "https://www.auftrago.ch",
@@ -41,78 +36,60 @@ const categoryCards = [
     icon: "✦",
     title: "Reinigung",
     subtitle: "Sauberkeit auf höchstem Niveau",
-    text:
-      "Wohnungsreinigung, Umzugsreinigung, Büroreinigung, Fenster und Spezialreinigung.",
+    text: "Wohnungsreinigung, Umzugsreinigung, Büroreinigung, Fenster und Spezialreinigung.",
     href: "/leistungen/reinigung",
-    gradient:
-      "from-sky-400/25 via-blue-500/10 to-transparent",
-    iconClass:
-      "border-sky-300/30 bg-sky-400/10 text-sky-300",
+    gradient: "from-sky-400/25 via-blue-500/10 to-transparent",
+    iconClass: "border-sky-300/30 bg-sky-400/10 text-sky-300",
   },
   {
     number: "02",
     icon: "⌁",
     title: "Handwerk",
     subtitle: "Profis für jedes Projekt",
-    text:
-      "Elektriker, Maler, Sanitär, Bodenleger, Schreiner, Montage und Renovationen.",
+    text: "Elektriker, Maler, Sanitär, Bodenleger, Schreiner, Montage und Renovationen.",
     href: "/dienstleistungen",
-    gradient:
-      "from-orange-400/25 via-amber-500/10 to-transparent",
-    iconClass:
-      "border-orange-300/30 bg-orange-400/10 text-orange-300",
+    gradient: "from-orange-400/25 via-amber-500/10 to-transparent",
+    iconClass: "border-orange-300/30 bg-orange-400/10 text-orange-300",
   },
   {
     number: "03",
     icon: "▣",
     title: "Umzug & Transport",
     subtitle: "Sicher von A nach B",
-    text:
-      "Privatumzug, Firmenumzug, Möbeltransport, Räumung und Entsorgung.",
+    text: "Privatumzug, Firmenumzug, Möbeltransport, Räumung und Entsorgung.",
     href: "/leistungen/umzug",
-    gradient:
-      "from-indigo-400/25 via-violet-500/10 to-transparent",
-    iconClass:
-      "border-indigo-300/30 bg-indigo-400/10 text-indigo-300",
+    gradient: "from-indigo-400/25 via-violet-500/10 to-transparent",
+    iconClass: "border-indigo-300/30 bg-indigo-400/10 text-indigo-300",
   },
   {
     number: "04",
     icon: "♧",
     title: "Garten & Umgebung",
     subtitle: "Alles rund ums Grundstück",
-    text:
-      "Gartenpflege, Rasen, Heckenschnitt, Umgebungspflege und Winterdienst.",
+    text: "Gartenpflege, Rasen, Heckenschnitt, Umgebungspflege und Winterdienst.",
     href: "/leistungen/gartenpflege",
-    gradient:
-      "from-emerald-400/25 via-teal-500/10 to-transparent",
-    iconClass:
-      "border-emerald-300/30 bg-emerald-400/10 text-emerald-300",
+    gradient: "from-emerald-400/25 via-teal-500/10 to-transparent",
+    iconClass: "border-emerald-300/30 bg-emerald-400/10 text-emerald-300",
   },
   {
     number: "05",
     icon: "⌂",
     title: "Hauswartung",
     subtitle: "Betreuung mit System",
-    text:
-      "Liegenschaftsbetreuung, Kontrollgänge, Unterhalt, Reinigung und Technik.",
+    text: "Liegenschaftsbetreuung, Kontrollgänge, Unterhalt, Reinigung und Technik.",
     href: "/leistungen/hauswartung",
-    gradient:
-      "from-cyan-400/25 via-sky-500/10 to-transparent",
-    iconClass:
-      "border-cyan-300/30 bg-cyan-400/10 text-cyan-300",
+    gradient: "from-cyan-400/25 via-sky-500/10 to-transparent",
+    iconClass: "border-cyan-300/30 bg-cyan-400/10 text-cyan-300",
   },
   {
     number: "06",
     icon: "◇",
     title: "Weitere Services",
     subtitle: "Über 420 Möglichkeiten",
-    text:
-      "Versicherungen, IT, Gesundheit und zahlreiche weitere Dienstleistungen.",
+    text: "Versicherungen, IT, Gesundheit und zahlreiche weitere Dienstleistungen.",
     href: "/dienstleistungen",
-    gradient:
-      "from-fuchsia-400/25 via-purple-500/10 to-transparent",
-    iconClass:
-      "border-fuchsia-300/30 bg-fuchsia-400/10 text-fuchsia-300",
+    gradient: "from-fuchsia-400/25 via-purple-500/10 to-transparent",
+    iconClass: "border-fuchsia-300/30 bg-fuchsia-400/10 text-fuchsia-300",
   },
 ];
 
@@ -122,52 +99,40 @@ const processStepsBase = [
     label: "Anfrage",
     icon: "✎",
     title: "Sag uns, was erledigt werden soll.",
-    text:
-      "Dienstleistung, Region und Termin eintragen. Deine Anfrage ist in weniger als einer Minute bereit.",
+    text: "Dienstleistung, Region und Termin eintragen. Deine Anfrage ist in weniger als einer Minute bereit.",
   },
   {
     number: "02",
     label: "Matching",
     icon: "◎",
     title: "Auftrago findet passende Anbieter.",
-    text:
-      "Dein Auftrag wird für geeignete Dienstleister aus deiner Region sichtbar gemacht.",
+    text: "Dein Auftrag wird für geeignete Dienstleister aus deiner Region sichtbar gemacht.",
   },
   {
     number: "03",
     label: "Vergleich",
     icon: "↗",
     title: "Du erhältst passende Rückmeldungen.",
-    text:
-      "Vergleiche Preis, Leistung, Verfügbarkeit und Auftreten der Anbieter.",
+    text: "Vergleiche Preis, Leistung, Verfügbarkeit und Auftreten der Anbieter.",
   },
   {
     number: "04",
     label: "Erledigt",
     icon: "✓",
     title: "Du entscheidest, wer den Auftrag erhält.",
-    text:
-      "Keine Annahmepflicht. Du wählst selbst den Anbieter, der am besten passt.",
+    text: "Keine Annahmepflicht. Du wählst selbst den Anbieter, der am besten passt.",
   },
 ];
 
 const popularServicesBase = [
   ["✦", "Reinigung", "/leistungen/reinigung"],
-  [
-    "⌂",
-    "Umzugsreinigung",
-    "/leistungen/umzugsreinigung",
-  ],
+  ["⌂", "Umzugsreinigung", "/leistungen/umzugsreinigung"],
   ["▦", "Hauswartung", "/leistungen/hauswartung"],
   ["♧", "Gartenpflege", "/leistungen/gartenpflege"],
   ["▣", "Umzug", "/leistungen/umzug"],
   ["↗", "Transport", "/leistungen/transport"],
   ["♻", "Entsorgung", "/leistungen/entsorgung"],
-  [
-    "□",
-    "Fensterreinigung",
-    "/leistungen/fensterreinigung",
-  ],
+  ["□", "Fensterreinigung", "/leistungen/fensterreinigung"],
   ["◉", "Maler", "/leistungen/maler"],
   ["⚡", "Elektriker", "/leistungen/elektriker"],
   ["◌", "Sanitär", "/leistungen/sanitaer"],
@@ -182,26 +147,22 @@ const advantagesBase = [
   {
     icon: "01",
     title: "Keine endlose Suche",
-    text:
-      "Eine Anfrage ersetzt unzählige Telefonate, Suchresultate und einzelne Kontaktformulare.",
+    text: "Eine Anfrage ersetzt unzählige Telefonate, Suchresultate und einzelne Kontaktformulare.",
   },
   {
     icon: "02",
     title: "Regionale Anbieter",
-    text:
-      "Du erreichst Dienstleister, die in deiner Region tätig sind und zu deinem Auftrag passen.",
+    text: "Du erreichst Dienstleister, die in deiner Region tätig sind und zu deinem Auftrag passen.",
   },
   {
     icon: "03",
     title: "Du behältst die Kontrolle",
-    text:
-      "Du entscheidest selbst, welche Rückmeldung überzeugt und wer den Auftrag erhält.",
+    text: "Du entscheidest selbst, welche Rückmeldung überzeugt und wer den Auftrag erhält.",
   },
   {
     icon: "04",
     title: "Kostenlos für Kunden",
-    text:
-      "Das Erstellen einer Anfrage ist kostenlos und verpflichtet dich zu keiner Annahme.",
+    text: "Das Erstellen einer Anfrage ist kostenlos und verpflichtet dich zu keiner Annahme.",
   },
 ];
 
@@ -216,38 +177,32 @@ const providerAdvantagesBase = [
 
 const faqsBase = [
   {
-    question:
-      "Ist eine Anfrage auf Auftrago wirklich kostenlos?",
+    question: "Ist eine Anfrage auf Auftrago wirklich kostenlos?",
     answer:
       "Ja. Auftraggeber können ihre Anfrage kostenlos und unverbindlich erfassen. Du entscheidest selbst, ob eine Offerte oder Rückmeldung zu deinem Auftrag passt.",
   },
   {
-    question:
-      "Welche Dienstleistungen kann ich anfragen?",
+    question: "Welche Dienstleistungen kann ich anfragen?",
     answer:
       "Auftrago deckt unter anderem Reinigung, Umzug, Hauswartung, Gartenpflege, Transport, Entsorgung, Malerarbeiten, Elektriker, Sanitär, Renovationen, Versicherungen und viele weitere Bereiche ab.",
   },
   {
-    question:
-      "Wie schnell erhalte ich Rückmeldungen?",
+    question: "Wie schnell erhalte ich Rückmeldungen?",
     answer:
       "Die Reaktionszeit hängt von Region, Dienstleistung, Termin und Verfügbarkeit ab. Eine vollständige Beschreibung und passende Fotos erhöhen die Chance auf schnelle Rückmeldungen.",
   },
   {
-    question:
-      "Muss ich eines der Angebote annehmen?",
+    question: "Muss ich eines der Angebote annehmen?",
     answer:
       "Nein. Deine Anfrage bleibt unverbindlich. Du kannst Rückmeldungen vergleichen und frei entscheiden, ob du einen Anbieter beauftragen möchtest.",
   },
   {
-    question:
-      "Ist Auftrago schweizweit verfügbar?",
+    question: "Ist Auftrago schweizweit verfügbar?",
     answer:
       "Ja. Kunden können Anfragen aus verschiedenen Kantonen und Regionen erfassen. Die konkrete Auswahl hängt von den verfügbaren Anbietern in der jeweiligen Umgebung ab.",
   },
   {
-    question:
-      "Wie funktioniert Auftrago für Anbieter?",
+    question: "Wie funktioniert Auftrago für Anbieter?",
     answer:
       "Registrierte Dienstleister erhalten Zugang zu passenden Kundenanfragen aus ihren gewählten Regionen und Fachbereichen. Relevante Aufträge können gezielt freigeschaltet werden.",
   },
@@ -259,7 +214,7 @@ export default async function HomePage() {
 }
 
 export async function HomePageContent({ locale }: { locale: Locale }) {
-const tr = (value: string) => translateHomeText(locale, value);
+  const tr = (value: string) => translateHomeText(locale, value);
 
   const processSteps = processStepsBase.map((item) => ({
     ...item,
@@ -268,11 +223,9 @@ const tr = (value: string) => translateHomeText(locale, value);
     text: tr(item.text),
   }));
 
-  const popularServices = popularServicesBase.map(([icon, label, href]) => [
-    icon,
-    tr(label),
-    href,
-  ] as const);
+  const popularServices = popularServicesBase.map(
+    ([icon, label, href]) => [icon, tr(label), href] as const,
+  );
 
   const advantages = advantagesBase.map((item) => ({
     ...item,
@@ -310,8 +263,7 @@ const tr = (value: string) => translateHomeText(locale, value);
       "@type": "SearchAction",
       target:
         "https://www.auftrago.ch/offerte-anfragen?query={search_term_string}",
-      "query-input":
-        "required name=search_term_string",
+      "query-input": "required name=search_term_string",
     },
   };
 
@@ -361,14 +313,197 @@ const tr = (value: string) => translateHomeText(locale, value);
       canton: "Cantone",
       deadline: "Scadenza",
     },
+
+    fr: {
+      eyebrow: "NOUVEAU POUR LES PRESTATAIRES",
+      title: "Appels d'offres publics.",
+      accent: "Directement sur Auftrago.",
+      description:
+        "Découvrez des marchés publics dans toute la Suisse, adaptés à votre secteur et à votre région. Les appels d'offres complets sont disponibles pour les prestataires disposant d'un abonnement actif.",
+      live: "Mis à jour en continu",
+      abo: "Abonnement prestataire",
+      preview: "Aperçu",
+      locked: "Détails avec abonnement prestataire",
+      cta: "Devenir prestataire",
+      note: "Demandes clients + appels d'offres publics en un seul endroit.",
+      canton: "Canton",
+      deadline: "Date limite",
+      premium: "Appels d'offres adaptés au secteur et à la région",
+      cards: [
+        {
+          category: "NETTOYAGE",
+          title: "Nettoyage d'entretien de bâtiments publics",
+          canton: "Zurich",
+          deadline: "12.09.2026",
+        },
+        {
+          category: "CONCIERGERIE",
+          title: "Entretien des bâtiments et services de conciergerie",
+          canton: "Argovie",
+          deadline: "18.09.2026",
+        },
+        {
+          category: "JARDIN & EXTÉRIEUR",
+          title: "Entretien des espaces verts publics",
+          canton: "Berne",
+          deadline: "24.09.2026",
+        },
+      ],
+    },
+
+    sq: {
+      eyebrow: "E RE PËR OFRUESIT",
+      title: "Tenderë publikë.",
+      accent: "Direkt në Auftrago.",
+      description:
+        "Zbuloni tenderë publikë nga e gjithë Zvicra, të përshtatshëm për sektorin dhe rajonin tuaj. Detajet e plota janë të disponueshme për ofruesit me abonim aktiv.",
+      live: "Përditësohet vazhdimisht",
+      abo: "Abonim për ofrues",
+      preview: "Pamje paraprake",
+      locked: "Detaje me abonim për ofrues",
+      cta: "Fillo si ofrues",
+      note: "Kërkesa klientësh + tenderë publikë në një vend.",
+      canton: "Kantoni",
+      deadline: "Afati",
+      premium: "Tenderë të përshtatshëm sipas sektorit dhe rajonit",
+      cards: [
+        {
+          category: "PASTRIM",
+          title: "Pastrim mirëmbajtës i ndërtesave publike",
+          canton: "Cyrih",
+          deadline: "12.09.2026",
+        },
+        {
+          category: "MIRËMBAJTJE OBJEKTESH",
+          title: "Mirëmbajtje ndërtesash dhe shërbime kujdestarie",
+          canton: "Aargau",
+          deadline: "18.09.2026",
+        },
+        {
+          category: "KOPSHT & AMBIENT I JASHTËM",
+          title: "Mirëmbajtje e hapësirave të gjelbra publike",
+          canton: "Bernë",
+          deadline: "24.09.2026",
+        },
+      ],
+    },
+
+    tr: {
+      eyebrow: "HİZMET SAĞLAYICILAR İÇİN YENİ",
+      title: "Kamu ihaleleri.",
+      accent: "Doğrudan Auftrago'da.",
+      description:
+        "İsviçre'nin dört bir yanındaki sektörünüze ve bölgenize uygun kamu ihalelerini keşfedin. Tüm ihale detayları aktif aboneliği bulunan hizmet sağlayıcılara sunulur.",
+      live: "Sürekli güncellenir",
+      abo: "Hizmet sağlayıcı aboneliği",
+      preview: "Önizleme",
+      locked: "Hizmet sağlayıcı aboneliği ile detaylar",
+      cta: "Hizmet sağlayıcı olarak başla",
+      note: "Müşteri talepleri + kamu ihaleleri tek yerde.",
+      canton: "Kanton",
+      deadline: "Son başvuru",
+      premium: "Sektör ve bölgeye uygun ihaleler",
+      cards: [
+        {
+          category: "TEMİZLİK",
+          title: "Kamu binalarında bakım temizliği",
+          canton: "Zürih",
+          deadline: "12.09.2026",
+        },
+        {
+          category: "BİNA BAKIMI",
+          title: "Bina bakımı ve kapıcılık hizmetleri",
+          canton: "Aargau",
+          deadline: "18.09.2026",
+        },
+        {
+          category: "BAHÇE & DIŞ ALAN",
+          title: "Kamusal yeşil alanların bakım ve korunması",
+          canton: "Bern",
+          deadline: "24.09.2026",
+        },
+      ],
+    },
+
+    pt: {
+      eyebrow: "NOVO PARA PRESTADORES",
+      title: "Concursos públicos.",
+      accent: "Diretamente na Auftrago.",
+      description:
+        "Descubra concursos públicos em toda a Suíça, adequados ao seu setor e à sua região. Os detalhes completos estão disponíveis para prestadores com uma subscrição ativa.",
+      live: "Atualizado continuamente",
+      abo: "Subscrição de prestador",
+      preview: "Pré-visualização",
+      locked: "Detalhes com subscrição de prestador",
+      cta: "Começar como prestador",
+      note: "Pedidos de clientes + concursos públicos num só lugar.",
+      canton: "Cantão",
+      deadline: "Prazo",
+      premium: "Concursos adequados ao setor e à região",
+      cards: [
+        {
+          category: "LIMPEZA",
+          title: "Limpeza de manutenção de edifícios públicos",
+          canton: "Zurique",
+          deadline: "12.09.2026",
+        },
+        {
+          category: "MANUTENÇÃO DE IMÓVEIS",
+          title: "Manutenção de edifícios e serviços de zeladoria",
+          canton: "Argóvia",
+          deadline: "18.09.2026",
+        },
+        {
+          category: "JARDIM E EXTERIOR",
+          title: "Manutenção de espaços verdes públicos",
+          canton: "Berna",
+          deadline: "24.09.2026",
+        },
+      ],
+    },
+
+    es: {
+      eyebrow: "NUEVO PARA PROVEEDORES",
+      title: "Licitaciones públicas.",
+      accent: "Directamente en Auftrago.",
+      description:
+        "Descubre licitaciones públicas de toda Suiza, adaptadas a tu sector y región. Los detalles completos están disponibles para proveedores con una suscripción activa.",
+      live: "Actualizado continuamente",
+      abo: "Suscripción de proveedor",
+      preview: "Vista previa",
+      locked: "Detalles con suscripción de proveedor",
+      cta: "Empezar como proveedor",
+      note: "Solicitudes de clientes + licitaciones públicas en un solo lugar.",
+      canton: "Cantón",
+      deadline: "Fecha límite",
+      premium: "Licitaciones adecuadas por sector y región",
+      cards: [
+        {
+          category: "LIMPIEZA",
+          title: "Limpieza de mantenimiento de edificios públicos",
+          canton: "Zúrich",
+          deadline: "12.09.2026",
+        },
+        {
+          category: "MANTENIMIENTO DE INMUEBLES",
+          title: "Mantenimiento de edificios y servicios de conserjería",
+          canton: "Argovia",
+          deadline: "18.09.2026",
+        },
+        {
+          category: "JARDÍN Y EXTERIOR",
+          title: "Mantenimiento de zonas verdes públicas",
+          canton: "Berna",
+          deadline: "24.09.2026",
+        },
+      ],
+    },
   } as const;
 
-  const tenderLocale =
-    locale === "it" ? tenderCopy.it : locale === "en" ? tenderCopy.en : tenderCopy.de;
+  const tenderLocale = tenderCopy[locale] ?? tenderCopy.de;
 
   return translateReactNode(
-    (
-      <main className="overflow-hidden bg-[#030611] text-white">
+    <main className="overflow-hidden bg-[#030611] text-white">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -666,11 +801,15 @@ const tr = (value: string) => translateHomeText(locale, value);
                           <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-slate-500">
                             <span>
                               {tenderLocale.canton}:{" "}
-                              <strong className="text-slate-300">{item.canton}</strong>
+                              <strong className="text-slate-300">
+                                {item.canton}
+                              </strong>
                             </span>
                             <span>
                               {tenderLocale.deadline}:{" "}
-                              <strong className="text-slate-300">{item.deadline}</strong>
+                              <strong className="text-slate-300">
+                                {item.deadline}
+                              </strong>
                             </span>
                           </div>
                         </div>
@@ -684,7 +823,9 @@ const tr = (value: string) => translateHomeText(locale, value);
                         <span className="text-[11px] font-bold text-slate-500">
                           {tenderLocale.locked}
                         </span>
-                        <span className="text-sm font-black text-sky-300">→</span>
+                        <span className="text-sm font-black text-sky-300">
+                          →
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -730,16 +871,11 @@ const tr = (value: string) => translateHomeText(locale, value);
             "ENTSORGUNG",
             "VERSICHERUNGEN",
           ].map((item, index) => (
-            <div
-              key={`${item}-${index}`}
-              className="flex items-center"
-            >
+            <div key={`${item}-${index}`} className="flex items-center">
               <span className="mx-7 whitespace-nowrap text-xs font-black tracking-[0.34em] text-slate-500">
                 {item}
               </span>
-              <span className="text-lg text-sky-400/50">
-                ✦
-              </span>
+              <span className="text-lg text-sky-400/50">✦</span>
             </div>
           ))}
         </div>
@@ -769,9 +905,8 @@ const tr = (value: string) => translateHomeText(locale, value);
 
             <div className="lg:pb-2">
               <p className="text-lg font-medium leading-8 text-slate-400">
-                Egal ob kleine Aufgabe oder grosses Projekt:
-                Auftrago verbindet Kunden mit passenden
-                Fachbetrieben aus ihrer Region.
+                Egal ob kleine Aufgabe oder grosses Projekt: Auftrago verbindet
+                Kunden mit passenden Fachbetrieben aus ihrer Region.
               </p>
 
               <Link
@@ -779,9 +914,7 @@ const tr = (value: string) => translateHomeText(locale, value);
                 className="group mt-7 inline-flex items-center gap-3 text-sm font-black text-sky-300"
               >
                 Über 420 Dienstleistungen entdecken
-                <span className="transition group-hover:translate-x-1">
-                  →
-                </span>
+                <span className="transition group-hover:translate-x-1">→</span>
               </Link>
             </div>
           </div>
@@ -877,9 +1010,8 @@ const tr = (value: string) => translateHomeText(locale, value);
             </h2>
 
             <p className="mx-auto mt-7 max-w-[710px] text-lg font-medium leading-8 text-slate-400">
-              Ein klarer Prozess, der dir Zeit spart und
-              passende Dienstleister schneller erreichbar
-              macht.
+              Ein klarer Prozess, der dir Zeit spart und passende Dienstleister
+              schneller erreichbar macht.
             </p>
           </div>
 
@@ -1007,21 +1139,9 @@ const tr = (value: string) => translateHomeText(locale, value);
 
                 <div className="mt-5 space-y-3">
                   {[
-                    [
-                      "Dienstleistung erkannt",
-                      "Wohnungsreinigung",
-                      "✓",
-                    ],
-                    [
-                      "Region erkannt",
-                      "Aarau und Umgebung",
-                      "⌖",
-                    ],
-                    [
-                      "Anbieter gefunden",
-                      "12 passende Betriebe",
-                      "◎",
-                    ],
+                    ["Dienstleistung erkannt", "Wohnungsreinigung", "✓"],
+                    ["Region erkannt", "Aarau und Umgebung", "⌖"],
+                    ["Anbieter gefunden", "12 passende Betriebe", "◎"],
                   ].map(([title, subtitle, icon]) => (
                     <div
                       key={title}
@@ -1032,9 +1152,7 @@ const tr = (value: string) => translateHomeText(locale, value);
                       </span>
 
                       <div>
-                        <p className="font-black">
-                          {title}
-                        </p>
+                        <p className="font-black">{title}</p>
                         <p className="mt-1 text-xs font-bold text-slate-500">
                           {subtitle}
                         </p>
@@ -1066,9 +1184,7 @@ const tr = (value: string) => translateHomeText(locale, value);
               <p className="mt-3 text-2xl font-black tracking-[-0.04em]">
                 12 Anbieter
               </p>
-              <p className="mt-2 text-sm text-slate-400">
-                in deiner Region
-              </p>
+              <p className="mt-2 text-sm text-slate-400">in deiner Region</p>
             </div>
           </div>
 
@@ -1085,9 +1201,8 @@ const tr = (value: string) => translateHomeText(locale, value);
             </h2>
 
             <p className="mt-7 max-w-[680px] text-lg font-medium leading-8 text-slate-400">
-              Auftrago verändert, wie Kunden Dienstleister
-              finden. Statt selbst unzählige Firmen zu
-              kontaktieren, startest du eine einzige
+              Auftrago verändert, wie Kunden Dienstleister finden. Statt selbst
+              unzählige Firmen zu kontaktieren, startest du eine einzige
               strukturierte Anfrage.
             </p>
 
@@ -1155,49 +1270,40 @@ const tr = (value: string) => translateHomeText(locale, value);
               className="group inline-flex items-center gap-3 text-sm font-black text-sky-300"
             >
               Alle Dienstleistungen
-              <span className="transition group-hover:translate-x-1">
-                →
-              </span>
+              <span className="transition group-hover:translate-x-1">→</span>
             </Link>
           </div>
 
           <div className="mt-16 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {popularServices.map(
-              ([icon, label, href], index) => (
-                <Link
-                  key={`${label}-${href}`}
-                  href={href}
-                  className="group relative min-h-[155px] overflow-hidden rounded-[28px] border border-white/[0.08] bg-[#080d1d] p-5 transition duration-400 hover:-translate-y-2 hover:border-sky-300/25 hover:bg-[#0b1227] hover:shadow-[0_28px_70px_rgba(0,0,0,.35)]"
-                >
-                  <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-sky-400/[0.045] blur-2xl transition group-hover:bg-sky-400/10" />
+            {popularServices.map(([icon, label, href], index) => (
+              <Link
+                key={`${label}-${href}`}
+                href={href}
+                className="group relative min-h-[155px] overflow-hidden rounded-[28px] border border-white/[0.08] bg-[#080d1d] p-5 transition duration-400 hover:-translate-y-2 hover:border-sky-300/25 hover:bg-[#0b1227] hover:shadow-[0_28px_70px_rgba(0,0,0,.35)]"
+              >
+                <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-sky-400/[0.045] blur-2xl transition group-hover:bg-sky-400/10" />
 
-                  <div className="relative flex h-full flex-col justify-between">
-                    <div className="flex items-start justify-between">
-                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/[0.09] bg-black/20 text-xl text-sky-300 transition duration-300 group-hover:scale-110 group-hover:border-sky-300/25">
-                        {icon}
-                      </span>
+                <div className="relative flex h-full flex-col justify-between">
+                  <div className="flex items-start justify-between">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/[0.09] bg-black/20 text-xl text-sky-300 transition duration-300 group-hover:scale-110 group-hover:border-sky-300/25">
+                      {icon}
+                    </span>
 
-                      <span className="text-[10px] font-black tracking-[0.18em] text-white/[0.12]">
-                        {String(index + 1).padStart(
-                          2,
-                          "0"
-                        )}
-                      </span>
-                    </div>
-
-                    <div className="mt-8 flex items-center justify-between">
-                      <h3 className="font-black tracking-[-0.02em]">
-                        {label}
-                      </h3>
-
-                      <span className="text-sky-300 transition group-hover:translate-x-1">
-                        →
-                      </span>
-                    </div>
+                    <span className="text-[10px] font-black tracking-[0.18em] text-white/[0.12]">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
                   </div>
-                </Link>
-              )
-            )}
+
+                  <div className="mt-8 flex items-center justify-between">
+                    <h3 className="font-black tracking-[-0.02em]">{label}</h3>
+
+                    <span className="text-sky-300 transition group-hover:translate-x-1">
+                      →
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
@@ -1224,10 +1330,9 @@ const tr = (value: string) => translateHomeText(locale, value);
               </h2>
 
               <p className="mt-7 max-w-[700px] text-lg font-medium leading-8 text-slate-400">
-                Erhalte Zugang zu Kundenanfragen aus deinen
-                Regionen und Fachbereichen. Konzentriere dich
-                auf Aufträge, die wirklich zu deinem Betrieb
-                passen.
+                Erhalte Zugang zu Kundenanfragen aus deinen Regionen und
+                Fachbereichen. Konzentriere dich auf Aufträge, die wirklich zu
+                deinem Betrieb passen.
               </p>
 
               <div className="mt-10 flex flex-col gap-4 sm:flex-row">
@@ -1251,31 +1356,24 @@ const tr = (value: string) => translateHomeText(locale, value);
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              {providerAdvantages.map(
-                (advantage, index) => (
-                  <div
-                    key={advantage}
-                    className="group rounded-[26px] border border-white/[0.08] bg-black/20 p-5 transition duration-300 hover:-translate-y-1 hover:border-violet-300/20 hover:bg-violet-400/[0.05]"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-300/20 bg-emerald-400/10 font-black text-emerald-300">
-                        ✓
-                      </span>
+              {providerAdvantages.map((advantage, index) => (
+                <div
+                  key={advantage}
+                  className="group rounded-[26px] border border-white/[0.08] bg-black/20 p-5 transition duration-300 hover:-translate-y-1 hover:border-violet-300/20 hover:bg-violet-400/[0.05]"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-300/20 bg-emerald-400/10 font-black text-emerald-300">
+                      ✓
+                    </span>
 
-                      <span className="text-xs font-black text-white/[0.1]">
-                        {String(index + 1).padStart(
-                          2,
-                          "0"
-                        )}
-                      </span>
-                    </div>
-
-                    <p className="mt-6 font-black leading-6">
-                      {advantage}
-                    </p>
+                    <span className="text-xs font-black text-white/[0.1]">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
                   </div>
-                )
-              )}
+
+                  <p className="mt-6 font-black leading-6">{advantage}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -1297,27 +1395,24 @@ const tr = (value: string) => translateHomeText(locale, value);
               </h2>
 
               <p className="mt-5 max-w-xl leading-7 text-slate-400">
-                Finde regionale Anbieter für deine gewünschte
-                Dienstleistung.
+                Finde regionale Anbieter für deine gewünschte Dienstleistung.
               </p>
 
               <div className="mt-9 grid gap-2 sm:grid-cols-2">
-                {regionData
-                  .slice(0, 12)
-                  .map((region) => (
-                    <Link
-                      key={region.slug}
-                      href={`/region/${region.slug}`}
-                      className="group flex items-center justify-between rounded-2xl border border-white/[0.07] bg-black/20 px-4 py-3.5 text-sm font-bold text-slate-400 transition hover:border-sky-300/20 hover:bg-sky-400/[0.055] hover:text-white"
-                    >
-                      <span>
-                        {tr("Anbieter in")} {region.name}
-                      </span>
-                      <span className="text-sky-300 transition group-hover:translate-x-1">
-                        →
-                      </span>
-                    </Link>
-                  ))}
+                {regionData.slice(0, 12).map((region) => (
+                  <Link
+                    key={region.slug}
+                    href={`/region/${region.slug}`}
+                    className="group flex items-center justify-between rounded-2xl border border-white/[0.07] bg-black/20 px-4 py-3.5 text-sm font-bold text-slate-400 transition hover:border-sky-300/20 hover:bg-sky-400/[0.055] hover:text-white"
+                  >
+                    <span>
+                      {tr("Anbieter in")} {region.name}
+                    </span>
+                    <span className="text-sky-300 transition group-hover:translate-x-1">
+                      →
+                    </span>
+                  </Link>
+                ))}
               </div>
             </div>
 
@@ -1331,27 +1426,24 @@ const tr = (value: string) => translateHomeText(locale, value);
               </h2>
 
               <p className="mt-5 max-w-xl leading-7 text-slate-400">
-                Lokale Dienstleister und Offerten aus deiner
-                Stadt und Umgebung.
+                Lokale Dienstleister und Offerten aus deiner Stadt und Umgebung.
               </p>
 
               <div className="mt-9 grid gap-2 sm:grid-cols-2">
-                {citiesSeo
-                  .slice(0, 12)
-                  .map((city) => (
-                    <Link
-                      key={city.slug}
-                      href={`/stadt/${city.slug}`}
-                      className="group flex items-center justify-between rounded-2xl border border-white/[0.07] bg-black/20 px-4 py-3.5 text-sm font-bold text-slate-400 transition hover:border-violet-300/20 hover:bg-violet-400/[0.055] hover:text-white"
-                    >
-                      <span>
-                        {tr("Anbieter in")} {city.name}
-                      </span>
-                      <span className="text-violet-300 transition group-hover:translate-x-1">
-                        →
-                      </span>
-                    </Link>
-                  ))}
+                {citiesSeo.slice(0, 12).map((city) => (
+                  <Link
+                    key={city.slug}
+                    href={`/stadt/${city.slug}`}
+                    className="group flex items-center justify-between rounded-2xl border border-white/[0.07] bg-black/20 px-4 py-3.5 text-sm font-bold text-slate-400 transition hover:border-violet-300/20 hover:bg-violet-400/[0.055] hover:text-white"
+                  >
+                    <span>
+                      {tr("Anbieter in")} {city.name}
+                    </span>
+                    <span className="text-violet-300 transition group-hover:translate-x-1">
+                      →
+                    </span>
+                  </Link>
+                ))}
               </div>
             </div>
           </div>
@@ -1377,17 +1469,15 @@ const tr = (value: string) => translateHomeText(locale, value);
             </div>
 
             <div className="mt-9 flex flex-wrap gap-2">
-              {seoServices
-                .slice(0, 24)
-                .map((service) => (
-                  <Link
-                    key={service}
-                    href={`/leistungen/${service}`}
-                    className="rounded-full border border-white/[0.08] bg-black/20 px-4 py-2.5 text-sm font-bold text-slate-400 transition hover:border-emerald-300/20 hover:bg-emerald-400/[0.055] hover:text-white"
-                  >
-                    {formatText(service)}
-                  </Link>
-                ))}
+              {seoServices.slice(0, 24).map((service) => (
+                <Link
+                  key={service}
+                  href={`/leistungen/${service}`}
+                  className="rounded-full border border-white/[0.08] bg-black/20 px-4 py-2.5 text-sm font-bold text-slate-400 transition hover:border-emerald-300/20 hover:bg-emerald-400/[0.055] hover:text-white"
+                >
+                  {formatText(service)}
+                </Link>
+              ))}
             </div>
           </div>
         </div>
@@ -1411,8 +1501,8 @@ const tr = (value: string) => translateHomeText(locale, value);
             </h2>
 
             <p className="mt-6 max-w-md text-lg font-medium leading-8 text-slate-400">
-              Die wichtigsten Antworten rund um Aufträge,
-              Anbieter und die Nutzung von Auftrago.
+              Die wichtigsten Antworten rund um Aufträge, Anbieter und die
+              Nutzung von Auftrago.
             </p>
 
             <Link
@@ -1432,10 +1522,7 @@ const tr = (value: string) => translateHomeText(locale, value);
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-5 px-5 py-5 sm:px-7 sm:py-6">
                   <div className="flex items-center gap-4">
                     <span className="text-xs font-black tracking-[0.12em] text-sky-300">
-                      {String(index + 1).padStart(
-                        2,
-                        "0"
-                      )}
+                      {String(index + 1).padStart(2, "0")}
                     </span>
 
                     <span className="text-base font-black sm:text-lg">
@@ -1485,8 +1572,8 @@ const tr = (value: string) => translateHomeText(locale, value);
             </h2>
 
             <p className="mx-auto mt-8 max-w-[780px] text-lg font-medium leading-8 text-slate-300 sm:text-xl">
-              Erstelle deine Anfrage kostenlos und erreiche
-              passende Anbieter aus deiner Region.
+              Erstelle deine Anfrage kostenlos und erreiche passende Anbieter
+              aus deiner Region.
             </p>
 
             <div className="mt-11 flex flex-col justify-center gap-4 sm:flex-row">
@@ -1517,8 +1604,7 @@ const tr = (value: string) => translateHomeText(locale, value);
           </div>
         </div>
       </section>
-      </main>
-    ),
-    tr
+    </main>,
+    tr,
   );
 }

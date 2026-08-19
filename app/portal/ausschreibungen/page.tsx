@@ -3,9 +3,10 @@ import { getSimapTenders } from "@/lib/simap/client";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { matchLeadToProvider } from "@/lib/provider-lead-matching";
+import { getServerLocale } from "@/lib/i18n/server";
+import { getTenderTranslations } from "@/lib/i18n/tenders";
 
 export const dynamic = "force-dynamic";
-
 
 export default async function AusschreibungenPage({
   searchParams,
@@ -18,6 +19,9 @@ export default async function AusschreibungenPage({
   }>;
 }) {
   const params = (await searchParams) ?? {};
+
+  const tenderLocale = await getServerLocale();
+  const t = getTenderTranslations(tenderLocale);
 
   const tenders = await getSimapTenders();
 
@@ -54,7 +58,7 @@ export default async function AusschreibungenPage({
           region: tender.canton,
           city: tender.location || null,
           postalCode: null,
-        }
+        },
       );
 
       return {
@@ -68,10 +72,7 @@ export default async function AusschreibungenPage({
   const sortedTenders = scoredTenders.map((entry) => entry.tender);
 
   const matchScoreById = new Map(
-    scoredTenders.map((entry) => [
-      entry.tender.id,
-      entry.matchScore,
-    ])
+    scoredTenders.map((entry) => [entry.tender.id, entry.matchScore]),
   );
 
   // Suche und Filter auf die bereits nach Matching sortierten Ausschreibungen
@@ -79,15 +80,11 @@ export default async function AusschreibungenPage({
 
   const selectedQuery = (params.q ?? "").trim();
 
-  const selectedCanton = (params.canton ?? "")
-    .trim()
-    .toUpperCase();
+  const selectedCanton = (params.canton ?? "").trim().toUpperCase();
 
   const selectedCategory = (params.category ?? "").trim();
 
-  const normalizeFilterValue = (
-    value: string | null | undefined
-  ): string =>
+  const normalizeFilterValue = (value: string | null | undefined): string =>
     (value ?? "")
       .trim()
       .toLocaleLowerCase("de-CH")
@@ -149,13 +146,10 @@ export default async function AusschreibungenPage({
     new Set(
       sortedTenders
         .map((tender) => (tender.canton ?? "").trim().toUpperCase())
-        .filter(Boolean)
-    )
+        .filter(Boolean),
+    ),
   ).sort((a, b) =>
-    (cantonNames[a] ?? a).localeCompare(
-      cantonNames[b] ?? b,
-      "de-CH"
-    )
+    (cantonNames[a] ?? a).localeCompare(cantonNames[b] ?? b, "de-CH"),
   );
 
   const filterCategories = [
@@ -191,8 +185,8 @@ export default async function AusschreibungenPage({
     new Set(
       sortedTenders
         .map((tender) => (tender.category ?? "").trim())
-        .filter(Boolean)
-    )
+        .filter(Boolean),
+    ),
   ).sort((a, b) => a.localeCompare(b, "de-CH"));
 
   const filteredTenders = sortedTenders.filter((tender) => {
@@ -205,14 +199,12 @@ export default async function AusschreibungenPage({
         tender.category,
       ]
         .filter(Boolean)
-        .join(" ")
+        .join(" "),
     );
 
     const matchesSearch =
       !selectedQuery ||
-      searchableText.includes(
-        normalizeFilterValue(selectedQuery)
-      );
+      searchableText.includes(normalizeFilterValue(selectedQuery));
 
     const matchesCanton =
       !selectedCanton ||
@@ -228,9 +220,7 @@ export default async function AusschreibungenPage({
   });
 
   const cantonCount = new Set(
-    filteredTenders
-      .map((tender) => tender.canton)
-      .filter(Boolean)
+    filteredTenders.map((tender) => tender.canton).filter(Boolean),
   ).size;
 
   const ITEMS_PER_PAGE = 20;
@@ -239,7 +229,7 @@ export default async function AusschreibungenPage({
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredTenders.length / ITEMS_PER_PAGE)
+    Math.ceil(filteredTenders.length / ITEMS_PER_PAGE),
   );
 
   const currentPage = Number.isFinite(requestedPage)
@@ -250,7 +240,7 @@ export default async function AusschreibungenPage({
 
   const paginatedTenders = filteredTenders.slice(
     startIndex,
-    startIndex + ITEMS_PER_PAGE
+    startIndex + ITEMS_PER_PAGE,
   );
 
   const createPageHref = (page: number) => {
@@ -281,11 +271,11 @@ export default async function AusschreibungenPage({
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/15 bg-emerald-400/[0.06] px-3 py-2 text-[11px] font-black uppercase tracking-[0.16em] text-emerald-300">
                 <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.8)]" />
-                Live Ausschreibungs-Center
+                {t.liveCenter}
               </div>
 
               <h1 className="mt-5 text-3xl font-black tracking-[-0.045em] sm:text-4xl lg:text-5xl">
-                Öffentliche Ausschreibungen
+                {t.title}
               </h1>
 
               <p className="mt-4 max-w-[760px] text-sm font-medium leading-7 text-slate-400 sm:text-base">
@@ -297,16 +287,20 @@ export default async function AusschreibungenPage({
 
             <div className="flex flex-wrap gap-2">
               <div className="rounded-2xl border border-white/[0.08] bg-white/[0.035] px-5 py-3">
-                <strong className="block text-xl font-black">{sortedTenders.length}</strong>
+                <strong className="block text-xl font-black">
+                  {sortedTenders.length}
+                </strong>
                 <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                  Aktuell offen
+                  {t.found}
                 </span>
               </div>
 
               <div className="rounded-2xl border border-white/[0.08] bg-white/[0.035] px-5 py-3">
-                <strong className="block text-xl font-black">{cantonCount}</strong>
+                <strong className="block text-xl font-black">
+                  {cantonCount}
+                </strong>
                 <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                  Kantone
+                  {t.cantons}
                 </span>
               </div>
             </div>
@@ -314,64 +308,63 @@ export default async function AusschreibungenPage({
         </section>
 
         <section className="mt-6 rounded-[24px] border border-white/[0.08] bg-[#0a1427] p-4 sm:p-5">
-          <form method="GET" className="grid gap-3 lg:grid-cols-[1fr_190px_210px_150px]">
+          <form
+            method="GET"
+            className="grid gap-3 lg:grid-cols-[1fr_190px_210px_150px]"
+          >
             <input
               type="search"
               name="q"
               defaultValue={params.q ?? ""}
-              placeholder="Ausschreibung, Auftraggeber oder Ort suchen ..."
+              placeholder={t.searchPlaceholder}
               className="min-h-[52px] rounded-2xl border border-white/[0.08] bg-white/[0.04] px-4 text-sm font-semibold text-white outline-none placeholder:text-slate-600 focus:border-sky-400/40"
             />
 
             <select
               name="canton"
-                defaultValue={params.canton ?? ""}
-                className="min-h-[52px] rounded-2xl border border-white/[0.08] bg-[#0d172b] px-4 text-sm font-bold text-slate-300 outline-none"
-              >
-              <option value="">Alle Kantone</option>
+              defaultValue={params.canton ?? ""}
+              className="min-h-[52px] rounded-2xl border border-white/[0.08] bg-[#0d172b] px-4 text-sm font-bold text-slate-300 outline-none"
+            >
+              <option value="">{t.allCantons}</option>
 
               {filterCantons.map(([code, name]) => (
-              <option key={code} value={code}>
-                {name}
-              </option>
-            ))}
+                <option key={code} value={code}>
+                  {name}
+                </option>
+              ))}
             </select>
 
             <select
-                name="category"
-                defaultValue={params.category ?? ""}
-                className="min-h-[52px] rounded-2xl border border-white/[0.08] bg-[#0d172b] px-4 text-sm font-bold text-slate-300 outline-none"
-              >
-              <option value="">Alle Kategorien</option>
+              name="category"
+              defaultValue={params.category ?? ""}
+              className="min-h-[52px] rounded-2xl border border-white/[0.08] bg-[#0d172b] px-4 text-sm font-bold text-slate-300 outline-none"
+            >
+              <option value="">{t.allCategories}</option>
 
               {filterCategories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
             </select>
 
             <button
               type="submit"
               className="min-h-[52px] rounded-2xl bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 px-5 text-sm font-black text-white shadow-[0_16px_40px_rgba(67,97,255,.22)] transition hover:-translate-y-0.5"
             >
-              Suchen
+              {t.search}
             </button>
           </form>
         </section>
 
         <div className="mt-7 flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-bold text-white">
-              Passende Ausschreibungen
-            </p>
-            <p className="mt-1 text-xs text-slate-500">
-              Sortiert nach Aktualität
-            </p>
+            <p className="text-sm font-bold text-white">{t.matchingTenders}</p>
+            <p className="mt-1 text-xs text-slate-500">{t.sortedByCurrent}</p>
           </div>
 
           <span className="rounded-full border border-white/[0.08] bg-white/[0.035] px-4 py-2 text-xs font-bold text-slate-400">
-            Schweizweit
+            {t.nationwide}
           </span>
         </div>
 
@@ -394,7 +387,7 @@ export default async function AusschreibungenPage({
                       if (score >= 80) {
                         return (
                           <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.08] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.13em] text-emerald-300">
-                            ★ Top Match · {score}%
+                            ★ {t.topMatch} · {score}%
                           </span>
                         );
                       }
@@ -402,7 +395,7 @@ export default async function AusschreibungenPage({
                       if (score >= 50) {
                         return (
                           <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-400/20 bg-sky-400/[0.08] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.13em] text-sky-300">
-                            ✓ Passend · {score}%
+                            ✓ {t.match} · {score}%
                           </span>
                         );
                       }
@@ -433,16 +426,16 @@ export default async function AusschreibungenPage({
                     </span>
 
                     <span>
-                      Publiziert:{" "}
+                      {t.published}:{" "}
                       <strong className="text-slate-300">
                         {tender.published}
                       </strong>
                     </span>
 
                     <span>
-                      Eingabefrist:{" "}
+                      {t.deadline}:{" "}
                       <strong className="text-amber-300">
-                        {tender.deadline ?? "Keine Frist angegeben"}
+                        {tender.deadline ?? t.noDeadline}
                       </strong>
                     </span>
                   </div>
@@ -453,7 +446,7 @@ export default async function AusschreibungenPage({
                     href={`/portal/ausschreibungen/${tender.id}?publicationId=${encodeURIComponent(tender.publicationId)}`}
                     className="inline-flex min-h-[50px] items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 px-5 text-sm font-black text-white transition hover:-translate-y-0.5"
                   >
-                    Ausschreibung ansehen
+                    {t.viewTender}
                     <span>→</span>
                   </Link>
 
@@ -471,13 +464,11 @@ export default async function AusschreibungenPage({
 
         {totalPages > 1 && (
           <nav
-            aria-label="Seitennavigation Ausschreibungen"
+            aria-label={t.paginationLabel}
             className="mt-7 flex flex-col items-center justify-between gap-4 rounded-[24px] border border-white/[0.08] bg-[#0a1427] p-4 sm:flex-row sm:p-5"
           >
             <div className="text-sm font-semibold text-slate-400">
-              Seite{" "}
-              <span className="text-white">{currentPage}</span>
-              {" "}von{" "}
+              {t.page} <span className="text-white">{currentPage}</span> {t.of}{" "}
               <span className="text-white">{totalPages}</span>
               <span className="ml-2 text-slate-500">
                 · {filteredTenders.length} Ausschreibungen
@@ -490,48 +481,45 @@ export default async function AusschreibungenPage({
                   href={createPageHref(currentPage - 1)}
                   className="inline-flex min-h-[46px] items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.035] px-4 text-sm font-bold text-slate-300 transition hover:border-sky-400/30 hover:bg-white/[0.06] hover:text-white"
                 >
-                  ← Zurück
+                  ← {t.previous}
                 </Link>
               ) : (
                 <span className="inline-flex min-h-[46px] cursor-not-allowed items-center justify-center rounded-xl border border-white/[0.05] bg-white/[0.02] px-4 text-sm font-bold text-slate-600">
-                  ← Zurück
+                  ← {t.previous}
                 </span>
               )}
 
               <div className="hidden items-center gap-2 sm:flex">
-                {Array.from(
-                  { length: Math.min(totalPages, 5) },
-                  (_, index) => {
-                    let pageNumber: number;
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, index) => {
+                  let pageNumber: number;
 
-                    if (totalPages <= 5) {
-                      pageNumber = index + 1;
-                    } else if (currentPage <= 3) {
-                      pageNumber = index + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNumber = totalPages - 4 + index;
-                    } else {
-                      pageNumber = currentPage - 2 + index;
-                    }
-
-                    const active = pageNumber === currentPage;
-
-                    return (
-                      <Link
-                        key={pageNumber}
-                        href={createPageHref(pageNumber)}
-                        aria-current={active ? "page" : undefined}
-                        className={
-                          active
-                            ? "inline-flex h-[46px] min-w-[46px] items-center justify-center rounded-xl bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 px-3 text-sm font-black text-white shadow-[0_12px_32px_rgba(59,130,246,.22)]"
-                            : "inline-flex h-[46px] min-w-[46px] items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.035] px-3 text-sm font-bold text-slate-400 transition hover:border-sky-400/30 hover:bg-white/[0.06] hover:text-white"
-                        }
-                      >
-                        {pageNumber}
-                      </Link>
-                    );
+                  if (totalPages <= 5) {
+                    pageNumber = index + 1;
+                  } else if (currentPage <= 3) {
+                    pageNumber = index + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNumber = totalPages - 4 + index;
+                  } else {
+                    pageNumber = currentPage - 2 + index;
                   }
-                )}
+
+                  const active = pageNumber === currentPage;
+
+                  return (
+                    <Link
+                      key={pageNumber}
+                      href={createPageHref(pageNumber)}
+                      aria-current={active ? "page" : undefined}
+                      className={
+                        active
+                          ? "inline-flex h-[46px] min-w-[46px] items-center justify-center rounded-xl bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 px-3 text-sm font-black text-white shadow-[0_12px_32px_rgba(59,130,246,.22)]"
+                          : "inline-flex h-[46px] min-w-[46px] items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.035] px-3 text-sm font-bold text-slate-400 transition hover:border-sky-400/30 hover:bg-white/[0.06] hover:text-white"
+                      }
+                    >
+                      {pageNumber}
+                    </Link>
+                  );
+                })}
               </div>
 
               {currentPage < totalPages ? (
@@ -539,11 +527,11 @@ export default async function AusschreibungenPage({
                   href={createPageHref(currentPage + 1)}
                   className="inline-flex min-h-[46px] items-center justify-center rounded-xl bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 px-5 text-sm font-black text-white shadow-[0_12px_32px_rgba(59,130,246,.22)] transition hover:-translate-y-0.5"
                 >
-                  Weiter →
+                  {t.next} →
                 </Link>
               ) : (
                 <span className="inline-flex min-h-[46px] cursor-not-allowed items-center justify-center rounded-xl border border-white/[0.05] bg-white/[0.02] px-5 text-sm font-bold text-slate-600">
-                  Weiter →
+                  {t.next} →
                 </span>
               )}
             </div>
@@ -557,7 +545,7 @@ export default async function AusschreibungenPage({
                 Auftrago Ausschreibungs-Center
               </p>
               <p className="mt-2 text-base font-black text-white">
-                Öffentliche Aufträge passend zu deinem Unternehmen.
+                {t.centerSubtitle}
               </p>
               <p className="mt-1 text-sm text-slate-500">
                 In der nächsten Ausbaustufe werden Ausschreibungen automatisch
@@ -569,7 +557,7 @@ export default async function AusschreibungenPage({
               href="/portal/einstellungen"
               className="shrink-0 text-sm font-black text-sky-300 hover:text-sky-200"
             >
-              Matching einstellen →
+              {t.configureMatching} →
             </Link>
           </div>
         </section>
