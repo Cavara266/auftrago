@@ -40,8 +40,7 @@ function getAppUrl() {
   }
 
   const normalizedUrl =
-    configuredUrl.startsWith("http://") ||
-    configuredUrl.startsWith("https://")
+    configuredUrl.startsWith("http://") || configuredUrl.startsWith("https://")
       ? configuredUrl
       : `https://${configuredUrl}`;
 
@@ -55,13 +54,9 @@ function normalizeEmail(email: string) {
 async function runInBatches<T>(
   items: T[],
   worker: (item: T) => Promise<void>,
-  batchSize: number
+  batchSize: number,
 ) {
-  for (
-    let index = 0;
-    index < items.length;
-    index += batchSize
-  ) {
+  for (let index = 0; index < items.length; index += batchSize) {
     const batch = items.slice(index, index + batchSize);
 
     await Promise.all(batch.map(worker));
@@ -106,13 +101,11 @@ export async function sendNewLeadNotifications({
               email,
             },
           ];
-        })
-    ).values()
+        }),
+    ).values(),
   );
 
-  const leadUrl = `${getAppUrl()}/leads/${encodeURIComponent(
-    lead.id
-  )}`;
+  const leadUrl = `${getAppUrl()}/leads/${encodeURIComponent(lead.id)}`;
 
   let sent = 0;
   let failed = 0;
@@ -164,9 +157,7 @@ export async function sendNewLeadNotifications({
         failed += 1;
 
         const errorMessage =
-          error instanceof Error
-            ? error.message
-            : String(error);
+          error instanceof Error ? error.message : String(error);
 
         failedRecipients.push({
           email: provider.email,
@@ -182,7 +173,7 @@ export async function sendNewLeadNotifications({
         });
       }
     },
-    MAX_CONCURRENT_SENDS
+    MAX_CONCURRENT_SENDS,
   );
 
   const result: NotificationResult = {
@@ -211,12 +202,7 @@ export async function sendNewLeadNotifications({
   console.log(`FEHLER (${failedRecipients.length})`);
 
   failedRecipients.forEach((recipient) => {
-    console.error(
-      "FEHLER:",
-      recipient.email,
-      "-",
-      recipient.error
-    );
+    console.error("FEHLER:", recipient.email, "-", recipient.error);
   });
 
   console.log("");

@@ -7,6 +7,9 @@ type LeadTemplateInput = {
     region: string;
     category: string;
     price: number;
+    description?: string | null;
+    city?: string | null;
+    postalCode?: string | null;
   };
   estimatedValue: number;
   leadUrl: string;
@@ -46,6 +49,13 @@ export function newLeadMailTemplate({
     ? `Hallo ${escapeHtml(recipientName)}`
     : "Guten Tag";
 
+  const description = (lead.description ?? "").trim();
+  const location = [lead.postalCode, lead.city].filter(Boolean).join(" ");
+
+  const descriptionText = description
+    ? description
+    : "Der Kunde hat eine konkrete Anfrage gestellt. Öffne den Lead für alle verfügbaren Details.";
+
   const subject = `🔥 Neue Kundenanfrage: ${lead.title} in ${lead.region}`;
 
   const text = `${recipientName ? `Hallo ${recipientName}` : "Guten Tag"}
@@ -55,10 +65,14 @@ eine neue passende Kundenanfrage ist auf Auftrago eingetroffen.
 ${lead.title}
 Region: ${lead.region}
 Kategorie: ${lead.category}
-Geschätzter Auftragswert: ${formatMoney(estimatedValue)}
+${location ? `Ort: ${location}` : ""}
+
+Das möchte der Kunde:
+${descriptionText}
+
 Benötigte Credits: ${lead.price}
 
-Schnelles Reagieren erhöht deine Chance auf den Auftrag.
+Diese Anfrage passt zu deinem Anbieterprofil. Früh reagieren erhöht deine Chance auf den Auftrag.
 
 Auftrag jetzt ansehen:
 ${leadUrl}
@@ -108,46 +122,66 @@ Auftrago`;
                   <tr>
                     <td style="padding:0 34px 12px;">
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-                        <tr>
-                          <td width="50%" style="padding:6px 6px 6px 0;">
-                            <div style="padding:17px;border:1px solid #1e293b;border-radius:17px;background:#0b1425;">
-                              <div style="color:#64748b;font-size:10px;font-weight:800;text-transform:uppercase;">Region</div>
-                              <div style="margin-top:8px;color:#ffffff;font-size:17px;font-weight:800;">📍 ${escapeHtml(lead.region)}</div>
-                            </div>
-                          </td>
-                          <td width="50%" style="padding:6px 0 6px 6px;">
-                            <div style="padding:17px;border:1px solid #1e293b;border-radius:17px;background:#0b1425;">
-                              <div style="color:#64748b;font-size:10px;font-weight:800;text-transform:uppercase;">Kategorie</div>
-                              <div style="margin-top:8px;color:#ffffff;font-size:17px;font-weight:800;">${escapeHtml(lead.category)}</div>
-                            </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td width="50%" style="padding:6px 6px 6px 0;">
-                            <div style="padding:17px;border:1px solid #1e293b;border-radius:17px;background:#0b1425;">
-                              <div style="color:#64748b;font-size:10px;font-weight:800;text-transform:uppercase;">Auftragswert</div>
-                              <div style="margin-top:8px;color:#6ee7b7;font-size:20px;font-weight:900;">${formatMoney(estimatedValue)}</div>
-                            </div>
-                          </td>
-                          <td width="50%" style="padding:6px 0 6px 6px;">
-                            <div style="padding:17px;border:1px solid #1e293b;border-radius:17px;background:#0b1425;">
-                              <div style="color:#64748b;font-size:10px;font-weight:800;text-transform:uppercase;">Leadpreis</div>
-                              <div style="margin-top:8px;color:#fde68a;font-size:20px;font-weight:900;">${lead.price} Credits</div>
-                            </div>
-                          </td>
-                        </tr>
-                      </table>
+          <tr>
+            <td style="padding:6px 6px 6px 0;">
+              <div style="padding:18px;border:1px solid #1e293b;border-radius:18px;background:#0b1425;">
+                <div style="color:#64748b;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;">Region</div>
+                <div style="margin-top:8px;color:#ffffff;font-size:18px;font-weight:800;">📍 ${escapeHtml(lead.region)}</div>
+              </div>
+            </td>
+            <td style="padding:6px 0 6px 6px;">
+              <div style="padding:18px;border:1px solid #1e293b;border-radius:18px;background:#0b1425;">
+                <div style="color:#64748b;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;">Kategorie</div>
+                <div style="margin-top:8px;color:#ffffff;font-size:18px;font-weight:800;">${escapeHtml(lead.category)}</div>
+              </div>
+            </td>
+          </tr>
+
+          ${
+            description
+              ? `
+      
+    `
+              : ""
+          }
+
+<tr>
+            <td colspan="2" style="padding:6px 0;">
+              <div style="padding:18px 20px;border:1px solid #334155;border-radius:18px;background:#0f172a;">
+                <div style="margin:0 0 14px 0;padding:20px;border:1px solid #1e293b;border-radius:18px;background:#0b1425;">
+  <div style="color:#38bdf8;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;">Das möchte der Kunde</div>
+  <div style="margin-top:10px;color:#f8fafc;font-size:15px;font-weight:600;line-height:1.65;">
+    ${escapeHtml(descriptionText)}
+  </div>
+  ${
+    location
+      ? `<div style="margin-top:12px;color:#94a3b8;font-size:12px;line-height:1.5;">📍 ${escapeHtml(location)}</div>`
+      : ""
+  }
+</div>
+
+<div style="color:#94a3b8;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;">Lead-Zugang</div>
+                <div style="margin-top:8px;color:#ffffff;font-size:18px;font-weight:800;">
+                  ${lead.price} Credits
+                </div>
+                <div style="margin-top:6px;color:#94a3b8;font-size:12px;line-height:1.5;">
+                  Kontaktdaten und vollständige Anfrage werden nach dem Freischalten angezeigt.
+                </div>
+              </div>
+            </td>
+          </tr>
+        </table>
                     </td>
                   </tr>
 
                   <tr>
                     <td style="padding:22px 34px 34px;">
-                      <a href="${escapeHtml(leadUrl)}" style="display:block;padding:17px 24px;border-radius:15px;background:#2563eb;color:#ffffff;font-size:15px;font-weight:900;text-align:center;text-decoration:none;">
+                      <a href="${escapeHtml(leadUrl)}" style="display:block;padding:17px 24px;border-radius:15px;background:linear-gradient(90deg,#2563eb,#7c3aed);color:#ffffff;font-size:15px;font-weight:900;text-align:center;text-decoration:none;">
                         Auftrag jetzt ansehen →
                       </a>
 
                       <p style="margin:18px 0 0;color:#64748b;font-size:12px;line-height:1.6;text-align:center;">
-                        Kundendaten werden erst nach dem Freischalten angezeigt.
+                        Nur passende Anbieter erhalten diese Anfrage. Kundendaten werden erst nach dem Freischalten angezeigt.
                       </p>
                     </td>
                   </tr>
@@ -157,7 +191,7 @@ Auftrago`;
 
             <tr>
               <td style="padding:20px 12px;color:#475569;font-size:11px;line-height:1.6;text-align:center;">
-                Du erhältst diese Nachricht, weil dein Anbieterprofil auf Auftrago genehmigt ist und zur Anfrage passt.<br />
+                Du erhältst diese Nachricht, weil dein Anbieterprofil auf Auftrago aktiv ist und zu dieser Anfrage passt.<br />
                 © ${new Date().getFullYear()} Auftrago
               </td>
             </tr>
