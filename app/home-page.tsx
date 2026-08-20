@@ -683,6 +683,117 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
       */}
       <Hero locale={locale} />
 
+      {/* AUFTRAGO TALENT — JOB ENTRY */}
+      <section className="relative overflow-hidden border-b border-white/[0.07] bg-[#030817] px-5 py-16 sm:px-8 lg:px-12 lg:py-20">
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(circle at 15% 20%, rgba(56,189,248,.12), transparent 34%), radial-gradient(circle at 85% 80%, rgba(139,92,246,.12), transparent 36%)",
+          }}
+        />
+
+        <div className="relative mx-auto max-w-[1280px]">
+          <div className="grid overflow-hidden rounded-[32px] border border-white/[0.09] bg-white/[0.025] lg:grid-cols-[1.2fr_.8fr]">
+            <div className="p-7 sm:p-10 lg:p-12">
+              <div className="mb-5 flex flex-wrap items-center gap-3">
+                <span className="inline-flex items-center gap-2 rounded-full border border-sky-300/20 bg-sky-400/[0.07] px-4 py-2 text-[11px] font-black uppercase tracking-[0.2em] text-sky-300">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                  Auftrago Talent
+                </span>
+
+                <span className="rounded-full border border-white/10 bg-white/[0.035] px-4 py-2 text-[11px] font-bold text-slate-400">
+                  Jobs in der Schweiz
+                </span>
+              </div>
+
+              <h2 className="max-w-[780px] text-[2.7rem] font-black leading-[0.94] tracking-[-0.055em] text-white sm:text-[4rem] lg:text-[4.7rem]">
+                Arbeit suchen.
+                <span className="block bg-gradient-to-r from-sky-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
+                  Passende Stellen finden.
+                </span>
+              </h2>
+
+              <p className="mt-6 max-w-[680px] text-base font-medium leading-7 text-slate-400 sm:text-lg sm:leading-8">
+                Entdecke aktuelle Stellenangebote aus verschiedenen Branchen und
+                Regionen. Mit Auftrago Talent findest du offene Jobs zentral an
+                einem Ort.
+              </p>
+
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link
+                  href="/arbeit-suchen"
+                  className="group inline-flex min-h-[58px] items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 px-7 py-4 text-sm font-black text-white shadow-[0_20px_55px_rgba(59,130,246,.22)] transition hover:-translate-y-0.5 hover:shadow-[0_26px_65px_rgba(59,130,246,.30)]"
+                >
+                  Offene Stellen entdecken
+                  <span
+                    aria-hidden="true"
+                    className="text-xl transition-transform group-hover:translate-x-1"
+                  >
+                    →
+                  </span>
+                </Link>
+
+                <Link
+                  href="/arbeit-suchen/abo"
+                  className="inline-flex min-h-[58px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.035] px-7 py-4 text-sm font-bold text-slate-200 transition hover:border-sky-300/25 hover:bg-sky-400/[0.06] hover:text-white"
+                >
+                  Auftrago Talent ansehen
+                </Link>
+              </div>
+            </div>
+
+            <div className="border-t border-white/[0.07] p-7 sm:p-10 lg:border-l lg:border-t-0 lg:p-12">
+              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+                Für Jobsuchende
+              </p>
+
+              <div className="mt-7 space-y-3">
+                {[
+                  [
+                    "01",
+                    "Offene Stellen",
+                    "Jobs aus verschiedenen Branchen entdecken.",
+                  ],
+                  [
+                    "02",
+                    "Schweizweit",
+                    "Stellenangebote aus mehreren Regionen finden.",
+                  ],
+                  [
+                    "03",
+                    "Direkter Zugang",
+                    "Stelle auswählen und weitere Details öffnen.",
+                  ],
+                ].map(([number, title, text]) => (
+                  <div
+                    key={number}
+                    className="rounded-2xl border border-white/[0.07] bg-black/20 p-5"
+                  >
+                    <div className="flex items-start gap-4">
+                      <span className="mt-0.5 text-[11px] font-black text-sky-300">
+                        {number}
+                      </span>
+                      <div>
+                        <p className="font-black text-white">{title}</p>
+                        <p className="mt-1 text-sm leading-6 text-slate-500">
+                          {text}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <p className="mt-6 text-xs font-semibold text-slate-500">
+                Auftrago verbindet Dienstleistungen und Stellenangebote auf
+                einer Plattform.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* PUBLIC TENDERS - PROVIDER PREMIUM FEATURE */}
       <section className="relative overflow-hidden border-y border-white/[0.07] bg-[#050b1d] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
         <div

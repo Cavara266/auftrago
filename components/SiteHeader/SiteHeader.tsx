@@ -59,7 +59,7 @@ export default function SiteHeader() {
           service.title.toLowerCase().includes(value) ||
           service.category.toLowerCase().includes(value) ||
           service.keywords.some((keyword) =>
-            keyword.toLowerCase().includes(value)
+            keyword.toLowerCase().includes(value),
           )
         );
       })
@@ -97,8 +97,7 @@ export default function SiteHeader() {
           </Link>
 
           <nav className={styles.desktopNav}>
-            
-<button
+            <button
               type="button"
               className={styles.navButton}
               onClick={() => {
@@ -117,6 +116,15 @@ export default function SiteHeader() {
               Anbieter
             </Link>
 
+            <Link
+              href="/arbeit-suchen"
+              className={
+                pathname.startsWith("/arbeit-suchen") ? styles.active : ""
+              }
+            >
+              Arbeit suchen
+            </Link>
+
             <button
               type="button"
               className={styles.navButton}
@@ -129,23 +137,21 @@ export default function SiteHeader() {
               <span>{regionsOpen ? "−" : "+"}</span>
             </button>
 
+            <Link href="/preisrechner" className={styles.priceCalculatorLink}>
+              <span className={styles.priceCalculatorIcon}>⌗</span>
+              <span className={styles.priceCalculatorCopy}>
+                <strong>Preisrechner</strong>
+                <small>Sofort berechnen</small>
+              </span>
+            </Link>
 
-            
-          <Link href="/preisrechner" className={styles.priceCalculatorLink}>
-            <span className={styles.priceCalculatorIcon}>⌗</span>
-            <span className={styles.priceCalculatorCopy}>
-              <strong>Preisrechner</strong>
-              <small>Sofort berechnen</small>
-            </span>
-          </Link>
-
-          <Link href="/anbieter-registrieren">Für Anbieter</Link>
+            <Link href="/anbieter-registrieren">Für Anbieter</Link>
           </nav>
 
           <div className={styles.actions}>
             <LanguageSwitcher />
 
-          <button
+            <button
               type="button"
               className={styles.searchButton}
               onClick={() => setSearchOpen(true)}
@@ -169,19 +175,22 @@ export default function SiteHeader() {
           </div>
         </div>
 
-        
-
-        
-
-        {
-menuOpen && (
-<nav className={styles.mobileMenu}>
-  <Link href="/anbieter" onClick={closeAll}>Anbieter</Link>
-  <Link href="/preisrechner" onClick={closeAll}>💰 Preisrechner</Link>
-  <Link href="/auftrag-erstellen" onClick={closeAll}>Offerte anfragen</Link>
-</nav>
-)
-}
+        {menuOpen && (
+          <nav className={styles.mobileMenu}>
+            <Link href="/anbieter" onClick={closeAll}>
+              Anbieter
+            </Link>
+            <Link href="/arbeit-suchen" onClick={closeAll}>
+              Arbeit suchen
+            </Link>
+            <Link href="/preisrechner" onClick={closeAll}>
+              💰 Preisrechner
+            </Link>
+            <Link href="/auftrag-erstellen" onClick={closeAll}>
+              Offerte anfragen
+            </Link>
+          </nav>
+        )}
       </header>
 
       {searchOpen && (
