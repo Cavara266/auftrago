@@ -859,6 +859,8 @@ model CandidateProfile {
   cvSize       Int?
   cvUploadedAt DateTime?
 
+  account CandidateAccount?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -870,4 +872,52 @@ model CandidateProfile {
   @@index([isVisible])
   @@index([source])
   @@index([externalId])
+}
+
+model CandidateAccount {
+  id                 String @id @default(uuid())
+  candidateProfileId String @unique
+  passwordHash       String
+  credits            Int    @default(0)
+  status             String @default("ACTIVE")
+  sessionVersion     Int    @default(1)
+
+  // ==============================
+  // Talent Subscription
+  // ==============================
+  subscriptionExempt Boolean @default(false)
+
+  stripeCustomerId     String? @unique
+  stripeSubscriptionId String? @unique
+
+  subscriptionStatus            String    @default("INACTIVE")
+  subscriptionCurrentPeriodEnd  DateTime?
+  subscriptionCancelAtPeriodEnd Boolean   @default(false)
+  subscriptionStartedAt         DateTime?
+  subscriptionCancelledAt       DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  candidateProfile CandidateProfile     @relation(fields: [candidateProfileId], references: [id], onDelete: Cascade)
+  jobUnlocks       CandidateJobUnlock[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model CandidateJobUnlock {
+  id                 String   @id @default(uuid())
+  candidateAccountId String
+  externalJobId      String
+  redirectUrl        String
+  creditsSpent       Int
+  unlockedAt         DateTime @default(now())
+
+  candidateAccount CandidateAccount @relation(fields: [candidateAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([candidateAccountId, externalJobId])
+  @@index([candidateAccountId])
+  @@index([externalJobId])
+  @@index([unlockedAt])
 }
