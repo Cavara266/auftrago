@@ -1,0 +1,301 @@
+export const dynamic = "force-dynamic";
+
+type PageProps = {
+  searchParams?: Promise<{
+    success?: string;
+    error?: string;
+  }>;
+};
+
+const categories = [
+  "Reinigung",
+  "Hauswartung",
+  "Facility Management",
+  "Umzug",
+  "Transport",
+  "Logistik",
+  "Gartenpflege",
+  "Landschaftsbau",
+  "Sanitär",
+  "Heizung",
+  "Lüftung",
+  "Klima",
+  "Elektro",
+  "Maler",
+  "Schreiner",
+  "Bodenleger",
+  "Bau",
+  "Handwerk",
+  "Weitere",
+];
+
+const cantons = [
+  "Aargau",
+  "Appenzell Innerrhoden",
+  "Appenzell Ausserrhoden",
+  "Basel-Landschaft",
+  "Basel-Stadt",
+  "Bern",
+  "Freiburg",
+  "Genf",
+  "Glarus",
+  "Graubünden",
+  "Jura",
+  "Luzern",
+  "Neuenburg",
+  "Nidwalden",
+  "Obwalden",
+  "Schaffhausen",
+  "Schwyz",
+  "Solothurn",
+  "St. Gallen",
+  "Tessin",
+  "Thurgau",
+  "Uri",
+  "Waadt",
+  "Wallis",
+  "Zug",
+  "Zürich",
+];
+
+const fieldClass =
+  "min-h-[52px] rounded-2xl border border-white/[0.08] bg-white/[0.04] px-4 text-sm text-white outline-none placeholder:text-slate-600 focus:border-sky-400/40";
+
+export default async function ArbeitSuchenPage({ searchParams }: PageProps) {
+  const params = (await searchParams) ?? {};
+
+  return (
+    <main className="min-h-screen bg-[#07101f] px-4 py-10 text-white sm:px-6">
+      <div className="mx-auto max-w-5xl">
+        <section className="relative overflow-hidden rounded-[30px] border border-white/[0.08] bg-[#0a1427] p-6 sm:p-8 lg:p-10">
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(circle at 8% 0%, rgba(45,145,255,.14), transparent 30%), radial-gradient(circle at 94% 85%, rgba(180,61,255,.14), transparent 30%)",
+            }}
+          />
+
+          <div className="relative">
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/15 bg-emerald-400/[0.06] px-3 py-2 text-[11px] font-black uppercase tracking-[0.16em] text-emerald-300">
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+              Auftrago Talent
+            </div>
+
+            <h1 className="mt-5 text-3xl font-black tracking-[-0.045em] sm:text-4xl lg:text-5xl">
+              Arbeit gesucht?
+            </h1>
+
+            <p className="mt-4 max-w-[760px] text-sm font-medium leading-7 text-slate-400 sm:text-base">
+              Erstelle kostenlos dein Profil und werde von passenden Schweizer
+              Unternehmen gefunden.
+            </p>
+
+            {params.success === "1" && (
+              <div className="mt-6 rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.07] p-4 font-bold text-emerald-300">
+                ✓ Dein Profil wurde erfolgreich erstellt.
+              </div>
+            )}
+
+            {params.error && (
+              <div className="mt-6 rounded-2xl border border-red-400/20 bg-red-400/[0.06] p-4 font-bold text-red-300">
+                Bitte prüfe deine Angaben und versuche es erneut.
+              </div>
+            )}
+
+            <form
+              method="POST"
+              action="/api/candidates/register"
+              className="mt-8 grid gap-4 sm:grid-cols-2"
+
+              encType="multipart/form-data"
+            >
+              <input
+                name="firstName"
+                required
+                placeholder="Vorname *"
+                className={fieldClass}
+              />
+
+              <input
+                name="lastName"
+                required
+                placeholder="Nachname *"
+                className={fieldClass}
+              />
+
+              <input
+                type="email"
+                name="email"
+                required
+                placeholder="E-Mail *"
+                className={fieldClass}
+              />
+
+              <input
+                type="password"
+                name="password"
+                required
+                minLength={8}
+                autoComplete="new-password"
+                placeholder="Passwort erstellen *"
+                className={fieldClass}
+              />
+
+              <input
+                name="phone"
+                placeholder="Telefon"
+                className={fieldClass}
+              />
+
+              <input
+                name="title"
+                required
+                placeholder="Beruf / gewünschte Tätigkeit *"
+                className={`${fieldClass} sm:col-span-2`}
+              />
+
+              <select
+                name="category"
+                required
+                defaultValue=""
+                className={`${fieldClass} bg-[#0d172b]`}
+              >
+                <option value="" disabled>
+                  Tätigkeitsbereich *
+                </option>
+
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                name="canton"
+                required
+                defaultValue=""
+                className={`${fieldClass} bg-[#0d172b]`}
+              >
+                <option value="" disabled>
+                  Kanton *
+                </option>
+
+                {cantons.map((canton) => (
+                  <option key={canton} value={canton}>
+                    {canton}
+                  </option>
+                ))}
+              </select>
+
+              <input name="city" placeholder="Ort" className={fieldClass} />
+
+              <input
+                name="postalCode"
+                placeholder="PLZ"
+                className={fieldClass}
+              />
+
+              <input
+                name="employmentPercent"
+                placeholder="Pensum, z.B. 80-100 %"
+                className={fieldClass}
+              />
+
+              <input
+                type="number"
+                min="0"
+                name="experienceYears"
+                placeholder="Berufserfahrung in Jahren"
+                className={fieldClass}
+              />
+
+              <input
+                type="number"
+                min="1"
+                max="200"
+                name="radiusKm"
+                defaultValue="25"
+                placeholder="Suchradius in km"
+                className={fieldClass}
+              />
+
+              <input
+                name="languages"
+                placeholder="Sprachen, z.B. Deutsch, Albanisch"
+                className={fieldClass}
+              />
+
+              <div className="sm:col-span-2">
+                <label
+                  htmlFor="cv"
+                  className="mb-2 block text-sm font-bold text-white"
+                >
+                  Lebenslauf
+                  <span className="ml-2 text-xs font-medium text-slate-500">
+                    optional
+                  </span>
+                </label>
+
+                <div className="rounded-2xl border border-dashed border-sky-400/25 bg-sky-400/[0.04] p-5">
+                  <input
+                    id="cv"
+                    name="cv"
+                    type="file"
+                    accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    className="block w-full text-sm font-semibold text-slate-300 file:mr-4 file:rounded-xl file:border-0 file:bg-sky-400/10 file:px-4 file:py-3 file:text-sm file:font-bold file:text-sky-300 hover:file:bg-sky-400/15"
+                  />
+
+                  <p className="mt-3 text-xs leading-5 text-slate-500">
+                    PDF, DOC oder DOCX · maximal 8 MB. Dein Lebenslauf wird
+                    geschützt gespeichert und nicht öffentlich veröffentlicht.
+                  </p>
+                </div>
+              </div>
+
+              <textarea
+                name="description"
+                rows={5}
+                placeholder="Beschreibe deine Erfahrung, Stärken und welche Arbeit du suchst ..."
+                className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-4 text-sm text-white outline-none placeholder:text-slate-600 focus:border-sky-400/40 sm:col-span-2"
+              />
+
+              <label className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 text-sm text-slate-300">
+                <input type="checkbox" name="drivingLicense" />
+                Führerschein vorhanden
+              </label>
+
+              <label className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 text-sm text-slate-300">
+                <input type="checkbox" name="ownCar" />
+                Eigenes Fahrzeug
+              </label>
+
+              <label className="flex items-start gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 text-sm leading-6 text-slate-400 sm:col-span-2">
+                <input
+                  type="checkbox"
+                  name="contactConsent"
+                  required
+                  className="mt-1"
+                />
+
+                <span>
+                  Ich bin einverstanden, dass mein anonymisiertes Profil
+                  registrierten Unternehmen auf Auftrago angezeigt wird und
+                  diese mich über Auftrago kontaktieren können.
+                </span>
+              </label>
+
+              <button
+                type="submit"
+                className="min-h-[54px] rounded-2xl bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 px-6 text-sm font-black text-white transition hover:-translate-y-0.5 sm:col-span-2"
+              >
+                Kostenloses Profil erstellen
+              </button>
+            </form>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
