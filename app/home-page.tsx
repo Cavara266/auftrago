@@ -722,7 +722,7 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
 
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
-                  href="/arbeit-suchen"
+                  href="/arbeit-suchen/stellen"
                   className="group inline-flex min-h-[58px] items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 px-7 py-4 text-sm font-black text-white shadow-[0_20px_55px_rgba(59,130,246,.22)] transition hover:-translate-y-0.5 hover:shadow-[0_26px_65px_rgba(59,130,246,.30)]"
                 >
                   Offene Stellen entdecken
