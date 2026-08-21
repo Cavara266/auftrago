@@ -683,278 +683,325 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
       */}
       <Hero locale={locale} />
 
-      {/* AUFTRAGO TALENT — JOB ENTRY */}
-      <section className="relative overflow-hidden border-b border-white/[0.07] bg-[#030817] px-5 py-16 sm:px-8 lg:px-12 lg:py-20">
+      {/* AUFTRAGO DISCOVERY CARDS */}
+      <section className="relative overflow-hidden border-y border-white/[0.07] bg-[#050b1d] px-5 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
         <div
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(circle at 15% 20%, rgba(56,189,248,.12), transparent 34%), radial-gradient(circle at 85% 80%, rgba(139,92,246,.12), transparent 36%)",
+              "radial-gradient(circle at 10% 20%, rgba(56,189,248,.12), transparent 30%), radial-gradient(circle at 90% 80%, rgba(139,92,246,.15), transparent 34%)",
           }}
         />
 
-        <div className="relative mx-auto max-w-[1280px]">
-          <div className="grid overflow-hidden rounded-[32px] border border-white/[0.09] bg-white/[0.025] lg:grid-cols-[1.2fr_.8fr]">
-            <div className="p-7 sm:p-10 lg:p-12">
-              <div className="mb-5 flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center gap-2 rounded-full border border-sky-300/20 bg-sky-400/[0.07] px-4 py-2 text-[11px] font-black uppercase tracking-[0.2em] text-sky-300">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                  Auftrago Talent
-                </span>
-
-                <span className="rounded-full border border-white/10 bg-white/[0.035] px-4 py-2 text-[11px] font-bold text-slate-400">
-                  Jobs in der Schweiz
-                </span>
+        <div className="relative mx-auto max-w-[1380px]">
+          <div className="mb-9 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-sky-400/20 bg-sky-400/[0.07] px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-sky-300">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.9)]" />
+                Neu auf Auftrago
               </div>
 
-              <h2 className="max-w-[780px] text-[2.7rem] font-black leading-[0.94] tracking-[-0.055em] text-white sm:text-[4rem] lg:text-[4.7rem]">
-                Arbeit suchen.
+              <h2 className="mt-5 text-3xl font-black tracking-[-0.05em] text-white sm:text-4xl lg:text-5xl">
+                Entdecke neue
                 <span className="block bg-gradient-to-r from-sky-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
-                  Passende Stellen finden.
+                  Möglichkeiten.
                 </span>
               </h2>
-
-              <p className="mt-6 max-w-[680px] text-base font-medium leading-7 text-slate-400 sm:text-lg sm:leading-8">
-                Entdecke aktuelle Stellenangebote aus verschiedenen Branchen und
-                Regionen. Mit Auftrago Talent findest du offene Jobs zentral an
-                einem Ort.
-              </p>
-
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link
-                  href="/arbeit-suchen/stellen"
-                  className="group inline-flex min-h-[58px] items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 px-7 py-4 text-sm font-black text-white shadow-[0_20px_55px_rgba(59,130,246,.22)] transition hover:-translate-y-0.5 hover:shadow-[0_26px_65px_rgba(59,130,246,.30)]"
-                >
-                  Offene Stellen entdecken
-                  <span
-                    aria-hidden="true"
-                    className="text-xl transition-transform group-hover:translate-x-1"
-                  >
-                    →
-                  </span>
-                </Link>
-
-                <Link
-                  href="/arbeit-suchen/abo"
-                  className="inline-flex min-h-[58px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.035] px-7 py-4 text-sm font-bold text-slate-200 transition hover:border-sky-300/25 hover:bg-sky-400/[0.06] hover:text-white"
-                >
-                  Auftrago Talent ansehen
-                </Link>
-              </div>
             </div>
 
-            <div className="border-t border-white/[0.07] p-7 sm:p-10 lg:border-l lg:border-t-0 lg:p-12">
-              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
-                Für Jobsuchende
-              </p>
+            <p className="max-w-[480px] text-sm font-medium leading-6 text-slate-400 sm:text-base">
+              Jobs für Stellensuchende und öffentliche Ausschreibungen für
+              Anbieter – zentral auf einer Plattform.
+            </p>
+          </div>
 
-              <div className="mt-7 space-y-3">
-                {[
-                  [
-                    "01",
-                    "Offene Stellen",
-                    "Jobs aus verschiedenen Branchen entdecken.",
-                  ],
-                  [
-                    "02",
-                    "Schweizweit",
-                    "Stellenangebote aus mehreren Regionen finden.",
-                  ],
-                  [
-                    "03",
-                    "Direkter Zugang",
-                    "Stelle auswählen und weitere Details öffnen.",
-                  ],
-                ].map(([number, title, text]) => (
-                  <div
-                    key={number}
-                    className="rounded-2xl border border-white/[0.07] bg-black/20 p-5"
-                  >
-                    <div className="flex items-start gap-4">
-                      <span className="mt-0.5 text-[11px] font-black text-sky-300">
-                        {number}
-                      </span>
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* JOBS */}
+            <article className="group relative overflow-hidden rounded-[30px] border border-sky-400/20 bg-[#091326] shadow-[0_30px_90px_rgba(0,0,0,.30)] transition duration-300 hover:-translate-y-1 hover:border-sky-300/40">
+              <div
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  background:
+                    "radial-gradient(circle at 5% 5%, rgba(56,189,248,.17), transparent 35%), radial-gradient(circle at 100% 100%, rgba(99,102,241,.15), transparent 38%)",
+                }}
+              />
+
+              <div className="relative flex min-h-[580px] flex-col p-7 sm:p-9 lg:p-10">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-sky-300/20 bg-sky-400/[0.07] px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-sky-300">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                    Auftrago Talent
+                  </div>
+
+                  <div className="rounded-full bg-gradient-to-r from-sky-400 to-blue-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white">
+                    Neu
+                  </div>
+                </div>
+
+                <div className="mt-10">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+                    Für Jobsuchende
+                  </p>
+
+                  <h3 className="mt-4 text-[2.7rem] font-black leading-[0.95] tracking-[-0.055em] text-white sm:text-5xl">
+                    Arbeit suchen.
+                    <span className="mt-2 block bg-gradient-to-r from-sky-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
+                      Passende Stellen finden.
+                    </span>
+                  </h3>
+
+                  <p className="mt-6 max-w-[560px] text-base font-medium leading-7 text-slate-400">
+                    Entdecke aktuelle Stellenangebote aus verschiedenen Branchen
+                    und Regionen. Mit Auftrago Talent findest du offene Jobs
+                    zentral an einem Ort.
+                  </p>
+                </div>
+
+                <div className="mt-8 grid gap-3 sm:grid-cols-3">
+                  {[
+                    {
+                      number: "01",
+                      icon: "⌕",
+                      title: "Offene Stellen",
+                      text: "Aktuelle Jobs aus verschiedenen Branchen entdecken.",
+                    },
+                    {
+                      number: "02",
+                      icon: "⌖",
+                      title: "Schweizweit",
+                      text: "Stellenangebote aus allen Regionen der Schweiz finden.",
+                    },
+                    {
+                      number: "03",
+                      icon: "↗",
+                      title: "Direkter Zugang",
+                      text: "Interessante Stellen öffnen und alle Details ansehen.",
+                    },
+                  ].map((item) => (
+                    <div
+                      key={item.number}
+                      className="group/feature relative overflow-hidden rounded-2xl border border-white/[0.08] bg-black/20 p-5 transition hover:border-sky-300/25 hover:bg-white/[0.035]"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <span className="text-[10px] font-black text-sky-300">
+                          {item.number}
+                        </span>
+
+                        <div className="grid h-10 w-10 place-items-center rounded-xl border border-sky-300/15 bg-sky-400/[0.07] text-lg font-black text-sky-300">
+                          {item.icon}
+                        </div>
+                      </div>
+
+                      <p className="mt-5 text-sm font-black text-white">
+                        {item.title}
+                      </p>
+
+                      <p className="mt-2 text-xs font-medium leading-5 text-slate-500">
+                        {item.text}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-5">
+                    <div className="flex items-center gap-3">
+                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-emerald-400/15 bg-emerald-400/[0.07] text-emerald-300">
+                        ✓
+                      </div>
+
                       <div>
-                        <p className="font-black text-white">{title}</p>
-                        <p className="mt-1 text-sm leading-6 text-slate-500">
-                          {text}
+                        <p className="text-sm font-black text-white">
+                          Profil einmal erstellen
+                        </p>
+
+                        <p className="mt-1 text-xs font-medium leading-5 text-slate-500">
+                          Hinterlege deine Erfahrung, Wunschregion und
+                          Tätigkeit.
                         </p>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
 
-              <p className="mt-6 text-xs font-semibold text-slate-500">
-                Auftrago verbindet Dienstleistungen und Stellenangebote auf
-                einer Plattform.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* PUBLIC TENDERS - PROVIDER PREMIUM FEATURE */}
-      <section className="relative overflow-hidden border-y border-white/[0.07] bg-[#050b1d] px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(circle at 15% 10%, rgba(32,149,255,.13), transparent 32%), radial-gradient(circle at 88% 75%, rgba(198,54,255,.13), transparent 34%)",
-          }}
-        />
-
-        <div className="relative mx-auto max-w-[1280px]">
-          <div className="grid gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:items-center lg:gap-16">
-            <div>
-              <div className="mb-5 flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center gap-2 rounded-full border border-sky-400/20 bg-sky-400/[0.07] px-4 py-2 text-[11px] font-black tracking-[0.18em] text-sky-300">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(52,211,153,.8)]" />
-                  {tenderLocale.eyebrow}
-                </span>
-
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-[11px] font-bold text-white/55">
-                  {tenderLocale.abo}
-                </span>
-              </div>
-
-              <h2 className="max-w-[720px] text-[2.65rem] font-black leading-[0.96] tracking-[-0.055em] text-white sm:text-[3.8rem] lg:text-[4.5rem]">
-                {tenderLocale.title}
-                <span className="mt-2 block bg-gradient-to-r from-sky-400 via-blue-400 to-fuchsia-400 bg-clip-text text-transparent">
-                  {tenderLocale.accent}
-                </span>
-              </h2>
-
-              <p className="mt-7 max-w-[620px] text-base font-medium leading-7 text-slate-400 sm:text-lg sm:leading-8">
-                {tenderLocale.description}
-              </p>
-
-              <div className="mt-7 flex flex-wrap gap-3 text-sm font-bold text-slate-300">
-                <span className="rounded-full border border-white/10 bg-white/[0.035] px-4 py-2">
-                  ✓ {tenderLocale.live}
-                </span>
-                <span className="rounded-full border border-white/10 bg-white/[0.035] px-4 py-2">
-                  ✓ Schweizweit
-                </span>
-                <span className="rounded-full border border-white/10 bg-white/[0.035] px-4 py-2">
-                  ✓ Branche & Region
-                </span>
-              </div>
-
-              <Link
-                href="/anbieter-registrieren"
-                className="mt-8 inline-flex min-h-[58px] items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 px-7 text-sm font-black text-white shadow-[0_20px_55px_rgba(65,105,255,.28)] transition hover:-translate-y-0.5 hover:shadow-[0_28px_70px_rgba(65,105,255,.36)]"
-              >
-                {tenderLocale.cta}
-                <span className="text-xl">→</span>
-              </Link>
-
-              <p className="mt-4 text-xs font-semibold text-slate-500">
-                {tenderLocale.note}
-              </p>
-            </div>
-
-            <div className="relative">
-              <div className="absolute -inset-8 rounded-[44px] bg-gradient-to-br from-sky-500/10 via-transparent to-fuchsia-500/10 blur-3xl" />
-
-              <div className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[#071027]/90 p-4 shadow-[0_35px_100px_rgba(0,0,0,.38)] backdrop-blur-xl sm:p-6">
-                <div className="mb-4 flex items-center justify-between gap-4 px-1">
-                  <div>
-                    <p className="text-[10px] font-black tracking-[0.2em] text-sky-300">
-                      {tenderLocale.preview}
-                    </p>
-                    <p className="mt-1 text-sm font-bold text-white">
-                      Öffentliche Ausschreibungen
-                    </p>
-                  </div>
-
-                  <span className="inline-flex items-center gap-2 rounded-full bg-emerald-400/[0.08] px-3 py-2 text-[11px] font-black text-emerald-300">
-                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                    LIVE
-                  </span>
-                </div>
-
-                <div className="space-y-3">
-                  {[
-                    {
-                      category: "Reinigung",
-                      title: "Unterhaltsreinigung öffentlicher Gebäude",
-                      canton: "Zürich",
-                      deadline: "12.09.2026",
-                    },
-                    {
-                      category: "Hauswartung",
-                      title: "Gebäudeunterhalt und Hauswartungsleistungen",
-                      canton: "Aargau",
-                      deadline: "18.09.2026",
-                    },
-                    {
-                      category: "Garten & Umgebung",
-                      title: "Pflege und Unterhalt öffentlicher Grünanlagen",
-                      canton: "Bern",
-                      deadline: "24.09.2026",
-                    },
-                  ].map((item) => (
-                    <div
-                      key={item.title}
-                      className="group relative overflow-hidden rounded-[20px] border border-white/[0.08] bg-white/[0.035] p-4 transition hover:border-sky-400/20 hover:bg-white/[0.05] sm:p-5"
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0">
-                          <span className="text-[10px] font-black uppercase tracking-[0.16em] text-sky-300">
-                            {item.category}
-                          </span>
-
-                          <h3 className="mt-2 text-base font-black leading-snug text-white sm:text-lg">
-                            {item.title}
-                          </h3>
-
-                          <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-slate-500">
-                            <span>
-                              {tenderLocale.canton}:{" "}
-                              <strong className="text-slate-300">
-                                {item.canton}
-                              </strong>
-                            </span>
-                            <span>
-                              {tenderLocale.deadline}:{" "}
-                              <strong className="text-slate-300">
-                                {item.deadline}
-                              </strong>
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.05] text-lg">
-                          🔒
-                        </div>
+                  <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-5">
+                    <div className="flex items-center gap-3">
+                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-violet-400/15 bg-violet-400/[0.07] text-violet-300">
+                        ★
                       </div>
 
-                      <div className="mt-4 flex items-center justify-between border-t border-white/[0.07] pt-3">
-                        <span className="text-[11px] font-bold text-slate-500">
-                          {tenderLocale.locked}
-                        </span>
-                        <span className="text-sm font-black text-sky-300">
-                          →
-                        </span>
+                      <div>
+                        <p className="text-sm font-black text-white">
+                          Passende Chancen finden
+                        </p>
+
+                        <p className="mt-1 text-xs font-medium leading-5 text-slate-500">
+                          Durchsuche verfügbare Stellen zentral auf Auftrago.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-2xl border border-sky-400/15 bg-gradient-to-r from-sky-400/[0.06] via-blue-500/[0.04] to-violet-500/[0.06] p-5">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.17em] text-sky-300">
+                        Auftrago Talent
+                      </p>
+
+                      <p className="mt-2 text-base font-black text-white">
+                        Dein zentraler Zugang zum Schweizer Stellenmarkt.
+                      </p>
+
+                      <p className="mt-1 max-w-[420px] text-xs font-medium leading-5 text-slate-500">
+                        Jobs suchen, interessante Stellen entdecken und dein
+                        Profil zentral verwalten.
+                      </p>
+                    </div>
+
+                    <div className="shrink-0 rounded-xl border border-white/[0.08] bg-black/20 px-4 py-3 text-center">
+                      <p className="text-[10px] font-black uppercase tracking-[0.13em] text-slate-500">
+                        Region
+                      </p>
+                      <p className="mt-1 text-sm font-black text-white">
+                        Ganze Schweiz
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-auto flex flex-col gap-3 pt-9 sm:flex-row">
+                  <Link
+                    href="/arbeit-suchen/stellen"
+                    className="inline-flex min-h-[56px] flex-1 items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 px-6 text-sm font-black text-white shadow-[0_18px_45px_rgba(59,130,246,.22)] transition hover:-translate-y-0.5"
+                  >
+                    Offene Stellen entdecken
+                    <span>→</span>
+                  </Link>
+
+                  <Link
+                    href="/arbeit-suchen"
+                    className="inline-flex min-h-[56px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.035] px-6 text-sm font-bold text-white transition hover:bg-white/[0.07]"
+                  >
+                    Talent ansehen
+                  </Link>
+                </div>
+              </div>
+            </article>
+
+            {/* AUSSCHREIBUNGEN */}
+            <article className="group relative overflow-hidden rounded-[30px] border border-violet-400/20 bg-[#11112a] shadow-[0_30px_90px_rgba(0,0,0,.30)] transition duration-300 hover:-translate-y-1 hover:border-violet-300/40">
+              <div
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  background:
+                    "radial-gradient(circle at 95% 5%, rgba(168,85,247,.18), transparent 35%), radial-gradient(circle at 0% 100%, rgba(56,189,248,.10), transparent 38%)",
+                }}
+              />
+
+              <div className="relative flex min-h-[580px] flex-col p-7 sm:p-9 lg:p-10">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-violet-300/20 bg-violet-400/[0.07] px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-violet-200">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                    Für Anbieter
+                  </div>
+
+                  <div className="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white shadow-[0_10px_30px_rgba(168,85,247,.25)]">
+                    Neu
+                  </div>
+                </div>
+
+                <div className="mt-10">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+                    Öffentliche Aufträge
+                  </p>
+
+                  <h3 className="mt-4 text-[2.7rem] font-black leading-[0.95] tracking-[-0.055em] text-white sm:text-5xl">
+                    Öffentliche
+                    <span className="block">Ausschreibungen.</span>
+                    <span className="mt-2 block bg-gradient-to-r from-violet-300 via-fuchsia-400 to-sky-400 bg-clip-text text-transparent">
+                      Direkt auf Auftrago.
+                    </span>
+                  </h3>
+
+                  <p className="mt-6 max-w-[560px] text-base font-medium leading-7 text-slate-400">
+                    Entdecke öffentliche Aufträge aus der ganzen Schweiz passend
+                    zu deiner Branche und Region. Vollständige Ausschreibungen
+                    sind mit Anbieter-Abo verfügbar.
+                  </p>
+                </div>
+
+                <div className="mt-8 space-y-3">
+                  {[
+                    [
+                      "REINIGUNG",
+                      "Unterhaltsreinigung öffentlicher Gebäude",
+                      "Zürich",
+                    ],
+                    [
+                      "HAUSWARTUNG",
+                      "Gebäudeunterhalt und Hauswartungsleistungen",
+                      "Aargau",
+                    ],
+                    [
+                      "GARTEN & UMGEBUNG",
+                      "Pflege und Unterhalt öffentlicher Grünanlagen",
+                      "Bern",
+                    ],
+                  ].map(([category, title, canton]) => (
+                    <div
+                      key={title}
+                      className="flex items-center justify-between gap-4 rounded-2xl border border-white/[0.08] bg-black/20 p-4"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-[9px] font-black uppercase tracking-[0.17em] text-sky-300">
+                          {category}
+                        </p>
+
+                        <p className="mt-1 truncate text-sm font-black text-white">
+                          {title}
+                        </p>
+
+                        <p className="mt-1 text-xs font-semibold text-slate-500">
+                          Kanton: {canton}
+                        </p>
+                      </div>
+
+                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.05]">
+                        🔒
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="mt-4 flex items-center justify-between rounded-2xl border border-violet-400/15 bg-gradient-to-r from-blue-500/[0.08] to-fuchsia-500/[0.08] px-4 py-3">
-                  <div>
-                    <p className="text-[10px] font-black tracking-[0.16em] text-violet-300">
-                      PREMIUM
-                    </p>
-                    <p className="mt-1 text-xs font-bold text-white/80">
-                      Passende Ausschreibungen nach Branche & Region
-                    </p>
-                  </div>
-                  <span className="text-xl">🔒</span>
+                <div className="mt-auto flex flex-col gap-3 pt-9 sm:flex-row">
+                  <Link
+                    href="/portal/ausschreibungen"
+                    className="inline-flex min-h-[56px] flex-1 items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-violet-500 via-fuchsia-500 to-sky-400 px-6 text-sm font-black text-white shadow-[0_18px_45px_rgba(139,92,246,.24)] transition hover:-translate-y-0.5"
+                  >
+                    Ausschreibungen entdecken
+                    <span>→</span>
+                  </Link>
+
+                  <Link
+                    href="/anbieter-registrieren"
+                    className="inline-flex min-h-[56px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.035] px-6 text-sm font-bold text-white transition hover:bg-white/[0.07]"
+                  >
+                    Anbieter werden
+                  </Link>
                 </div>
               </div>
-            </div>
+            </article>
+          </div>
+
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[10px] font-black uppercase tracking-[0.12em] text-slate-600">
+            <span>Stellenangebote</span>
+            <span>•</span>
+            <span>Öffentliche Ausschreibungen</span>
+            <span>•</span>
+            <span>Schweizweit</span>
+            <span>•</span>
+            <span>Täglich aktualisiert</span>
           </div>
         </div>
       </section>
