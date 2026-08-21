@@ -61,19 +61,28 @@ export default function AdminNav() {
         </div>
       </div>
 
-      <nav className="admin-menu-nav" aria-label="Admin Navigation">
+      <nav
+        className="admin-menu-nav"
+        aria-label="Admin Navigation"
+      >
         {items.map((item) => {
           const active = item.exact
             ? pathname === item.href
-            : pathname === item.href || pathname.startsWith(`${item.href}/`);
+            : pathname === item.href ||
+              pathname.startsWith(`${item.href}/`);
 
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`admin-menu-link${active ? " is-active" : ""}`}
+              className={`admin-menu-link${
+                active ? " is-active" : ""
+              }`}
             >
-              <span className="admin-menu-icon" aria-hidden="true">
+              <span
+                className="admin-menu-icon"
+                aria-hidden="true"
+              >
                 {item.icon}
               </span>
 
@@ -86,7 +95,10 @@ export default function AdminNav() {
       </nav>
 
       <div className="admin-menu-footer">
-        <Link href="/admin-logout" className="admin-menu-logout">
+        <Link
+          href="/admin-logout"
+          className="admin-menu-logout"
+        >
           <span aria-hidden="true">↪</span>
           Abmelden
         </Link>

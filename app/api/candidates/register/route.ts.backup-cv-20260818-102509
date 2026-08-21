@@ -1,0 +1,158 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+function clean(value: FormDataEntryValue | null) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+export async function POST(request: Request) {
+  try {
+    const formData = await request.formData();
+
+    const firstName = clean(formData.get("firstName"));
+    const lastName = clean(formData.get("lastName"));
+    const email = clean(formData.get("email")).toLowerCase();
+    const phone = clean(formData.get("phone"));
+
+    const title = clean(formData.get("title"));
+    const category = clean(formData.get("category"));
+
+    const canton = clean(formData.get("canton"));
+    const city = clean(formData.get("city"));
+    const postalCode = clean(formData.get("postalCode"));
+
+    const employmentPercent = clean(
+      formData.get("employmentPercent")
+    );
+
+    const languages = clean(formData.get("languages"))
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    const description = clean(formData.get("description"));
+
+    const radiusRaw = Number.parseInt(
+      clean(formData.get("radiusKm")) || "25",
+      10
+    );
+
+    const experienceRaw = clean(
+      formData.get("experienceYears")
+    );
+
+    const contactConsent =
+      formData.get("contactConsent") === "on";
+
+    if (
+      !firstName ||
+      !lastName ||
+      !email ||
+      !title ||
+      !category ||
+      !canton ||
+      !contactConsent
+    ) {
+      return NextResponse.redirect(
+        new URL("/arbeit-suchen?error=missing", request.url)
+      );
+    }
+
+    await prisma.candidateProfile.upsert({
+      where: {
+        email,
+      },
+
+      update: {
+        firstName,
+        lastName,
+        phone: phone || null,
+
+        title,
+        category,
+
+        canton,
+        city: city || null,
+        postalCode: postalCode || null,
+
+        radiusKm:
+          Number.isFinite(radiusRaw) && radiusRaw > 0
+            ? radiusRaw
+            : 25,
+
+        employmentPercent:
+          employmentPercent || null,
+
+        experienceYears: experienceRaw
+          ? Number.parseInt(experienceRaw, 10)
+          : null,
+
+        languages,
+
+        drivingLicense:
+          formData.get("drivingLicense") === "on",
+
+        ownCar:
+          formData.get("ownCar") === "on",
+
+        description:
+          description || null,
+
+        isVisible: true,
+        status: "ACTIVE",
+        contactConsent: true,
+      },
+
+      create: {
+        firstName,
+        lastName,
+        email,
+        phone: phone || null,
+
+        title,
+        category,
+
+        canton,
+        city: city || null,
+        postalCode: postalCode || null,
+
+        radiusKm:
+          Number.isFinite(radiusRaw) && radiusRaw > 0
+            ? radiusRaw
+            : 25,
+
+        employmentPercent:
+          employmentPercent || null,
+
+        experienceYears: experienceRaw
+          ? Number.parseInt(experienceRaw, 10)
+          : null,
+
+        languages,
+
+        drivingLicense:
+          formData.get("drivingLicense") === "on",
+
+        ownCar:
+          formData.get("ownCar") === "on",
+
+        description:
+          description || null,
+
+        contactConsent: true,
+        source: "DIRECT",
+        sourceConsent: true,
+      },
+    });
+
+    return NextResponse.redirect(
+      new URL("/arbeit-suchen?success=1", request.url)
+    );
+  } catch (error) {
+    console.error("Candidate registration error:", error);
+
+    return NextResponse.redirect(
+      new URL("/arbeit-suchen?error=server", request.url)
+    );
+  }
+}

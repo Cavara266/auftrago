@@ -1,0 +1,90 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+
+import { requireCandidate } from "@/lib/candidate-auth";
+import { prisma } from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
+
+export default async function CandidateAccountPage() {
+  let user;
+
+  try {
+    user = await requireCandidate();
+  } catch {
+    redirect("/arbeit-suchen/login");
+  }
+
+  const profile = await prisma.candidateProfile.findUnique({
+    where: {
+      id: user.candidateProfileId,
+    },
+  });
+
+  if (!profile) {
+    redirect("/arbeit-suchen/login");
+  }
+
+  return (
+    <main className="min-h-screen bg-[#07101f] px-4 py-10 text-white sm:px-6">
+      <div className="mx-auto max-w-[900px]">
+        <section className="rounded-[30px] border border-white/[0.08] bg-[#0a1427] p-6 sm:p-8">
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/15 bg-emerald-400/[0.06] px-3 py-2 text-[11px] font-black uppercase tracking-[0.16em] text-emerald-300">
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            Eingeloggt
+          </div>
+
+          <h1 className="mt-5 text-3xl font-black tracking-[-0.045em] sm:text-4xl">
+            Hallo {profile.firstName || "Talent"}
+          </h1>
+
+          <p className="mt-3 text-slate-400">Dein Kandidatenkonto ist aktiv.</p>
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5">
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+                Profil
+              </p>
+
+              <p className="mt-3 text-lg font-black">{profile.title}</p>
+
+              <p className="mt-2 text-sm text-slate-400">
+                {profile.city || profile.canton}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5">
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+                Credits
+              </p>
+
+              <p className="mt-3 text-3xl font-black text-emerald-300">
+                {user.credits}
+              </p>
+
+              <p className="mt-2 text-sm text-slate-400">
+                Verfügbar für Stellen-Freischaltungen
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/arbeit-suchen/stellen"
+              className="inline-flex min-h-[50px] items-center justify-center rounded-2xl bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 px-6 text-sm font-black text-white"
+            >
+              Stellen ansehen
+            </Link>
+
+            <Link
+              href="/arbeit-suchen"
+              className="inline-flex min-h-[50px] items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.03] px-6 text-sm font-bold text-white"
+            >
+              Profil ansehen
+            </Link>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}

@@ -1,0 +1,602 @@
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+const ACTIVE_STATUSES = new Set(["ACTIVE", "TRIALING"]);
+
+function normalizeStatus(status: string | null | undefined) {
+  return (status || "INACTIVE").toUpperCase();
+}
+
+function statusInfo(status: string | null | undefined) {
+  const normalized = normalizeStatus(status);
+
+  switch (normalized) {
+    case "ACTIVE":
+      return {
+        label: "Aktiv",
+        background: "rgba(16, 185, 129, 0.12)",
+        border: "rgba(52, 211, 153, 0.28)",
+        color: "#6ee7b7",
+      };
+
+    case "TRIALING":
+      return {
+        label: "Testphase",
+        background: "rgba(56, 189, 248, 0.12)",
+        border: "rgba(56, 189, 248, 0.28)",
+        color: "#7dd3fc",
+      };
+
+    case "PAST_DUE":
+      return {
+        label: "Zahlung fällig",
+        background: "rgba(245, 158, 11, 0.12)",
+        border: "rgba(245, 158, 11, 0.28)",
+        color: "#fbbf24",
+      };
+
+    case "CANCELED":
+    case "CANCELLED":
+      return {
+        label: "Gekündigt",
+        background: "rgba(239, 68, 68, 0.12)",
+        border: "rgba(248, 113, 113, 0.28)",
+        color: "#fca5a5",
+      };
+
+    case "UNPAID":
+      return {
+        label: "Unbezahlt",
+        background: "rgba(239, 68, 68, 0.12)",
+        border: "rgba(248, 113, 113, 0.28)",
+        color: "#fca5a5",
+      };
+
+    default:
+      return {
+        label: "Inaktiv",
+        background: "rgba(148, 163, 184, 0.08)",
+        border: "rgba(148, 163, 184, 0.18)",
+        color: "#94a3b8",
+      };
+  }
+}
+
+function formatDate(value: Date | null | undefined) {
+  if (!value) return "—";
+
+  return new Intl.DateTimeFormat("de-CH", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(value);
+}
+
+function formatDateTime(value: Date | null | undefined) {
+  if (!value) return "—";
+
+  return new Intl.DateTimeFormat("de-CH", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(value);
+}
+
+function shortId(value: string | null | undefined) {
+  if (!value) return "—";
+  if (value.length <= 22) return value;
+
+  return `${value.slice(0, 12)}…${value.slice(-7)}`;
+}
+
+export default async function TalentSubscriptionsAdminPage() {
+  const accounts = await prisma.candidateAccount.findMany({
+    select: {
+      id: true,
+      status: true,
+
+      subscriptionExempt: true,
+
+      stripeCustomerId: true,
+      stripeSubscriptionId: true,
+
+      subscriptionStatus: true,
+      subscriptionCurrentPeriodEnd: true,
+      subscriptionCancelAtPeriodEnd: true,
+      subscriptionStartedAt: true,
+      subscriptionCancelledAt: true,
+
+      createdAt: true,
+      updatedAt: true,
+
+      candidateProfile: {
+        select: {
+          firstName: true,
+          lastName: true,
+          email: true,
+        },
+      },
+    },
+    orderBy: [
+      {
+        subscriptionStartedAt: "desc",
+      },
+      {
+        createdAt: "desc",
+      },
+    ],
+  });
+
+  const subscribedAccounts = accounts.filter(
+    (account) =>
+      Boolean(account.stripeSubscriptionId) ||
+      account.subscriptionExempt ||
+      normalizeStatus(account.subscriptionStatus) !== "INACTIVE",
+  );
+
+  const activeCount = subscribedAccounts.filter((account) =>
+    ACTIVE_STATUSES.has(normalizeStatus(account.subscriptionStatus)),
+  ).length;
+
+  const cancellingCount = subscribedAccounts.filter(
+    (account) =>
+      ACTIVE_STATUSES.has(normalizeStatus(account.subscriptionStatus)) &&
+      account.subscriptionCancelAtPeriodEnd,
+  ).length;
+
+  const problemCount = subscribedAccounts.filter((account) =>
+    ["PAST_DUE", "UNPAID", "INCOMPLETE", "INCOMPLETE_EXPIRED"].includes(
+      normalizeStatus(account.subscriptionStatus),
+    ),
+  ).length;
+
+  const cancelledCount = subscribedAccounts.filter((account) =>
+    ["CANCELED", "CANCELLED"].includes(
+      normalizeStatus(account.subscriptionStatus),
+    ),
+  ).length;
+
+  const manualCount = subscribedAccounts.filter(
+    (account) => account.subscriptionExempt,
+  ).length;
+
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        padding: "32px",
+        color: "#f8fafc",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "1600px",
+          margin: "0 auto",
+        }}
+      >
+        <header
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: "24px",
+            flexWrap: "wrap",
+            marginBottom: "28px",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                display: "inline-flex",
+                border: "1px solid rgba(52,211,153,.22)",
+                background: "rgba(16,185,129,.08)",
+                borderRadius: "999px",
+                padding: "7px 11px",
+                color: "#6ee7b7",
+                fontSize: "11px",
+                fontWeight: 800,
+                letterSpacing: ".14em",
+                textTransform: "uppercase",
+                marginBottom: "14px",
+              }}
+            >
+              Auftrago Talent
+            </div>
+
+            <h1
+              style={{
+                margin: 0,
+                fontSize: "clamp(30px,4vw,46px)",
+                lineHeight: 1,
+                letterSpacing: "-0.045em",
+              }}
+            >
+              Talent-Abos
+            </h1>
+
+            <p
+              style={{
+                margin: "14px 0 0",
+                color: "#94a3b8",
+                maxWidth: "720px",
+                lineHeight: 1.6,
+              }}
+            >
+              Zentrale Übersicht über Kandidaten-Abonnements, Stripe-Zuordnung,
+              Laufzeiten und Zahlungsstatus.
+            </p>
+          </div>
+
+          <Link
+            href="/admin"
+            style={{
+              minHeight: "44px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "0 18px",
+              borderRadius: "14px",
+              border: "1px solid rgba(255,255,255,.1)",
+              background: "rgba(255,255,255,.04)",
+              color: "#fff",
+              textDecoration: "none",
+              fontWeight: 800,
+              fontSize: "13px",
+            }}
+          >
+            ← Dashboard
+          </Link>
+        </header>
+
+        <section
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
+            gap: "14px",
+            marginBottom: "22px",
+          }}
+        >
+          {[
+            ["Abos gesamt", subscribedAccounts.length],
+            ["Aktiv", activeCount],
+            ["Kündigung vorgemerkt", cancellingCount],
+            ["Zahlung prüfen", problemCount],
+            ["Gekündigt", cancelledCount],
+            ["Manuell freigeschaltet", manualCount],
+          ].map(([label, value]) => (
+            <article
+              key={String(label)}
+              style={{
+                border: "1px solid rgba(255,255,255,.08)",
+                background: "#0a1427",
+                borderRadius: "20px",
+                padding: "20px",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 800,
+                  letterSpacing: ".1em",
+                  textTransform: "uppercase",
+                  color: "#64748b",
+                }}
+              >
+                {label}
+              </div>
+
+              <strong
+                style={{
+                  display: "block",
+                  marginTop: "10px",
+                  fontSize: "30px",
+                  letterSpacing: "-0.04em",
+                }}
+              >
+                {value}
+              </strong>
+            </article>
+          ))}
+        </section>
+
+        <section
+          style={{
+            overflow: "hidden",
+            border: "1px solid rgba(255,255,255,.08)",
+            background: "#081326",
+            borderRadius: "24px",
+          }}
+        >
+          <div
+            style={{
+              padding: "20px 22px",
+              borderBottom: "1px solid rgba(255,255,255,.07)",
+              display: "flex",
+              justifyContent: "space-between",
+              gap: "16px",
+              alignItems: "center",
+            }}
+          >
+            <div>
+              <strong style={{ fontSize: "18px" }}>
+                Kandidaten-Abonnements
+              </strong>
+
+              <div
+                style={{
+                  color: "#64748b",
+                  fontSize: "12px",
+                  marginTop: "5px",
+                }}
+              >
+                Daten werden direkt aus CandidateAccount gelesen.
+              </div>
+            </div>
+
+            <span
+              style={{
+                color: "#94a3b8",
+                fontSize: "12px",
+                fontWeight: 700,
+              }}
+            >
+              {subscribedAccounts.length} Einträge
+            </span>
+          </div>
+
+          {subscribedAccounts.length === 0 ? (
+            <div
+              style={{
+                padding: "70px 24px",
+                textAlign: "center",
+                color: "#64748b",
+              }}
+            >
+              Noch keine Talent-Abonnements vorhanden.
+            </div>
+          ) : (
+            <div style={{ overflowX: "auto" }}>
+              <table
+                style={{
+                  width: "100%",
+                  minWidth: "1150px",
+                  borderCollapse: "collapse",
+                }}
+              >
+                <thead>
+                  <tr
+                    style={{
+                      color: "#64748b",
+                      fontSize: "10px",
+                      textTransform: "uppercase",
+                      letterSpacing: ".1em",
+                    }}
+                  >
+                    {[
+                      "Kandidat",
+                      "Abo-Status",
+                      "Beginn",
+                      "Nächster Zeitraum",
+                      "Kündigung",
+                      "Stripe",
+                      "Zugriff",
+                      "Aktualisiert",
+                    ].map((label) => (
+                      <th
+                        key={label}
+                        style={{
+                          padding: "15px 18px",
+                          textAlign: "left",
+                          borderBottom: "1px solid rgba(255,255,255,.07)",
+                        }}
+                      >
+                        {label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {subscribedAccounts.map((account) => {
+                    const info = statusInfo(account.subscriptionStatus);
+
+                    const fullName =
+                      [
+                        account.candidateProfile.firstName,
+                        account.candidateProfile.lastName,
+                      ]
+                        .filter(Boolean)
+                        .join(" ") || "Kandidat";
+
+                    return (
+                      <tr key={account.id}>
+                        <td
+                          style={{
+                            padding: "18px",
+                            borderBottom: "1px solid rgba(255,255,255,.055)",
+                            verticalAlign: "top",
+                          }}
+                        >
+                          <strong
+                            style={{
+                              display: "block",
+                              fontSize: "14px",
+                            }}
+                          >
+                            {fullName}
+                          </strong>
+
+                          <span
+                            style={{
+                              display: "block",
+                              marginTop: "5px",
+                              color: "#64748b",
+                              fontSize: "12px",
+                            }}
+                          >
+                            {account.candidateProfile.email}
+                          </span>
+                        </td>
+
+                        <td
+                          style={{
+                            padding: "18px",
+                            borderBottom: "1px solid rgba(255,255,255,.055)",
+                            verticalAlign: "top",
+                          }}
+                        >
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              padding: "7px 10px",
+                              borderRadius: "999px",
+                              border: `1px solid ${info.border}`,
+                              background: info.background,
+                              color: info.color,
+                              fontSize: "11px",
+                              fontWeight: 800,
+                            }}
+                          >
+                            {account.subscriptionExempt
+                              ? "Manuell"
+                              : info.label}
+                          </span>
+                        </td>
+
+                        <td
+                          style={{
+                            padding: "18px",
+                            borderBottom: "1px solid rgba(255,255,255,.055)",
+                            color: "#cbd5e1",
+                            fontSize: "12px",
+                            verticalAlign: "top",
+                          }}
+                        >
+                          {formatDate(account.subscriptionStartedAt)}
+                        </td>
+
+                        <td
+                          style={{
+                            padding: "18px",
+                            borderBottom: "1px solid rgba(255,255,255,.055)",
+                            color: "#cbd5e1",
+                            fontSize: "12px",
+                            verticalAlign: "top",
+                          }}
+                        >
+                          {formatDate(account.subscriptionCurrentPeriodEnd)}
+                        </td>
+
+                        <td
+                          style={{
+                            padding: "18px",
+                            borderBottom: "1px solid rgba(255,255,255,.055)",
+                            fontSize: "12px",
+                            verticalAlign: "top",
+                            color: account.subscriptionCancelAtPeriodEnd
+                              ? "#fbbf24"
+                              : "#64748b",
+                          }}
+                        >
+                          {account.subscriptionCancelAtPeriodEnd
+                            ? "Zum Periodenende"
+                            : account.subscriptionCancelledAt
+                              ? formatDate(account.subscriptionCancelledAt)
+                              : "Nein"}
+                        </td>
+
+                        <td
+                          style={{
+                            padding: "18px",
+                            borderBottom: "1px solid rgba(255,255,255,.055)",
+                            fontSize: "11px",
+                            verticalAlign: "top",
+                          }}
+                        >
+                          {account.stripeSubscriptionId ? (
+                            <a
+                              href={`https://dashboard.stripe.com/subscriptions/${account.stripeSubscriptionId}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                display: "block",
+                                color: "#7dd3fc",
+                                textDecoration: "none",
+                                fontWeight: 700,
+                              }}
+                            >
+                              {shortId(account.stripeSubscriptionId)} ↗
+                            </a>
+                          ) : (
+                            <span style={{ color: "#64748b" }}>Kein Abo</span>
+                          )}
+
+                          {account.stripeCustomerId ? (
+                            <a
+                              href={`https://dashboard.stripe.com/customers/${account.stripeCustomerId}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                display: "block",
+                                marginTop: "7px",
+                                color: "#64748b",
+                                textDecoration: "none",
+                              }}
+                            >
+                              Kunde {shortId(account.stripeCustomerId)} ↗
+                            </a>
+                          ) : null}
+                        </td>
+
+                        <td
+                          style={{
+                            padding: "18px",
+                            borderBottom: "1px solid rgba(255,255,255,.055)",
+                            fontSize: "12px",
+                            verticalAlign: "top",
+                          }}
+                        >
+                          {false ? (
+                            <span style={{ color: "#fca5a5" }}>Gesperrt</span>
+                          ) : ACTIVE_STATUSES.has(
+                              normalizeStatus(account.subscriptionStatus),
+                            ) || account.subscriptionExempt ? (
+                            <span style={{ color: "#6ee7b7" }}>
+                              Freigeschaltet
+                            </span>
+                          ) : (
+                            <span style={{ color: "#64748b" }}>
+                              Kein Zugriff
+                            </span>
+                          )}
+                        </td>
+
+                        <td
+                          style={{
+                            padding: "18px",
+                            borderBottom: "1px solid rgba(255,255,255,.055)",
+                            color: "#64748b",
+                            fontSize: "11px",
+                            verticalAlign: "top",
+                          }}
+                        >
+                          {formatDateTime(account.updatedAt)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      </div>
+    </main>
+  );
+}

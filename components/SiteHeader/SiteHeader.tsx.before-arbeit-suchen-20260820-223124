@@ -1,0 +1,232 @@
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { services } from "@/lib/services";
+import styles from "./SiteHeader.module.css";
+
+import LanguageSwitcher from "../LanguageSwitcher/LanguageSwitcher";
+const regionLinks = [
+  { label: "Zürich", href: "/region/zuerich" },
+  { label: "Aargau", href: "/region/aargau" },
+  { label: "Basel", href: "/region/basel" },
+  { label: "Bern", href: "/region/bern" },
+  { label: "Luzern", href: "/region/luzern" },
+  { label: "Zug", href: "/region/zug" },
+];
+
+const categoryOrder = [
+  "Haus & Reinigung",
+  "Handwerk",
+  "Umzug & Transport",
+  "Energie",
+  "Versicherungen",
+  "Immobilien",
+  "Finanzen",
+  "IT & Digital",
+];
+
+export default function SiteHeader() {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
+  const [regionsOpen, setRegionsOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const groupedServices = useMemo(() => {
+    return categoryOrder
+      .map((category) => ({
+        category,
+        items: services.filter((service) => service.category === category),
+      }))
+      .filter((group) => group.items.length > 0);
+  }, []);
+
+  const results = useMemo(() => {
+    const value = query.trim().toLowerCase();
+
+    if (!value) {
+      return services.slice(0, 8);
+    }
+
+    return services
+      .filter((service) => {
+        return (
+          service.title.toLowerCase().includes(value) ||
+          service.category.toLowerCase().includes(value) ||
+          service.keywords.some((keyword) =>
+            keyword.toLowerCase().includes(value),
+          )
+        );
+      })
+      .slice(0, 10);
+  }, [query]);
+
+  function closeAll() {
+    setMenuOpen(false);
+    setServicesOpen(false);
+    setRegionsOpen(false);
+    setSearchOpen(false);
+  }
+
+  function handleSearchSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const firstResult = results[0];
+
+    if (firstResult) {
+      closeAll();
+      router.push(`/leistungen/${firstResult.slug}`);
+      return;
+    }
+
+    closeAll();
+    router.push(`/auftrag-erstellen?query=${encodeURIComponent(query)}`);
+  }
+
+  return (
+    <>
+      <header className={styles.header}>
+        <div className={styles.shell}>
+          <Link href="/" className={styles.logo} onClick={closeAll}>
+            Auftrago<span>.</span>
+          </Link>
+
+          <nav className={styles.desktopNav}>
+            <button
+              type="button"
+              className={styles.navButton}
+              onClick={() => {
+                setServicesOpen((value) => !value);
+                setRegionsOpen(false);
+              }}
+            >
+              Dienstleistungen
+              <span>{servicesOpen ? "−" : "+"}</span>
+            </button>
+
+            <Link
+              href="/anbieter"
+              className={pathname === "/anbieter" ? styles.active : ""}
+            >
+              Anbieter
+            </Link>
+
+            <button
+              type="button"
+              className={styles.navButton}
+              onClick={() => {
+                setRegionsOpen((value) => !value);
+                setServicesOpen(false);
+              }}
+            >
+              Regionen
+              <span>{regionsOpen ? "−" : "+"}</span>
+            </button>
+
+            <Link href="/preisrechner" className={styles.priceCalculatorLink}>
+              <span className={styles.priceCalculatorIcon}>⌗</span>
+              <span className={styles.priceCalculatorCopy}>
+                <strong>Preisrechner</strong>
+                <small>Sofort berechnen</small>
+              </span>
+            </Link>
+
+            <Link href="/anbieter-registrieren">Für Anbieter</Link>
+          </nav>
+
+          <div className={styles.actions}>
+            <LanguageSwitcher />
+
+            <button
+              type="button"
+              className={styles.searchButton}
+              onClick={() => setSearchOpen(true)}
+              aria-label="Suche öffnen"
+            >
+              Suche
+            </button>
+
+            <Link href="/auftrag-erstellen" className={styles.primaryButton}>
+              Auftrag starten
+            </Link>
+
+            <button
+              type="button"
+              className={styles.mobileButton}
+              onClick={() => setMenuOpen((value) => !value)}
+              aria-label="Menü öffnen"
+            >
+              {menuOpen ? "✕" : "☰"}
+            </button>
+          </div>
+        </div>
+
+        {menuOpen && (
+          <nav className={styles.mobileMenu}>
+            <Link href="/anbieter" onClick={closeAll}>
+              Anbieter
+            </Link>
+            <Link href="/preisrechner" onClick={closeAll}>
+              💰 Preisrechner
+            </Link>
+            <Link href="/auftrag-erstellen" onClick={closeAll}>
+              Offerte anfragen
+            </Link>
+          </nav>
+        )}
+      </header>
+
+      {searchOpen && (
+        <div className={styles.searchOverlay} role="dialog" aria-modal="true">
+          <button
+            type="button"
+            className={styles.closeSearch}
+            onClick={() => setSearchOpen(false)}
+            aria-label="Suche schliessen"
+          >
+            ✕
+          </button>
+
+          <div className={styles.searchPanel}>
+            <span className={styles.searchEyebrow}>Auftrago Suche</span>
+            <h2>Wonach suchst du?</h2>
+
+            <form onSubmit={handleSearchSubmit}>
+              <input
+                autoFocus
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Zum Beispiel Reinigung, Elektriker oder Krankenkasse"
+              />
+              <button type="submit">Suchen</button>
+            </form>
+
+            <div className={styles.searchResults}>
+              {results.map((service) => (
+                <Link
+                  key={service.slug}
+                  href={`/leistungen/${service.slug}`}
+                  onClick={closeAll}
+                >
+                  <span>{service.icon}</span>
+
+                  <div>
+                    <strong>{service.title}</strong>
+                    <small>{service.category}</small>
+                  </div>
+
+                  <b>→</b>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
