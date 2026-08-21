@@ -944,16 +944,6 @@ model CandidateApplication {
   coverLetter   String?
   candidateNote String?
 
-  contactPerson String?
-  contactEmail  String?
-  contactPhone  String?
-
-  followUpAt    DateTime?
-  lastContactAt DateTime?
-  reminderAt    DateTime?
-
-  internalNote String?
-
   appliedAt       DateTime  @default(now())
   viewedAt        DateTime?
   reviewStartedAt DateTime?

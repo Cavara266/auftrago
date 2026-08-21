@@ -899,11 +899,8 @@ model CandidateAccount {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  candidateProfile      CandidateProfile       @relation(fields: [candidateProfileId], references: [id], onDelete: Cascade)
-  jobUnlocks            CandidateJobUnlock[]
-  candidateApplications CandidateApplication[]
-  candidateSavedJobs    CandidateSavedJob[]
-  candidateJobAlerts    CandidateJobAlert[]
+  candidateProfile CandidateProfile     @relation(fields: [candidateProfileId], references: [id], onDelete: Cascade)
+  jobUnlocks       CandidateJobUnlock[]
 
   @@index([status])
   @@index([createdAt])
@@ -923,91 +920,4 @@ model CandidateJobUnlock {
   @@index([candidateAccountId])
   @@index([externalJobId])
   @@index([unlockedAt])
-}
-
-// ============================================================
-// AUFTRAGO TALENT CRM
-// ============================================================
-
-model CandidateApplication {
-  id                 String @id @default(uuid())
-  candidateAccountId String
-
-  externalJobId String
-  jobTitle      String
-  companyName   String?
-  jobLocation   String?
-  jobUrl        String?
-  jobSource     String? @default("external")
-
-  status        String  @default("SENT")
-  coverLetter   String?
-  candidateNote String?
-
-  contactPerson String?
-  contactEmail  String?
-  contactPhone  String?
-
-  followUpAt    DateTime?
-  lastContactAt DateTime?
-  reminderAt    DateTime?
-
-  internalNote String?
-
-  appliedAt       DateTime  @default(now())
-  viewedAt        DateTime?
-  reviewStartedAt DateTime?
-  interviewAt     DateTime?
-  acceptedAt      DateTime?
-  rejectedAt      DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  candidateAccount CandidateAccount @relation(fields: [candidateAccountId], references: [id], onDelete: Cascade)
-
-  @@unique([candidateAccountId, externalJobId])
-  @@index([candidateAccountId])
-  @@index([status])
-  @@index([createdAt])
-}
-
-model CandidateSavedJob {
-  id                 String @id @default(uuid())
-  candidateAccountId String
-
-  externalJobId String
-  jobTitle      String
-  companyName   String?
-  jobLocation   String?
-  jobUrl        String?
-
-  createdAt DateTime @default(now())
-
-  candidateAccount CandidateAccount @relation(fields: [candidateAccountId], references: [id], onDelete: Cascade)
-
-  @@unique([candidateAccountId, externalJobId])
-  @@index([candidateAccountId])
-}
-
-model CandidateJobAlert {
-  id                 String @id @default(uuid())
-  candidateAccountId String
-
-  jobQuery String?
-  location String?
-  canton   String?
-
-  emailEnabled Boolean @default(true)
-  frequency    String  @default("DAILY")
-  active       Boolean @default(true)
-
-  lastSentAt DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-
-  candidateAccount CandidateAccount @relation(fields: [candidateAccountId], references: [id], onDelete: Cascade)
-
-  @@index([candidateAccountId])
-  @@index([active])
 }
