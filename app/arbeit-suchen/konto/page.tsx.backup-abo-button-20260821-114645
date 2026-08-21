@@ -82,17 +82,6 @@ export default async function KandidatenKontoPage() {
           </form>
         </div>
 
-        {!hasActiveSubscription && (
-          <div className="mt-5">
-            <Link
-              href="/arbeit-suchen/abo"
-              className="inline-flex min-h-[48px] items-center justify-center rounded-xl bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 px-5 text-sm font-black text-white transition hover:-translate-y-0.5"
-            >
-              Talent-Abo aktivieren – CHF 99.– / Monat →
-            </Link>
-          </div>
-        )}
-
         <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div className="rounded-[24px] border border-emerald-400/15 bg-emerald-400/[0.06] p-5">
             <span className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">
