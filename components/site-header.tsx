@@ -260,15 +260,121 @@ export default function SiteHeader() {
           </div>
         )}
 
-        {
-menuOpen && (
-<nav className={styles.mobileMenu}>
-  <Link href="/anbieter" onClick={closeAll}>{tr("Anbieter")}</Link>
-  <Link href="/preisrechner" onClick={closeAll}>💰 Preisrechner</Link>
-  <Link href="/auftrag-erstellen" onClick={closeAll}>{tr("Auftrag starten")}</Link>
-</nav>
-)
-}
+      {menuOpen && (
+        <div className={styles.mobileOverlay} onClick={closeAll}>
+          <aside
+            className={styles.mobileDrawer}
+            onClick={(e) => e.stopPropagation()}
+            aria-label="Mobile Navigation"
+          >
+            <div className={styles.mobileDrawerHeader}>
+              <Link href="/" className={styles.mobileDrawerLogo} onClick={closeAll}>
+                Auftrago<span>.</span>
+              </Link>
+
+              <button
+                type="button"
+                className={styles.mobileDrawerClose}
+                onClick={closeAll}
+                aria-label={tr("Menü schliessen")}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className={styles.mobileDrawerContent}>
+              <Link
+                href="/auftrag-erstellen"
+                className={styles.mobileMainCta}
+                onClick={closeAll}
+              >
+                <span className={styles.mobileMainCtaIcon}>＋</span>
+                <span>
+                  <strong>{tr("Auftrag starten")}</strong>
+                  <small>{tr("Kostenlos Angebote erhalten")}</small>
+                </span>
+              </Link>
+
+              <div className={styles.mobileSection}>
+                <span className={styles.mobileSectionTitle}>{tr("Entdecken")}</span>
+
+                <Link href="/anbieter" className={styles.mobileNavItem} onClick={closeAll}>
+                  <span>🔎</span>
+                  <span>
+                    <strong>{tr("Anbieter")}</strong>
+                    <small>{tr("Passende Anbieter finden")}</small>
+                  </span>
+                  <span className={styles.mobileArrow}>›</span>
+                </Link>
+
+                <Link href="/preisrechner" className={styles.mobileNavItem} onClick={closeAll}>
+                  <span>💰</span>
+                  <span>
+                    <strong>{tr("Preisrechner")}</strong>
+                    <small>{tr("Kosten sofort berechnen")}</small>
+                  </span>
+                  <span className={styles.mobileArrow}>›</span>
+                </Link>
+
+                <Link href="/arbeit-suchen" className={styles.mobileNavItem} onClick={closeAll}>
+                  <span>💼</span>
+                  <span>
+                    <strong>{tr("Arbeit suchen")}</strong>
+                    <small>{tr("Aktuelle Stellenangebote")}</small>
+                  </span>
+                  <span className={styles.mobileArrow}>›</span>
+                </Link>
+
+                <Link
+                  href="/portal/ausschreibungen"
+                  className={styles.mobileNavItem}
+                  onClick={closeAll}
+                >
+                  <span>📋</span>
+                  <span>
+                    <span className={styles.mobileLabelRow}>
+                      <strong>{tr("Öffentliche Ausschreibungen")}</strong>
+                      <em className={styles.mobileNewBadge}>NEU</em>
+                    </span>
+                    <small>{tr("Öffentliche Aufträge entdecken")}</small>
+                  </span>
+                  <span className={styles.mobileArrow}>›</span>
+                </Link>
+              </div>
+
+              <div className={styles.mobileSection}>
+                <span className={styles.mobileSectionTitle}>{tr("Für Anbieter")}</span>
+
+                <Link
+                  href="/anbieter-registrieren"
+                  className={styles.mobileProviderItem}
+                  onClick={closeAll}
+                >
+                  <span>
+                    <strong>{tr("Anbieter werden")}</strong>
+                    <small>{tr("Neue Kunden und Aufträge gewinnen")}</small>
+                  </span>
+                  <span className={styles.mobileArrow}>›</span>
+                </Link>
+
+                <Link href="/login" className={styles.mobileNavItem} onClick={closeAll}>
+                  <span>↳</span>
+                  <span>
+                    <strong>{tr("Anmelden")}</strong>
+                    <small>{tr("Zum Anbieterportal")}</small>
+                  </span>
+                  <span className={styles.mobileArrow}>›</span>
+                </Link>
+              </div>
+            </div>
+
+            <div className={styles.mobileDrawerFooter}>
+              <span>{tr("Sprache")}</span>
+              <LanguageSwitcher />
+            </div>
+          </aside>
+        </div>
+      )}
       </header>
 
       {searchOpen && (
