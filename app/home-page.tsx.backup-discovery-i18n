@@ -216,380 +216,6 @@ export default async function HomePage() {
 export async function HomePageContent({ locale }: { locale: Locale }) {
   const tr = (value: string) => translateHomeText(locale, value);
 
-  const discoveryCopy = {
-    de: {
-      newOn: "Neu auf Auftrago",
-      discover: "Entdecke neue",
-      possibilities: "Möglichkeiten.",
-      intro: tr("{d.intro}"),
-      new: "Neu",
-      forJobseekers: "Für Jobsuchende",
-      findWork: "Arbeit suchen.",
-      findJobs: "Passende Stellen finden.",
-      jobsDescription: tr("Entdecke aktuelle Stellenangebote aus verschiedenen Branchen und Regionen. Mit Auftrago Talent findest du offene Jobs zentral an einem Ort."),
-      talentAccessDescription: tr("Jobs suchen, interessante Stellen entdecken und dein Profil zentral verwalten."),
-      openJobs: "Offene Stellen",
-      openJobsText: "Aktuelle Jobs aus verschiedenen Branchen entdecken.",
-      nationwide: "Schweizweit",
-      nationwideText: "Stellenangebote aus allen Regionen der Schweiz finden.",
-      directAccess: "Direkter Zugang",
-      directAccessText: "Interessante Stellen öffnen und alle Details ansehen.",
-      createProfile: "Profil einmal erstellen",
-      createProfileText: tr("{d.createProfileText}"),
-      opportunities: "Passende Chancen finden",
-      opportunitiesText: "Durchsuche verfügbare Stellen zentral auf Auftrago.",
-      talentAccess: "Dein zentraler Zugang zum Schweizer Stellenmarkt.",
-      talentAccessText: tr("{d.talentAccessText}"),
-      region: "Region",
-      allSwitzerland: "Ganze Schweiz",
-      discoverJobs: "Offene Stellen entdecken",
-      viewTalent: "Talent ansehen",
-      forProviders: "Für Anbieter",
-      publicJobs: "Öffentliche Aufträge",
-      public: "Öffentliche",
-      tenders: "Ausschreibungen.",
-      directly: "Direkt auf Auftrago.",
-      tendersDescription: tr("{d.tendersDescription}"),
-      cleaning: "Reinigung",
-      cleaningTender: "Unterhaltsreinigung öffentlicher Gebäude",
-      facility: "Hauswartung",
-      facilityTender: "Gebäudeunterhalt und Hauswartungsleistungen",
-      garden: "Garten & Umgebung",
-      gardenTender: "Pflege und Unterhalt öffentlicher Grünanlagen",
-      canton: "Kanton",
-      discoverTenders: "Ausschreibungen entdecken",
-      becomeProvider: "Anbieter werden",
-      jobOffers: "Stellenangebote",
-      publicTenders: "Öffentliche Ausschreibungen",
-      updatedDaily: "Täglich aktualisiert"
-    },
-
-    fr: {
-      newOn: "Nouveau sur Auftrago",
-      discover: "Découvrez de nouvelles",
-      possibilities: "opportunités.",
-      intro: "Emplois pour les candidats et appels d’offres publics pour les prestataires – réunis sur une seule plateforme.",
-      new: "Nouveau",
-      forJobseekers: "Pour les candidats",
-      findWork: "Chercher un emploi.",
-      findJobs: "Trouver les offres adaptées.",
-      jobsDescription: "Découvrez des offres d’emploi actuelles dans différents secteurs et régions. Auftrago Talent centralise les postes ouverts en Suisse.",
-      openJobs: "Postes ouverts",
-      openJobsText: "Découvrez des emplois dans différents secteurs.",
-      nationwide: "Toute la Suisse",
-      nationwideText: "Trouvez des offres d’emploi dans toutes les régions de Suisse.",
-      directAccess: "Accès direct",
-      directAccessText: "Ouvrez les offres intéressantes et consultez tous les détails.",
-      createProfile: "Créer son profil une fois",
-      createProfileText: "Ajoutez votre expérience, région souhaitée et activité.",
-      opportunities: "Trouver les bonnes opportunités",
-      opportunitiesText: "Parcourez les offres disponibles de manière centralisée sur Auftrago.",
-      talentAccess: "Votre accès central au marché suisse de l’emploi.",
-      talentAccessText: "Recherchez des emplois, découvrez des offres et gérez votre profil au même endroit.",
-      region: "Région",
-      allSwitzerland: "Toute la Suisse",
-      discoverJobs: "Découvrir les postes ouverts",
-      viewTalent: "Voir Talent",
-      forProviders: "Pour les prestataires",
-      publicJobs: "Marchés publics",
-      public: "Appels d’offres",
-      tenders: "publics.",
-      directly: "Directement sur Auftrago.",
-      tendersDescription: "Découvrez des marchés publics dans toute la Suisse adaptés à votre secteur et à votre région. Les détails complets sont disponibles avec l’abonnement prestataire.",
-      cleaning: "Nettoyage",
-      cleaningTender: "Nettoyage d’entretien de bâtiments publics",
-      facility: "Conciergerie",
-      facilityTender: "Entretien des bâtiments et services de conciergerie",
-      garden: "Jardin & extérieur",
-      gardenTender: "Entretien des espaces verts publics",
-      canton: "Canton",
-      discoverTenders: "Découvrir les appels d’offres",
-      becomeProvider: "Devenir prestataire",
-      jobOffers: "Offres d’emploi",
-      publicTenders: "Appels d’offres publics",
-      updatedDaily: "Mis à jour quotidiennement"
-    },
-
-    it: {
-      newOn: "Novità su Auftrago",
-      discover: "Scopri nuove",
-      possibilities: "opportunità.",
-      intro: "Lavoro per chi cerca impiego e appalti pubblici per i fornitori – tutto su un’unica piattaforma.",
-      new: "Nuovo",
-      forJobseekers: "Per chi cerca lavoro",
-      findWork: "Cerca lavoro.",
-      findJobs: "Trova le offerte giuste.",
-      jobsDescription: "Scopri offerte di lavoro attuali in diversi settori e regioni. Con Auftrago Talent trovi le posizioni aperte in un unico posto.",
-      openJobs: "Posizioni aperte",
-      openJobsText: "Scopri lavori in diversi settori.",
-      nationwide: "Tutta la Svizzera",
-      nationwideText: "Trova offerte di lavoro in tutte le regioni della Svizzera.",
-      directAccess: "Accesso diretto",
-      directAccessText: "Apri le offerte interessanti e consulta tutti i dettagli.",
-      createProfile: "Crea il profilo una sola volta",
-      createProfileText: "Inserisci esperienza, regione desiderata e attività.",
-      opportunities: "Trova opportunità adatte",
-      opportunitiesText: "Consulta centralmente le posizioni disponibili su Auftrago.",
-      talentAccess: "Il tuo accesso centrale al mercato del lavoro svizzero.",
-      talentAccessText: "Cerca lavoro, scopri opportunità e gestisci il tuo profilo.",
-      region: "Regione",
-      allSwitzerland: "Tutta la Svizzera",
-      discoverJobs: "Scopri le posizioni aperte",
-      viewTalent: "Visualizza Talent",
-      forProviders: "Per i fornitori",
-      publicJobs: "Appalti pubblici",
-      public: "Appalti",
-      tenders: "pubblici.",
-      directly: "Direttamente su Auftrago.",
-      tendersDescription: "Scopri appalti pubblici in tutta la Svizzera adatti al tuo settore e alla tua regione. I dettagli completi sono disponibili con l’abbonamento fornitore.",
-      cleaning: "Pulizia",
-      cleaningTender: "Pulizia di manutenzione di edifici pubblici",
-      facility: "Custodia immobili",
-      facilityTender: "Manutenzione edifici e servizi di custodia",
-      garden: "Giardino & esterni",
-      gardenTender: "Cura e manutenzione delle aree verdi pubbliche",
-      canton: "Cantone",
-      discoverTenders: "Scopri gli appalti",
-      becomeProvider: "Diventa fornitore",
-      jobOffers: "Offerte di lavoro",
-      publicTenders: "Appalti pubblici",
-      updatedDaily: "Aggiornato ogni giorno"
-    },
-
-    en: {
-      newOn: "New on Auftrago",
-      discover: "Discover new",
-      possibilities: "opportunities.",
-      intro: "Jobs for job seekers and public tenders for providers – all in one central platform.",
-      new: "New",
-      forJobseekers: "For job seekers",
-      findWork: "Find work.",
-      findJobs: "Find the right jobs.",
-      jobsDescription: "Discover current job opportunities across different industries and regions. Auftrago Talent brings open positions together in one place.",
-      openJobs: "Open jobs",
-      openJobsText: "Discover current jobs across different industries.",
-      nationwide: "Across Switzerland",
-      nationwideText: "Find job opportunities from every region of Switzerland.",
-      directAccess: "Direct access",
-      directAccessText: "Open interesting positions and view all details.",
-      createProfile: "Create your profile once",
-      createProfileText: "Add your experience, preferred region and field of work.",
-      opportunities: "Find matching opportunities",
-      opportunitiesText: "Browse available positions centrally on Auftrago.",
-      talentAccess: "Your central access to the Swiss job market.",
-      talentAccessText: "Search jobs, discover opportunities and manage your profile in one place.",
-      region: "Region",
-      allSwitzerland: "All Switzerland",
-      discoverJobs: "Discover open jobs",
-      viewTalent: "View Talent",
-      forProviders: "For providers",
-      publicJobs: "Public contracts",
-      public: "Public",
-      tenders: "tenders.",
-      directly: "Directly on Auftrago.",
-      tendersDescription: "Discover public contracts across Switzerland that match your industry and region. Full tender details are available with a provider subscription.",
-      cleaning: "Cleaning",
-      cleaningTender: "Maintenance cleaning of public buildings",
-      facility: "Facility management",
-      facilityTender: "Building maintenance and facility services",
-      garden: "Garden & outdoors",
-      gardenTender: "Maintenance of public green spaces",
-      canton: "Canton",
-      discoverTenders: "Discover tenders",
-      becomeProvider: "Become a provider",
-      jobOffers: "Job offers",
-      publicTenders: "Public tenders",
-      updatedDaily: "Updated daily"
-    },
-
-    sq: {
-      newOn: "E re në Auftrago",
-      discover: "Zbulo mundësi",
-      possibilities: "të reja.",
-      intro: "Punë për punëkërkues dhe tenderë publikë për ofruesit – të gjitha në një platformë.",
-      new: "E re",
-      forJobseekers: "Për punëkërkues",
-      findWork: "Kërko punë.",
-      findJobs: "Gjej vendet e përshtatshme.",
-      jobsDescription: "Zbulo vende pune aktuale në sektorë dhe rajone të ndryshme. Auftrago Talent i mbledh vendet e lira në një vend.",
-      openJobs: "Vende të lira",
-      openJobsText: "Zbulo vende pune në sektorë të ndryshëm.",
-      nationwide: "Në gjithë Zvicrën",
-      nationwideText: "Gjej vende pune në të gjitha rajonet e Zvicrës.",
-      directAccess: "Qasje direkte",
-      directAccessText: "Hap vendet interesante dhe shiko të gjitha detajet.",
-      createProfile: "Krijo profilin një herë",
-      createProfileText: "Shto përvojën, rajonin dhe fushën e punës.",
-      opportunities: "Gjej mundësitë e përshtatshme",
-      opportunitiesText: "Shfleto vendet e disponueshme në Auftrago.",
-      talentAccess: "Qasja jote qendrore në tregun zviceran të punës.",
-      talentAccessText: "Kërko punë, zbulo mundësi dhe menaxho profilin.",
-      region: "Rajoni",
-      allSwitzerland: "E gjithë Zvicra",
-      discoverJobs: "Zbulo vendet e lira",
-      viewTalent: "Shiko Talent",
-      forProviders: "Për ofruesit",
-      publicJobs: "Kontrata publike",
-      public: "Tenderë",
-      tenders: "publikë.",
-      directly: "Direkt në Auftrago.",
-      tendersDescription: "Zbulo tenderë publikë në gjithë Zvicrën sipas sektorit dhe rajonit tënd. Detajet e plota janë në dispozicion me abonimin e ofruesit.",
-      cleaning: "Pastrim",
-      cleaningTender: "Pastrim mirëmbajtës i ndërtesave publike",
-      facility: "Mirëmbajtje objektesh",
-      facilityTender: "Mirëmbajtje ndërtesash dhe shërbime objektesh",
-      garden: "Kopsht & ambient",
-      gardenTender: "Kujdesi dhe mirëmbajtja e hapësirave të gjelbra publike",
-      canton: "Kantoni",
-      discoverTenders: "Zbulo tenderët",
-      becomeProvider: "Bëhu ofrues",
-      jobOffers: "Oferta pune",
-      publicTenders: "Tenderë publikë",
-      updatedDaily: "Përditësohet çdo ditë"
-    },
-
-    tr: {
-      newOn: "Auftrago'da yeni",
-      discover: "Yeni",
-      possibilities: "fırsatlar keşfet.",
-      intro: "İş arayanlar için ilanlar ve sağlayıcılar için kamu ihaleleri – tek platformda.",
-      new: "Yeni",
-      forJobseekers: "İş arayanlar için",
-      findWork: "İş ara.",
-      findJobs: "Uygun işleri bul.",
-      jobsDescription: "Farklı sektör ve bölgelerdeki güncel iş ilanlarını keşfet. Auftrago Talent açık pozisyonları tek yerde toplar.",
-      openJobs: "Açık işler",
-      openJobsText: "Farklı sektörlerdeki güncel işleri keşfet.",
-      nationwide: "İsviçre genelinde",
-      nationwideText: "İsviçre'nin tüm bölgelerindeki iş ilanlarını bul.",
-      directAccess: "Doğrudan erişim",
-      directAccessText: "İlgilendiğin ilanları aç ve tüm ayrıntıları gör.",
-      createProfile: "Profilini bir kez oluştur",
-      createProfileText: "Deneyimini, tercih ettiğin bölgeyi ve çalışma alanını ekle.",
-      opportunities: "Uygun fırsatları bul",
-      opportunitiesText: "Auftrago'daki mevcut işleri merkezi olarak incele.",
-      talentAccess: "İsviçre iş piyasasına merkezi erişimin.",
-      talentAccessText: "İş ara, fırsatları keşfet ve profilini tek yerden yönet.",
-      region: "Bölge",
-      allSwitzerland: "Tüm İsviçre",
-      discoverJobs: "Açık işleri keşfet",
-      viewTalent: "Talent'i görüntüle",
-      forProviders: "Sağlayıcılar için",
-      publicJobs: "Kamu işleri",
-      public: "Kamu",
-      tenders: "ihaleleri.",
-      directly: "Doğrudan Auftrago'da.",
-      tendersDescription: "Sektörüne ve bölgene uygun İsviçre genelindeki kamu ihalelerini keşfet. Tüm ihale detayları sağlayıcı aboneliğiyle kullanılabilir.",
-      cleaning: "Temizlik",
-      cleaningTender: "Kamu binalarının bakım temizliği",
-      facility: "Bina yönetimi",
-      facilityTender: "Bina bakımı ve tesis hizmetleri",
-      garden: "Bahçe & çevre",
-      gardenTender: "Kamusal yeşil alanların bakım ve düzenlemesi",
-      canton: "Kanton",
-      discoverTenders: "İhaleleri keşfet",
-      becomeProvider: "Sağlayıcı ol",
-      jobOffers: "İş ilanları",
-      publicTenders: "Kamu ihaleleri",
-      updatedDaily: "Her gün güncellenir"
-    },
-
-    pt: {
-      newOn: "Novo no Auftrago",
-      discover: "Descobre novas",
-      possibilities: "oportunidades.",
-      intro: "Empregos para candidatos e concursos públicos para prestadores – tudo numa única plataforma.",
-      new: "Novo",
-      forJobseekers: "Para candidatos",
-      findWork: "Procurar emprego.",
-      findJobs: "Encontrar vagas adequadas.",
-      jobsDescription: "Descobre ofertas de emprego atuais em diferentes setores e regiões. O Auftrago Talent reúne vagas abertas num único lugar.",
-      openJobs: "Vagas abertas",
-      openJobsText: "Descobre empregos atuais em diferentes setores.",
-      nationwide: "Toda a Suíça",
-      nationwideText: "Encontra ofertas de emprego em todas as regiões da Suíça.",
-      directAccess: "Acesso direto",
-      directAccessText: "Abre vagas interessantes e consulta todos os detalhes.",
-      createProfile: "Criar perfil uma vez",
-      createProfileText: "Adiciona a tua experiência, região preferida e atividade.",
-      opportunities: "Encontrar oportunidades adequadas",
-      opportunitiesText: "Consulta as vagas disponíveis centralmente no Auftrago.",
-      talentAccess: "O teu acesso central ao mercado de trabalho suíço.",
-      talentAccessText: "Procura empregos, descobre oportunidades e gere o teu perfil.",
-      region: "Região",
-      allSwitzerland: "Toda a Suíça",
-      discoverJobs: "Descobrir vagas abertas",
-      viewTalent: "Ver Talent",
-      forProviders: "Para prestadores",
-      publicJobs: "Contratos públicos",
-      public: "Concursos",
-      tenders: "públicos.",
-      directly: "Diretamente no Auftrago.",
-      tendersDescription: "Descobre contratos públicos em toda a Suíça adequados ao teu setor e região. Os detalhes completos estão disponíveis com uma subscrição de prestador.",
-      cleaning: "Limpeza",
-      cleaningTender: "Limpeza de manutenção de edifícios públicos",
-      facility: "Gestão de imóveis",
-      facilityTender: "Manutenção de edifícios e serviços de gestão",
-      garden: "Jardim & exterior",
-      gardenTender: "Manutenção de espaços verdes públicos",
-      canton: "Cantão",
-      discoverTenders: "Descobrir concursos",
-      becomeProvider: "Tornar-se prestador",
-      jobOffers: "Ofertas de emprego",
-      publicTenders: "Concursos públicos",
-      updatedDaily: "Atualizado diariamente"
-    },
-
-    es: {
-      newOn: "Nuevo en Auftrago",
-      discover: "Descubre nuevas",
-      possibilities: "oportunidades.",
-      intro: "Empleos para candidatos y licitaciones públicas para proveedores – todo en una sola plataforma.",
-      new: "Nuevo",
-      forJobseekers: "Para quienes buscan empleo",
-      findWork: "Buscar trabajo.",
-      findJobs: "Encontrar puestos adecuados.",
-      jobsDescription: "Descubre ofertas de empleo actuales de distintos sectores y regiones. Auftrago Talent reúne las vacantes en un solo lugar.",
-      openJobs: "Puestos abiertos",
-      openJobsText: "Descubre empleos actuales de distintos sectores.",
-      nationwide: "Toda Suiza",
-      nationwideText: "Encuentra ofertas de empleo en todas las regiones de Suiza.",
-      directAccess: "Acceso directo",
-      directAccessText: "Abre las ofertas interesantes y consulta todos los detalles.",
-      createProfile: "Crear el perfil una vez",
-      createProfileText: "Añade tu experiencia, región preferida y actividad.",
-      opportunities: "Encontrar oportunidades adecuadas",
-      opportunitiesText: "Consulta las vacantes disponibles de forma centralizada en Auftrago.",
-      talentAccess: "Tu acceso central al mercado laboral suizo.",
-      talentAccessText: "Busca empleo, descubre oportunidades y gestiona tu perfil.",
-      region: "Región",
-      allSwitzerland: "Toda Suiza",
-      discoverJobs: "Descubrir puestos abiertos",
-      viewTalent: "Ver Talent",
-      forProviders: "Para proveedores",
-      publicJobs: "Contratos públicos",
-      public: "Licitaciones",
-      tenders: "públicas.",
-      directly: "Directamente en Auftrago.",
-      tendersDescription: "Descubre contratos públicos de toda Suiza adecuados a tu sector y región. Los detalles completos están disponibles con una suscripción de proveedor.",
-      cleaning: "Limpieza",
-      cleaningTender: "Limpieza de mantenimiento de edificios públicos",
-      facility: "Mantenimiento",
-      facilityTender: "Mantenimiento de edificios y servicios de conserjería",
-      garden: "Jardín & exterior",
-      gardenTender: "Cuidado y mantenimiento de zonas verdes públicas",
-      canton: "Cantón",
-      discoverTenders: "Descubrir licitaciones",
-      becomeProvider: "Convertirse en proveedor",
-      jobOffers: "Ofertas de empleo",
-      publicTenders: "Licitaciones públicas",
-      updatedDaily: "Actualizado diariamente"
-    }
-  } as const;
-
-  const d = discoveryCopy[locale] ?? discoveryCopy.de;
-
-
   const processSteps = processStepsBase.map((item) => ({
     ...item,
     label: tr(item.label),
@@ -1072,19 +698,20 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-sky-400/20 bg-sky-400/[0.07] px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-sky-300">
                 <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.9)]" />
-                {d.newOn}
+                Neu auf Auftrago
               </div>
 
               <h2 className="mt-5 text-3xl font-black tracking-[-0.05em] text-white sm:text-4xl lg:text-5xl">
-                {d.discover}
+                Entdecke neue
                 <span className="block bg-gradient-to-r from-sky-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
-                  {d.possibilities}
+                  Möglichkeiten.
                 </span>
               </h2>
             </div>
 
             <p className="max-w-[480px] text-sm font-medium leading-6 text-slate-400 sm:text-base">
-              {d.intro}
+              Jobs für Stellensuchende und öffentliche Ausschreibungen für
+              Anbieter – zentral auf einer Plattform.
             </p>
           </div>
 
@@ -1106,23 +733,27 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
                     Auftrago Talent
                   </div>
 
-                  <div className="rounded-full bg-gradient-to-r from-sky-400 to-blue-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white">{d.new}</div>
+                  <div className="rounded-full bg-gradient-to-r from-sky-400 to-blue-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white">
+                    Neu
+                  </div>
                 </div>
 
                 <div className="mt-10">
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
-                    {d.forJobseekers}
+                    Für Jobsuchende
                   </p>
 
                   <h3 className="mt-4 text-[2.7rem] font-black leading-[0.95] tracking-[-0.055em] text-white sm:text-5xl">
-                    {d.findWork}
+                    Arbeit suchen.
                     <span className="mt-2 block bg-gradient-to-r from-sky-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
-                      {d.findJobs}
+                      Passende Stellen finden.
                     </span>
                   </h3>
 
                   <p className="mt-6 max-w-[560px] text-base font-medium leading-7 text-slate-400">
-                    {d.jobsDescription}
+                    Entdecke aktuelle Stellenangebote aus verschiedenen Branchen
+                    und Regionen. Mit Auftrago Talent findest du offene Jobs
+                    zentral an einem Ort.
                   </p>
                 </div>
 
@@ -1131,20 +762,20 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
                     {
                       number: "01",
                       icon: "⌕",
-                      title: d.openJobs,
-                      text: d.openJobsText,
+                      title: "Offene Stellen",
+                      text: "Aktuelle Jobs aus verschiedenen Branchen entdecken.",
                     },
                     {
                       number: "02",
                       icon: "⌖",
-                      title: d.nationwide,
-                      text: d.nationwideText,
+                      title: "Schweizweit",
+                      text: "Stellenangebote aus allen Regionen der Schweiz finden.",
                     },
                     {
                       number: "03",
                       icon: "↗",
-                      title: d.directAccess,
-                      text: d.directAccessText,
+                      title: "Direkter Zugang",
+                      text: "Interessante Stellen öffnen und alle Details ansehen.",
                     },
                   ].map((item) => (
                     <div
@@ -1181,11 +812,12 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
 
                       <div>
                         <p className="text-sm font-black text-white">
-                          {d.createProfile}
+                          Profil einmal erstellen
                         </p>
 
                         <p className="mt-1 text-xs font-medium leading-5 text-slate-500">
-                          {d.createProfileText}
+                          Hinterlege deine Erfahrung, Wunschregion und
+                          Tätigkeit.
                         </p>
                       </div>
                     </div>
@@ -1199,11 +831,11 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
 
                       <div>
                         <p className="text-sm font-black text-white">
-                          {d.opportunities}
+                          Passende Chancen finden
                         </p>
 
                         <p className="mt-1 text-xs font-medium leading-5 text-slate-500">
-                          {d.opportunitiesText}
+                          Durchsuche verfügbare Stellen zentral auf Auftrago.
                         </p>
                       </div>
                     </div>
@@ -1218,11 +850,12 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
                       </p>
 
                       <p className="mt-2 text-base font-black text-white">
-                        {d.talentAccess}
+                        Dein zentraler Zugang zum Schweizer Stellenmarkt.
                       </p>
 
                       <p className="mt-1 max-w-[420px] text-xs font-medium leading-5 text-slate-500">
-                        {d.talentAccessDescription}
+                        Jobs suchen, interessante Stellen entdecken und dein
+                        Profil zentral verwalten.
                       </p>
                     </div>
 
@@ -1231,7 +864,7 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
                         Region
                       </p>
                       <p className="mt-1 text-sm font-black text-white">
-                        {d.allSwitzerland}
+                        Ganze Schweiz
                       </p>
                     </div>
                   </div>
@@ -1242,7 +875,7 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
                     href="/arbeit-suchen/stellen"
                     className="inline-flex min-h-[56px] flex-1 items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 px-6 text-sm font-black text-white shadow-[0_18px_45px_rgba(59,130,246,.22)] transition hover:-translate-y-0.5"
                   >
-                    {d.discoverJobs}
+                    Offene Stellen entdecken
                     <span>→</span>
                   </Link>
 
@@ -1250,7 +883,7 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
                     href="/arbeit-suchen"
                     className="inline-flex min-h-[56px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.035] px-6 text-sm font-bold text-white transition hover:bg-white/[0.07]"
                   >
-                    {d.viewTalent}
+                    Talent ansehen
                   </Link>
                 </div>
               </div>
@@ -1270,44 +903,49 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
                 <div className="flex items-start justify-between gap-4">
                   <div className="inline-flex items-center gap-2 rounded-full border border-violet-300/20 bg-violet-400/[0.07] px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-violet-200">
                     <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                    {d.forProviders}
+                    Für Anbieter
                   </div>
 
-                  <div className="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white shadow-[0_10px_30px_rgba(168,85,247,.25)]">{d.new}</div>
+                  <div className="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white shadow-[0_10px_30px_rgba(168,85,247,.25)]">
+                    Neu
+                  </div>
                 </div>
 
                 <div className="mt-10">
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
-                    {d.publicJobs}
+                    Öffentliche Aufträge
                   </p>
 
                   <h3 className="mt-4 text-[2.7rem] font-black leading-[0.95] tracking-[-0.055em] text-white sm:text-5xl">
-                    {d.publicTenders}
+                    Öffentliche
+                    <span className="block">Ausschreibungen.</span>
                     <span className="mt-2 block bg-gradient-to-r from-violet-300 via-fuchsia-400 to-sky-400 bg-clip-text text-transparent">
-                      {d.directly}
+                      Direkt auf Auftrago.
                     </span>
                   </h3>
 
                   <p className="mt-6 max-w-[560px] text-base font-medium leading-7 text-slate-400">
-                    {d.tendersDescription}
+                    Entdecke öffentliche Aufträge aus der ganzen Schweiz passend
+                    zu deiner Branche und Region. Vollständige Ausschreibungen
+                    sind mit Anbieter-Abo verfügbar.
                   </p>
                 </div>
 
                 <div className="mt-8 space-y-3">
                   {[
                     [
-                      d.cleaning,
-                      d.cleaningTender,
+                      "REINIGUNG",
+                      "Unterhaltsreinigung öffentlicher Gebäude",
                       "Zürich",
                     ],
                     [
-                      d.facility,
-                      d.facilityTender,
+                      "HAUSWARTUNG",
+                      "Gebäudeunterhalt und Hauswartungsleistungen",
                       "Aargau",
                     ],
                     [
-                      d.garden,
-                      d.gardenTender,
+                      "GARTEN & UMGEBUNG",
+                      "Pflege und Unterhalt öffentlicher Grünanlagen",
                       "Bern",
                     ],
                   ].map(([category, title, canton]) => (
@@ -1325,7 +963,7 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
                         </p>
 
                         <p className="mt-1 text-xs font-semibold text-slate-500">
-                          {d.canton}: {canton}
+                          Kanton: {canton}
                         </p>
                       </div>
 
@@ -1341,7 +979,7 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
                     href="/portal/ausschreibungen"
                     className="inline-flex min-h-[56px] flex-1 items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-violet-500 via-fuchsia-500 to-sky-400 px-6 text-sm font-black text-white shadow-[0_18px_45px_rgba(139,92,246,.24)] transition hover:-translate-y-0.5"
                   >
-                    {d.discoverTenders}
+                    Ausschreibungen entdecken
                     <span>→</span>
                   </Link>
 
@@ -1349,7 +987,7 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
                     href="/anbieter-registrieren"
                     className="inline-flex min-h-[56px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.035] px-6 text-sm font-bold text-white transition hover:bg-white/[0.07]"
                   >
-                    {d.becomeProvider}
+                    Anbieter werden
                   </Link>
                 </div>
               </div>
@@ -1357,13 +995,13 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
           </div>
 
           <div className="mt-7 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[10px] font-black uppercase tracking-[0.12em] text-slate-600">
-            <span>{d.jobOffers}</span>
+            <span>Stellenangebote</span>
             <span>•</span>
-            <span>{d.publicTenders}</span>
+            <span>Öffentliche Ausschreibungen</span>
             <span>•</span>
-            <span>{d.allSwitzerland}</span>
+            <span>Schweizweit</span>
             <span>•</span>
-            <span>{d.updatedDaily}</span>
+            <span>Täglich aktualisiert</span>
           </div>
         </div>
       </section>
@@ -1374,18 +1012,18 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
 
         <div className="home-marquee relative flex w-max items-center">
           {[
-            "Reinigung",
+            "REINIGUNG",
             "HANDWERK",
             "UMZUG",
-            "Hauswartung",
+            "HAUSWARTUNG",
             "GARTEN",
             "TRANSPORT",
             "ENTSORGUNG",
             "VERSICHERUNGEN",
-            "Reinigung",
+            "REINIGUNG",
             "HANDWERK",
             "UMZUG",
-            "Hauswartung",
+            "HAUSWARTUNG",
             "GARTEN",
             "TRANSPORT",
             "ENTSORGUNG",
@@ -1860,7 +1498,7 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
                   href="/anbieter-registrieren"
                   className="group inline-flex min-h-[62px] items-center justify-center rounded-2xl bg-gradient-to-r from-sky-400 via-indigo-500 to-fuchsia-500 px-8 font-black shadow-[0_24px_80px_rgba(92,78,255,.4)] transition hover:-translate-y-1"
                 >
-                  Diventa fornitore ora
+                  {tr("Diventa fornitore ora")}
                   <span className="ml-3 transition group-hover:translate-x-1">
                     →
                   </span>
@@ -1926,7 +1564,7 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
                     className="group flex items-center justify-between rounded-2xl border border-white/[0.07] bg-black/20 px-4 py-3.5 text-sm font-bold text-slate-400 transition hover:border-sky-300/20 hover:bg-sky-400/[0.055] hover:text-white"
                   >
                     <span>
-                      Anbieter in {region.name}
+                      {tr("Anbieter in")} {region.name}
                     </span>
                     <span className="text-sky-300 transition group-hover:translate-x-1">
                       →
@@ -1957,7 +1595,7 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
                     className="group flex items-center justify-between rounded-2xl border border-white/[0.07] bg-black/20 px-4 py-3.5 text-sm font-bold text-slate-400 transition hover:border-violet-300/20 hover:bg-violet-400/[0.055] hover:text-white"
                   >
                     <span>
-                      Anbieter in {city.name}
+                      {tr("Anbieter in")} {city.name}
                     </span>
                     <span className="text-violet-300 transition group-hover:translate-x-1">
                       →
@@ -1972,11 +1610,11 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
             <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-300">
-                  Häufig gesucht
+                  {tr("Häufig gesucht")}
                 </p>
 
                 <h2 className="mt-5 text-4xl font-black tracking-[-0.05em] sm:text-5xl">
-                  Beliebte Dienstleistungen
+                  {tr("Beliebte Dienstleistungen")}
                 </h2>
               </div>
 
@@ -1984,7 +1622,7 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
                 href="/dienstleistungen"
                 className="text-sm font-black text-sky-300"
               >
-                Alle Dienstleistungen →
+                {tr("Alle Dienstleistungen")} →
               </Link>
             </div>
 
@@ -2010,13 +1648,13 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
         <div className="relative mx-auto grid max-w-[1500px] gap-14 lg:grid-cols-[.7fr_1.3fr]">
           <div>
             <span className="inline-flex rounded-full border border-sky-300/20 bg-sky-400/[0.055] px-4 py-2 text-xs font-black uppercase tracking-[0.23em] text-sky-200">
-              Fragen & Antworten
+              {tr("Fragen & Antworten")}
             </span>
 
             <h2 className="mt-7 text-[3.2rem] font-black leading-[0.91] tracking-[-0.07em] sm:text-[4.8rem]">
-              Noch Fragen?
+              {tr("Noch Fragen?")}
               <span className="home-text-gradient block">
-                Wir klären das.
+                {tr("Wir klären das.")}
               </span>
             </h2>
 

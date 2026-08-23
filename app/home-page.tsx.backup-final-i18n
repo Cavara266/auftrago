@@ -221,13 +221,12 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
       newOn: "Neu auf Auftrago",
       discover: "Entdecke neue",
       possibilities: "Möglichkeiten.",
-      intro: tr("{d.intro}"),
+      intro: "Jobs für Stellensuchende und öffentliche Ausschreibungen für Anbieter – zentral auf einer Plattform.",
       new: "Neu",
       forJobseekers: "Für Jobsuchende",
       findWork: "Arbeit suchen.",
       findJobs: "Passende Stellen finden.",
-      jobsDescription: tr("Entdecke aktuelle Stellenangebote aus verschiedenen Branchen und Regionen. Mit Auftrago Talent findest du offene Jobs zentral an einem Ort."),
-      talentAccessDescription: tr("Jobs suchen, interessante Stellen entdecken und dein Profil zentral verwalten."),
+      jobsDescription: "Entdecke aktuelle Stellenangebote aus verschiedenen Branchen und Regionen. Mit Auftrago Talent findest du offene Jobs zentral an einem Ort.",
       openJobs: "Offene Stellen",
       openJobsText: "Aktuelle Jobs aus verschiedenen Branchen entdecken.",
       nationwide: "Schweizweit",
@@ -235,11 +234,11 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
       directAccess: "Direkter Zugang",
       directAccessText: "Interessante Stellen öffnen und alle Details ansehen.",
       createProfile: "Profil einmal erstellen",
-      createProfileText: tr("{d.createProfileText}"),
+      createProfileText: "Hinterlege deine Erfahrung, Wunschregion und Tätigkeit.",
       opportunities: "Passende Chancen finden",
       opportunitiesText: "Durchsuche verfügbare Stellen zentral auf Auftrago.",
       talentAccess: "Dein zentraler Zugang zum Schweizer Stellenmarkt.",
-      talentAccessText: tr("{d.talentAccessText}"),
+      talentAccessText: "Jobs suchen, interessante Stellen entdecken und dein Profil zentral verwalten.",
       region: "Region",
       allSwitzerland: "Ganze Schweiz",
       discoverJobs: "Offene Stellen entdecken",
@@ -249,7 +248,7 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
       public: "Öffentliche",
       tenders: "Ausschreibungen.",
       directly: "Direkt auf Auftrago.",
-      tendersDescription: tr("{d.tendersDescription}"),
+      tendersDescription: "Entdecke öffentliche Aufträge aus der ganzen Schweiz passend zu deiner Branche und Region. Vollständige Ausschreibungen sind mit Anbieter-Abo verfügbar.",
       cleaning: "Reinigung",
       cleaningTender: "Unterhaltsreinigung öffentlicher Gebäude",
       facility: "Hauswartung",
@@ -1084,7 +1083,8 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
             </div>
 
             <p className="max-w-[480px] text-sm font-medium leading-6 text-slate-400 sm:text-base">
-              {d.intro}
+              Jobs für Stellensuchende und öffentliche Ausschreibungen für
+              Anbieter – zentral auf einer Plattform.
             </p>
           </div>
 
@@ -1122,7 +1122,9 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
                   </h3>
 
                   <p className="mt-6 max-w-[560px] text-base font-medium leading-7 text-slate-400">
-                    {d.jobsDescription}
+                    Entdecke aktuelle {d.jobOffers} aus verschiedenen Branchen
+                    und Regionen. Mit Auftrago Talent findest du offene Jobs
+                    zentral an einem Ort.
                   </p>
                 </div>
 
@@ -1185,7 +1187,8 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
                         </p>
 
                         <p className="mt-1 text-xs font-medium leading-5 text-slate-500">
-                          {d.createProfileText}
+                          Hinterlege deine Erfahrung, Wunschregion und
+                          Tätigkeit.
                         </p>
                       </div>
                     </div>
@@ -1222,7 +1225,8 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
                       </p>
 
                       <p className="mt-1 max-w-[420px] text-xs font-medium leading-5 text-slate-500">
-                        {d.talentAccessDescription}
+                        Jobs suchen, interessante Stellen entdecken und dein
+                        Profil zentral verwalten.
                       </p>
                     </div>
 
@@ -1282,14 +1286,17 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
                   </p>
 
                   <h3 className="mt-4 text-[2.7rem] font-black leading-[0.95] tracking-[-0.055em] text-white sm:text-5xl">
-                    {d.publicTenders}
+                    Öffentliche
+                    <span className="block">Ausschreibungen.</span>
                     <span className="mt-2 block bg-gradient-to-r from-violet-300 via-fuchsia-400 to-sky-400 bg-clip-text text-transparent">
                       {d.directly}
                     </span>
                   </h3>
 
                   <p className="mt-6 max-w-[560px] text-base font-medium leading-7 text-slate-400">
-                    {d.tendersDescription}
+                    Entdecke öffentliche Aufträge aus der ganzen Schweiz passend
+                    zu deiner Branche und Region. Vollständige Ausschreibungen
+                    sind mit Anbieter-Abo verfügbar.
                   </p>
                 </div>
 
@@ -1361,7 +1368,7 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
             <span>•</span>
             <span>{d.publicTenders}</span>
             <span>•</span>
-            <span>{d.allSwitzerland}</span>
+            <span>Schweizweit</span>
             <span>•</span>
             <span>{d.updatedDaily}</span>
           </div>

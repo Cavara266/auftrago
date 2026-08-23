@@ -11,6 +11,458 @@ import { translateHomeText } from "@/lib/i18n/home-translator";
 import { translateReactNode } from "@/lib/i18n/translate-react-node";
 import { formatText, services as seoServices } from "@/lib/seo-data";
 
+
+const DISCOVERY_COPY = {
+  de: {
+    newOn: "Neu auf Auftrago",
+    title1: "Entdecke neue",
+    title2: "Möglichkeiten.",
+    intro: "Jobs für Stellensuchende und öffentliche Ausschreibungen für Anbieter – zentral auf einer Plattform.",
+
+    talent: "Auftrago Talent",
+    new: "Neu",
+    forJobseekers: "Für Jobsuchende",
+    findWork: "Arbeit suchen.",
+    findJobs: "Passende Stellen finden.",
+    jobsDescription: "Entdecke aktuelle Stellenangebote aus verschiedenen Branchen und Regionen. Mit Auftrago Talent findest du offene Jobs zentral an einem Ort.",
+
+    openJobs: "Offene Stellen",
+    openJobsText: "Aktuelle Jobs aus verschiedenen Branchen entdecken.",
+    nationwide: "Schweizweit",
+    nationwideText: "Stellenangebote aus allen Regionen der Schweiz finden.",
+    directAccess: "Direkter Zugang",
+    directAccessText: "Interessante Stellen öffnen und alle Details ansehen.",
+
+    createProfile: "Profil einmal erstellen",
+    createProfileText: "Hinterlege deine Erfahrung, Wunschregion und Tätigkeit.",
+    matching: "Passende Chancen finden",
+    matchingText: "Durchsuche verfügbare Stellen zentral auf Auftrago.",
+
+    talentAccess: "Dein zentraler Zugang zum Schweizer Stellenmarkt.",
+    talentAccessText: "Jobs suchen, interessante Stellen entdecken und dein Profil zentral verwalten.",
+    region: "Region",
+    allSwitzerland: "Ganze Schweiz",
+    discoverJobs: "Offene Stellen entdecken",
+    viewTalent: "Talent ansehen",
+
+    forProviders: "Für Anbieter",
+    publicContracts: "Öffentliche Aufträge",
+    tenders1: "Öffentliche",
+    tenders2: "Ausschreibungen.",
+    tenders3: "Direkt auf Auftrago.",
+    tendersDescription: "Entdecke öffentliche Aufträge aus der ganzen Schweiz passend zu deiner Branche und Region. Vollständige Ausschreibungen sind mit Anbieter-Abo verfügbar.",
+
+    cleaning: "Reinigung",
+    cleaningTitle: "Unterhaltsreinigung öffentlicher Gebäude",
+    facility: "Hauswartung",
+    facilityTitle: "Gebäudeunterhalt und Hauswartungsleistungen",
+    garden: "Garten & Umgebung",
+    gardenTitle: "Pflege und Unterhalt öffentlicher Grünanlagen",
+    canton: "Kanton",
+
+    discoverTenders: "Ausschreibungen entdecken",
+    becomeProvider: "Anbieter werden",
+
+    footerJobs: "Stellenangebote",
+    footerTenders: "Öffentliche Ausschreibungen",
+    footerSwitzerland: "Schweizweit",
+    footerUpdated: "Täglich aktualisiert",
+  },
+
+  fr: {
+    newOn: "Nouveau sur Auftrago",
+    title1: "Découvrez de nouvelles",
+    title2: "opportunités.",
+    intro: "Emplois pour les candidats et marchés publics pour les prestataires – réunis sur une seule plateforme.",
+
+    talent: "Auftrago Talent",
+    new: "Nouveau",
+    forJobseekers: "Pour les candidats",
+    findWork: "Chercher un emploi.",
+    findJobs: "Trouver les offres adaptées.",
+    jobsDescription: "Découvrez des offres d’emploi actuelles dans différents secteurs et régions. Avec Auftrago Talent, retrouvez les postes ouverts au même endroit.",
+
+    openJobs: "Postes ouverts",
+    openJobsText: "Découvrez des emplois actuels dans différents secteurs.",
+    nationwide: "Toute la Suisse",
+    nationwideText: "Trouvez des offres d’emploi dans toutes les régions de Suisse.",
+    directAccess: "Accès direct",
+    directAccessText: "Ouvrez les offres intéressantes et consultez tous les détails.",
+
+    createProfile: "Créer son profil une fois",
+    createProfileText: "Indiquez votre expérience, la région souhaitée et votre activité.",
+    matching: "Trouver les bonnes opportunités",
+    matchingText: "Parcourez les offres disponibles de manière centralisée sur Auftrago.",
+
+    talentAccess: "Votre accès central au marché suisse de l’emploi.",
+    talentAccessText: "Recherchez des emplois, découvrez des postes intéressants et gérez votre profil au même endroit.",
+    region: "Région",
+    allSwitzerland: "Toute la Suisse",
+    discoverJobs: "Découvrir les postes ouverts",
+    viewTalent: "Voir Talent",
+
+    forProviders: "Pour les prestataires",
+    publicContracts: "Marchés publics",
+    tenders1: "Marchés",
+    tenders2: "publics.",
+    tenders3: "Directement sur Auftrago.",
+    tendersDescription: "Découvrez des marchés publics dans toute la Suisse, adaptés à votre secteur et à votre région. Les appels d’offres complets sont disponibles avec l’abonnement prestataire.",
+
+    cleaning: "Nettoyage",
+    cleaningTitle: "Nettoyage d’entretien de bâtiments publics",
+    facility: "Conciergerie",
+    facilityTitle: "Entretien des bâtiments et services de conciergerie",
+    garden: "Jardin & extérieur",
+    gardenTitle: "Entretien des espaces verts publics",
+    canton: "Canton",
+
+    discoverTenders: "Découvrir les appels d’offres",
+    becomeProvider: "Devenir prestataire",
+
+    footerJobs: "Offres d’emploi",
+    footerTenders: "Appels d’offres publics",
+    footerSwitzerland: "Dans toute la Suisse",
+    footerUpdated: "Mis à jour quotidiennement",
+  },
+
+  it: {
+    newOn: "Novità su Auftrago",
+    title1: "Scopri nuove",
+    title2: "opportunità.",
+    intro: "Offerte di lavoro per chi cerca impiego e appalti pubblici per i fornitori – tutto su un’unica piattaforma.",
+
+    talent: "Auftrago Talent",
+    new: "Nuovo",
+    forJobseekers: "Per chi cerca lavoro",
+    findWork: "Cerca lavoro.",
+    findJobs: "Trova le offerte giuste.",
+    jobsDescription: "Scopri offerte di lavoro attuali in diversi settori e regioni. Con Auftrago Talent trovi tutte le posizioni aperte in un unico posto.",
+
+    openJobs: "Posizioni aperte",
+    openJobsText: "Scopri lavori attuali in diversi settori.",
+    nationwide: "Tutta la Svizzera",
+    nationwideText: "Trova offerte di lavoro in tutte le regioni della Svizzera.",
+    directAccess: "Accesso diretto",
+    directAccessText: "Apri le offerte interessanti e consulta tutti i dettagli.",
+
+    createProfile: "Crea il profilo una sola volta",
+    createProfileText: "Inserisci esperienza, regione desiderata e attività.",
+    matching: "Trova opportunità adatte",
+    matchingText: "Consulta centralmente le posizioni disponibili su Auftrago.",
+
+    talentAccess: "Il tuo accesso centrale al mercato del lavoro svizzero.",
+    talentAccessText: "Cerca lavoro, scopri posizioni interessanti e gestisci il tuo profilo in un unico posto.",
+    region: "Regione",
+    allSwitzerland: "Tutta la Svizzera",
+    discoverJobs: "Scopri le posizioni aperte",
+    viewTalent: "Visualizza Talent",
+
+    forProviders: "Per i fornitori",
+    publicContracts: "Appalti pubblici",
+    tenders1: "Appalti",
+    tenders2: "pubblici.",
+    tenders3: "Direttamente su Auftrago.",
+    tendersDescription: "Scopri appalti pubblici in tutta la Svizzera adatti al tuo settore e alla tua regione. Gli appalti completi sono disponibili con l’abbonamento fornitore.",
+
+    cleaning: "Pulizia",
+    cleaningTitle: "Pulizia di manutenzione di edifici pubblici",
+    facility: "Custodia immobili",
+    facilityTitle: "Manutenzione edifici e servizi di custodia",
+    garden: "Giardino & esterni",
+    gardenTitle: "Cura e manutenzione delle aree verdi pubbliche",
+    canton: "Cantone",
+
+    discoverTenders: "Scopri gli appalti",
+    becomeProvider: "Diventa fornitore",
+
+    footerJobs: "Offerte di lavoro",
+    footerTenders: "Appalti pubblici",
+    footerSwitzerland: "In tutta la Svizzera",
+    footerUpdated: "Aggiornato ogni giorno",
+  },
+
+  en: {
+    newOn: "New on Auftrago",
+    title1: "Discover new",
+    title2: "opportunities.",
+    intro: "Jobs for job seekers and public tenders for providers – all in one central platform.",
+
+    talent: "Auftrago Talent",
+    new: "New",
+    forJobseekers: "For job seekers",
+    findWork: "Find work.",
+    findJobs: "Find the right jobs.",
+    jobsDescription: "Discover current job opportunities across different industries and regions. Auftrago Talent brings open positions together in one place.",
+
+    openJobs: "Open jobs",
+    openJobsText: "Discover current jobs across different industries.",
+    nationwide: "Across Switzerland",
+    nationwideText: "Find job opportunities from every region of Switzerland.",
+    directAccess: "Direct access",
+    directAccessText: "Open interesting positions and view all details.",
+
+    createProfile: "Create your profile once",
+    createProfileText: "Add your experience, preferred region and field of work.",
+    matching: "Find matching opportunities",
+    matchingText: "Browse available positions centrally on Auftrago.",
+
+    talentAccess: "Your central access to the Swiss job market.",
+    talentAccessText: "Search jobs, discover interesting positions and manage your profile in one place.",
+    region: "Region",
+    allSwitzerland: "All Switzerland",
+    discoverJobs: "Discover open jobs",
+    viewTalent: "View Talent",
+
+    forProviders: "For providers",
+    publicContracts: "Public contracts",
+    tenders1: "Public",
+    tenders2: "tenders.",
+    tenders3: "Directly on Auftrago.",
+    tendersDescription: "Discover public contracts across Switzerland that match your industry and region. Full tender details are available with a provider subscription.",
+
+    cleaning: "Cleaning",
+    cleaningTitle: "Maintenance cleaning of public buildings",
+    facility: "Facility management",
+    facilityTitle: "Building maintenance and facility services",
+    garden: "Garden & outdoors",
+    gardenTitle: "Maintenance of public green spaces",
+    canton: "Canton",
+
+    discoverTenders: "Discover tenders",
+    becomeProvider: "Become a provider",
+
+    footerJobs: "Job offers",
+    footerTenders: "Public tenders",
+    footerSwitzerland: "Across Switzerland",
+    footerUpdated: "Updated daily",
+  },
+
+  sq: {
+    newOn: "E re në Auftrago",
+    title1: "Zbulo mundësi",
+    title2: "të reja.",
+    intro: "Punë për punëkërkuesit dhe tenderë publikë për ofruesit – të gjitha në një platformë qendrore.",
+
+    talent: "Auftrago Talent",
+    new: "E re",
+    forJobseekers: "Për punëkërkues",
+    findWork: "Kërko punë.",
+    findJobs: "Gjej vendet e përshtatshme.",
+    jobsDescription: "Zbulo vende pune aktuale në sektorë dhe rajone të ndryshme. Me Auftrago Talent i gjen pozicionet e hapura në një vend të vetëm.",
+
+    openJobs: "Vende të lira",
+    openJobsText: "Zbulo vende pune aktuale në sektorë të ndryshëm.",
+    nationwide: "Në gjithë Zvicrën",
+    nationwideText: "Gjej vende pune në të gjitha rajonet e Zvicrës.",
+    directAccess: "Qasje direkte",
+    directAccessText: "Hap pozicionet interesante dhe shiko të gjitha detajet.",
+
+    createProfile: "Krijo profilin një herë",
+    createProfileText: "Vendos përvojën, rajonin e dëshiruar dhe fushën e punës.",
+    matching: "Gjej mundësi të përshtatshme",
+    matchingText: "Shfleto pozicionet e disponueshme në mënyrë qendrore në Auftrago.",
+
+    talentAccess: "Qasja jote qendrore në tregun zviceran të punës.",
+    talentAccessText: "Kërko punë, zbulo pozicione interesante dhe menaxho profilin në një vend.",
+    region: "Rajoni",
+    allSwitzerland: "E gjithë Zvicra",
+    discoverJobs: "Zbulo vendet e lira",
+    viewTalent: "Shiko Talent",
+
+    forProviders: "Për ofruesit",
+    publicContracts: "Kontrata publike",
+    tenders1: "Tenderë",
+    tenders2: "publikë.",
+    tenders3: "Direkt në Auftrago.",
+    tendersDescription: "Zbulo kontrata publike në të gjithë Zvicrën që përputhen me sektorin dhe rajonin tënd. Detajet e plota janë të disponueshme me abonimin e ofruesit.",
+
+    cleaning: "Pastrim",
+    cleaningTitle: "Pastrim mirëmbajtës i ndërtesave publike",
+    facility: "Mirëmbajtje objektesh",
+    facilityTitle: "Mirëmbajtje ndërtesash dhe shërbime objektesh",
+    garden: "Kopsht & ambient",
+    gardenTitle: "Kujdesi dhe mirëmbajtja e hapësirave të gjelbra publike",
+    canton: "Kantoni",
+
+    discoverTenders: "Zbulo tenderët",
+    becomeProvider: "Bëhu ofrues",
+
+    footerJobs: "Oferta pune",
+    footerTenders: "Tenderë publikë",
+    footerSwitzerland: "Në të gjithë Zvicrën",
+    footerUpdated: "Përditësohet çdo ditë",
+  },
+
+  tr: {
+    newOn: "Auftrago'da yeni",
+    title1: "Yeni",
+    title2: "fırsatlar keşfet.",
+    intro: "İş arayanlar için ilanlar ve sağlayıcılar için kamu ihaleleri – tek bir merkezi platformda.",
+
+    talent: "Auftrago Talent",
+    new: "Yeni",
+    forJobseekers: "İş arayanlar için",
+    findWork: "İş ara.",
+    findJobs: "Uygun işleri bul.",
+    jobsDescription: "Farklı sektör ve bölgelerdeki güncel iş ilanlarını keşfet. Auftrago Talent ile açık pozisyonları tek bir yerde bul.",
+
+    openJobs: "Açık işler",
+    openJobsText: "Farklı sektörlerdeki güncel işleri keşfet.",
+    nationwide: "İsviçre genelinde",
+    nationwideText: "İsviçre'nin tüm bölgelerindeki iş fırsatlarını bul.",
+    directAccess: "Doğrudan erişim",
+    directAccessText: "İlgini çeken pozisyonları aç ve tüm ayrıntıları görüntüle.",
+
+    createProfile: "Profilini bir kez oluştur",
+    createProfileText: "Deneyimini, tercih ettiğin bölgeyi ve çalışma alanını ekle.",
+    matching: "Uygun fırsatları bul",
+    matchingText: "Auftrago'daki mevcut pozisyonları merkezi olarak incele.",
+
+    talentAccess: "İsviçre iş piyasasına merkezi erişimin.",
+    talentAccessText: "İş ara, ilginç pozisyonları keşfet ve profilini tek bir yerde yönet.",
+    region: "Bölge",
+    allSwitzerland: "Tüm İsviçre",
+    discoverJobs: "Açık işleri keşfet",
+    viewTalent: "Talent'i görüntüle",
+
+    forProviders: "Sağlayıcılar için",
+    publicContracts: "Kamu ihaleleri",
+    tenders1: "Kamu",
+    tenders2: "ihaleleri.",
+    tenders3: "Doğrudan Auftrago'da.",
+    tendersDescription: "Sektörüne ve bölgene uygun İsviçre genelindeki kamu ihalelerini keşfet. Tüm ihale ayrıntıları sağlayıcı aboneliğiyle kullanılabilir.",
+
+    cleaning: "Temizlik",
+    cleaningTitle: "Kamu binalarının bakım temizliği",
+    facility: "Bina yönetimi",
+    facilityTitle: "Bina bakımı ve tesis hizmetleri",
+    garden: "Bahçe & çevre",
+    gardenTitle: "Kamusal yeşil alanların bakım ve düzenlemesi",
+    canton: "Kanton",
+
+    discoverTenders: "İhaleleri keşfet",
+    becomeProvider: "Sağlayıcı ol",
+
+    footerJobs: "İş ilanları",
+    footerTenders: "Kamu ihaleleri",
+    footerSwitzerland: "İsviçre genelinde",
+    footerUpdated: "Her gün güncellenir",
+  },
+
+  pt: {
+    newOn: "Novo no Auftrago",
+    title1: "Descobre novas",
+    title2: "oportunidades.",
+    intro: "Empregos para candidatos e concursos públicos para prestadores – tudo numa única plataforma.",
+
+    talent: "Auftrago Talent",
+    new: "Novo",
+    forJobseekers: "Para candidatos",
+    findWork: "Procurar emprego.",
+    findJobs: "Encontrar vagas adequadas.",
+    jobsDescription: "Descobre oportunidades de emprego atuais em diferentes setores e regiões. Com o Auftrago Talent encontras vagas abertas num único lugar.",
+
+    openJobs: "Vagas abertas",
+    openJobsText: "Descobre empregos atuais em diferentes setores.",
+    nationwide: "Toda a Suíça",
+    nationwideText: "Encontra ofertas de emprego em todas as regiões da Suíça.",
+    directAccess: "Acesso direto",
+    directAccessText: "Abre vagas interessantes e consulta todos os detalhes.",
+
+    createProfile: "Criar perfil uma vez",
+    createProfileText: "Indica a tua experiência, região pretendida e área de atividade.",
+    matching: "Encontrar oportunidades adequadas",
+    matchingText: "Consulta as vagas disponíveis de forma centralizada no Auftrago.",
+
+    talentAccess: "O teu acesso central ao mercado de trabalho suíço.",
+    talentAccessText: "Procura empregos, descobre vagas interessantes e gere o teu perfil num único lugar.",
+    region: "Região",
+    allSwitzerland: "Toda a Suíça",
+    discoverJobs: "Descobrir vagas abertas",
+    viewTalent: "Ver Talent",
+
+    forProviders: "Para prestadores",
+    publicContracts: "Contratos públicos",
+    tenders1: "Concursos",
+    tenders2: "públicos.",
+    tenders3: "Diretamente no Auftrago.",
+    tendersDescription: "Descobre contratos públicos em toda a Suíça adequados ao teu setor e região. Os detalhes completos estão disponíveis com a subscrição de prestador.",
+
+    cleaning: "Limpeza",
+    cleaningTitle: "Limpeza de manutenção de edifícios públicos",
+    facility: "Gestão de imóveis",
+    facilityTitle: "Manutenção de edifícios e serviços de gestão",
+    garden: "Jardim & exterior",
+    gardenTitle: "Manutenção de espaços verdes públicos",
+    canton: "Cantão",
+
+    discoverTenders: "Descobrir concursos",
+    becomeProvider: "Tornar-se prestador",
+
+    footerJobs: "Ofertas de emprego",
+    footerTenders: "Concursos públicos",
+    footerSwitzerland: "Em toda a Suíça",
+    footerUpdated: "Atualizado diariamente",
+  },
+
+  es: {
+    newOn: "Nuevo en Auftrago",
+    title1: "Descubre nuevas",
+    title2: "oportunidades.",
+    intro: "Empleos para candidatos y licitaciones públicas para proveedores – todo en una plataforma central.",
+
+    talent: "Auftrago Talent",
+    new: "Nuevo",
+    forJobseekers: "Para quienes buscan empleo",
+    findWork: "Buscar trabajo.",
+    findJobs: "Encontrar puestos adecuados.",
+    jobsDescription: "Descubre oportunidades de empleo actuales en diferentes sectores y regiones. Con Auftrago Talent encuentras las vacantes abiertas en un solo lugar.",
+
+    openJobs: "Puestos abiertos",
+    openJobsText: "Descubre empleos actuales de distintos sectores.",
+    nationwide: "Toda Suiza",
+    nationwideText: "Encuentra ofertas de empleo en todas las regiones de Suiza.",
+    directAccess: "Acceso directo",
+    directAccessText: "Abre las ofertas interesantes y consulta todos los detalles.",
+
+    createProfile: "Crear el perfil una vez",
+    createProfileText: "Añade tu experiencia, región preferida y área de trabajo.",
+    matching: "Encontrar oportunidades adecuadas",
+    matchingText: "Consulta las vacantes disponibles de forma centralizada en Auftrago.",
+
+    talentAccess: "Tu acceso central al mercado laboral suizo.",
+    talentAccessText: "Busca empleo, descubre posiciones interesantes y gestiona tu perfil en un solo lugar.",
+    region: "Región",
+    allSwitzerland: "Toda Suiza",
+    discoverJobs: "Descubrir puestos abiertos",
+    viewTalent: "Ver Talent",
+
+    forProviders: "Para proveedores",
+    publicContracts: "Contratos públicos",
+    tenders1: "Licitaciones",
+    tenders2: "públicas.",
+    tenders3: "Directamente en Auftrago.",
+    tendersDescription: "Descubre contratos públicos de toda Suiza que se adapten a tu sector y región. Los detalles completos están disponibles con la suscripción para proveedores.",
+
+    cleaning: "Limpieza",
+    cleaningTitle: "Limpieza de mantenimiento de edificios públicos",
+    facility: "Mantenimiento",
+    facilityTitle: "Mantenimiento de edificios y servicios de conserjería",
+    garden: "Jardín & exterior",
+    gardenTitle: "Cuidado y mantenimiento de zonas verdes públicas",
+    canton: "Cantón",
+
+    discoverTenders: "Descubrir licitaciones",
+    becomeProvider: "Convertirse en proveedor",
+
+    footerJobs: "Ofertas de empleo",
+    footerTenders: "Licitaciones públicas",
+    footerSwitzerland: "En toda Suiza",
+    footerUpdated: "Actualizado diariamente",
+  },
+} as const;
+
+
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -221,13 +673,12 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
       newOn: "Neu auf Auftrago",
       discover: "Entdecke neue",
       possibilities: "Möglichkeiten.",
-      intro: tr("{d.intro}"),
+      intro: tr("Jobs für Stellensuchende und öffentliche Ausschreibungen für Anbieter – zentral auf einer Plattform."),
       new: "Neu",
       forJobseekers: "Für Jobsuchende",
       findWork: "Arbeit suchen.",
       findJobs: "Passende Stellen finden.",
       jobsDescription: tr("Entdecke aktuelle Stellenangebote aus verschiedenen Branchen und Regionen. Mit Auftrago Talent findest du offene Jobs zentral an einem Ort."),
-      talentAccessDescription: tr("Jobs suchen, interessante Stellen entdecken und dein Profil zentral verwalten."),
       openJobs: "Offene Stellen",
       openJobsText: "Aktuelle Jobs aus verschiedenen Branchen entdecken.",
       nationwide: "Schweizweit",
@@ -235,11 +686,11 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
       directAccess: "Direkter Zugang",
       directAccessText: "Interessante Stellen öffnen und alle Details ansehen.",
       createProfile: "Profil einmal erstellen",
-      createProfileText: tr("{d.createProfileText}"),
+      createProfileText: tr("Hinterlege deine Erfahrung, Wunschregion und Tätigkeit."),
       opportunities: "Passende Chancen finden",
       opportunitiesText: "Durchsuche verfügbare Stellen zentral auf Auftrago.",
       talentAccess: "Dein zentraler Zugang zum Schweizer Stellenmarkt.",
-      talentAccessText: tr("{d.talentAccessText}"),
+      talentAccessText: tr("Jobs suchen, interessante Stellen entdecken und dein Profil zentral verwalten."),
       region: "Region",
       allSwitzerland: "Ganze Schweiz",
       discoverJobs: "Offene Stellen entdecken",
@@ -249,7 +700,7 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
       public: "Öffentliche",
       tenders: "Ausschreibungen.",
       directly: "Direkt auf Auftrago.",
-      tendersDescription: tr("{d.tendersDescription}"),
+      tendersDescription: tr("Entdecke öffentliche Aufträge aus der ganzen Schweiz passend zu deiner Branche und Region. Vollständige Ausschreibungen sind mit Anbieter-Abo verfügbar."),
       cleaning: "Reinigung",
       cleaningTender: "Unterhaltsreinigung öffentlicher Gebäude",
       facility: "Hauswartung",
@@ -1057,318 +1508,309 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
       */}
       <Hero locale={locale} />
 
-      {/* AUFTRAGO DISCOVERY CARDS */}
-      <section className="relative overflow-hidden border-y border-white/[0.07] bg-[#050b1d] px-5 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(circle at 10% 20%, rgba(56,189,248,.12), transparent 30%), radial-gradient(circle at 90% 80%, rgba(139,92,246,.15), transparent 34%)",
-          }}
-        />
+      {/* AUFTRAGO DISCOVERY CARDS */
+      {(() => {
+        const d = DISCOVERY_COPY[locale] ?? DISCOVERY_COPY.de;
 
-        <div className="relative mx-auto max-w-[1380px]">
-          <div className="mb-9 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-sky-400/20 bg-sky-400/[0.07] px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-sky-300">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.9)]" />
-                {d.newOn}
-              </div>
+        const jobs = [
+          {
+            number: "01",
+            icon: "⌕",
+            title: d.openJobs,
+            text: d.openJobsText,
+          },
+          {
+            number: "02",
+            icon: "⌾",
+            title: d.nationwide,
+            text: d.nationwideText,
+          },
+          {
+            number: "03",
+            icon: "↗",
+            title: d.directAccess,
+            text: d.directAccessText,
+          },
+        ];
 
-              <h2 className="mt-5 text-3xl font-black tracking-[-0.05em] text-white sm:text-4xl lg:text-5xl">
-                {d.discover}
-                <span className="block bg-gradient-to-r from-sky-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
-                  {d.possibilities}
-                </span>
-              </h2>
-            </div>
+        const tenders = [
+          [d.cleaning, d.cleaningTitle, "Zürich"],
+          [d.facility, d.facilityTitle, "Aargau"],
+          [d.garden, d.gardenTitle, "Bern"],
+        ];
 
-            <p className="max-w-[480px] text-sm font-medium leading-6 text-slate-400 sm:text-base">
-              {d.intro}
-            </p>
-          </div>
+        return (
+          <section className="relative overflow-hidden border-y border-white/[0.07] bg-[#050b1d] px-5 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background:
+                  "radial-gradient(circle at 10% 20%, rgba(56,189,248,.12), transparent 30%), radial-gradient(circle at 90% 80%, rgba(139,92,246,.15), transparent 34%)",
+              }}
+            />
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            {/* JOBS */}
-            <article className="group relative overflow-hidden rounded-[30px] border border-sky-400/20 bg-[#091326] shadow-[0_30px_90px_rgba(0,0,0,.30)] transition duration-300 hover:-translate-y-1 hover:border-sky-300/40">
-              <div
-                className="pointer-events-none absolute inset-0"
-                style={{
-                  background:
-                    "radial-gradient(circle at 5% 5%, rgba(56,189,248,.17), transparent 35%), radial-gradient(circle at 100% 100%, rgba(99,102,241,.15), transparent 38%)",
-                }}
-              />
-
-              <div className="relative flex min-h-[580px] flex-col p-7 sm:p-9 lg:p-10">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-sky-300/20 bg-sky-400/[0.07] px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-sky-300">
+            <div className="relative mx-auto max-w-[1380px]">
+              <div className="mb-9 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-sky-400/20 bg-sky-400/[0.07] px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-sky-300">
                     <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                    Auftrago Talent
+                    {d.newOn}
                   </div>
 
-                  <div className="rounded-full bg-gradient-to-r from-sky-400 to-blue-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white">{d.new}</div>
-                </div>
-
-                <div className="mt-10">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
-                    {d.forJobseekers}
-                  </p>
-
-                  <h3 className="mt-4 text-[2.7rem] font-black leading-[0.95] tracking-[-0.055em] text-white sm:text-5xl">
-                    {d.findWork}
-                    <span className="mt-2 block bg-gradient-to-r from-sky-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
-                      {d.findJobs}
+                  <h2 className="mt-5 text-3xl font-black tracking-[-0.05em] text-white sm:text-4xl lg:text-5xl">
+                    {d.title1}
+                    <span className="block bg-gradient-to-r from-sky-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
+                      {d.title2}
                     </span>
-                  </h3>
-
-                  <p className="mt-6 max-w-[560px] text-base font-medium leading-7 text-slate-400">
-                    {d.jobsDescription}
-                  </p>
+                  </h2>
                 </div>
 
-                <div className="mt-8 grid gap-3 sm:grid-cols-3">
-                  {[
-                    {
-                      number: "01",
-                      icon: "⌕",
-                      title: d.openJobs,
-                      text: d.openJobsText,
-                    },
-                    {
-                      number: "02",
-                      icon: "⌖",
-                      title: d.nationwide,
-                      text: d.nationwideText,
-                    },
-                    {
-                      number: "03",
-                      icon: "↗",
-                      title: d.directAccess,
-                      text: d.directAccessText,
-                    },
-                  ].map((item) => (
-                    <div
-                      key={item.number}
-                      className="group/feature relative overflow-hidden rounded-2xl border border-white/[0.08] bg-black/20 p-5 transition hover:border-sky-300/25 hover:bg-white/[0.035]"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <span className="text-[10px] font-black text-sky-300">
-                          {item.number}
-                        </span>
+                <p className="max-w-[480px] text-sm font-medium leading-6 text-slate-400 sm:text-base">
+                  {d.intro}
+                </p>
+              </div>
 
-                        <div className="grid h-10 w-10 place-items-center rounded-xl border border-sky-300/15 bg-sky-400/[0.07] text-lg font-black text-sky-300">
-                          {item.icon}
+              <div className="grid gap-6 lg:grid-cols-2">
+                {/* JOBS */}
+                <article className="group relative overflow-hidden rounded-[30px] border border-sky-400/20 bg-[#091326] shadow-[0_30px_90px_rgba(0,0,0,.30)] transition duration-300 hover:-translate-y-1 hover:border-sky-300/40">
+                  <div className="relative flex min-h-[580px] flex-col p-7 sm:p-9 lg:p-10">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-sky-300/20 bg-sky-400/[0.07] px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-sky-200">
+                        <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                        {d.talent}
+                      </div>
+
+                      <div className="rounded-full bg-gradient-to-r from-sky-400 to-blue-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white">
+                        {d.new}
+                      </div>
+                    </div>
+
+                    <div className="mt-10">
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+                        {d.forJobseekers}
+                      </p>
+
+                      <h3 className="mt-4 text-[2.7rem] font-black leading-[0.95] tracking-[-0.055em] text-white sm:text-5xl">
+                        {d.findWork}
+                        <span className="mt-2 block bg-gradient-to-r from-sky-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
+                          {d.findJobs}
+                        </span>
+                      </h3>
+
+                      <p className="mt-6 max-w-[560px] text-base font-medium leading-7 text-slate-400">
+                        {d.jobsDescription}
+                      </p>
+                    </div>
+
+                    <div className="mt-8 grid gap-3 sm:grid-cols-3">
+                      {jobs.map((item) => (
+                        <div
+                          key={item.number}
+                          className="group/feature relative overflow-hidden rounded-2xl border border-white/[0.08] bg-black/20 p-5 transition hover:border-sky-300/25 hover:bg-white/[0.035]"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <span className="text-[10px] font-black text-sky-300">
+                              {item.number}
+                            </span>
+
+                            <div className="grid h-10 w-10 place-items-center rounded-xl border border-sky-300/15 bg-sky-400/[0.07] text-lg font-black text-sky-300">
+                              {item.icon}
+                            </div>
+                          </div>
+
+                          <p className="mt-5 text-sm font-black text-white">
+                            {item.title}
+                          </p>
+
+                          <p className="mt-2 text-xs font-medium leading-5 text-slate-500">
+                            {item.text}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-5">
+                        <div className="flex items-center gap-3">
+                          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-emerald-400/15 bg-emerald-400/[0.07] text-emerald-300">
+                            ✓
+                          </div>
+                          <div>
+                            <p className="text-sm font-black text-white">
+                              {d.createProfile}
+                            </p>
+                            <p className="mt-1 text-xs font-medium leading-5 text-slate-500">
+                              {d.createProfileText}
+                            </p>
+                          </div>
                         </div>
                       </div>
 
-                      <p className="mt-5 text-sm font-black text-white">
-                        {item.title}
-                      </p>
-
-                      <p className="mt-2 text-xs font-medium leading-5 text-slate-500">
-                        {item.text}
-                      </p>
+                      <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-5">
+                        <div className="flex items-center gap-3">
+                          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-violet-400/15 bg-violet-400/[0.07] text-violet-300">
+                            ★
+                          </div>
+                          <div>
+                            <p className="text-sm font-black text-white">
+                              {d.matching}
+                            </p>
+                            <p className="mt-1 text-xs font-medium leading-5 text-slate-500">
+                              {d.matchingText}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  ))}
-                </div>
 
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-5">
-                    <div className="flex items-center gap-3">
-                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-emerald-400/15 bg-emerald-400/[0.07] text-emerald-300">
-                        ✓
+                    <div className="mt-4 rounded-2xl border border-sky-400/15 bg-gradient-to-r from-sky-400/[0.06] via-blue-500/[0.04] to-violet-500/[0.06] p-5">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-[0.17em] text-sky-300">
+                            {d.talent}
+                          </p>
+
+                          <p className="mt-2 text-base font-black text-white">
+                            {d.talentAccess}
+                          </p>
+
+                          <p className="mt-1 max-w-[420px] text-xs font-medium leading-5 text-slate-500">
+                            {d.talentAccessText}
+                          </p>
+                        </div>
+
+                        <div className="shrink-0 rounded-xl border border-white/[0.08] bg-black/20 px-4 py-3 text-center">
+                          <p className="text-[10px] font-black uppercase tracking-[0.13em] text-slate-500">
+                            {d.region}
+                          </p>
+                          <p className="mt-1 text-sm font-black text-white">
+                            {d.allSwitzerland}
+                          </p>
+                        </div>
                       </div>
+                    </div>
 
-                      <div>
-                        <p className="text-sm font-black text-white">
-                          {d.createProfile}
-                        </p>
+                    <div className="mt-auto flex flex-col gap-3 pt-9 sm:flex-row">
+                      <Link
+                        href="/arbeit-suchen/stellen"
+                        className="inline-flex min-h-[56px] flex-1 items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 px-6 text-sm font-black text-white shadow-[0_18px_45px_rgba(59,130,246,.22)] transition hover:-translate-y-0.5"
+                      >
+                        {d.discoverJobs}
+                        <span>→</span>
+                      </Link>
 
-                        <p className="mt-1 text-xs font-medium leading-5 text-slate-500">
-                          {d.createProfileText}
-                        </p>
-                      </div>
+                      <Link
+                        href="/arbeit-suchen"
+                        className="inline-flex min-h-[56px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.035] px-6 text-sm font-bold text-white transition hover:bg-white/[0.07]"
+                      >
+                        {d.viewTalent}
+                      </Link>
                     </div>
                   </div>
+                </article>
 
-                  <div className="rounded-2xl border border-white/[0.08] bg-white/[0.025] p-5">
-                    <div className="flex items-center gap-3">
-                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-violet-400/15 bg-violet-400/[0.07] text-violet-300">
-                        ★
+                {/* AUSSCHREIBUNGEN */}
+                <article className="group relative overflow-hidden rounded-[30px] border border-violet-400/20 bg-[#11112a] shadow-[0_30px_90px_rgba(0,0,0,.30)] transition duration-300 hover:-translate-y-1 hover:border-violet-300/40">
+                  <div
+                    className="pointer-events-none absolute inset-0"
+                    style={{
+                      background:
+                        "radial-gradient(circle at 95% 5%, rgba(168,85,247,.18), transparent 35%), radial-gradient(circle at 0% 100%, rgba(56,189,248,.10), transparent 38%)",
+                    }}
+                  />
+
+                  <div className="relative flex min-h-[580px] flex-col p-7 sm:p-9 lg:p-10">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-violet-300/20 bg-violet-400/[0.07] px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-violet-200">
+                        <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                        {d.forProviders}
                       </div>
 
-                      <div>
-                        <p className="text-sm font-black text-white">
-                          {d.opportunities}
-                        </p>
-
-                        <p className="mt-1 text-xs font-medium leading-5 text-slate-500">
-                          {d.opportunitiesText}
-                        </p>
+                      <div className="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white">
+                        {d.new}
                       </div>
                     </div>
-                  </div>
-                </div>
 
-                <div className="mt-4 rounded-2xl border border-sky-400/15 bg-gradient-to-r from-sky-400/[0.06] via-blue-500/[0.04] to-violet-500/[0.06] p-5">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.17em] text-sky-300">
-                        Auftrago Talent
+                    <div className="mt-10">
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+                        {d.publicContracts}
                       </p>
 
-                      <p className="mt-2 text-base font-black text-white">
-                        {d.talentAccess}
-                      </p>
+                      <h3 className="mt-4 text-[2.7rem] font-black leading-[0.95] tracking-[-0.055em] text-white sm:text-5xl">
+                        {d.tenders1}
+                        <span className="block">{d.tenders2}</span>
+                        <span className="mt-2 block bg-gradient-to-r from-violet-300 via-fuchsia-400 to-sky-400 bg-clip-text text-transparent">
+                          {d.tenders3}
+                        </span>
+                      </h3>
 
-                      <p className="mt-1 max-w-[420px] text-xs font-medium leading-5 text-slate-500">
-                        {d.talentAccessDescription}
-                      </p>
-                    </div>
-
-                    <div className="shrink-0 rounded-xl border border-white/[0.08] bg-black/20 px-4 py-3 text-center">
-                      <p className="text-[10px] font-black uppercase tracking-[0.13em] text-slate-500">
-                        Region
-                      </p>
-                      <p className="mt-1 text-sm font-black text-white">
-                        {d.allSwitzerland}
+                      <p className="mt-6 max-w-[560px] text-base font-medium leading-7 text-slate-400">
+                        {d.tendersDescription}
                       </p>
                     </div>
+
+                    <div className="mt-8 space-y-3">
+                      {tenders.map(([category, title, canton]) => (
+                        <div
+                          key={title}
+                          className="flex items-center justify-between gap-4 rounded-2xl border border-white/[0.08] bg-black/20 p-4"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-[9px] font-black uppercase tracking-[0.17em] text-sky-300">
+                              {category}
+                            </p>
+
+                            <p className="mt-1 truncate text-sm font-black text-white">
+                              {title}
+                            </p>
+
+                            <p className="mt-1 text-xs font-semibold text-slate-500">
+                              {d.canton}: {canton}
+                            </p>
+                          </div>
+
+                          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.05]">
+                            🔒
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-auto flex flex-col gap-3 pt-9 sm:flex-row">
+                      <Link
+                        href="/portal/ausschreibungen"
+                        className="inline-flex min-h-[56px] flex-1 items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-violet-500 via-fuchsia-500 to-sky-400 px-6 text-sm font-black text-white shadow-[0_18px_45px_rgba(139,92,246,.24)] transition hover:-translate-y-0.5"
+                      >
+                        {d.discoverTenders}
+                        <span>→</span>
+                      </Link>
+
+                      <Link
+                        href="/anbieter-registrieren"
+                        className="inline-flex min-h-[56px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.035] px-6 text-sm font-bold text-white transition hover:bg-white/[0.07]"
+                      >
+                        {d.becomeProvider}
+                      </Link>
+                    </div>
                   </div>
-                </div>
-
-                <div className="mt-auto flex flex-col gap-3 pt-9 sm:flex-row">
-                  <Link
-                    href="/arbeit-suchen/stellen"
-                    className="inline-flex min-h-[56px] flex-1 items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-sky-400 via-blue-500 to-violet-500 px-6 text-sm font-black text-white shadow-[0_18px_45px_rgba(59,130,246,.22)] transition hover:-translate-y-0.5"
-                  >
-                    {d.discoverJobs}
-                    <span>→</span>
-                  </Link>
-
-                  <Link
-                    href="/arbeit-suchen"
-                    className="inline-flex min-h-[56px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.035] px-6 text-sm font-bold text-white transition hover:bg-white/[0.07]"
-                  >
-                    {d.viewTalent}
-                  </Link>
-                </div>
+                </article>
               </div>
-            </article>
 
-            {/* AUSSCHREIBUNGEN */}
-            <article className="group relative overflow-hidden rounded-[30px] border border-violet-400/20 bg-[#11112a] shadow-[0_30px_90px_rgba(0,0,0,.30)] transition duration-300 hover:-translate-y-1 hover:border-violet-300/40">
-              <div
-                className="pointer-events-none absolute inset-0"
-                style={{
-                  background:
-                    "radial-gradient(circle at 95% 5%, rgba(168,85,247,.18), transparent 35%), radial-gradient(circle at 0% 100%, rgba(56,189,248,.10), transparent 38%)",
-                }}
-              />
-
-              <div className="relative flex min-h-[580px] flex-col p-7 sm:p-9 lg:p-10">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-violet-300/20 bg-violet-400/[0.07] px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-violet-200">
-                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                    {d.forProviders}
-                  </div>
-
-                  <div className="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white shadow-[0_10px_30px_rgba(168,85,247,.25)]">{d.new}</div>
-                </div>
-
-                <div className="mt-10">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
-                    {d.publicJobs}
-                  </p>
-
-                  <h3 className="mt-4 text-[2.7rem] font-black leading-[0.95] tracking-[-0.055em] text-white sm:text-5xl">
-                    {d.publicTenders}
-                    <span className="mt-2 block bg-gradient-to-r from-violet-300 via-fuchsia-400 to-sky-400 bg-clip-text text-transparent">
-                      {d.directly}
-                    </span>
-                  </h3>
-
-                  <p className="mt-6 max-w-[560px] text-base font-medium leading-7 text-slate-400">
-                    {d.tendersDescription}
-                  </p>
-                </div>
-
-                <div className="mt-8 space-y-3">
-                  {[
-                    [
-                      d.cleaning,
-                      d.cleaningTender,
-                      "Zürich",
-                    ],
-                    [
-                      d.facility,
-                      d.facilityTender,
-                      "Aargau",
-                    ],
-                    [
-                      d.garden,
-                      d.gardenTender,
-                      "Bern",
-                    ],
-                  ].map(([category, title, canton]) => (
-                    <div
-                      key={title}
-                      className="flex items-center justify-between gap-4 rounded-2xl border border-white/[0.08] bg-black/20 p-4"
-                    >
-                      <div className="min-w-0">
-                        <p className="text-[9px] font-black uppercase tracking-[0.17em] text-sky-300">
-                          {category}
-                        </p>
-
-                        <p className="mt-1 truncate text-sm font-black text-white">
-                          {title}
-                        </p>
-
-                        <p className="mt-1 text-xs font-semibold text-slate-500">
-                          {d.canton}: {canton}
-                        </p>
-                      </div>
-
-                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.05]">
-                        🔒
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-auto flex flex-col gap-3 pt-9 sm:flex-row">
-                  <Link
-                    href="/portal/ausschreibungen"
-                    className="inline-flex min-h-[56px] flex-1 items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-violet-500 via-fuchsia-500 to-sky-400 px-6 text-sm font-black text-white shadow-[0_18px_45px_rgba(139,92,246,.24)] transition hover:-translate-y-0.5"
-                  >
-                    {d.discoverTenders}
-                    <span>→</span>
-                  </Link>
-
-                  <Link
-                    href="/anbieter-registrieren"
-                    className="inline-flex min-h-[56px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.035] px-6 text-sm font-bold text-white transition hover:bg-white/[0.07]"
-                  >
-                    {d.becomeProvider}
-                  </Link>
-                </div>
+              <div className="mt-7 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[10px] font-black uppercase tracking-[0.12em] text-slate-600">
+                <span>{d.footerJobs}</span>
+                <span>•</span>
+                <span>{d.footerTenders}</span>
+                <span>•</span>
+                <span>{d.footerSwitzerland}</span>
+                <span>•</span>
+                <span>{d.footerUpdated}</span>
               </div>
-            </article>
-          </div>
+            </div>
+          </section>
+        );
+      })()}
 
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[10px] font-black uppercase tracking-[0.12em] text-slate-600">
-            <span>{d.jobOffers}</span>
-            <span>•</span>
-            <span>{d.publicTenders}</span>
-            <span>•</span>
-            <span>{d.allSwitzerland}</span>
-            <span>•</span>
-            <span>{d.updatedDaily}</span>
-          </div>
-        </div>
-      </section>
-
-      {/* CINEMATIC TRANSITION */}
+      /* CINEMATIC TRANSITION */}
       <section className="relative border-y border-white/[0.07] bg-[#020510] py-7">
         <div className="absolute inset-0 bg-gradient-to-r from-sky-500/[0.04] via-transparent to-fuchsia-500/[0.04]" />
 
