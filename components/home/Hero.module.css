@@ -1911,3 +1911,39 @@
 
 
 
+
+/* MOBILE CLEANUP: Kategorie-Icon-Leiste entfernen */
+@media (max-width: 900px) {
+  .categoryHeader,
+  .categories {
+    display: none !important;
+  }
+}
+
+
+/* ===== AUFTRAGO: Hero Kategorie-Icon-Leiste komplett entfernen ===== */
+
+.categoryHeader,
+.categories {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  max-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Abstand entfernen, damit keine leere Lücke bleibt */
+.categories + *,
+.categoryHeader + * {
+  margin-top: 0 !important;
+}
+
+
+/* Beliebte Dienstleistungen unter dem Suchfeld komplett ausblenden */
+.popular {
+  display: none !important;
+}

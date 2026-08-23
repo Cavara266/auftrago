@@ -221,7 +221,7 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
       newOn: "Neu auf Auftrago",
       discover: "Entdecke neue",
       possibilities: "Möglichkeiten.",
-      intro: tr("Entdecke passende Aufträge aus deiner Region und Branche."),
+      intro: tr("{d.intro}"),
       new: "Neu",
       forJobseekers: "Für Jobsuchende",
       findWork: "Arbeit suchen.",
