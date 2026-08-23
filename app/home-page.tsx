@@ -1222,7 +1222,7 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
                       </p>
 
                       <p className="mt-1 max-w-[420px] text-xs font-medium leading-5 text-slate-500">
-                        {d.talentAccessDescription}
+                        {tr("Jobs suchen, interessante Stellen entdecken und dein Profil zentral verwalten.")}
                       </p>
                     </div>
 
