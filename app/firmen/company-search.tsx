@@ -1,0 +1,182 @@
+"use client";
+
+import Link from "next/link";
+import { FormEvent, useState } from "react";
+
+type Company = {
+  id: string;
+  slug: string;
+  uid: string;
+  ehraid: string;
+  name: string;
+  type: string;
+  municipality: string;
+  street: string;
+  locality: string;
+  canton: string;
+  status: string;
+  sourceUrl: string;
+  claimed: boolean;
+};
+
+export default function CompanySearch() {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<Company[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+
+    const q = query.trim();
+
+    if (q.length < 2) {
+      setError("Bitte mindestens 2 Zeichen eingeben.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setSearched(false);
+
+    try {
+      const response = await fetch(
+        `/api/firmen?q=${encodeURIComponent(q)}`
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error || "Die Suche konnte nicht ausgeführt werden."
+        );
+      }
+
+      setResults(data.results || []);
+      setSearched(true);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Die Firmensuche konnte nicht ausgeführt werden."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="mt-10">
+      <form
+        onSubmit={handleSubmit}
+        className="mx-auto flex max-w-4xl flex-col gap-3 rounded-3xl border border-white/10 bg-white/[0.045] p-3 shadow-2xl shadow-purple-950/20 backdrop-blur-xl sm:flex-row"
+      >
+        <div className="flex flex-1 items-center gap-3 rounded-2xl bg-black/20 px-5">
+          <span className="text-xl text-sky-400">⌕</span>
+
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Firmenname, Ort oder UID eingeben..."
+            className="h-16 w-full bg-transparent text-base text-white outline-none placeholder:text-slate-500"
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="h-16 rounded-2xl bg-gradient-to-r from-sky-400 via-blue-500 to-purple-500 px-8 font-bold text-white transition hover:scale-[1.015] disabled:opacity-60"
+        >
+          {loading ? "Suche läuft..." : "Firma suchen"}
+        </button>
+      </form>
+
+      {error && (
+        <div className="mx-auto mt-5 max-w-4xl rounded-2xl border border-red-400/20 bg-red-500/10 px-5 py-4 text-sm text-red-200">
+          {error}
+        </div>
+      )}
+
+      {searched && results.length === 0 && (
+        <div className="mx-auto mt-8 max-w-4xl rounded-3xl border border-white/10 bg-white/[0.035] p-8 text-center text-slate-400">
+          Keine passende Firma gefunden.
+        </div>
+      )}
+
+      {results.length > 0 && (
+        <div className="mx-auto mt-10 max-w-5xl">
+          <div className="mb-5 flex items-center justify-between">
+            <h2 className="text-xl font-bold text-white">
+              Gefundene Unternehmen
+            </h2>
+
+            <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-slate-400">
+              {results.length} Treffer
+            </span>
+          </div>
+
+          <div className="grid gap-4">
+            {results.map((company) => (
+              <Link
+                key={company.id}
+                href={`/firmen/${company.slug}`}
+                className="group block rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.025] p-6 transition duration-300 hover:-translate-y-1 hover:border-sky-400/40 hover:bg-white/[0.075]"
+              >
+                <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <div className="mb-3 flex flex-wrap items-center gap-2">
+                      <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+                        Handelsregister
+                      </span>
+
+                      {company.type && (
+                        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-400">
+                          {company.type}
+                        </span>
+                      )}
+
+                      {company.claimed && (
+                        <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1 text-xs font-semibold text-sky-300">
+                          Verifiziert
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="text-xl font-bold text-white sm:text-2xl">
+                      {company.name}
+                    </h3>
+
+                    <div className="mt-3 space-y-1 text-sm text-slate-400">
+                      {(company.street || company.locality) && (
+                        <p>
+                          {[company.street, company.locality]
+                            .filter(Boolean)
+                            .join(", ")}
+                        </p>
+                      )}
+
+                      {company.municipality && (
+                        <p>Sitz: {company.municipality}</p>
+                      )}
+
+                      {company.uid && (
+                        <p>UID: {company.uid}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="shrink-0">
+                    <span className="inline-flex rounded-xl bg-gradient-to-r from-sky-400 to-purple-500 px-5 py-3 text-sm font-bold text-white">
+                      Firmenprofil ansehen →
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
