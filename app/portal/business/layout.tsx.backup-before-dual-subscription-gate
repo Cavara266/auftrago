@@ -1,0 +1,14 @@
+import BusinessTopNav from "@/components/business/BusinessTopNav";
+
+export default function BusinessLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <>
+      <BusinessTopNav />
+      {children}
+    </>
+  );
+}

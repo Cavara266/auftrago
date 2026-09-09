@@ -1,3 +1,4 @@
+import CompanyNamePrefill from "@/components/company-name-prefill";
 import Link from "next/link";
 
 import AnbieterRegistrierenForm from "@/components/anbieter-registrieren-form";
@@ -86,6 +87,7 @@ const faq = [
 export default function AnbieterRegistrierenPage() {
   return (
     <main className={styles.page}>
+      <CompanyNamePrefill />
       <ProviderPageAutoTranslate />
       <div className={styles.noise} />
       <div className={styles.orbOne} />

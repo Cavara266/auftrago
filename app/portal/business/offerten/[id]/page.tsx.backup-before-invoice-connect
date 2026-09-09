@@ -1,0 +1,403 @@
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
+import CreateInvoiceButton from "@/components/business/CreateInvoiceButton";
+
+const money = (cents: number) =>
+  new Intl.NumberFormat("de-CH", {
+    style: "currency",
+    currency: "CHF",
+    minimumFractionDigits: 2,
+  }).format(cents / 100);
+
+const statusLabel: Record<string, string> = {
+  DRAFT: "Entwurf",
+  SENT: "Gesendet",
+  ACCEPTED: "Angenommen",
+  REJECTED: "Abgelehnt",
+  EXPIRED: "Abgelaufen",
+};
+
+const statusColor: Record<string, string> = {
+  DRAFT: "#c4b5fd",
+  SENT: "#7dd3fc",
+  ACCEPTED: "#86efac",
+  REJECTED: "#fca5a5",
+  EXPIRED: "#94a3b8",
+};
+
+export default async function QuoteDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { id } = await params;
+
+  const quote = await prisma.businessQuote.findFirst({
+    where: {
+      id,
+      providerId: user.id,
+    },
+    include: {
+      customer: true,
+      items: {
+        orderBy: {
+          position: "asc",
+        },
+      },
+    },
+  });
+
+  if (!quote) {
+    notFound();
+  }
+
+  const customer =
+    quote.customer?.companyName ||
+    quote.customerName ||
+    "Kein Kunde";
+
+  const customerEmail =
+    quote.customer?.email ||
+    quote.customerEmail ||
+    "Keine E-Mail";
+
+  const customerAddress =
+    quote.customer?.address ||
+    quote.customerAddress ||
+    "Keine Adresse";
+
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        color: "#fff",
+        padding: "34px",
+        background:
+          "radial-gradient(circle at 85% 0%,rgba(124,58,237,.16),transparent 28%),#06101f",
+      }}
+    >
+      <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: 20,
+            flexWrap: "wrap",
+            marginBottom: 28,
+          }}
+        >
+          <div>
+            <Link
+              href="/portal/business/offerten"
+              style={{
+                color: "#7dd3fc",
+                textDecoration: "none",
+                fontWeight: 800,
+              }}
+            >
+              ← Offerten
+            </Link>
+
+            <div
+              style={{
+                color: "#a78bfa",
+                fontSize: 12,
+                fontWeight: 900,
+                marginTop: 18,
+              }}
+            >
+              AUFTRAGO BUSINESS / OFFERTE
+            </div>
+
+            <h1
+              style={{
+                fontSize: 42,
+                margin: "7px 0 5px",
+                letterSpacing: "-1.5px",
+              }}
+            >
+              {quote.title}
+            </h1>
+
+            <div style={{ color: "#94a3b8" }}>
+              {quote.quoteNumber} ·{" "}
+              <span
+                style={{
+                  color: statusColor[quote.status] || "#c4b5fd",
+                  fontWeight: 800,
+                }}
+              >
+                {statusLabel[quote.status] || quote.status}
+              </span>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <button
+              style={{
+                padding: "13px 18px",
+                borderRadius: 12,
+                border: "1px solid rgba(125,211,252,.25)",
+                background: "rgba(14,165,233,.08)",
+                color: "#7dd3fc",
+                fontWeight: 800,
+                cursor: "pointer",
+              }}
+            >
+              PDF erstellen
+            </button>
+
+            <button
+              style={{
+                padding: "13px 18px",
+                borderRadius: 12,
+                border: "1px solid rgba(167,139,250,.28)",
+                background: "rgba(124,58,237,.10)",
+                color: "#ddd6fe",
+                fontWeight: 800,
+                cursor: "pointer",
+              }}
+            >
+              Versenden
+            </button>
+
+            <button
+              style={{
+                padding: "13px 18px",
+                borderRadius: 12,
+                border: 0,
+                background:
+                  "linear-gradient(90deg,#0ea5e9,#7c3aed)",
+                color: "#fff",
+                fontWeight: 900,
+                cursor: "pointer",
+              }}
+            >
+              Rechnung erstellen
+            </button>
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(0,1.55fr) minmax(330px,.65fr)",
+            gap: 18,
+            alignItems: "start",
+          }}
+        >
+          <div>
+            <section style={cardStyle}>
+              <div style={labelStyle}>KUNDE</div>
+
+              <h2 style={{ margin: "8px 0", fontSize: 24 }}>
+                {customer}
+              </h2>
+
+              <div style={{ color: "#94a3b8", lineHeight: 1.8 }}>
+                <div>{customerEmail}</div>
+                <div>{customerAddress}</div>
+              </div>
+            </section>
+
+            <section style={{ ...cardStyle, marginTop: 18 }}>
+              <div style={labelStyle}>POSITIONEN</div>
+
+              <div style={{ marginTop: 14 }}>
+                {quote.items.map((item) => (
+                  <div
+                    key={item.id}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "42px minmax(0,1fr) 90px 150px",
+                      gap: 12,
+                      alignItems: "center",
+                      padding: "17px 0",
+                      borderBottom:
+                        "1px solid rgba(148,163,184,.10)",
+                    }}
+                  >
+                    <div style={{ color: "#64748b" }}>
+                      {item.position}
+                    </div>
+
+                    <div>
+                      <div style={{ fontWeight: 800 }}>
+                        {item.description}
+                      </div>
+                      <div
+                        style={{
+                          color: "#64748b",
+                          fontSize: 13,
+                          marginTop: 4,
+                        }}
+                      >
+                        {item.quantity} × {money(item.unitPriceCents)}
+                      </div>
+                    </div>
+
+                    <div style={{ color: "#94a3b8" }}>
+                      {item.quantity} {item.unit}
+                    </div>
+
+                    <div
+                      style={{
+                        textAlign: "right",
+                        fontWeight: 900,
+                      }}
+                    >
+                      {money(item.totalCents)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {quote.notes && (
+              <section style={{ ...cardStyle, marginTop: 18 }}>
+                <div style={labelStyle}>BEMERKUNG / KONDITIONEN</div>
+                <p
+                  style={{
+                    color: "#cbd5e1",
+                    lineHeight: 1.7,
+                    whiteSpace: "pre-wrap",
+                    marginBottom: 0,
+                  }}
+                >
+                  {quote.notes}
+                </p>
+              </section>
+            )}
+          </div>
+
+          <aside
+            style={{
+              ...cardStyle,
+              position: "sticky",
+              top: 24,
+              background:
+                "linear-gradient(145deg,rgba(15,30,55,.98),rgba(29,20,70,.78))",
+            }}
+          >
+            <div style={labelStyle}>ZUSAMMENFASSUNG</div>
+
+            <div style={{ marginTop: 24 }}>
+              <Row
+                label="Zwischensumme"
+                value={money(quote.subtotalCents)}
+              />
+
+              {quote.discountCents > 0 && (
+                <Row
+                  label="Rabatt"
+                  value={`- ${money(quote.discountCents)}`}
+                />
+              )}
+
+              <Row label="MWST" value={money(quote.vatCents)} />
+            </div>
+
+            <div
+              style={{
+                borderTop:
+                  "1px solid rgba(148,163,184,.16)",
+                marginTop: 18,
+                paddingTop: 22,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-end",
+                gap: 15,
+              }}
+            >
+              <span
+                style={{
+                  color: "#94a3b8",
+                  fontWeight: 900,
+                }}
+              >
+                TOTAL
+              </span>
+
+              <strong
+                style={{
+                  fontSize: 28,
+                  background:
+                    "linear-gradient(90deg,#38bdf8,#c084fc)",
+                  WebkitBackgroundClip: "text",
+                  color: "transparent",
+                }}
+              >
+                {money(quote.totalCents)}
+              </strong>
+            </div>
+
+            <div
+              style={{
+                marginTop: 24,
+                padding: 15,
+                borderRadius: 12,
+                background: "rgba(14,165,233,.07)",
+                border:
+                  "1px solid rgba(125,211,252,.15)",
+                color: "#94a3b8",
+                fontSize: 13,
+                lineHeight: 1.6,
+              }}
+            >
+              Erstellt am{" "}
+              {new Intl.DateTimeFormat("de-CH", {
+                dateStyle: "medium",
+              }).format(quote.createdAt)}
+            </div>
+          </aside>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function Row({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        gap: 20,
+        padding: "11px 0",
+        color: "#cbd5e1",
+      }}
+    >
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+const cardStyle = {
+  padding: 24,
+  borderRadius: 20,
+  border: "1px solid rgba(148,163,184,.14)",
+  background: "rgba(10,22,41,.92)",
+} as const;
+
+const labelStyle = {
+  color: "#7dd3fc",
+  fontWeight: 900,
+  fontSize: 12,
+} as const;

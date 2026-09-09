@@ -1,0 +1,55 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const body = await request.json();
+
+    const decision = String(body.decision || "").toUpperCase();
+
+    if (!["ACCEPTED", "DECLINED"].includes(decision)) {
+      return NextResponse.json(
+        { error: "Ungültige Entscheidung." },
+        { status: 400 }
+      );
+    }
+
+    const quote = await prisma.businessQuote.findUnique({
+      where: { id },
+    });
+
+    if (!quote) {
+      return NextResponse.json(
+        { error: "Offerte nicht gefunden." },
+        { status: 404 }
+      );
+    }
+
+    const updated = await prisma.businessQuote.update({
+      where: { id },
+      data: {
+        status: decision,
+        acceptedAt:
+          decision === "ACCEPTED" ? new Date() : null,
+        declinedAt:
+          decision === "DECLINED" ? new Date() : null,
+      },
+    });
+
+    return NextResponse.json({
+      ok: true,
+      quote: updated,
+    });
+  } catch (error) {
+    console.error("QUOTE DECISION ERROR", error);
+
+    return NextResponse.json(
+      { error: "Entscheidung konnte nicht gespeichert werden." },
+      { status: 500 }
+    );
+  }
+}

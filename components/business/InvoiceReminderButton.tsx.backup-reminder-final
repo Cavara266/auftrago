@@ -1,0 +1,135 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+export default function InvoiceReminderButton({
+  invoiceId,
+  status,
+  reminderLevel = 0,
+}: {
+  invoiceId: string;
+  status: string;
+  reminderLevel?: number;
+}) {
+  const router = useRouter();
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  if (status === "PAID" || status === "CANCELLED") {
+    return null;
+  }
+
+  const maxReached = reminderLevel >= 2;
+
+  async function sendReminder() {
+    if (loading || maxReached) return;
+
+    const text =
+      reminderLevel === 0
+        ? "1. Zahlungserinnerung wirklich versenden?"
+        : "2. Mahnung wirklich versenden?";
+
+    if (!window.confirm(text)) {
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await fetch(
+        `/api/business/invoices/${invoiceId}/reminder`,
+        {
+          method: "POST",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Mahnung konnte nicht versendet werden."
+        );
+      }
+
+      setSuccess(
+        data.message ||
+          "Mahnung erfolgreich versendet."
+      );
+
+      router.refresh();
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Mahnung konnte nicht versendet werden."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div style={{ display: "inline-block" }}>
+      <button
+        type="button"
+        onClick={sendReminder}
+        disabled={loading || maxReached}
+        style={{
+          padding: "13px 18px",
+          borderRadius: 12,
+          border: "1px solid rgba(251,191,36,.35)",
+          background: maxReached
+            ? "rgba(148,163,184,.08)"
+            : "rgba(251,191,36,.10)",
+          color: maxReached ? "#94a3b8" : "#fbbf24",
+          fontWeight: 900,
+          cursor:
+            loading || maxReached
+              ? "not-allowed"
+              : "pointer",
+          opacity: loading ? 0.7 : 1,
+        }}
+      >
+        {loading
+          ? "Wird versendet..."
+          : maxReached
+            ? "✓ 2. Mahnung versendet"
+            : reminderLevel === 0
+              ? "🔔 Zahlung erinnern"
+              : "⚠️ 2. Mahnung senden"}
+      </button>
+
+      {success && (
+        <div
+          style={{
+            marginTop: 8,
+            color: "#86efac",
+            fontSize: 12,
+            fontWeight: 700,
+          }}
+        >
+          ✓ {success}
+        </div>
+      )}
+
+      {error && (
+        <div
+          style={{
+            marginTop: 8,
+            color: "#fca5a5",
+            fontSize: 12,
+            fontWeight: 700,
+            maxWidth: 300,
+          }}
+        >
+          {error}
+        </div>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,196 @@
+import { NextRequest, NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
+
+const ENDPOINT = "https://lindas.admin.ch/query";
+
+function escapeSparql(value: string) {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, " ");
+}
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const rawQuery = searchParams.get("q")?.trim() || "";
+
+  if (rawQuery.length < 2) {
+    return NextResponse.json({ results: [] });
+  }
+
+  const q = escapeSparql(rawQuery);
+
+  const sparql = `
+PREFIX schema: <http://schema.org/>
+PREFIX admin: <https://schema.ld.admin.ch/>
+
+SELECT DISTINCT
+  ?company_uri
+  ?name
+  ?company_type
+  ?municipality
+  ?street
+  ?locality
+WHERE {
+
+  {
+    SELECT DISTINCT ?company_uri ?name
+    WHERE {
+      ?company_uri a admin:ZefixOrganisation ;
+                   schema:name ?name .
+
+      FILTER(
+        CONTAINS(
+          LCASE(STR(?name)),
+          LCASE("${q}")
+        )
+      )
+    }
+    ORDER BY ?name
+    LIMIT 20
+  }
+
+  OPTIONAL {
+    ?company_uri admin:municipality ?muni_id .
+    ?muni_id schema:name ?municipality .
+
+    FILTER(
+      lang(?municipality) = "de" ||
+      lang(?municipality) = ""
+    )
+  }
+
+  OPTIONAL {
+    ?company_uri schema:additionalType ?type_id .
+    ?type_id schema:name ?company_type .
+
+    FILTER(
+      lang(?company_type) = "de" ||
+      lang(?company_type) = ""
+    )
+  }
+
+  OPTIONAL {
+    ?company_uri schema:address ?adr .
+
+    OPTIONAL {
+      ?adr schema:streetAddress ?street .
+    }
+
+    OPTIONAL {
+      ?adr schema:addressLocality ?locality .
+    }
+  }
+}
+ORDER BY ?name
+`;
+
+  try {
+    const controller = new AbortController();
+
+    const timeout = setTimeout(() => {
+      controller.abort();
+    }, 8000);
+
+    const response = await fetch(ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/sparql-query",
+        Accept: "application/sparql-results+json",
+      },
+      body: sparql,
+      signal: controller.signal,
+
+      next: {
+        revalidate: 86400,
+      },
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      const text = await response.text();
+
+      console.error(
+        "LINDAS error:",
+        response.status,
+        text
+      );
+
+      return NextResponse.json(
+        {
+          error:
+            "Das Schweizer Firmenregister ist momentan langsam. Bitte nochmals versuchen.",
+        },
+        {
+          status: 502,
+        }
+      );
+    }
+
+    const data = await response.json();
+
+    const seen = new Set<string>();
+
+    const results = (data?.results?.bindings || [])
+      .map((row: any) => ({
+        uri: row.company_uri?.value || "",
+        name: row.name?.value || "",
+        type: row.company_type?.value || "",
+        municipality: row.municipality?.value || "",
+        street: row.street?.value || "",
+        locality: row.locality?.value || "",
+      }))
+      .filter((company: any) => {
+        if (!company.uri) return false;
+
+        if (seen.has(company.uri)) {
+          return false;
+        }
+
+        seen.add(company.uri);
+        return true;
+      })
+      .slice(0, 20);
+
+    return NextResponse.json(
+      {
+        results,
+      },
+      {
+        headers: {
+          "Cache-Control":
+            "public, s-maxage=86400, stale-while-revalidate=604800",
+        },
+      }
+    );
+  } catch (error: any) {
+    console.error(
+      "Firmensuche Fehler:",
+      error
+    );
+
+    if (error?.name === "AbortError") {
+      return NextResponse.json(
+        {
+          error:
+            "Die Registerabfrage dauerte zu lange. Bitte nochmals versuchen.",
+        },
+        {
+          status: 504,
+        }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        error:
+          "Die Firmensuche konnte momentan nicht geladen werden.",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}

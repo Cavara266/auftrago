@@ -1,0 +1,215 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { PrismaClient } from "@prisma/client";
+
+export const dynamic = "force-dynamic";
+
+const globalForPrisma = globalThis as unknown as {
+  companyDetailPrisma?: PrismaClient;
+};
+
+const prisma =
+  globalForPrisma.companyDetailPrisma ??
+  new PrismaClient();
+
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.companyDetailPrisma = prisma;
+}
+
+async function getCompany(slug: string) {
+  return prisma.company.findUnique({
+    where: {
+      slug,
+    },
+  });
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
+  const company = await getCompany(params.slug);
+
+  if (!company) {
+    return {
+      title: "Firma nicht gefunden",
+    };
+  }
+
+  const location =
+    company.city ||
+    company.municipality ||
+    company.canton ||
+    "Schweiz";
+
+  return {
+    title: `${company.name} | Handelsregister & Firmeninformationen`,
+    description: `${company.name} in ${location}: öffentlich verfügbare Firmen- und Handelsregisterinformationen auf Auftrago.`,
+    alternates: {
+      canonical: `https://www.auftrago.ch/firmen/${company.slug}`,
+    },
+  };
+}
+
+export default async function CompanyPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const company = await getCompany(params.slug);
+
+  if (!company) {
+    notFound();
+  }
+
+  const address = [
+    [company.street, company.houseNumber].filter(Boolean).join(" "),
+    [company.postalCode, company.city].filter(Boolean).join(" "),
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  const details = [
+    ["Firmenname", company.name],
+    ["Rechtsform", company.legalForm],
+    ["Sitz", company.municipality],
+    ["Adresse", address],
+    ["Kanton", company.canton],
+    ["UID", company.uid],
+    ["Register-ID", company.ehraid],
+    ["Status", company.status],
+  ].filter(([, value]) => value);
+
+  return (
+    <main className="min-h-screen bg-[#020617] text-white">
+      <section className="relative overflow-hidden border-b border-white/5 px-5 py-16 sm:px-8 sm:py-24">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute left-[-15%] top-[-25%] h-[550px] w-[550px] rounded-full bg-sky-500/10 blur-[140px]" />
+          <div className="absolute right-[-10%] top-[5%] h-[550px] w-[550px] rounded-full bg-purple-600/15 blur-[150px]" />
+        </div>
+
+        <div className="relative mx-auto max-w-6xl">
+          <Link
+            href="/firmen"
+            className="mb-10 inline-flex items-center gap-2 text-sm font-semibold text-slate-400 transition hover:text-white"
+          >
+            ← Zur Firmensuche
+          </Link>
+
+          <div className="rounded-[32px] border border-white/10 bg-white/[0.04] p-7 shadow-2xl shadow-purple-950/20 backdrop-blur-xl sm:p-10">
+            <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+              <div className="max-w-3xl">
+                <div className="mb-5 flex flex-wrap gap-2">
+                  <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] text-emerald-300">
+                    Schweizer Firmenverzeichnis
+                  </span>
+
+                  {company.claimed && (
+                    <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-4 py-2 text-xs font-bold text-sky-300">
+                      ✓ Firmenprofil verifiziert
+                    </span>
+                  )}
+                </div>
+
+                <h1 className="text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
+                  {company.name}
+                </h1>
+
+                <p className="mt-5 text-lg text-slate-400">
+                  {company.city ||
+                    company.municipality ||
+                    company.canton ||
+                    "Schweiz"}
+                </p>
+              </div>
+
+              
+            </div>
+          </div>
+
+          <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_.6fr]">
+            <section className="rounded-[30px] border border-white/10 bg-white/[0.035] p-7 sm:p-9">
+              <div className="mb-7">
+                <div className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">
+                  Firmeninformationen
+                </div>
+
+                <h2 className="mt-3 text-2xl font-black">
+                  Öffentliche Registerdaten
+                </h2>
+              </div>
+
+              <div className="divide-y divide-white/10">
+                {details.map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="grid gap-2 py-5 sm:grid-cols-[180px_1fr]"
+                  >
+                    <div className="text-sm font-semibold text-slate-500">
+                      {label}
+                    </div>
+
+                    <div className="font-medium text-slate-200">
+                      {value}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <aside className="space-y-6">
+              <div className="rounded-[30px] border border-white/10 bg-gradient-to-br from-sky-500/10 to-purple-500/10 p-7">
+                <div className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">
+                  Auftrago
+                </div>
+
+                <h2 className="mt-3 text-2xl font-black">
+                  Ist das Ihre Firma?
+                </h2>
+
+                <p className="mt-4 text-sm leading-7 text-slate-400">
+                  Übernehmen Sie Ihr Firmenprofil und verbinden Sie es mit
+                  Ihrem Auftrago-Anbieterkonto.
+                </p>
+
+                <Link
+                  href={`/anbieter-registrieren?firma=${encodeURIComponent(
+                    company.name
+                  )}`}
+                  className="mt-6 block rounded-2xl bg-white px-5 py-4 text-center text-sm font-black text-slate-950 transition hover:scale-[1.02]"
+                >
+                  Firmenprofil übernehmen
+                </Link>
+              </div>
+
+              <div className="rounded-[30px] border border-white/10 bg-white/[0.035] p-7">
+                <h3 className="font-bold text-white">
+                  Hinweis zu den Daten
+                </h3>
+
+                <p className="mt-3 text-sm leading-7 text-slate-500">
+                  Auftrago ist kein offizielles Handelsregister. Für
+                  rechtsverbindliche Angaben sind die offiziellen
+                  Registerinformationen massgebend.
+                </p>
+
+                {company.sourceUrl && (
+                  <a
+                    href={company.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-5 inline-flex text-sm font-bold text-sky-400 hover:text-sky-300"
+                  >
+                    Datenquelle ansehen →
+                  </a>
+                )}
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}

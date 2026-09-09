@@ -1,0 +1,1062 @@
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
+
+const money = (cents: number) =>
+  new Intl.NumberFormat("de-CH", {
+    style: "currency",
+    currency: "CHF",
+    minimumFractionDigits: 2,
+  }).format(cents / 100);
+
+const dateCH = (date: Date | null) => {
+  if (!date) return "–";
+
+  return new Intl.DateTimeFormat("de-CH", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+};
+
+export default async function BusinessActionCenter() {
+  const user = await getCurrentUser();
+
+  if (!user) return null;
+
+  const now = new Date();
+
+  const followupDate = new Date();
+  followupDate.setDate(
+    followupDate.getDate() - 3
+  );
+
+  const [
+    invoices,
+    quotes,
+    acceptedQuotes,
+  ] = await Promise.all([
+    prisma.businessInvoice.findMany({
+      where: {
+        providerId: user.id,
+        status: {
+          in: ["SENT", "OPEN", "OVERDUE"],
+        },
+      },
+      select: {
+        id: true,
+        invoiceNumber: true,
+        customerName: true,
+        totalCents: true,
+        paidAmountCents: true,
+        dueAt: true,
+        status: true,
+        createdAt: true,
+      },
+      orderBy: [
+        {
+          dueAt: "asc",
+        },
+        {
+          createdAt: "desc",
+        },
+      ],
+      take: 12,
+    }),
+
+    prisma.businessQuote.findMany({
+      where: {
+        providerId: user.id,
+        status: {
+          in: ["SENT", "OPEN"],
+        },
+        createdAt: {
+          lte: followupDate,
+        },
+      },
+      select: {
+        id: true,
+        quoteNumber: true,
+        title: true,
+        customerName: true,
+        totalCents: true,
+        createdAt: true,
+        sentAt: true,
+        status: true,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+      take: 8,
+    }),
+
+    prisma.businessQuote.findMany({
+      where: {
+        providerId: user.id,
+        status: "ACCEPTED",
+      },
+      select: {
+        id: true,
+        quoteNumber: true,
+        title: true,
+        customerName: true,
+        totalCents: true,
+        acceptedAt: true,
+      },
+      orderBy: {
+        acceptedAt: "desc",
+      },
+      take: 5,
+    }),
+  ]);
+
+  const overdueInvoices =
+    invoices.filter(
+      (invoice) =>
+        invoice.status === "OVERDUE" ||
+        (
+          invoice.dueAt &&
+          invoice.dueAt < now
+        )
+    );
+
+  const overdueAmount =
+    overdueInvoices.reduce(
+      (sum, invoice) =>
+        sum +
+        Math.max(
+          0,
+          invoice.totalCents -
+            (invoice.paidAmountCents || 0)
+        ),
+      0
+    );
+
+  const quoteFollowupValue =
+    quotes.reduce(
+      (sum, quote) =>
+        sum + quote.totalCents,
+      0
+    );
+
+  const attentionCount =
+    overdueInvoices.length +
+    quotes.length;
+
+  const priority =
+    overdueInvoices.length > 0
+      ? "HOCH"
+      : quotes.length > 0
+      ? "MITTEL"
+      : "SAUBER";
+
+  return (
+    <>
+      <style>{`
+        .action-center-card {
+          transition:
+            transform .2s ease,
+            border-color .2s ease,
+            box-shadow .2s ease,
+            background .2s ease;
+        }
+
+        .action-center-card:hover {
+          transform: translateY(-3px);
+          border-color: rgba(125,211,252,.20) !important;
+          box-shadow: 0 24px 65px rgba(2,6,23,.25);
+        }
+
+        .action-center-row {
+          transition:
+            background .18s ease,
+            transform .18s ease;
+        }
+
+        .action-center-row:hover {
+          background: rgba(30,41,59,.35);
+          transform: translateX(2px);
+        }
+
+        .action-center-button {
+          transition:
+            transform .18s ease,
+            box-shadow .18s ease,
+            border-color .18s ease;
+        }
+
+        .action-center-button:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 15px 35px rgba(14,165,233,.12);
+          border-color: rgba(125,211,252,.26) !important;
+        }
+
+        @media(max-width:950px) {
+          .action-center-grid {
+            grid-template-columns:1fr !important;
+          }
+
+          .action-center-summary {
+            grid-template-columns:1fr 1fr !important;
+          }
+        }
+
+        @media(max-width:560px) {
+          .action-center-summary {
+            grid-template-columns:1fr !important;
+          }
+        }
+      `}</style>
+
+      <section
+        style={{
+          display: "grid",
+          gap: 16,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 20,
+            flexWrap: "wrap",
+            alignItems: "end",
+          }}
+        >
+          <div>
+            <div style={eyebrow}>
+              AUFTRAGO TODAY
+            </div>
+
+            <h2
+              style={{
+                margin: "8px 0 0",
+                fontSize:
+                  "clamp(28px,3vw,40px)",
+                letterSpacing: "-.04em",
+              }}
+            >
+              Was heute deine Aufmerksamkeit braucht
+            </h2>
+
+            <p
+              style={{
+                color: "#64748b",
+                fontSize: 13,
+                margin: "8px 0 0",
+              }}
+            >
+              Auftrago priorisiert offene Einnahmen,
+              Offerten und wichtige Kundenaktionen.
+            </p>
+          </div>
+
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 9,
+              padding: "10px 15px",
+              borderRadius: 999,
+              border:
+                priority === "HOCH"
+                  ? "1px solid rgba(248,113,113,.22)"
+                  : priority === "MITTEL"
+                  ? "1px solid rgba(251,191,36,.20)"
+                  : "1px solid rgba(34,197,94,.20)",
+              background:
+                priority === "HOCH"
+                  ? "rgba(239,68,68,.07)"
+                  : priority === "MITTEL"
+                  ? "rgba(251,191,36,.06)"
+                  : "rgba(34,197,94,.06)",
+              color:
+                priority === "HOCH"
+                  ? "#fca5a5"
+                  : priority === "MITTEL"
+                  ? "#fbbf24"
+                  : "#86efac",
+              fontSize: 11,
+              fontWeight: 950,
+              letterSpacing: ".06em",
+            }}
+          >
+            <span
+              style={{
+                width: 7,
+                height: 7,
+                borderRadius: "50%",
+                background: "currentColor",
+                boxShadow:
+                  "0 0 14px currentColor",
+              }}
+            />
+            PRIORITÄT {priority}
+          </div>
+        </div>
+
+        <div
+          className="action-center-summary"
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(4,1fr)",
+            gap: 12,
+          }}
+        >
+          <SummaryCard
+            label="ZU PRÜFEN"
+            value={String(attentionCount)}
+            description="Aktuelle Aktionen"
+            color={
+              attentionCount > 0
+                ? "#fbbf24"
+                : "#86efac"
+            }
+          />
+
+          <SummaryCard
+            label="ÜBERFÄLLIG"
+            value={money(overdueAmount)}
+            description={`${overdueInvoices.length} Rechnung(en)`}
+            color={
+              overdueAmount > 0
+                ? "#fca5a5"
+                : "#86efac"
+            }
+          />
+
+          <SummaryCard
+            label="NACHFASSEN"
+            value={String(quotes.length)}
+            description={money(
+              quoteFollowupValue
+            )}
+            color="#7dd3fc"
+          />
+
+          <SummaryCard
+            label="GEWONNEN"
+            value={String(
+              acceptedQuotes.length
+            )}
+            description="Letzte Abschlüsse"
+            color="#86efac"
+          />
+        </div>
+
+        <div
+          className="action-center-grid"
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "minmax(0,1.1fr) minmax(0,.9fr)",
+            gap: 16,
+          }}
+        >
+          <section
+            className="action-center-card"
+            style={panel}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent:
+                  "space-between",
+                gap: 15,
+                alignItems: "center",
+              }}
+            >
+              <div>
+                <div style={eyebrow}>
+                  GELD EINSAMMELN
+                </div>
+
+                <h3 style={heading}>
+                  Überfällige Rechnungen
+                </h3>
+              </div>
+
+              <Link
+                href="/portal/business/rechnungen"
+                style={smallLink}
+              >
+                Alle öffnen →
+              </Link>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                marginTop: 16,
+              }}
+            >
+              {overdueInvoices.length ===
+                0 && (
+                <EmptyState
+                  icon="✓"
+                  title="Keine überfälligen Rechnungen"
+                  text="Aktuell ist alles im grünen Bereich."
+                />
+              )}
+
+              {overdueInvoices
+                .slice(0, 5)
+                .map((invoice) => {
+                  const remaining =
+                    Math.max(
+                      0,
+                      invoice.totalCents -
+                        (invoice.paidAmountCents ||
+                          0)
+                    );
+
+                  return (
+                    <Link
+                      key={invoice.id}
+                      href={`/portal/business/rechnungen/${invoice.id}`}
+                      className="action-center-row"
+                      style={row}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems:
+                            "center",
+                          gap: 12,
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 38,
+                            height: 38,
+                            borderRadius:
+                              12,
+                            display:
+                              "grid",
+                            placeItems:
+                              "center",
+                            background:
+                              "rgba(239,68,68,.08)",
+                            border:
+                              "1px solid rgba(248,113,113,.13)",
+                            color:
+                              "#fca5a5",
+                            fontWeight:
+                              950,
+                          }}
+                        >
+                          !
+                        </div>
+
+                        <div>
+                          <div
+                            style={{
+                              fontSize:
+                                13,
+                              fontWeight:
+                                900,
+                            }}
+                          >
+                            {invoice.customerName ||
+                              "Kunde"}
+                          </div>
+
+                          <div
+                            style={{
+                              color:
+                                "#64748b",
+                              fontSize:
+                                10,
+                              marginTop:
+                                3,
+                            }}
+                          >
+                            {
+                              invoice.invoiceNumber
+                            }{" "}
+                            · fällig{" "}
+                            {dateCH(
+                              invoice.dueAt
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          textAlign:
+                            "right",
+                        }}
+                      >
+                        <div
+                          style={{
+                            color:
+                              "#fca5a5",
+                            fontWeight:
+                              950,
+                            fontSize:
+                              13,
+                          }}
+                        >
+                          {money(
+                            remaining
+                          )}
+                        </div>
+
+                        <div
+                          style={{
+                            color:
+                              "#64748b",
+                            fontSize:
+                              9,
+                            marginTop:
+                              3,
+                          }}
+                        >
+                          offen
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+            </div>
+
+            {overdueInvoices.length >
+              0 && (
+              <div
+                style={{
+                  display: "flex",
+                  gap: 9,
+                  flexWrap: "wrap",
+                  marginTop: 18,
+                }}
+              >
+                <Link
+                  href="/portal/business/rechnungen"
+                  className="action-center-button"
+                  style={{
+                    ...actionButton,
+                    background:
+                      "linear-gradient(90deg,rgba(239,68,68,.12),rgba(124,58,237,.12))",
+                  }}
+                >
+                  ⚡ Mahnungen öffnen
+                </Link>
+
+                <Link
+                  href="/portal/business/rechnungen"
+                  className="action-center-button"
+                  style={actionButton}
+                >
+                  Zahlungen prüfen
+                </Link>
+              </div>
+            )}
+          </section>
+
+          <section
+            className="action-center-card"
+            style={panel}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent:
+                  "space-between",
+                gap: 15,
+                alignItems: "center",
+              }}
+            >
+              <div>
+                <div style={eyebrow}>
+                  SALES FOLLOW-UP
+                </div>
+
+                <h3 style={heading}>
+                  Offerten nachfassen
+                </h3>
+              </div>
+
+              <Link
+                href="/portal/business/offerten"
+                style={smallLink}
+              >
+                Pipeline →
+              </Link>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                marginTop: 16,
+              }}
+            >
+              {quotes.length === 0 && (
+                <EmptyState
+                  icon="✓"
+                  title="Keine offenen Follow-ups"
+                  text="Momentan muss bei keiner älteren Offerte nachgefasst werden."
+                />
+              )}
+
+              {quotes
+                .slice(0, 5)
+                .map((quote) => (
+                  <Link
+                    key={quote.id}
+                    href={`/portal/business/offerten/${quote.id}`}
+                    className="action-center-row"
+                    style={row}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 900,
+                        }}
+                      >
+                        {quote.customerName ||
+                          quote.title}
+                      </div>
+
+                      <div
+                        style={{
+                          color: "#64748b",
+                          fontSize: 10,
+                          marginTop: 3,
+                        }}
+                      >
+                        {quote.quoteNumber} ·{" "}
+                        {dateCH(
+                          quote.sentAt ||
+                            quote.createdAt
+                        )}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        textAlign: "right",
+                      }}
+                    >
+                      <strong
+                        style={{
+                          color: "#7dd3fc",
+                          fontSize: 12,
+                        }}
+                      >
+                        {money(
+                          quote.totalCents
+                        )}
+                      </strong>
+
+                      <div
+                        style={{
+                          color: "#fbbf24",
+                          fontSize: 9,
+                          fontWeight: 900,
+                          marginTop: 4,
+                        }}
+                      >
+                        NACHFASSEN
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+            </div>
+
+            <Link
+              href="/portal/business/ai"
+              className="action-center-button"
+              style={{
+                ...actionButton,
+                display:
+                  "inline-flex",
+                marginTop: 18,
+                background:
+                  "linear-gradient(90deg,rgba(14,165,233,.10),rgba(124,58,237,.12))",
+              }}
+            >
+              ✦ Mit AI Follow-up vorbereiten
+            </Link>
+          </section>
+        </div>
+
+        <div
+          className="action-center-grid"
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "minmax(0,1fr) minmax(0,1fr)",
+            gap: 16,
+          }}
+        >
+          <section
+            className="action-center-card"
+            style={{
+              ...panel,
+              background:
+                "linear-gradient(145deg,rgba(8,19,37,.90),rgba(8,40,35,.48))",
+            }}
+          >
+            <div style={eyebrow}>
+              GEWONNENE AUFTRÄGE
+            </div>
+
+            <h3 style={heading}>
+              Zuletzt angenommen
+            </h3>
+
+            <div
+              style={{
+                display: "grid",
+                marginTop: 15,
+              }}
+            >
+              {acceptedQuotes.length ===
+                0 && (
+                <EmptyState
+                  icon="◇"
+                  title="Noch keine Annahmen"
+                  text="Angenommene Offerten erscheinen automatisch hier."
+                />
+              )}
+
+              {acceptedQuotes.map(
+                (quote) => (
+                  <Link
+                    key={quote.id}
+                    href={`/portal/business/offerten/${quote.id}`}
+                    className="action-center-row"
+                    style={row}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 900,
+                        }}
+                      >
+                        {quote.customerName ||
+                          quote.title}
+                      </div>
+
+                      <div
+                        style={{
+                          color: "#64748b",
+                          fontSize: 10,
+                          marginTop: 3,
+                        }}
+                      >
+                        Angenommen{" "}
+                        {dateCH(
+                          quote.acceptedAt
+                        )}
+                      </div>
+                    </div>
+
+                    <strong
+                      style={{
+                        color: "#86efac",
+                        fontSize: 13,
+                      }}
+                    >
+                      {money(
+                        quote.totalCents
+                      )}
+                    </strong>
+                  </Link>
+                )
+              )}
+            </div>
+          </section>
+
+          <section
+            className="action-center-card"
+            style={{
+              ...panel,
+              background:
+                "linear-gradient(145deg,rgba(8,19,37,.90),rgba(30,22,70,.58))",
+            }}
+          >
+            <div style={eyebrow}>
+              QUICK COMMANDS
+            </div>
+
+            <h3 style={heading}>
+              Was möchtest du erledigen?
+            </h3>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(2,minmax(0,1fr))",
+                gap: 9,
+                marginTop: 17,
+              }}
+            >
+              {[
+                [
+                  "/portal/business/ai",
+                  "✦",
+                  "AI Offerte",
+                  "Neue Offerte erstellen",
+                ],
+                [
+                  "/portal/business/rechnungen",
+                  "◫",
+                  "Rechnung",
+                  "Rechnung verwalten",
+                ],
+                [
+                  "/portal/business/kunden",
+                  "◎",
+                  "Kunde",
+                  "CRM öffnen",
+                ],
+                [
+                  "/portal/business/analytics",
+                  "↗",
+                  "Analytics",
+                  "Zahlen analysieren",
+                ],
+              ].map(
+                ([
+                  href,
+                  icon,
+                  title,
+                  text,
+                ]) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className="action-center-button"
+                    style={{
+                      padding: 15,
+                      borderRadius: 14,
+                      border:
+                        "1px solid rgba(148,163,184,.10)",
+                      background:
+                        "rgba(2,6,23,.30)",
+                      color: "#f8fafc",
+                      textDecoration:
+                        "none",
+                    }}
+                  >
+                    <div
+                      style={{
+                        color:
+                          "#7dd3fc",
+                        fontSize: 18,
+                        fontWeight:
+                          950,
+                      }}
+                    >
+                      {icon}
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight:
+                          900,
+                        marginTop: 9,
+                      }}
+                    >
+                      {title}
+                    </div>
+
+                    <div
+                      style={{
+                        color:
+                          "#64748b",
+                        fontSize: 9,
+                        marginTop: 4,
+                      }}
+                    >
+                      {text}
+                    </div>
+                  </Link>
+                )
+              )}
+            </div>
+          </section>
+        </div>
+      </section>
+    </>
+  );
+}
+
+function SummaryCard({
+  label,
+  value,
+  description,
+  color,
+}: {
+  label: string;
+  value: string;
+  description: string;
+  color: string;
+}) {
+  return (
+    <div
+      className="action-center-card"
+      style={{
+        padding: 17,
+        borderRadius: 17,
+        border:
+          "1px solid rgba(148,163,184,.10)",
+        background:
+          "rgba(8,19,37,.62)",
+      }}
+    >
+      <div
+        style={{
+          color: "#64748b",
+          fontSize: 9,
+          fontWeight: 950,
+          letterSpacing: ".08em",
+        }}
+      >
+        {label}
+      </div>
+
+      <div
+        style={{
+          fontSize: 22,
+          fontWeight: 950,
+          color,
+          marginTop: 6,
+          letterSpacing: "-.03em",
+        }}
+      >
+        {value}
+      </div>
+
+      <div
+        style={{
+          color: "#64748b",
+          fontSize: 9,
+          marginTop: 5,
+        }}
+      >
+        {description}
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({
+  icon,
+  title,
+  text,
+}: {
+  icon: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div
+      style={{
+        padding: "26px 10px",
+        textAlign: "center",
+      }}
+    >
+      <div
+        style={{
+          width: 40,
+          height: 40,
+          margin: "0 auto",
+          borderRadius: 13,
+          display: "grid",
+          placeItems: "center",
+          background:
+            "rgba(34,197,94,.07)",
+          border:
+            "1px solid rgba(34,197,94,.12)",
+          color: "#86efac",
+          fontWeight: 950,
+        }}
+      >
+        {icon}
+      </div>
+
+      <div
+        style={{
+          fontWeight: 900,
+          marginTop: 11,
+          fontSize: 12,
+        }}
+      >
+        {title}
+      </div>
+
+      <div
+        style={{
+          color: "#64748b",
+          fontSize: 10,
+          marginTop: 4,
+          lineHeight: 1.5,
+        }}
+      >
+        {text}
+      </div>
+    </div>
+  );
+}
+
+const panel = {
+  padding: 24,
+  borderRadius: 24,
+  border:
+    "1px solid rgba(148,163,184,.11)",
+  background:
+    "rgba(8,19,37,.78)",
+} as const;
+
+const eyebrow = {
+  color: "#7dd3fc",
+  fontSize: 10,
+  fontWeight: 950,
+  letterSpacing: ".09em",
+} as const;
+
+const heading = {
+  margin: "7px 0 0",
+  fontSize: 20,
+  letterSpacing: "-.02em",
+} as const;
+
+const smallLink = {
+  color: "#7dd3fc",
+  textDecoration: "none",
+  fontSize: 10,
+  fontWeight: 900,
+} as const;
+
+const row = {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 15,
+  padding: "13px 8px",
+  borderRadius: 10,
+  borderBottom:
+    "1px solid rgba(148,163,184,.07)",
+  color: "inherit",
+  textDecoration: "none",
+  alignItems: "center",
+} as const;
+
+const actionButton = {
+  padding: "11px 14px",
+  borderRadius: 11,
+  border:
+    "1px solid rgba(125,211,252,.12)",
+  background: "rgba(15,23,42,.52)",
+  color: "#cbd5e1",
+  textDecoration: "none",
+  fontSize: 10,
+  fontWeight: 900,
+} as const;

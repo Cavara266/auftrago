@@ -1,0 +1,506 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+type Result = {
+  title?: string;
+  customerName?: string;
+  customerEmail?: string;
+  description?: string;
+  price?: number;
+  positions?: {
+    description: string;
+    quantity: number;
+    unit: string;
+    price: number;
+  }[];
+};
+
+export default function BusinessAIPage() {
+  const router = useRouter();
+
+  const [prompt, setPrompt] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [result, setResult] = useState<Result | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
+  async function generate() {
+    if (!prompt.trim()) {
+      setError("Bitte beschreibe zuerst den Auftrag.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setResult(null);
+
+    try {
+      const response = await fetch("/api/business/ai/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "AI konnte nicht ausgeführt werden.");
+      }
+
+      setResult(data.result);
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Unbekannter Fehler"
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function saveQuote() {
+    if (!result) return;
+
+    setSaving(true);
+    setSaveError("");
+
+    try {
+      const response = await fetch(
+        "/api/business/ai/save-quote",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title: result.title,
+            customerName: result.customerName,
+            customerEmail: result.customerEmail,
+            description: result.description,
+            positions: result.positions,
+            vatPercent: 8.1,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+            "Offerte konnte nicht gespeichert werden."
+        );
+      }
+
+      router.push(data.redirectUrl);
+      router.refresh();
+    } catch (e) {
+      setSaveError(
+        e instanceof Error
+          ? e.message
+          : "Unbekannter Fehler"
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        background:
+          "radial-gradient(circle at 70% 0%,rgba(124,58,237,.18),transparent 35%),#06101f",
+        color: "#f8fafc",
+        padding: "45px 28px 90px",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 1120,
+          margin: "0 auto",
+        }}
+      >
+        <Link
+          href="/portal/business"
+          style={{
+            color: "#7dd3fc",
+            textDecoration: "none",
+            fontWeight: 800,
+          }}
+        >
+          ← Business Cockpit
+        </Link>
+
+        <div
+          style={{
+            marginTop: 35,
+          }}
+        >
+          <div
+            style={{
+              color: "#a78bfa",
+              fontSize: 12,
+              fontWeight: 950,
+              letterSpacing: ".08em",
+            }}
+          >
+            AUFTRAGO BUSINESS AI
+          </div>
+
+          <h1
+            style={{
+              fontSize: "clamp(38px,6vw,66px)",
+              lineHeight: 1,
+              letterSpacing: "-.05em",
+              margin: "10px 0 15px",
+            }}
+          >
+            Mit AI erstellen
+          </h1>
+
+          <p
+            style={{
+              maxWidth: 730,
+              color: "#94a3b8",
+              fontSize: 18,
+              lineHeight: 1.6,
+            }}
+          >
+            Beschreibe den Auftrag in deinen eigenen Worten.
+            Auftrago erstellt daraus automatisch eine professionelle
+            Grundlage für deine Offerte.
+          </p>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "minmax(0,1.15fr) minmax(320px,.85fr)",
+            gap: 20,
+            marginTop: 30,
+          }}
+        >
+          <section style={card}>
+            <div style={label}>AUFTRAG BESCHREIBEN</div>
+
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Beispiel: Umzugsreinigung für eine 4.5-Zimmer-Wohnung in Zürich, ca. 120 m², inklusive Fenster und Abgabegarantie. Kunde Herr Müller. Wunschpreis ca. CHF 1'290.–."
+              style={{
+                width: "100%",
+                minHeight: 250,
+                marginTop: 14,
+                padding: 18,
+                borderRadius: 14,
+                border:
+                  "1px solid rgba(148,163,184,.20)",
+                background: "rgba(2,6,23,.55)",
+                color: "#f8fafc",
+                resize: "vertical",
+                fontSize: 16,
+                lineHeight: 1.65,
+                boxSizing: "border-box",
+                outline: "none",
+              }}
+            />
+
+            <button
+              onClick={generate}
+              disabled={loading}
+              style={{
+                width: "100%",
+                marginTop: 15,
+                padding: "15px 18px",
+                borderRadius: 12,
+                border: 0,
+                background:
+                  "linear-gradient(90deg,#0ea5e9,#7c3aed)",
+                color: "#fff",
+                fontSize: 15,
+                fontWeight: 950,
+                cursor: loading ? "wait" : "pointer",
+              }}
+            >
+              {loading
+                ? "✦ AI arbeitet..."
+                : "✦ Offerte mit AI erstellen"}
+            </button>
+
+            {error && (
+              <div
+                style={{
+                  marginTop: 14,
+                  padding: 14,
+                  borderRadius: 11,
+                  background: "rgba(239,68,68,.08)",
+                  border:
+                    "1px solid rgba(239,68,68,.25)",
+                  color: "#fca5a5",
+                  fontWeight: 700,
+                }}
+              >
+                {error}
+              </div>
+            )}
+          </section>
+
+          <section
+            style={{
+              ...card,
+              background:
+                "linear-gradient(145deg,rgba(14,165,233,.07),rgba(124,58,237,.10))",
+            }}
+          >
+            <div style={label}>AUFTRAGO AI</div>
+
+            <h2
+              style={{
+                fontSize: 25,
+                margin: "10px 0",
+              }}
+            >
+              Dein Business-Assistent
+            </h2>
+
+            <p
+              style={{
+                color: "#94a3b8",
+                lineHeight: 1.6,
+              }}
+            >
+              Die AI analysiert deine Beschreibung und bereitet
+              die wichtigsten Offertendaten automatisch auf.
+            </p>
+
+            <div
+              style={{
+                display: "grid",
+                gap: 10,
+                marginTop: 20,
+              }}
+            >
+              {[
+                "Kundeninformationen erkennen",
+                "Leistung formulieren",
+                "Positionen erstellen",
+                "Preisvorschlag vorbereiten",
+                "Professionelle Beschreibung",
+                "Offertengrundlage generieren",
+              ].map((item) => (
+                <div
+                  key={item}
+                  style={{
+                    padding: 12,
+                    borderRadius: 10,
+                    background: "rgba(2,6,23,.35)",
+                    border:
+                      "1px solid rgba(148,163,184,.08)",
+                  }}
+                >
+                  ✓ {item}
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        {result && (
+          <section
+            style={{
+              ...card,
+              marginTop: 20,
+            }}
+          >
+            <div style={label}>
+              AI ERGEBNIS
+            </div>
+
+            <h2
+              style={{
+                fontSize: 29,
+                margin: "10px 0 5px",
+              }}
+            >
+              {result.title || "Neue Offerte"}
+            </h2>
+
+            {result.customerName && (
+              <div
+                style={{
+                  color: "#94a3b8",
+                  marginBottom: 18,
+                }}
+              >
+                Kunde: {result.customerName}
+              </div>
+            )}
+
+            {result.description && (
+              <div
+                style={{
+                  padding: 16,
+                  borderRadius: 12,
+                  background: "rgba(2,6,23,.30)",
+                  color: "#cbd5e1",
+                  lineHeight: 1.7,
+                  marginBottom: 18,
+                }}
+              >
+                {result.description}
+              </div>
+            )}
+
+            {result.positions?.length ? (
+              <div>
+                {result.positions.map((position, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "40px 1fr auto",
+                      gap: 14,
+                      alignItems: "center",
+                      padding: "15px 0",
+                      borderBottom:
+                        "1px solid rgba(148,163,184,.10)",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: "#64748b",
+                      }}
+                    >
+                      {index + 1}.
+                    </span>
+
+                    <div>
+                      <strong>
+                        {position.description}
+                      </strong>
+
+                      <div
+                        style={{
+                          color: "#64748b",
+                          fontSize: 12,
+                          marginTop: 4,
+                        }}
+                      >
+                        {position.quantity} ×{" "}
+                        {position.unit}
+                      </div>
+                    </div>
+
+                    <strong
+                      style={{
+                        color: "#7dd3fc",
+                      }}
+                    >
+                      CHF {position.price.toFixed(2)}
+                    </strong>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 15,
+                flexWrap: "wrap",
+                marginTop: 22,
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    color: "#64748b",
+                    fontSize: 12,
+                  }}
+                >
+                  PREISVORSCHLAG
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 31,
+                    fontWeight: 950,
+                    color: "#86efac",
+                  }}
+                >
+                  CHF {(result.price || 0).toFixed(2)}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={saveQuote}
+                disabled={saving}
+                style={{
+                  padding: "13px 18px",
+                  borderRadius: 11,
+                  border: 0,
+                  background:
+                    "linear-gradient(90deg,#0ea5e9,#7c3aed)",
+                  color: "#fff",
+                  fontWeight: 900,
+                  cursor: saving ? "wait" : "pointer",
+                }}
+              >
+                {saving
+                  ? "Wird gespeichert..."
+                  : "✓ Als echte Offerte speichern"}
+              </button>
+            </div>
+
+            {saveError && (
+              <div
+                style={{
+                  marginTop: 16,
+                  padding: 14,
+                  borderRadius: 11,
+                  background: "rgba(239,68,68,.08)",
+                  border: "1px solid rgba(239,68,68,.25)",
+                  color: "#fca5a5",
+                  fontWeight: 700,
+                }}
+              >
+                {saveError}
+              </div>
+            )}
+          </section>
+        )}
+      </div>
+    </main>
+  );
+}
+
+const card = {
+  padding: 24,
+  borderRadius: 20,
+  border: "1px solid rgba(148,163,184,.14)",
+  background: "rgba(9,22,41,.82)",
+} as const;
+
+const label = {
+  color: "#7dd3fc",
+  fontSize: 11,
+  fontWeight: 950,
+  letterSpacing: ".07em",
+} as const;

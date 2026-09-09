@@ -1,0 +1,393 @@
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
+import InvoiceStatusButtons from "@/components/business/InvoiceStatusButtons";
+
+const money = (cents: number) =>
+  new Intl.NumberFormat("de-CH", {
+    style: "currency",
+    currency: "CHF",
+    minimumFractionDigits: 2,
+  }).format(cents / 100);
+
+const statusLabel: Record<string, string> = {
+  DRAFT: "Entwurf",
+  SENT: "Gesendet",
+  OPEN: "Offen",
+  PAID: "Bezahlt",
+  OVERDUE: "Überfällig",
+  CANCELLED: "Storniert",
+};
+
+const statusColor: Record<string, string> = {
+  DRAFT: "#c4b5fd",
+  SENT: "#7dd3fc",
+  OPEN: "#7dd3fc",
+  PAID: "#86efac",
+  OVERDUE: "#fca5a5",
+  CANCELLED: "#94a3b8",
+};
+
+export default async function InvoiceDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { id } = await params;
+
+  const invoice = await prisma.businessInvoice.findFirst({
+    where: {
+      id,
+      providerId: user.id,
+    },
+    include: {
+      items: {
+        orderBy: {
+          position: "asc",
+        },
+      },
+    },
+  });
+
+  if (!invoice) {
+    notFound();
+  }
+
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        background:
+          "radial-gradient(circle at 80% 0%, rgba(124,58,237,.13), transparent 32%), #06101f",
+        color: "#f8fafc",
+        padding: "38px 28px 80px",
+      }}
+    >
+      <div style={{ maxWidth: 1180, margin: "0 auto" }}>
+        <Link
+          href="/portal/business/rechnungen"
+          style={{
+            color: "#7dd3fc",
+            textDecoration: "none",
+            fontWeight: 800,
+          }}
+        >
+          ← Rechnungen
+        </Link>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: 20,
+            flexWrap: "wrap",
+            marginTop: 22,
+          }}
+        >
+          <div>
+            <div
+              style={{
+                color: "#a78bfa",
+                fontSize: 12,
+                fontWeight: 900,
+                letterSpacing: ".5px",
+              }}
+            >
+              AUFTRAGO BUSINESS / RECHNUNG
+            </div>
+
+            <h1
+              style={{
+                fontSize: 42,
+                margin: "7px 0 5px",
+                letterSpacing: "-1.5px",
+              }}
+            >
+              {invoice.title}
+            </h1>
+
+            <div style={{ color: "#94a3b8" }}>
+              {invoice.invoiceNumber} ·{" "}
+              <span
+                style={{
+                  color: statusColor[invoice.status] || "#c4b5fd",
+                  fontWeight: 800,
+                }}
+              >
+                {statusLabel[invoice.status] || invoice.status}
+              </span>
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              flexWrap: "wrap",
+            }}
+          >
+            <button style={secondaryButton}>📄 PDF erstellen</button>
+            <button style={secondaryButton}>✉️ Versenden</button>
+            <InvoiceStatusButtons invoiceId={invoice.id} status={invoice.status} />
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(0,1.55fr) minmax(330px,.65fr)",
+            gap: 18,
+            alignItems: "start",
+            marginTop: 30,
+          }}
+        >
+          <div>
+            <section style={cardStyle}>
+              <div style={labelStyle}>KUNDE</div>
+
+              <h2 style={{ margin: "10px 0 8px", fontSize: 24 }}>
+                {invoice.customerName || "Kein Kunde"}
+              </h2>
+
+              <div style={{ color: "#94a3b8", lineHeight: 1.8 }}>
+                {invoice.customerEmail && <div>{invoice.customerEmail}</div>}
+                {invoice.customerAddress && (
+                  <div style={{ whiteSpace: "pre-wrap" }}>
+                    {invoice.customerAddress}
+                  </div>
+                )}
+              </div>
+            </section>
+
+            <section style={{ ...cardStyle, marginTop: 18 }}>
+              <div style={labelStyle}>POSITIONEN</div>
+
+              <div style={{ marginTop: 14 }}>
+                {invoice.items.map((item) => (
+                  <div
+                    key={item.id}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "42px minmax(0,1fr) 90px 150px",
+                      gap: 12,
+                      alignItems: "center",
+                      padding: "17px 0",
+                      borderBottom: "1px solid rgba(148,163,184,.10)",
+                    }}
+                  >
+                    <div style={{ color: "#64748b" }}>
+                      {item.position}.
+                    </div>
+
+                    <div>
+                      <div style={{ fontWeight: 800 }}>
+                        {item.description}
+                      </div>
+
+                      <div
+                        style={{
+                          color: "#64748b",
+                          fontSize: 13,
+                          marginTop: 4,
+                        }}
+                      >
+                        {item.quantity} × {money(item.unitPriceCents)}
+                      </div>
+                    </div>
+
+                    <div style={{ color: "#94a3b8" }}>
+                      {item.quantity} {item.unit}
+                    </div>
+
+                    <div
+                      style={{
+                        textAlign: "right",
+                        fontWeight: 900,
+                      }}
+                    >
+                      {money(item.totalCents)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {invoice.notes && (
+              <section style={{ ...cardStyle, marginTop: 18 }}>
+                <div style={labelStyle}>BEMERKUNG / KONDITIONEN</div>
+
+                <p
+                  style={{
+                    color: "#cbd5e1",
+                    lineHeight: 1.7,
+                    whiteSpace: "pre-wrap",
+                    marginBottom: 0,
+                  }}
+                >
+                  {invoice.notes}
+                </p>
+              </section>
+            )}
+          </div>
+
+          <aside
+            style={{
+              ...cardStyle,
+              background:
+                "linear-gradient(145deg, rgba(15,23,42,.96), rgba(30,27,75,.78))",
+              position: "sticky",
+              top: 20,
+            }}
+          >
+            <div style={labelStyle}>RECHNUNGSÜBERSICHT</div>
+
+            <Row label="Zwischensumme" value={money(invoice.subtotalCents)} />
+
+            {invoice.discountCents > 0 && (
+              <Row
+                label="Rabatt"
+                value={`- ${money(invoice.discountCents)}`}
+              />
+            )}
+
+            <Row label="MWST" value={money(invoice.vatCents)} />
+
+            <div
+              style={{
+                borderTop: "1px solid rgba(148,163,184,.16)",
+                marginTop: 18,
+                paddingTop: 22,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-end",
+                gap: 15,
+              }}
+            >
+              <span
+                style={{
+                  color: "#94a3b8",
+                  fontWeight: 900,
+                }}
+              >
+                TOTAL
+              </span>
+
+              <strong
+                style={{
+                  fontSize: 30,
+                  background:
+                    "linear-gradient(90deg,#38bdf8,#c084fc)",
+                  WebkitBackgroundClip: "text",
+                  color: "transparent",
+                }}
+              >
+                {money(invoice.totalCents)}
+              </strong>
+            </div>
+
+            <div
+              style={{
+                marginTop: 25,
+                padding: 16,
+                borderRadius: 13,
+                background: "rgba(14,165,233,.07)",
+                border: "1px solid rgba(125,211,252,.15)",
+                color: "#94a3b8",
+                fontSize: 13,
+                lineHeight: 1.6,
+              }}
+            >
+              <strong style={{ color: "#f8fafc" }}>
+                Zahlungsziel
+              </strong>
+              <br />
+              {invoice.dueAt
+                ? new Intl.DateTimeFormat("de-CH", {
+                    dateStyle: "long",
+                  }).format(invoice.dueAt)
+                : "Kein Zahlungsziel hinterlegt"}
+            </div>
+
+            <div
+              style={{
+                marginTop: 14,
+                color: "#64748b",
+                fontSize: 12,
+              }}
+            >
+              Erstellt am{" "}
+              {new Intl.DateTimeFormat("de-CH", {
+                dateStyle: "medium",
+              }).format(invoice.createdAt)}
+            </div>
+          </aside>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function Row({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        gap: 20,
+        marginTop: 20,
+        color: "#cbd5e1",
+      }}
+    >
+      <span>{label}</span>
+      <strong style={{ color: "#f8fafc" }}>{value}</strong>
+    </div>
+  );
+}
+
+const cardStyle = {
+  border: "1px solid rgba(148,163,184,.14)",
+  borderRadius: 20,
+  padding: 24,
+  background: "rgba(10,22,41,.92)",
+};
+
+const labelStyle = {
+  color: "#7dd3fc",
+  fontSize: 12,
+  fontWeight: 900,
+};
+
+const secondaryButton = {
+  padding: "13px 18px",
+  borderRadius: 12,
+  border: "1px solid rgba(167,139,250,.28)",
+  background: "rgba(124,58,237,.10)",
+  color: "#ddd6fe",
+  fontWeight: 800,
+  cursor: "pointer",
+};
+
+const primaryButton = {
+  padding: "13px 18px",
+  borderRadius: 12,
+  border: 0,
+  background: "linear-gradient(90deg,#0ea5e9,#7c3aed)",
+  color: "#ffffff",
+  fontWeight: 900,
+  cursor: "pointer",
+};

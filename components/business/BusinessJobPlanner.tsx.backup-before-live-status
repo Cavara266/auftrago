@@ -1,0 +1,300 @@
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
+import BusinessCreateJobButton from "./BusinessCreateJobButton";
+
+const money = (cents: number) =>
+  new Intl.NumberFormat("de-CH", {
+    style: "currency",
+    currency: "CHF",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(cents / 100);
+
+export default async function BusinessJobPlanner() {
+  const user = await getCurrentUser();
+
+  if (!user) return null;
+
+  const now = new Date();
+
+  const weekStart = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  );
+
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate() + 7);
+
+  const jobs = await prisma.businessJob.findMany({
+    where: {
+      providerId: user.id,
+      scheduledDate: {
+        gte: weekStart,
+        lt: weekEnd,
+      },
+      status: {
+        not: "CANCELLED",
+      },
+    },
+    orderBy: [
+      {
+        scheduledDate: "asc",
+      },
+      {
+        startTime: "asc",
+      },
+    ],
+  });
+
+  const totalValue = jobs.reduce(
+    (sum, job) =>
+      sum + job.valueCents,
+    0
+  );
+
+  return (
+    <section
+      style={{
+        padding: 26,
+        borderRadius: 24,
+        border:
+          "1px solid rgba(125,211,252,.11)",
+        background:
+          "linear-gradient(145deg,rgba(7,18,35,.96),rgba(15,23,48,.90))",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "end",
+          gap: 20,
+          flexWrap: "wrap",
+        }}
+      >
+        <div>
+          <div
+            style={{
+              color: "#7dd3fc",
+              fontSize: 10,
+              fontWeight: 950,
+              letterSpacing: ".10em",
+            }}
+          >
+            AUFTRAGO OPERATIONS
+          </div>
+
+          <h2
+            style={{
+              margin: "7px 0 5px",
+              fontSize:
+                "clamp(26px,3vw,36px)",
+              letterSpacing: "-.04em",
+            }}
+          >
+            Einsätze & Aufträge
+          </h2>
+
+          <p
+            style={{
+              margin: 0,
+              color: "#64748b",
+              fontSize: 12,
+            }}
+          >
+            Termine, Mitarbeiter, Orte und Auftragswerte.
+          </p>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            gap: 10,
+            alignItems: "center",
+          }}
+        >
+          <div
+            style={{
+              padding: "9px 12px",
+              borderRadius: 11,
+              border:
+                "1px solid rgba(167,139,250,.10)",
+              background:
+                "rgba(124,58,237,.05)",
+            }}
+          >
+            <div
+              style={{
+                color: "#64748b",
+                fontSize: 7,
+                fontWeight: 950,
+              }}
+            >
+              7 TAGE
+            </div>
+
+            <strong
+              style={{
+                color: "#c4b5fd",
+                fontSize: 16,
+              }}
+            >
+              {money(totalValue)}
+            </strong>
+          </div>
+
+          <BusinessCreateJobButton />
+        </div>
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gap: 9,
+          marginTop: 20,
+        }}
+      >
+        {jobs.length === 0 && (
+          <div
+            style={{
+              padding: "34px 20px",
+              textAlign: "center",
+              borderRadius: 17,
+              border:
+                "1px solid rgba(148,163,184,.08)",
+              background: "rgba(2,6,23,.25)",
+              color: "#64748b",
+              fontSize: 11,
+            }}
+          >
+            Noch keine Einsätze für die nächsten 7 Tage.
+          </div>
+        )}
+
+        {jobs.map((job) => (
+          <div
+            key={job.id}
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "110px minmax(0,1fr) minmax(140px,.5fr) auto",
+              gap: 14,
+              alignItems: "center",
+              padding: 14,
+              borderRadius: 15,
+              border:
+                "1px solid rgba(148,163,184,.08)",
+              background: "rgba(2,6,23,.27)",
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  color: "#7dd3fc",
+                  fontSize: 10,
+                  fontWeight: 950,
+                }}
+              >
+                {new Intl.DateTimeFormat("de-CH", {
+                  day: "2-digit",
+                  month: "2-digit",
+                }).format(job.scheduledDate)}
+              </div>
+
+              <div
+                style={{
+                  color: "#64748b",
+                  fontSize: 9,
+                  marginTop: 3,
+                }}
+              >
+                {job.startTime || "--:--"}
+                {job.endTime
+                  ? ` – ${job.endTime}`
+                  : ""}
+              </div>
+            </div>
+
+            <div>
+              <strong
+                style={{
+                  fontSize: 12,
+                }}
+              >
+                {job.title}
+              </strong>
+
+              <div
+                style={{
+                  color: "#64748b",
+                  fontSize: 9,
+                  marginTop: 4,
+                }}
+              >
+                {job.customerName || "Kein Kunde"}
+                {job.location
+                  ? ` · ${job.location}`
+                  : ""}
+              </div>
+            </div>
+
+            <div>
+              <div
+                style={{
+                  color: "#64748b",
+                  fontSize: 8,
+                  fontWeight: 900,
+                }}
+              >
+                VERANTWORTLICH
+              </div>
+
+              <div
+                style={{
+                  marginTop: 4,
+                  fontSize: 10,
+                  fontWeight: 850,
+                  color: "#cbd5e1",
+                }}
+              >
+                {job.assignedTo || "Nicht zugewiesen"}
+              </div>
+            </div>
+
+            <div
+              style={{
+                textAlign: "right",
+              }}
+            >
+              <strong
+                style={{
+                  color: "#86efac",
+                  fontSize: 12,
+                }}
+              >
+                {money(job.valueCents)}
+              </strong>
+
+              <div
+                style={{
+                  color:
+                    job.status === "DONE"
+                      ? "#86efac"
+                      : job.status === "IN_PROGRESS"
+                      ? "#fbbf24"
+                      : "#7dd3fc",
+                  fontSize: 8,
+                  fontWeight: 900,
+                  marginTop: 4,
+                }}
+              >
+                {job.status}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}

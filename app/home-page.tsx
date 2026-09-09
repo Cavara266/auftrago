@@ -1057,6 +1057,9 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
       */}
       <Hero locale={locale} />
 
+      
+
+
       {/* AUFTRAGO DISCOVERY CARDS */}
       <section className="relative overflow-hidden border-y border-white/[0.07] bg-[#050b1d] px-5 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
         <div
@@ -2066,7 +2069,129 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
         </div>
       </section>
 
-      {/* FINAL CTA */}
+      
+
+
+
+<section
+  id="firmenverzeichnis-home"
+  className="relative px-5 py-20 sm:px-8 lg:px-12 lg:py-28"
+>
+  <div className="relative mx-auto max-w-[1500px] overflow-hidden rounded-[44px] border border-white/10 bg-[#071020] p-[1px] shadow-[0_30px_100px_rgba(0,0,0,.45)]">
+
+    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(56,189,248,.16),transparent_32%),radial-gradient(circle_at_88%_82%,rgba(168,85,247,.15),transparent_34%)]" />
+
+    <div className="relative rounded-[43px] bg-gradient-to-br from-[#071426] via-[#081126] to-[#0d0a24] px-7 py-10 sm:px-10 sm:py-14 lg:px-14 lg:py-16">
+
+      <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_.85fr]">
+
+        <div>
+          <div className="mb-6 inline-flex items-center rounded-full border border-emerald-400/20 bg-emerald-400/[0.08] px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-emerald-300">
+            Schweizer Firmenverzeichnis
+          </div>
+
+          <h2 className="max-w-4xl text-[3rem] font-black leading-[0.94] tracking-[-0.06em] text-white sm:text-[4.4rem] lg:text-[5.2rem]">
+            Firmen in der ganzen Schweiz finden.
+          </h2>
+
+          <p className="mt-7 max-w-2xl text-base font-medium leading-8 text-slate-400 sm:text-lg">
+            Finde schnell passende Unternehmen aus deiner Region. Einfach auswählen, vergleichen und direkt zum Firmenverzeichnis wechseln.
+          </p>
+
+          <div className="mt-9 flex flex-wrap gap-4">
+            <Link
+              href="/firmen"
+              className="inline-flex min-h-[60px] items-center justify-center rounded-2xl bg-gradient-to-r from-sky-400 via-blue-500 to-purple-500 px-9 text-sm font-black text-white shadow-[0_18px_50px_rgba(59,130,246,.28)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(59,130,246,.4)]"
+            >
+              Firmen suchen
+              <span className="ml-3 text-lg">→</span>
+            </Link>
+
+            <Link
+              href="/anbieter-registrieren"
+              className="inline-flex min-h-[60px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-9 text-sm font-black text-white transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.08]"
+            >
+              Als Anbieter registrieren
+            </Link>
+          </div>
+        </div>
+
+        <div className="relative">
+          <div className="rounded-[30px] border border-white/10 bg-black/20 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,.04)] backdrop-blur-xl sm:p-7">
+
+            <div className="mb-6">
+              <div className="text-xs font-black uppercase tracking-[0.22em] text-sky-400">
+                Auftrago Firmen
+              </div>
+              <div className="mt-2 text-2xl font-black text-white">
+                Schnell. Direkt. Schweizweit.
+              </div>
+            </div>
+
+            <div className="space-y-3">
+
+              <div className="group rounded-2xl border border-white/10 bg-white/[0.035] p-5 transition hover:-translate-y-1 hover:border-sky-400/20 hover:bg-white/[0.055]">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-sky-400/20 bg-sky-400/10 text-sm font-black text-sky-300">
+                    01
+                  </div>
+                  <div>
+                    <div className="text-lg font-black text-white">Schweizweit</div>
+                    <div className="mt-1 text-sm leading-6 text-slate-400">
+                      Firmen aus allen Regionen der Schweiz entdecken.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="group rounded-2xl border border-white/10 bg-white/[0.035] p-5 transition hover:-translate-y-1 hover:border-sky-400/20 hover:bg-white/[0.055]">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-sky-400/20 bg-sky-400/10 text-sm font-black text-sky-300">
+                    02
+                  </div>
+                  <div>
+                    <div className="text-lg font-black text-white">Passende Anbieter</div>
+                    <div className="mt-1 text-sm leading-6 text-slate-400">
+                      Schnell zur richtigen Firma für deinen Bedarf.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="group rounded-2xl border border-white/10 bg-white/[0.035] p-5 transition hover:-translate-y-1 hover:border-sky-400/20 hover:bg-white/[0.055]">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-sky-400/20 bg-sky-400/10 text-sm font-black text-sky-300">
+                    03
+                  </div>
+                  <div>
+                    <div className="text-lg font-black text-white">Einfach entdecken</div>
+                    <div className="mt-1 text-sm leading-6 text-slate-400">
+                      Übersichtliche Firmenprofile auf einer Plattform.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <Link
+              href="/firmen"
+              className="mt-6 flex min-h-[56px] w-full items-center justify-center rounded-2xl border border-sky-400/20 bg-sky-400/[0.07] text-sm font-black text-sky-300 transition hover:bg-sky-400/[0.13]"
+            >
+              Firmenverzeichnis öffnen →
+            </Link>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+{/* FINAL CTA */}
       <section className="relative px-5 pb-12 sm:px-8 lg:px-12 lg:pb-16">
         <div className="relative mx-auto max-w-[1500px] overflow-hidden rounded-[50px] border border-white/10 bg-[#080e21] px-6 py-24 text-center shadow-[0_55px_170px_rgba(0,0,0,.55)] sm:px-12 lg:py-36">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_10%,rgba(40,181,255,0.25),transparent_35%),radial-gradient(circle_at_88%_90%,rgba(203,56,255,0.24),transparent_35%)]" />

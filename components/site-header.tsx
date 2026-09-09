@@ -173,7 +173,43 @@ export default function SiteHeader() {
               <small>NEU</small>
             </Link>
 
-            <Link href="/anbieter-registrieren">{tr("Für Anbieter")}</Link>
+            
+        <Link
+          href="/webseite-seo"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 7,
+            color: "#f8fafc",
+            textDecoration: "none",
+            fontWeight: 850,
+            whiteSpace: "nowrap",
+          }}
+        >
+          Webseite & SEO
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: 19,
+              padding: "0 7px",
+              borderRadius: 999,
+              background: "linear-gradient(90deg,#0ea5e9,#7c3aed)",
+              color: "#ffffff",
+              fontSize: 8,
+              fontWeight: 950,
+              letterSpacing: ".08em",
+              boxShadow: "0 0 22px rgba(99,102,241,.35)",
+            }}
+          >
+            NEU
+          </span>
+        </Link>
+
+
+
+        <Link href="/anbieter-registrieren">{tr("Für Anbieter")}</Link>
           </nav>
 
           <div className={styles.actions}>

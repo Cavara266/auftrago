@@ -1,0 +1,215 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
+
+
+
+export default async function OffertenPage() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const dbOffers = await prisma.businessQuote.findMany({
+    where: {
+      providerId: user.id,
+    },
+    include: {
+      customer: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  const offers = dbOffers.map((offer) => {
+    const statusMap: Record<string, string> = {
+      DRAFT: "Entwurf",
+      SENT: "Gesendet",
+      ACCEPTED: "Angenommen",
+      REJECTED: "Abgelehnt",
+      EXPIRED: "Abgelaufen",
+    };
+
+    return {
+      id: offer.id,
+      no: offer.quoteNumber,
+      customer:
+        offer.customer?.companyName ||
+        offer.customerName ||
+        "Kein Kunde",
+      title: offer.title,
+      amount: new Intl.NumberFormat("de-CH", {
+        style: "currency",
+        currency: "CHF",
+        minimumFractionDigits: 2,
+      }).format(offer.totalCents / 100),
+      amountCents: offer.totalCents,
+      status: statusMap[offer.status] || offer.status,
+    };
+  });
+
+  const totalVolume = offers.reduce(
+    (sum, offer) => sum + offer.amountCents,
+    0
+  );
+
+  const openCount = offers.filter(
+    (offer) =>
+      offer.status === "Entwurf" ||
+      offer.status === "Gesendet"
+  ).length;
+
+  const acceptedCount = offers.filter(
+    (offer) => offer.status === "Angenommen"
+  ).length;
+
+  const closeRate =
+    offers.length > 0
+      ? Math.round((acceptedCount / offers.length) * 100)
+      : 0;
+
+  const formattedVolume = new Intl.NumberFormat("de-CH", {
+    style: "currency",
+    currency: "CHF",
+    minimumFractionDigits: 2,
+  }).format(totalVolume / 100);
+  return (
+    <main style={{
+      minHeight:"100vh",
+      padding:36,
+      color:"#fff",
+      background:"radial-gradient(circle at 85% 0%,rgba(124,58,237,.16),transparent 26%),#06101f"
+    }}>
+      <div style={{maxWidth:1400,margin:"0 auto"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:16,flexWrap:"wrap"}}>
+          <div>
+            <div style={{color:"#a78bfa",fontWeight:900,fontSize:12}}>AUFTRAGO BUSINESS / OFFERTEN</div>
+            <h1 style={{fontSize:42,margin:"8px 0 6px"}}>Offerten</h1>
+            <p style={{color:"#91a0b7",margin:0}}>Erstellen, versenden, nachfassen und digital annehmen lassen.</p>
+          </div>
+
+          <div style={{display:"flex",gap:10}}>
+            <Link href="/portal/business/ai" style={{
+              textDecoration:"none",color:"#ddd6fe",fontWeight:800,
+              padding:"13px 16px",borderRadius:12,
+              border:"1px solid rgba(167,139,250,.3)",
+              background:"rgba(124,58,237,.08)"
+            }}>
+              ✨ Mit AI erstellen
+            </Link>
+
+            <Link href="/portal/business/offerten/neu" style={{
+              textDecoration:"none",color:"#fff",fontWeight:800,
+              padding:"13px 16px",borderRadius:12,
+              background:"linear-gradient(90deg,#0ea5e9,#7c3aed)"
+            }}>
+              + Neue Offerte
+            </Link>
+          </div>
+        </div>
+
+        <section style={{
+          display:"grid",
+          gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))",
+          gap:14,
+          margin:"28px 0"
+        }}>
+          {[
+            ["CHF 6'590.–","Offertvolumen"],
+            ["3","Offene Offerten"],
+            ["1","Angenommen"],
+            ["33 %","Abschlussquote"]
+          ].map(([value,label]) => (
+            <div key={label} style={{
+              padding:20,
+              borderRadius:18,
+              border:"1px solid rgba(148,163,184,.14)",
+              background:"rgba(12,27,49,.9)"
+            }}>
+              <div style={{fontSize:25,fontWeight:900}}>{value}</div>
+              <div style={{color:"#8291a9",marginTop:6}}>{label}</div>
+            </div>
+          ))}
+        </section>
+
+        <div style={{
+          border:"1px solid rgba(148,163,184,.14)",
+          borderRadius:22,
+          overflow:"hidden",
+          background:"rgba(10,22,41,.92)"
+        }}>
+          <div style={{
+            padding:18,
+            borderBottom:"1px solid rgba(148,163,184,.12)",
+            display:"flex",
+            justifyContent:"space-between"
+          }}>
+            <strong>Aktuelle Offerten</strong>
+            <span style={{color:"#8291a9",fontSize:13}}>Alle Status anzeigen</span>
+          </div>
+
+          {offers.map((offer) => {
+            const statusColor =
+              offer.status === "Angenommen" ? "#86efac" :
+              offer.status === "Gesendet" ? "#7dd3fc" : "#c4b5fd";
+
+            return (
+              <div key={offer.no} style={{
+                display:"grid",
+                gridTemplateColumns:"1.1fr 1.6fr 1.7fr 1fr .9fr .7fr",
+                alignItems:"center",
+                gap:14,
+                padding:"18px",
+                borderBottom:"1px solid rgba(148,163,184,.08)"
+              }}>
+                <div style={{fontWeight:800}}>{offer.no}</div>
+                <div>{offer.customer}</div>
+                <div style={{color:"#a8b3c5"}}>{offer.title}</div>
+                <div style={{fontWeight:900}}>{offer.amount}</div>
+                <div style={{
+                  color:statusColor,
+                  fontWeight:800,
+                  fontSize:13
+                }}>
+                  ● {offer.status}
+                </div>
+                <Link
+                  href={`/portal/business/offerten/${offer.id}`}
+                  style={{
+                    border:"1px solid rgba(125,211,252,.22)",
+                    background:"rgba(14,165,233,.08)",
+                    color:"#7dd3fc",
+                    padding:"8px 10px",
+                    borderRadius:9,
+                    fontWeight:800,
+                    textDecoration:"none",
+                    display:"inline-block"
+                  }}
+                >
+                  Öffnen →
+                </Link>
+              </div>
+            )
+          })}
+        </div>
+
+        <section style={{
+          marginTop:22,
+          padding:24,
+          borderRadius:20,
+          border:"1px solid rgba(167,139,250,.18)",
+          background:"linear-gradient(90deg,rgba(14,165,233,.08),rgba(124,58,237,.12))"
+        }}>
+          <div style={{color:"#c4b5fd",fontWeight:900}}>✨ AUFTRAGO AI</div>
+          <h3 style={{margin:"8px 0"}}>Offerten in Sekunden erstellen.</h3>
+          <p style={{color:"#9cabc0",margin:0}}>
+            Beschreibe nur den Auftrag. Auftrago erstellt daraus Positionen, Leistungsbeschreibung und eine professionelle Offerte.
+          </p>
+        </section>
+      </div>
+    </main>
+  );
+}

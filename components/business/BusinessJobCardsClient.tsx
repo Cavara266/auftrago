@@ -1,0 +1,919 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import BusinessJobNotifyButton from "./BusinessJobNotifyButton";
+
+type Job = {
+  id: string;
+  quoteId?: string | null;
+  title: string;
+  customerName: string | null;
+  customerEmail?: string | null;
+  customerPhone?: string | null;
+  location: string | null;
+  assignedTo: string | null;
+  status: string;
+  scheduledDate: string;
+  startTime: string | null;
+  endTime: string | null;
+  valueCents: number;
+  notes: string | null;
+};
+
+const money = (cents: number) =>
+  new Intl.NumberFormat("de-CH", {
+    style: "currency",
+    currency: "CHF",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(cents / 100);
+
+const statusData: Record<
+  string,
+  {
+    label: string;
+    color: string;
+    next?: string;
+    nextLabel?: string;
+  }
+> = {
+  PLANNED: {
+    label: "GEPLANT",
+    color: "#7dd3fc",
+    next: "ON_THE_WAY",
+    nextLabel: "→ Unterwegs",
+  },
+
+  ON_THE_WAY: {
+    label: "UNTERWEGS",
+    color: "#c4b5fd",
+    next: "ON_SITE",
+    nextLabel: "→ Vor Ort",
+  },
+
+  ON_SITE: {
+    label: "VOR ORT",
+    color: "#fbbf24",
+    next: "IN_PROGRESS",
+    nextLabel: "→ Arbeit starten",
+  },
+
+  IN_PROGRESS: {
+    label: "IN ARBEIT",
+    color: "#fb923c",
+    next: "DONE",
+    nextLabel: "✓ Erledigt",
+  },
+
+  DONE: {
+    label: "ERLEDIGT",
+    color: "#86efac",
+  },
+
+  CANCELLED: {
+    label: "STORNIERT",
+    color: "#fca5a5",
+  },
+};
+
+export default function BusinessJobCardsClient({
+  jobs,
+}: {
+  jobs: Job[];
+}) {
+  const router = useRouter();
+
+  const [loadingId, setLoadingId] =
+    useState<string | null>(null);
+
+  const [editingId, setEditingId] =
+    useState<string | null>(null);
+
+  async function updateStatusWithNotification(
+    job: Job,
+    nextStatus: string
+  ) {
+    setLoadingId(job.id);
+
+    try {
+      const response = await fetch(
+        `/api/business/jobs/${job.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            status: nextStatus,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+            "Status konnte nicht geändert werden."
+        );
+      }
+
+      const statusNeedsNotification =
+        [
+          "ON_THE_WAY",
+          "ON_SITE",
+          "IN_PROGRESS",
+          "DONE",
+        ].includes(nextStatus);
+
+      if (statusNeedsNotification) {
+        const shouldNotify = window.confirm(
+          "Status wurde geändert. Kunden jetzt automatisch informieren?"
+        );
+
+        if (shouldNotify) {
+          const notifyResponse = await fetch(
+            `/api/business/jobs/${job.id}/notify`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                status: nextStatus,
+                sendEmail: Boolean(
+                  job.customerEmail
+                ),
+              }),
+            }
+          );
+
+          const notifyData =
+            await notifyResponse.json();
+
+          if (!notifyResponse.ok) {
+            alert(
+              notifyData.error ||
+                "Kundeninformation konnte nicht gesendet werden."
+            );
+          } else {
+            if (
+              !job.customerEmail &&
+              notifyData.message
+            ) {
+              try {
+                await navigator.clipboard.writeText(
+                  notifyData.message
+                );
+
+                alert(
+                  "Status geändert. Nachricht wurde für WhatsApp kopiert."
+                );
+              } catch {
+                alert(
+                  "Status geändert. Kundennachricht ist vorbereitet."
+                );
+              }
+            } else {
+              alert(
+                "Status geändert und Kunde wurde informiert."
+              );
+            }
+          }
+        }
+      }
+
+      router.refresh();
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Fehler beim Aktualisieren."
+      );
+    } finally {
+      setLoadingId(null);
+    }
+  }
+
+  async function createInvoiceFromJob(
+    job: Job
+  ) {
+    if (!job.quoteId) {
+      alert(
+        "Dieser Einsatz ist nicht mit einer Offerte verknüpft."
+      );
+      return;
+    }
+
+    setLoadingId(job.id);
+
+    try {
+      const response = await fetch(
+        `/api/business/jobs/${job.id}/create-invoice`,
+        {
+          method: "POST",
+        }
+      );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+            "Rechnung konnte nicht erstellt werden."
+        );
+      }
+
+      if (data.alreadyExists) {
+        const openExisting =
+          window.confirm(
+            "Für diese Offerte existiert bereits eine Rechnung. Rechnung öffnen?"
+          );
+
+        if (openExisting) {
+          router.push(
+            `/portal/business/rechnungen/${data.invoice.id}`
+          );
+        }
+
+        return;
+      }
+
+      router.push(
+        `/portal/business/rechnungen/${data.invoice.id}`
+      );
+
+      router.refresh();
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Fehler beim Erstellen der Rechnung."
+      );
+    } finally {
+      setLoadingId(null);
+    }
+  }
+
+  async function updateJob(
+    id: string,
+    payload: Record<string, unknown>
+  ) {
+    setLoadingId(id);
+
+    try {
+      const response = await fetch(
+        `/api/business/jobs/${id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+            "Einsatz konnte nicht geändert werden."
+        );
+      }
+
+      setEditingId(null);
+      router.refresh();
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Fehler beim Speichern."
+      );
+    } finally {
+      setLoadingId(null);
+    }
+  }
+
+  async function deleteJob(id: string) {
+    if (!confirm("Einsatz wirklich löschen?")) {
+      return;
+    }
+
+    setLoadingId(id);
+
+    try {
+      const response = await fetch(
+        `/api/business/jobs/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Löschen fehlgeschlagen."
+        );
+      }
+
+      router.refresh();
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Fehler beim Löschen."
+      );
+    } finally {
+      setLoadingId(null);
+    }
+  }
+
+  if (jobs.length === 0) {
+    return (
+      <div
+        style={{
+          marginTop: 20,
+          padding: "34px 20px",
+          textAlign: "center",
+          borderRadius: 17,
+          border:
+            "1px solid rgba(148,163,184,.08)",
+          background: "rgba(2,6,23,.25)",
+          color: "#64748b",
+          fontSize: 11,
+        }}
+      >
+        Noch keine Einsätze für die nächsten 7 Tage.
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <style>{`
+        .live-job-card {
+          transition:
+            transform .18s ease,
+            border-color .18s ease,
+            box-shadow .18s ease;
+        }
+
+        .live-job-card:hover {
+          transform: translateY(-3px);
+          border-color: rgba(125,211,252,.18) !important;
+          box-shadow: 0 20px 55px rgba(2,6,23,.22);
+        }
+
+        @media(max-width:900px) {
+          .live-job-grid {
+            grid-template-columns:1fr !important;
+          }
+        }
+      `}</style>
+
+      <div
+        style={{
+          display: "grid",
+          gap: 10,
+          marginTop: 20,
+        }}
+      >
+        {jobs.map((job) => {
+          const status =
+            statusData[job.status] ||
+            statusData.PLANNED;
+
+          return (
+            <div
+              key={job.id}
+              className="live-job-card"
+              style={{
+                padding: 16,
+                borderRadius: 17,
+                border:
+                  "1px solid rgba(148,163,184,.08)",
+                background:
+                  "linear-gradient(145deg,rgba(5,15,30,.75),rgba(15,23,42,.58))",
+              }}
+            >
+              <div
+                className="live-job-grid"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns:
+                    "110px minmax(0,1fr) 170px auto",
+                  gap: 16,
+                  alignItems: "center",
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      color: "#7dd3fc",
+                      fontSize: 11,
+                      fontWeight: 950,
+                    }}
+                  >
+                    {new Intl.DateTimeFormat("de-CH", {
+                      day: "2-digit",
+                      month: "2-digit",
+                    }).format(
+                      new Date(job.scheduledDate)
+                    )}
+                  </div>
+
+                  <div
+                    style={{
+                      color: "#94a3b8",
+                      fontSize: 10,
+                      marginTop: 4,
+                    }}
+                  >
+                    {job.startTime || "--:--"}
+                    {job.endTime
+                      ? ` – ${job.endTime}`
+                      : ""}
+                  </div>
+                </div>
+
+                <div>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 8,
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <strong
+                      style={{
+                        fontSize: 13,
+                      }}
+                    >
+                      {job.title}
+                    </strong>
+
+                    <span
+                      style={{
+                        padding: "4px 7px",
+                        borderRadius: 7,
+                        background:
+                          `${status.color}12`,
+                        color: status.color,
+                        fontSize: 7,
+                        fontWeight: 950,
+                        letterSpacing: ".07em",
+                      }}
+                    >
+                      {status.label}
+                    </span>
+                  </div>
+
+                  <div
+                    style={{
+                      color: "#64748b",
+                      fontSize: 9,
+                      marginTop: 5,
+                    }}
+                  >
+                    {job.customerName || "Kein Kunde"}
+
+                    {job.location
+                      ? ` · ${job.location}`
+                      : ""}
+                  </div>
+                </div>
+
+                <div>
+                  <div
+                    style={{
+                      color: "#475569",
+                      fontSize: 8,
+                      fontWeight: 950,
+                    }}
+                  >
+                    VERANTWORTLICH
+                  </div>
+
+                  <div
+                    style={{
+                      color: "#cbd5e1",
+                      fontSize: 10,
+                      fontWeight: 850,
+                      marginTop: 4,
+                    }}
+                  >
+                    {job.assignedTo ||
+                      "Nicht zugewiesen"}
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    textAlign: "right",
+                  }}
+                >
+                  <strong
+                    style={{
+                      color: "#86efac",
+                      fontSize: 13,
+                    }}
+                  >
+                    {money(job.valueCents)}
+                  </strong>
+                </div>
+              </div>
+
+              {editingId === job.id ? (
+                <EditPanel
+                  job={job}
+                  loading={
+                    loadingId === job.id
+                  }
+                  onCancel={() =>
+                    setEditingId(null)
+                  }
+                  onSave={(payload) =>
+                    updateJob(
+                      job.id,
+                      payload
+                    )
+                  }
+                />
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 8,
+                    flexWrap: "wrap",
+                    marginTop: 14,
+                    paddingTop: 13,
+                    borderTop:
+                      "1px solid rgba(148,163,184,.07)",
+                  }}
+                >
+                  {status.next &&
+                    status.nextLabel && (
+                    <button
+                      type="button"
+                      disabled={
+                        loadingId === job.id
+                      }
+                      onClick={() =>
+                        updateStatusWithNotification(
+                          job,
+                          status.next!
+                        )
+                      }
+                      style={{
+                        ...actionButton,
+                        color:
+                          status.next ===
+                          "DONE"
+                            ? "#86efac"
+                            : "#7dd3fc",
+                        borderColor:
+                          status.next ===
+                          "DONE"
+                            ? "rgba(34,197,94,.14)"
+                            : "rgba(125,211,252,.12)",
+                      }}
+                    >
+                      {loadingId === job.id
+                        ? "Speichert..."
+                        : status.nextLabel}
+                    </button>
+                  )}
+
+                  {job.status ===
+                    "DONE" && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          createInvoiceFromJob(job)
+                        }
+                        disabled={
+                          loadingId === job.id
+                        }
+                        style={{
+                          ...actionButton,
+                          color: "#86efac",
+                          borderColor:
+                            "rgba(34,197,94,.14)",
+                          background:
+                            "rgba(34,197,94,.05)",
+                        }}
+                      >
+                        {loadingId === job.id
+                          ? "Erstellt..."
+                          : "▣ Rechnung erstellen"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateJob(job.id, {
+                            status:
+                              "PLANNED",
+                          })
+                        }
+                        style={actionButton}
+                      >
+                        Wieder öffnen
+                      </button>
+                    </>
+                  )}
+
+                  <BusinessJobNotifyButton
+                    jobId={job.id}
+                    customerName={job.customerName}
+                    customerEmail={job.customerEmail}
+                    customerPhone={job.customerPhone}
+                    startTime={job.startTime}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setEditingId(job.id)
+                    }
+                    style={actionButton}
+                  >
+                    ✎ Bearbeiten
+                  </button>
+
+                  {job.location && (
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                        job.location
+                      )}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        ...actionButton,
+                        display:
+                          "inline-flex",
+                        alignItems:
+                          "center",
+                        textDecoration:
+                          "none",
+                      }}
+                    >
+                      ◎ Navigation
+                    </a>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      deleteJob(job.id)
+                    }
+                    style={{
+                      ...actionButton,
+                      marginLeft: "auto",
+                      color: "#fca5a5",
+                    }}
+                  >
+                    Löschen
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+function EditPanel({
+  job,
+  loading,
+  onCancel,
+  onSave,
+}: {
+  job: Job;
+  loading: boolean;
+  onCancel: () => void;
+  onSave: (
+    payload: Record<string, unknown>
+  ) => void;
+}) {
+  const [form, setForm] =
+    useState({
+      assignedTo:
+        job.assignedTo || "",
+      location:
+        job.location || "",
+      startTime:
+        job.startTime || "",
+      endTime:
+        job.endTime || "",
+      notes:
+        job.notes || "",
+    });
+
+  return (
+    <div
+      style={{
+        marginTop: 14,
+        padding: 15,
+        borderRadius: 14,
+        border:
+          "1px solid rgba(125,211,252,.10)",
+        background:
+          "rgba(2,6,23,.32)",
+      }}
+    >
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns:
+            "repeat(4,minmax(0,1fr))",
+          gap: 10,
+        }}
+      >
+        <Field
+          label="Mitarbeiter"
+          value={form.assignedTo}
+          onChange={(value) =>
+            setForm({
+              ...form,
+              assignedTo: value,
+            })
+          }
+        />
+
+        <Field
+          label="Ort"
+          value={form.location}
+          onChange={(value) =>
+            setForm({
+              ...form,
+              location: value,
+            })
+          }
+        />
+
+        <Field
+          label="Start"
+          type="time"
+          value={form.startTime}
+          onChange={(value) =>
+            setForm({
+              ...form,
+              startTime: value,
+            })
+          }
+        />
+
+        <Field
+          label="Ende"
+          type="time"
+          value={form.endTime}
+          onChange={(value) =>
+            setForm({
+              ...form,
+              endTime: value,
+            })
+          }
+        />
+      </div>
+
+      <div
+        style={{
+          marginTop: 10,
+        }}
+      >
+        <div style={fieldLabel}>
+          NOTIZEN
+        </div>
+
+        <textarea
+          rows={3}
+          value={form.notes}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              notes:
+                e.target.value,
+            })
+          }
+          style={{
+            ...inputStyle,
+            resize: "vertical",
+          }}
+        />
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          justifyContent:
+            "flex-end",
+          marginTop: 10,
+        }}
+      >
+        <button
+          type="button"
+          onClick={onCancel}
+          style={actionButton}
+        >
+          Abbrechen
+        </button>
+
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() =>
+            onSave(form)
+          }
+          style={{
+            ...actionButton,
+            color: "#86efac",
+          }}
+        >
+          {loading
+            ? "Speichert..."
+            : "Änderungen speichern"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+  type = "text",
+}: {
+  label: string;
+  value: string;
+  onChange: (
+    value: string
+  ) => void;
+  type?: string;
+}) {
+  return (
+    <label>
+      <div style={fieldLabel}>
+        {label.toUpperCase()}
+      </div>
+
+      <input
+        type={type}
+        value={value}
+        onChange={(e) =>
+          onChange(
+            e.target.value
+          )
+        }
+        style={inputStyle}
+      />
+    </label>
+  );
+}
+
+const actionButton = {
+  minHeight: 34,
+  padding: "0 11px",
+  borderRadius: 9,
+  border:
+    "1px solid rgba(148,163,184,.10)",
+  background:
+    "rgba(15,23,42,.48)",
+  color: "#cbd5e1",
+  fontSize: 8,
+  fontWeight: 900,
+  cursor: "pointer",
+} as const;
+
+const fieldLabel = {
+  color: "#475569",
+  fontSize: 7,
+  fontWeight: 950,
+  letterSpacing: ".08em",
+  marginBottom: 5,
+} as const;
+
+const inputStyle = {
+  width: "100%",
+  boxSizing:
+    "border-box" as const,
+  padding: "9px 10px",
+  borderRadius: 9,
+  border:
+    "1px solid rgba(148,163,184,.09)",
+  background:
+    "rgba(2,6,23,.40)",
+  color: "#f8fafc",
+  outline: "none",
+  fontSize: 9,
+} as const;

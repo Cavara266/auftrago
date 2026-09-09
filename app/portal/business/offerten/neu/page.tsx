@@ -1,0 +1,664 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+type Position = {
+  id: number;
+  text: string;
+  menge: number;
+  preis: number;
+};
+
+const money = (value: number) =>
+  new Intl.NumberFormat("de-CH", {
+    style: "currency",
+    currency: "CHF",
+  }).format(value);
+
+export default function NeueOfferte() {
+  const router = useRouter();
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [kunde, setKunde] = useState("");
+  const [email, setEmail] = useState("");
+  const [adresse, setAdresse] = useState("");
+  const [titel, setTitel] = useState("Umzugsreinigung mit Abgabegarantie");
+  const [mwst, setMwst] = useState(8.1);
+  const [rabatt, setRabatt] = useState(0);
+  const [notiz, setNotiz] = useState(
+    "Vielen Dank für Ihre Anfrage. Gerne unterbreiten wir Ihnen folgende Offerte."
+  );
+
+  const [positionen, setPositionen] = useState<Position[]>([
+    {
+      id: 1,
+      text: "Umzugsreinigung inkl. Abgabegarantie",
+      menge: 1,
+      preis: 1290,
+    },
+  ]);
+
+  const netto = useMemo(
+    () =>
+      positionen.reduce(
+        (sum, p) => sum + Number(p.menge || 0) * Number(p.preis || 0),
+        0
+      ),
+    [positionen]
+  );
+
+  const rabattBetrag = netto * (rabatt / 100);
+  const nachRabatt = netto - rabattBetrag;
+  const mwstBetrag = nachRabatt * (mwst / 100);
+  const total = nachRabatt + mwstBetrag;
+
+  async function saveQuote() {
+    try {
+      setSaving(true);
+      setSaveError("");
+
+      const response = await fetch("/api/business/quotes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          customerName: kunde,
+          customerEmail: email,
+          customerAddress: adresse,
+          title: titel,
+          discount: rabattBetrag,
+          vatRate: mwst,
+          notes: notiz,
+          items: positionen.map((p) => ({
+            description: p.text,
+            quantity: p.menge,
+            unit: "pauschal",
+            unitPrice: p.preis,
+          })),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || "Offerte konnte nicht gespeichert werden.");
+      }
+
+      router.push("/portal/business/offerten");
+      router.refresh();
+    } catch (error) {
+      setSaveError(
+        error instanceof Error
+          ? error.message
+          : "Offerte konnte nicht gespeichert werden."
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function updatePosition(
+    id: number,
+    field: keyof Position,
+    value: string | number
+  ) {
+    setPositionen((old) =>
+      old.map((p) =>
+        p.id === id
+          ? {
+              ...p,
+              [field]:
+                field === "text" ? value : Number(value),
+            }
+          : p
+      )
+    );
+  }
+
+  function addPosition() {
+    setPositionen((old) => [
+      ...old,
+      {
+        id: Date.now(),
+        text: "",
+        menge: 1,
+        preis: 0,
+      },
+    ]);
+  }
+
+  function removePosition(id: number) {
+    setPositionen((old) => old.filter((p) => p.id !== id));
+  }
+
+  const inputStyle = {
+    width: "100%",
+    boxSizing: "border-box" as const,
+    background: "#071426",
+    border: "1px solid rgba(148,163,184,.18)",
+    color: "#fff",
+    borderRadius: 11,
+    padding: "12px 13px",
+    outline: "none",
+  };
+
+  const labelStyle = {
+    display: "block",
+    fontSize: 12,
+    fontWeight: 800,
+    color: "#8fa0b8",
+    marginBottom: 7,
+  };
+
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        background:
+          "radial-gradient(circle at 90% 0%,rgba(124,58,237,.17),transparent 27%),#06101f",
+        color: "#fff",
+        padding: 34,
+      }}
+    >
+      <div style={{ maxWidth: 1450, margin: "0 auto" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 20,
+            alignItems: "center",
+            flexWrap: "wrap",
+            marginBottom: 28,
+          }}
+        >
+          <div>
+            <Link
+              href="/portal/business/offerten"
+              style={{
+                color: "#7dd3fc",
+                textDecoration: "none",
+                fontWeight: 800,
+              }}
+            >
+              ← Offerten
+            </Link>
+
+            <h1 style={{ fontSize: 42, margin: "10px 0 5px" }}>
+              Neue Offerte
+            </h1>
+
+            <div style={{ color: "#8493aa" }}>
+              OFF-2026-NEU · Entwurf
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <button
+              type="button"
+              style={{
+                padding: "13px 17px",
+                borderRadius: 11,
+                border: "1px solid rgba(167,139,250,.28)",
+                background: "rgba(124,58,237,.09)",
+                color: "#ddd6fe",
+                fontWeight: 900,
+                cursor: "pointer",
+              }}
+            >
+              ✨ Mit AI ausfüllen
+            </button>
+
+            <button
+              type="button"
+              onClick={saveQuote}
+              disabled={saving}
+              style={{
+                padding: "13px 18px",
+                borderRadius: 11,
+                border: 0,
+                background: "linear-gradient(90deg,#0ea5e9,#7c3aed)",
+                color: "#fff",
+                fontWeight: 900,
+                cursor: saving ? "wait" : "pointer",
+                opacity: saving ? .65 : 1,
+              }}
+            >
+              {saving ? "Wird gespeichert..." : "Offerte speichern"}
+            </button>
+          </div>
+        </div>
+
+        {saveError && (
+          <div
+            style={{
+              marginBottom: 18,
+              padding: "14px 16px",
+              borderRadius: 12,
+              color: "#fecaca",
+              background: "rgba(239,68,68,.1)",
+              border: "1px solid rgba(248,113,113,.25)",
+              fontWeight: 700,
+            }}
+          >
+            {saveError}
+          </div>
+        )}
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 1.5fr) minmax(400px, 0.8fr)",
+            gap: 20,
+            alignItems: "start",
+          }}
+        >
+          <div>
+            <section
+              style={{
+                padding: 24,
+                borderRadius: 20,
+                background: "rgba(10,24,45,.94)",
+                border: "1px solid rgba(148,163,184,.14)",
+                marginBottom: 18,
+              }}
+            >
+              <div
+                style={{
+                  color: "#67e8f9",
+                  fontWeight: 900,
+                  fontSize: 12,
+                  marginBottom: 17,
+                }}
+              >
+                KUNDE
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 15,
+                }}
+              >
+                <div>
+                  <label style={labelStyle}>Firma / Kunde</label>
+                  <input
+                    style={inputStyle}
+                    value={kunde}
+                    onChange={(e) => setKunde(e.target.value)}
+                    placeholder="z.B. Müller Immobilien AG"
+                  />
+                </div>
+
+                <div>
+                  <label style={labelStyle}>E-Mail</label>
+                  <input
+                    style={inputStyle}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="kunde@firma.ch"
+                  />
+                </div>
+
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={labelStyle}>Adresse</label>
+                  <input
+                    style={inputStyle}
+                    value={adresse}
+                    onChange={(e) => setAdresse(e.target.value)}
+                    placeholder="Strasse, PLZ Ort"
+                  />
+                </div>
+              </div>
+            </section>
+
+            <section
+              style={{
+                padding: 24,
+                borderRadius: 20,
+                background: "rgba(10,24,45,.94)",
+                border: "1px solid rgba(148,163,184,.14)",
+                marginBottom: 18,
+              }}
+            >
+              <div>
+                <label style={labelStyle}>Titel der Offerte</label>
+                <input
+                  style={{
+                    ...inputStyle,
+                    fontSize: 18,
+                    fontWeight: 800,
+                  }}
+                  value={titel}
+                  onChange={(e) => setTitel(e.target.value)}
+                />
+              </div>
+
+              <div
+                style={{
+                  marginTop: 24,
+                  color: "#a78bfa",
+                  fontWeight: 900,
+                  fontSize: 12,
+                }}
+              >
+                POSITIONEN
+              </div>
+
+              {positionen.map((p, index) => (
+                <div
+                  key={p.id}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "40px minmax(200px,1fr) 90px 130px 120px 40px",
+                    gap: 10,
+                    alignItems: "center",
+                    marginTop: 12,
+                  }}
+                >
+                  <div
+                    style={{
+                      color: "#64748b",
+                      fontWeight: 900,
+                    }}
+                  >
+                    {index + 1}
+                  </div>
+
+                  <input
+                    style={inputStyle}
+                    value={p.text}
+                    placeholder="Leistung beschreiben..."
+                    onChange={(e) =>
+                      updatePosition(p.id, "text", e.target.value)
+                    }
+                  />
+
+                  <input
+                    style={inputStyle}
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={p.menge}
+                    onChange={(e) =>
+                      updatePosition(p.id, "menge", e.target.value)
+                    }
+                  />
+
+                  <input
+                    style={inputStyle}
+                    type="number"
+                    min="0"
+                    step="0.05"
+                    value={p.preis}
+                    onChange={(e) =>
+                      updatePosition(p.id, "preis", e.target.value)
+                    }
+                  />
+
+                  <div
+                    style={{
+                      textAlign: "right",
+                      fontWeight: 900,
+                    }}
+                  >
+                    {money(p.menge * p.preis)}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => removePosition(p.id)}
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: 9,
+                      border: "1px solid rgba(248,113,113,.2)",
+                      background: "rgba(248,113,113,.08)",
+                      color: "#fca5a5",
+                      cursor: "pointer",
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={addPosition}
+                style={{
+                  marginTop: 16,
+                  padding: "10px 14px",
+                  borderRadius: 10,
+                  border: "1px solid rgba(125,211,252,.22)",
+                  background: "rgba(14,165,233,.08)",
+                  color: "#7dd3fc",
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                + Position hinzufügen
+              </button>
+            </section>
+
+            <section
+              style={{
+                padding: 24,
+                borderRadius: 20,
+                background: "rgba(10,24,45,.94)",
+                border: "1px solid rgba(148,163,184,.14)",
+              }}
+            >
+              <label style={labelStyle}>Bemerkung / Konditionen</label>
+
+              <textarea
+                style={{
+                  ...inputStyle,
+                  minHeight: 120,
+                  resize: "vertical",
+                  lineHeight: 1.6,
+                }}
+                value={notiz}
+                onChange={(e) => setNotiz(e.target.value)}
+              />
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 14,
+                  marginTop: 18,
+                }}
+              >
+                <div>
+                  <label style={labelStyle}>Rabatt %</label>
+                  <input
+                    style={inputStyle}
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={rabatt}
+                    onChange={(e) => setRabatt(Number(e.target.value))}
+                  />
+                </div>
+
+                <div>
+                  <label style={labelStyle}>MWST</label>
+                  <select
+                    style={inputStyle}
+                    value={mwst}
+                    onChange={(e) => setMwst(Number(e.target.value))}
+                  >
+                    <option value={0}>Keine MWST</option>
+                    <option value={8.1}>8.1 %</option>
+                  </select>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <aside
+            style={{
+              position: "sticky",
+              top: 24,
+              minWidth: 0,
+              overflow: "hidden",
+              padding: 25,
+              borderRadius: 22,
+              background:
+                "linear-gradient(145deg,rgba(15,30,55,.98),rgba(17,19,48,.98))",
+              border: "1px solid rgba(167,139,250,.22)",
+              boxShadow: "0 25px 70px rgba(0,0,0,.25)",
+            }}
+          >
+            <div
+              style={{
+                color: "#a78bfa",
+                fontSize: 12,
+                fontWeight: 900,
+              }}
+            >
+              LIVE-ZUSAMMENFASSUNG
+            </div>
+
+            <h2
+              style={{
+                margin: "12px 0 8px",
+                fontSize: 28,
+                lineHeight: 1.12,
+                fontWeight: 800,
+                letterSpacing: "-0.8px",
+                maxWidth: "100%",
+                overflowWrap: "anywhere",
+                wordBreak: "normal",
+              }}
+            >
+              {titel || "Neue Offerte"}
+            </h2>
+
+            <div style={{ color: "#8493aa", marginBottom: 25 }}>
+              {kunde || "Noch kein Kunde gewählt"}
+            </div>
+
+            <div
+              style={{
+                borderTop: "1px solid rgba(148,163,184,.12)",
+                paddingTop: 18,
+              }}
+            >
+              {positionen.map((p) => (
+                <div
+                  key={p.id}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    marginBottom: 12,
+                    color: "#b7c2d2",
+                  }}
+                >
+                  <span>{p.text || "Neue Position"}</span>
+                  <strong>{money(p.menge * p.preis)}</strong>
+                </div>
+              ))}
+            </div>
+
+            <div
+              style={{
+                borderTop: "1px solid rgba(148,163,184,.12)",
+                marginTop: 18,
+                paddingTop: 18,
+              }}
+            >
+              <Summary label="Zwischensumme" value={money(netto)} />
+
+              {rabatt > 0 && (
+                <Summary
+                  label={`Rabatt (${rabatt} %)`}
+                  value={`- ${money(rabattBetrag)}`}
+                />
+              )}
+
+              <Summary
+                label={`MWST (${mwst} %)`}
+                value={money(mwstBetrag)}
+              />
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "end",
+                  marginTop: 22,
+                }}
+              >
+                <span
+                  style={{
+                    color: "#94a3b8",
+                    fontWeight: 800,
+                  }}
+                >
+                  TOTAL
+                </span>
+
+                <strong
+                  style={{
+                    fontSize: 30,
+                    background:
+                      "linear-gradient(90deg,#38bdf8,#c084fc)",
+                    WebkitBackgroundClip: "text",
+                    color: "transparent",
+                  }}
+                >
+                  {money(total)}
+                </strong>
+              </div>
+            </div>
+
+            <div
+              style={{
+                marginTop: 25,
+                padding: 16,
+                borderRadius: 14,
+                background: "rgba(14,165,233,.07)",
+                border: "1px solid rgba(125,211,252,.14)",
+                color: "#8fa6bf",
+                fontSize: 13,
+                lineHeight: 1.6,
+              }}
+            >
+              Nach dem Speichern können wir hier PDF, E-Mail,
+              WhatsApp-Versand und digitale Annahme ergänzen.
+            </div>
+          </aside>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function Summary({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        gap: 15,
+        marginBottom: 10,
+        color: "#9aa9bd",
+      }}
+    >
+      <span>{label}</span>
+      <strong style={{ color: "#dbe5f1" }}>{value}</strong>
+    </div>
+  );
+}

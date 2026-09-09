@@ -1,0 +1,456 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+
+const items = [
+  {
+    href: "/portal/business",
+    label: "Cockpit",
+    icon: "⌂",
+    exact: true,
+  },
+  {
+    href: "/portal/business/operations",
+    label: "Operations",
+    icon: "↗",
+  },
+  {
+    href: "/portal/business/tasks",
+    label: "Aufgaben",
+    icon: "✓",
+  },
+  {
+    href: "/portal/business/calendar",
+    label: "Kalender",
+    icon: "▦",
+  },
+  {
+    href: "/portal/business/kunden",
+    label: "CRM",
+    icon: "◎",
+  },
+  {
+    href: "/portal/business/offerten",
+    label: "Offerten",
+    icon: "◇",
+  },
+  {
+    href: "/portal/business/rechnungen",
+    label: "Rechnungen",
+    icon: "▣",
+  },
+  {
+    href: "/portal/business/analytics",
+    label: "Analytics",
+    icon: "↗",
+  },
+];
+
+const quickActions = [
+  {
+    href: "/portal/business/ai",
+    label: "Offerte mit AI",
+    text: "Neue Offerte vorbereiten",
+    icon: "✦",
+    color: "#7dd3fc",
+  },
+  {
+    href: "/portal/business/operations",
+    label: "Neuer Einsatz",
+    text: "Einsatzplanung öffnen",
+    icon: "↗",
+    color: "#86efac",
+  },
+  {
+    href: "/portal/business/kunden",
+    label: "Kunde",
+    text: "CRM öffnen",
+    icon: "◎",
+    color: "#c4b5fd",
+  },
+  {
+    href: "/portal/business/rechnungen",
+    label: "Rechnung",
+    text: "Rechnungen verwalten",
+    icon: "▣",
+    color: "#fbbf24",
+  },
+];
+
+export default function BusinessTopNav() {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <style>{`
+        .business-final-nav {
+          scrollbar-width: none;
+        }
+
+        .business-final-nav::-webkit-scrollbar {
+          display: none;
+        }
+
+        .business-final-link {
+          transition:
+            transform .16s ease,
+            background .16s ease,
+            border-color .16s ease,
+            color .16s ease,
+            box-shadow .16s ease;
+        }
+
+        .business-final-link:hover {
+          transform: translateY(-1px);
+          color: #f8fafc !important;
+          background: rgba(30,41,59,.42) !important;
+        }
+
+        .business-quick-action {
+          transition:
+            transform .16s ease,
+            background .16s ease,
+            border-color .16s ease;
+        }
+
+        .business-quick-action:hover {
+          transform: translateX(3px);
+          background: rgba(30,41,59,.56) !important;
+          border-color: rgba(125,211,252,.14) !important;
+        }
+
+        @media(max-width:850px) {
+          .business-nav-brand-text {
+            display:none !important;
+          }
+        }
+
+        @media(max-width:650px) {
+          .business-nav-inner {
+            padding-left:12px !important;
+            padding-right:12px !important;
+          }
+        }
+      `}</style>
+
+      <nav
+        className="business-final-nav"
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 90,
+          overflowX: "auto",
+          overflowY: "visible",
+          borderBottom:
+            "1px solid rgba(125,211,252,.08)",
+          background:
+            "linear-gradient(90deg,rgba(3,10,23,.96),rgba(7,15,31,.95),rgba(9,12,31,.96))",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          boxShadow:
+            "0 10px 35px rgba(2,6,23,.14)",
+        }}
+      >
+        <div
+          className="business-nav-inner"
+          style={{
+            width: "min(100%,1500px)",
+            minWidth: "max-content",
+            margin: "0 auto",
+            padding: "8px 24px",
+            display: "flex",
+            alignItems: "center",
+            gap: 5,
+          }}
+        >
+          <Link
+            href="/portal/business"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 9,
+              marginRight: 8,
+              paddingRight: 14,
+              borderRight:
+                "1px solid rgba(148,163,184,.08)",
+              color: "#fff",
+              textDecoration: "none",
+            }}
+          >
+            <div
+              style={{
+                width: 31,
+                height: 31,
+                flexShrink: 0,
+                display: "grid",
+                placeItems: "center",
+                borderRadius: 10,
+                border:
+                  "1px solid rgba(125,211,252,.13)",
+                background:
+                  "linear-gradient(135deg,rgba(14,165,233,.15),rgba(124,58,237,.22))",
+                color: "#7dd3fc",
+                fontSize: 11,
+                fontWeight: 950,
+                boxShadow:
+                  "0 0 22px rgba(14,165,233,.05)",
+              }}
+            >
+              A
+            </div>
+
+            <div className="business-nav-brand-text">
+              <div
+                style={{
+                  fontSize: 9,
+                  fontWeight: 950,
+                  lineHeight: 1.1,
+                }}
+              >
+                Auftrago Business
+              </div>
+
+              <div
+                style={{
+                  marginTop: 2,
+                  color: "#475569",
+                  fontSize: 6,
+                  fontWeight: 900,
+                  letterSpacing: ".08em",
+                }}
+              >
+                COMMAND SYSTEM
+              </div>
+            </div>
+          </Link>
+
+          {items.map((item) => {
+            const active = item.exact
+              ? pathname === item.href
+              : pathname.startsWith(item.href);
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="business-final-link"
+                style={{
+                  position: "relative",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  minHeight: 34,
+                  padding: "0 10px",
+                  borderRadius: 9,
+                  border: active
+                    ? "1px solid rgba(125,211,252,.14)"
+                    : "1px solid transparent",
+                  background: active
+                    ? "linear-gradient(135deg,rgba(14,165,233,.075),rgba(124,58,237,.09))"
+                    : "transparent",
+                  color: active
+                    ? "#f8fafc"
+                    : "#64748b",
+                  boxShadow: active
+                    ? "0 8px 22px rgba(2,6,23,.15)"
+                    : "none",
+                  textDecoration: "none",
+                  fontSize: 8,
+                  fontWeight: 900,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <span
+                  style={{
+                    color: active
+                      ? "#7dd3fc"
+                      : "#475569",
+                    fontSize: 9,
+                  }}
+                >
+                  {item.icon}
+                </span>
+
+                {item.label}
+
+                {active && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      left: 10,
+                      right: 10,
+                      bottom: -9,
+                      height: 2,
+                      borderRadius: 999,
+                      background:
+                        "linear-gradient(90deg,#38bdf8,#6366f1,#7c3aed)",
+                      boxShadow:
+                        "0 0 10px rgba(56,189,248,.45)",
+                    }}
+                  />
+                )}
+              </Link>
+            );
+          })}
+
+          <div
+            style={{
+              position: "relative",
+              marginLeft: "auto",
+              paddingLeft: 8,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() =>
+                setOpen((value) => !value)
+              }
+              style={{
+                minHeight: 36,
+                padding: "0 13px",
+                borderRadius: 10,
+                border:
+                  "1px solid rgba(125,211,252,.14)",
+                background:
+                  "linear-gradient(100deg,#0ea5e9,#6366f1,#7c3aed)",
+                color: "#fff",
+                fontSize: 8,
+                fontWeight: 950,
+                cursor: "pointer",
+                boxShadow:
+                  "0 9px 26px rgba(99,102,241,.17)",
+              }}
+            >
+              + Neu
+            </button>
+
+            {open && (
+              <>
+                <button
+                  type="button"
+                  aria-label="Menü schliessen"
+                  onClick={() => setOpen(false)}
+                  style={{
+                    position: "fixed",
+                    inset: 0,
+                    zIndex: 96,
+                    border: 0,
+                    background: "transparent",
+                    cursor: "default",
+                  }}
+                />
+
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    top: 45,
+                    zIndex: 100,
+                    width: 270,
+                    padding: 9,
+                    borderRadius: 16,
+                    border:
+                      "1px solid rgba(125,211,252,.12)",
+                    background:
+                      "linear-gradient(145deg,rgba(6,17,33,.99),rgba(18,19,51,.99))",
+                    boxShadow:
+                      "0 28px 80px rgba(2,6,23,.58)",
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: "8px 10px 9px",
+                      color: "#64748b",
+                      fontSize: 7,
+                      fontWeight: 950,
+                      letterSpacing: ".10em",
+                    }}
+                  >
+                    SCHNELL ERSTELLEN
+                  </div>
+
+                  {quickActions.map((action) => (
+                    <Link
+                      key={action.href + action.label}
+                      href={action.href}
+                      onClick={() =>
+                        setOpen(false)
+                      }
+                      className="business-quick-action"
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          "34px minmax(0,1fr) auto",
+                        gap: 10,
+                        alignItems: "center",
+                        padding: 10,
+                        marginBottom: 4,
+                        borderRadius: 11,
+                        border:
+                          "1px solid rgba(148,163,184,.06)",
+                        background:
+                          "rgba(2,6,23,.28)",
+                        color: "#f8fafc",
+                        textDecoration: "none",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 32,
+                          height: 32,
+                          display: "grid",
+                          placeItems: "center",
+                          borderRadius: 9,
+                          background:
+                            `${action.color}10`,
+                          color: action.color,
+                          fontSize: 11,
+                          fontWeight: 950,
+                        }}
+                      >
+                        {action.icon}
+                      </div>
+
+                      <div>
+                        <div
+                          style={{
+                            fontSize: 9,
+                            fontWeight: 900,
+                          }}
+                        >
+                          {action.label}
+                        </div>
+
+                        <div
+                          style={{
+                            color: "#475569",
+                            fontSize: 7,
+                            marginTop: 2,
+                          }}
+                        >
+                          {action.text}
+                        </div>
+                      </div>
+
+                      <span
+                        style={{
+                          color: "#475569",
+                          fontSize: 12,
+                        }}
+                      >
+                        ›
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+    </>
+  );
+}

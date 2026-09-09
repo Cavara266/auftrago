@@ -1,0 +1,438 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Webseite & SEO für Unternehmen | Auftrago Web",
+  description:
+    "Professionelle Webseiten und SEO für Schweizer Unternehmen. Moderne Firmenwebseiten, lokale SEO-Strukturen und digitale Lösungen für mehr Sichtbarkeit.",
+  alternates: {
+    canonical: "https://www.auftrago.ch/webseite-seo",
+  },
+};
+
+const packages = [
+  {
+    name: "START",
+    price: "990",
+    kicker: "PROFESSIONELL STARTEN",
+    text: "Eine moderne Firmenwebseite für Unternehmen, die professionell auftreten und online überzeugen möchten.",
+    features: [
+      "Professionelles Premium-Design",
+      "Optimiert für Smartphone & Desktop",
+      "Startseite & Leistungsübersicht",
+      "Kontaktformular",
+      "WhatsApp-Integration",
+      "Impressum & Datenschutz",
+      "Technische Grundoptimierung",
+      "Schnelle Ladezeiten",
+    ],
+  },
+  {
+    name: "BUSINESS",
+    price: "1'990",
+    kicker: "UNSERE EMPFEHLUNG",
+    featured: true,
+    text: "Mehr Inhalte, mehr Vertrauen und eine starke Grundlage für Google und deine zukünftige Kundengewinnung.",
+    features: [
+      "Alles aus START",
+      "Mehrere Leistungsseiten",
+      "Individuelle Unternehmensdarstellung",
+      "Basis-SEO",
+      "Regionale Ausrichtung",
+      "Google-freundliche Seitenstruktur",
+      "Conversion-optimierte Bereiche",
+      "Google Maps Integration",
+      "Professionelle Call-to-Actions",
+      "Performance-Optimierung",
+    ],
+  },
+  {
+    name: "SEO PRO",
+    price: "3'490",
+    kicker: "MAXIMALE SICHTBARKEIT",
+    text: "Für Unternehmen, die ihre Webseite als langfristigen Vertriebskanal aufbauen und bei Google sichtbar werden möchten.",
+    features: [
+      "Alles aus BUSINESS",
+      "Umfangreiche SEO-Architektur",
+      "Lokale SEO-Landingpages",
+      "Dienstleistungsseiten",
+      "Regionsseiten",
+      "Keyword-orientierte Struktur",
+      "Technische SEO",
+      "Meta Titles & Descriptions",
+      "Interne Verlinkungsstruktur",
+      "Google Search Console Vorbereitung",
+      "Skalierbare SEO-Struktur",
+    ],
+  },
+];
+
+const process = [
+  ["01", "Kennenlernen", "Wir besprechen dein Unternehmen, deine Leistungen, deine Region und deine Ziele."],
+  ["02", "Konzept", "Wir entwickeln Struktur, Design und die passende Strategie für deinen neuen Webauftritt."],
+  ["03", "Umsetzung", "Auftrago Web entwickelt deine neue Webseite professionell und mobil optimiert."],
+  ["04", "Online", "Nach deiner Freigabe geht deine neue Webseite live und kann für Kunden arbeiten."],
+];
+
+export default function WebsiteSeoPage() {
+  return (
+    <main className="web">
+      <style>{`
+        *{box-sizing:border-box}
+        html{scroll-behavior:smooth}
+        .web{
+          min-height:100vh;
+          overflow:hidden;
+          color:#f8fafc;
+          background:
+            radial-gradient(circle at 75% 8%,rgba(105,70,255,.22),transparent 27%),
+            radial-gradient(circle at 10% 24%,rgba(0,183,255,.13),transparent 26%),
+            #030817;
+          font-family:Arial,sans-serif
+        }
+        .wrap{width:min(1220px,calc(100% - 40px));margin:auto}
+        .nav{
+          position:sticky;top:0;z-index:50;
+          backdrop-filter:blur(20px);
+          background:rgba(3,8,23,.82);
+          border-bottom:1px solid rgba(148,163,184,.12)
+        }
+        .navin{
+          min-height:78px;display:flex;align-items:center;
+          justify-content:space-between;gap:25px
+        }
+        .logo{font-size:25px;font-weight:950;letter-spacing:-1.2px;color:white;text-decoration:none}
+        .logo span{color:#38bdf8}
+        .navlinks{display:flex;align-items:center;gap:24px}
+        .navlinks a{color:#b9c4d5;text-decoration:none;font-size:14px;font-weight:750}
+        .mailbtn,.primary{
+          display:inline-flex;align-items:center;justify-content:center;
+          text-decoration:none;color:white;font-weight:850;
+          background:linear-gradient(90deg,#0ea5e9,#6657ff,#9333ea);
+          border-radius:13px;padding:15px 21px;
+          box-shadow:0 12px 40px rgba(79,70,229,.24)
+        }
+        .hero{position:relative;padding:115px 0 100px;text-align:center}
+        .grid{
+          position:absolute;inset:0;opacity:.16;pointer-events:none;
+          background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),
+          linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
+          background-size:55px 55px;
+          mask-image:linear-gradient(to bottom,black,transparent)
+        }
+        .orb{
+          position:absolute;width:500px;height:500px;border-radius:50%;
+          background:#643cff;filter:blur(140px);opacity:.13;
+          left:50%;top:20px;transform:translateX(-50%)
+        }
+        .badge{
+          position:relative;display:inline-flex;gap:9px;align-items:center;
+          padding:9px 14px;border:1px solid rgba(56,189,248,.32);
+          border-radius:999px;background:rgba(14,165,233,.08);
+          color:#7dd3fc;font-size:11px;font-weight:900;letter-spacing:.13em
+        }
+        h1{
+          position:relative;max-width:1050px;margin:25px auto 24px;
+          font-size:clamp(48px,7vw,90px);line-height:.98;
+          letter-spacing:-.055em
+        }
+        .gradient{
+          display:block;background:linear-gradient(90deg,#38bdf8,#818cf8,#c084fc);
+          -webkit-background-clip:text;color:transparent
+        }
+        .lead{
+          position:relative;max-width:780px;margin:auto;color:#9caac0;
+          font-size:clamp(17px,2vw,21px);line-height:1.7
+        }
+        .actions{
+          position:relative;display:flex;justify-content:center;
+          gap:12px;flex-wrap:wrap;margin-top:34px
+        }
+        .secondary{
+          display:inline-flex;padding:14px 21px;border-radius:13px;
+          border:1px solid #263653;background:rgba(15,23,42,.7);
+          color:#dbe7f6;text-decoration:none;font-weight:800
+        }
+        .proof{
+          display:grid;grid-template-columns:repeat(4,1fr);gap:12px;
+          margin-top:75px;position:relative
+        }
+        .proof div{
+          padding:23px;border:1px solid #17253d;border-radius:17px;
+          background:rgba(8,17,34,.78)
+        }
+        .proof strong{display:block;font-size:15px;margin-top:8px}
+        .proof span{font-size:24px}
+        .section{padding:95px 0}
+        .eyebrow{color:#38bdf8;font-size:11px;font-weight:900;letter-spacing:.15em}
+        .sectionTitle{
+          font-size:clamp(35px,5vw,58px);letter-spacing:-.045em;
+          line-height:1.05;margin:12px 0
+        }
+        .sectionText{color:#94a3b8;line-height:1.75;font-size:17px;max-width:700px}
+        .center{text-align:center;margin-left:auto;margin-right:auto}
+        .packages{
+          display:grid;grid-template-columns:repeat(3,1fr);gap:18px;
+          margin-top:48px;align-items:stretch
+        }
+        .package{
+          position:relative;padding:32px;border-radius:25px;
+          border:1px solid #1d2b44;background:rgba(7,15,31,.84)
+        }
+        .package.featured{
+          border-color:rgba(96,165,250,.65);
+          background:linear-gradient(150deg,rgba(14,165,233,.12),rgba(124,58,237,.17));
+          box-shadow:0 25px 90px rgba(79,70,229,.16);
+          transform:translateY(-12px)
+        }
+        .popular{
+          position:absolute;right:18px;top:18px;border-radius:999px;
+          padding:6px 10px;background:#2563eb;font-size:9px;font-weight:950
+        }
+        .pkgKick{font-size:10px;color:#7dd3fc;font-weight:900;letter-spacing:.13em}
+        .pkgName{font-size:27px;font-weight:950;margin-top:12px}
+        .price{font-size:47px;font-weight:950;letter-spacing:-.045em;margin:16px 0}
+        .price small{font-size:15px;color:#8fa0b7;font-weight:700}
+        .pkgText{color:#94a3b8;line-height:1.65;min-height:86px}
+        .features{border-top:1px solid #1c2940;margin-top:24px;padding-top:23px;display:grid;gap:13px}
+        .feature{font-size:14px;color:#d7e2f1;display:flex;gap:10px}
+        .check{color:#34d399;font-weight:950}
+        .pkgButton{
+          display:block;text-align:center;margin-top:29px;padding:15px;
+          border-radius:12px;text-decoration:none;color:white;font-weight:900;
+          background:#15233b;border:1px solid #2b3c5b
+        }
+        .featured .pkgButton{background:linear-gradient(90deg,#0ea5e9,#7c3aed)}
+        .comparison{
+          display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:45px
+        }
+        .compare{
+          border:1px solid #1e2c44;border-radius:24px;padding:35px;
+          background:rgba(7,15,31,.72)
+        }
+        .compare.good{
+          background:linear-gradient(145deg,rgba(16,185,129,.08),rgba(14,165,233,.08));
+          border-color:rgba(52,211,153,.3)
+        }
+        .compare h3{font-size:28px;margin:10px 0 25px}
+        .compare ul{padding:0;list-style:none;display:grid;gap:16px;color:#aab7ca}
+        .compare.good ul{color:#d7e8e3}
+        .process{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:42px}
+        .step{
+          padding:27px;border:1px solid #1c2b44;border-radius:20px;
+          background:rgba(8,16,32,.75)
+        }
+        .stepNo{font-size:12px;color:#818cf8;font-weight:950}
+        .step h3{font-size:21px;margin:16px 0 10px}
+        .step p{font-size:14px;color:#91a0b5;line-height:1.65}
+        .mailbox{
+          position:relative;margin-top:35px;padding:55px;
+          border-radius:30px;text-align:center;overflow:hidden;
+          border:1px solid rgba(96,165,250,.32);
+          background:linear-gradient(135deg,rgba(14,165,233,.10),rgba(124,58,237,.17))
+        }
+        .mailbox h2{font-size:clamp(34px,5vw,56px);margin:12px auto;letter-spacing:-.04em}
+        .mailbox p{color:#a7b3c6;font-size:17px;line-height:1.7}
+        .email{
+          display:inline-block;margin:20px 0;font-size:clamp(20px,3vw,30px);
+          font-weight:950;color:#7dd3fc;text-decoration:none
+        }
+        .note{font-size:12px!important;color:#6f8098!important}
+        .footer{padding:35px 0 55px;color:#687990;text-align:center;font-size:13px}
+        @media(max-width:900px){
+          .navlinks>a:not(.mailbtn){display:none}
+          .proof,.packages,.process{grid-template-columns:1fr 1fr}
+          .package.featured{transform:none}
+        }
+        @media(max-width:620px){
+          .wrap{width:min(100% - 26px,1220px)}
+          .hero{padding:75px 0 70px}
+          .proof,.packages,.process,.comparison{grid-template-columns:1fr}
+          .navin{min-height:68px}
+          .mailbtn{padding:11px 13px;font-size:12px}
+          .package,.compare,.mailbox{padding:25px}
+        }
+      `}</style>
+
+      <nav className="nav">
+        <div className="wrap navin">
+          <Link href="/" className="logo">
+            🔥 Auftrago<span>.</span>
+          </Link>
+          <div className="navlinks">
+            <a href="#pakete">Pakete</a>
+            <a href="#seo">SEO</a>
+            <a href="#ablauf">Ablauf</a>
+            <a className="mailbtn" href="mailto:info@auftrago.ch?subject=Anfrage%20Webseite%20%26%20SEO">
+              ✉ Beratung per E-Mail
+            </a>
+          </div>
+        </div>
+      </nav>
+
+      <section className="hero">
+        <div className="grid" />
+        <div className="orb" />
+        <div className="wrap">
+          <div className="badge">● AUFTRAGO WEB · WEBSEITEN & SEO</div>
+
+          <h1>
+            Eine Webseite, die mehr kann als
+            <span className="gradient">nur gut aussehen.</span>
+          </h1>
+
+          <p className="lead">
+            Wir entwickeln moderne Webseiten für Schweizer Unternehmen –
+            mit starkem Design, klarer Verkaufsstrategie und auf Wunsch einer
+            professionellen SEO-Struktur für mehr Sichtbarkeit bei Google.
+          </p>
+
+          <div className="actions">
+            <a className="primary" href="#pakete">Pakete entdecken →</a>
+            <a
+              className="secondary"
+              href="mailto:info@auftrago.ch?subject=Beratung%20zu%20Webseite%20%26%20SEO"
+            >
+              ✉ Fragen? Schreib uns
+            </a>
+          </div>
+
+          <div className="proof">
+            <div><span>⚡</span><strong>Moderne Technologie</strong></div>
+            <div><span>📱</span><strong>100 % Mobile optimiert</strong></div>
+            <div><span>🎯</span><strong>Auf Anfragen ausgelegt</strong></div>
+            <div><span>🔎</span><strong>SEO optional inklusive</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="section" id="pakete">
+        <div className="wrap">
+          <div className="eyebrow center">DEINE WEBSITE. DEIN UNTERNEHMEN. DEIN WACHSTUM.</div>
+          <h2 className="sectionTitle center">Drei Pakete. Ein Ziel: mehr aus deinem Online-Auftritt machen.</h2>
+          <p className="sectionText center">
+            Vom professionellen Einstieg bis zur umfangreichen SEO-Webseite.
+            Wähle die Lösung, die zu deinem Unternehmen passt.
+          </p>
+
+          <div className="packages">
+            {packages.map((pkg) => (
+              <article key={pkg.name} className={`package ${pkg.featured ? "featured" : ""}`}>
+                {pkg.featured && <div className="popular">BELIEBT</div>}
+                <div className="pkgKick">{pkg.kicker}</div>
+                <div className="pkgName">{pkg.name}</div>
+                <div className="price">CHF {pkg.price}.– <small>einmalig</small></div>
+                <p className="pkgText">{pkg.text}</p>
+
+                <div className="features">
+                  {pkg.features.map((feature) => (
+                    <div className="feature" key={feature}>
+                      <span className="check">✓</span>
+                      <span>{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <a
+                  className="pkgButton"
+                  href={`mailto:info@auftrago.ch?subject=${encodeURIComponent(
+                    `Interesse an Auftrago Web ${pkg.name}`
+                  )}&body=${encodeURIComponent(
+                    `Guten Tag\n\nIch interessiere mich für das Paket ${pkg.name} für CHF ${pkg.price}.–.\n\nBitte kontaktieren Sie mich für weitere Informationen.\n\nFreundliche Grüsse`
+                  )}`}
+                >
+                  {pkg.name} anfragen →
+                </a>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section" id="seo">
+        <div className="wrap">
+          <div className="eyebrow center">DESIGN IST NUR DER ANFANG</div>
+          <h2 className="sectionTitle center">Was bringt die schönste Webseite, wenn niemand sie findet?</h2>
+          <p className="sectionText center">
+            Genau hier kommt SEO ins Spiel. Wir schaffen eine technische und
+            inhaltliche Grundlage, damit deine Webseite für relevante
+            Suchanfragen gefunden werden kann.
+          </p>
+
+          <div className="comparison">
+            <div className="compare">
+              <div className="eyebrow" style={{color:"#f87171"}}>OHNE SEO-STRATEGIE</div>
+              <h3>Nur online sein.</h3>
+              <ul>
+                <li>○ Wenige relevante Einstiegsseiten</li>
+                <li>○ Keine gezielte regionale Struktur</li>
+                <li>○ Potenzial bei Google bleibt ungenutzt</li>
+                <li>○ Webseite dient hauptsächlich als Visitenkarte</li>
+                <li>○ Weniger Möglichkeiten für organische Anfragen</li>
+              </ul>
+            </div>
+
+            <div className="compare good">
+              <div className="eyebrow" style={{color:"#34d399"}}>MIT AUFTRAGO SEO</div>
+              <h3>Für Sichtbarkeit gebaut.</h3>
+              <ul>
+                <li>✓ Leistungsorientierte Seitenstruktur</li>
+                <li>✓ Lokale Landingpages für relevante Regionen</li>
+                <li>✓ Technische SEO-Grundlage</li>
+                <li>✓ Durchdachte interne Verlinkung</li>
+                <li>✓ Skalierbare Struktur für langfristiges Wachstum</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="section" id="ablauf">
+        <div className="wrap">
+          <div className="eyebrow center">SO FUNKTIONIERT AUFTRAGO WEB</div>
+          <h2 className="sectionTitle center">Von der Idee bis zur fertigen Webseite.</h2>
+
+          <div className="process">
+            {process.map(([no,title,text]) => (
+              <div className="step" key={no}>
+                <div className="stepNo">{no}</div>
+                <h3>{title}</h3>
+                <p>{text}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mailbox">
+            <div className="eyebrow">NOCH FRAGEN?</div>
+            <h2>Sprich direkt mit uns.</h2>
+            <p>
+              Du bist dir nicht sicher, welches Paket zu deinem Unternehmen passt?
+              Schreib uns. Wir beantworten deine Fragen persönlich und unverbindlich.
+            </p>
+
+            <a className="email" href="mailto:info@auftrago.ch?subject=Frage%20zu%20Webseite%20%26%20SEO">
+              info@auftrago.ch
+            </a>
+
+            <div>
+              <a className="primary" href="mailto:info@auftrago.ch?subject=Beratung%20Webseite%20%26%20SEO">
+                Jetzt per E-Mail anfragen →
+              </a>
+            </div>
+
+            <p className="note">
+              SEO verbessert die technischen und inhaltlichen Voraussetzungen für Sichtbarkeit.
+              Bestimmte Google-Rankings können nicht garantiert werden.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <footer className="footer">
+        <div className="wrap">
+          © 2026 Auftrago · Webseiten & SEO für Schweizer Unternehmen
+        </div>
+      </footer>
+    </main>
+  );
+}

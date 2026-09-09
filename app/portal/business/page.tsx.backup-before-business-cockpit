@@ -1,0 +1,303 @@
+import Link from "next/link";
+
+const tools = [
+  {
+    icon: "✨",
+    title: "Auftrago AI",
+    text: "Erstelle Offerten, Rechnungen, Mahnungen und Kundentexte in Sekunden.",
+    href: "/portal/business/ai",
+    badge: "AI",
+  },
+  {
+    icon: "👥",
+    title: "Kunden & CRM",
+    text: "Alle Kunden, Kontakte, Aufträge und Dokumente zentral verwalten.",
+    href: "/portal/business/kunden",
+  },
+  {
+    icon: "🧾",
+    title: "Offerten",
+    text: "Professionelle Offerten erstellen, versenden und digital annehmen lassen.",
+    href: "/portal/business/offerten",
+  },
+  {
+    icon: "💰",
+    title: "Rechnungen",
+    text: "Aus Offerten Rechnungen erstellen und offene Zahlungen im Blick behalten.",
+    href: "/portal/business/rechnungen",
+  },
+  {
+    icon: "📅",
+    title: "Kalender",
+    text: "Einsätze, Termine und wiederkehrende Aufträge intelligent planen.",
+    href: "/portal/business/kalender",
+  },
+  {
+    icon: "✓",
+    title: "Aufträge",
+    text: "Vom Auftragseingang bis zur Abnahme den kompletten Ablauf steuern.",
+    href: "/portal/business/auftraege",
+  },
+  {
+    icon: "⏱",
+    title: "Zeiterfassung",
+    text: "Arbeitszeiten und Einsätze deiner Mitarbeiter direkt erfassen.",
+    href: "/portal/business/zeiterfassung",
+  },
+  {
+    icon: "📸",
+    title: "Dokumentation",
+    text: "Vorher-/Nachher-Fotos, Notizen und Abnahmen direkt beim Auftrag speichern.",
+    href: "/portal/business/dokumentation",
+  },
+  {
+    icon: "📊",
+    title: "Business Analytics",
+    text: "Umsatz, offene Beträge, Abschlussquote und Unternehmensentwicklung sehen.",
+    href: "/portal/business/analytics",
+  },
+];
+
+export default function BusinessPage() {
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        background:
+          "radial-gradient(circle at 80% 10%, rgba(124,58,237,.18), transparent 28%), radial-gradient(circle at 20% 0%, rgba(14,165,233,.16), transparent 30%), #06101f",
+        color: "#fff",
+        padding: "42px",
+      }}
+    >
+      <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+        <div
+          style={{
+            border: "1px solid rgba(139,92,246,.28)",
+            borderRadius: 28,
+            padding: "42px",
+            background:
+              "linear-gradient(135deg, rgba(15,30,55,.96), rgba(18,20,48,.92))",
+            boxShadow: "0 30px 80px rgba(0,0,0,.28)",
+          }}
+        >
+          <div
+            style={{
+              display: "inline-block",
+              padding: "8px 13px",
+              borderRadius: 999,
+              background: "rgba(139,92,246,.14)",
+              border: "1px solid rgba(167,139,250,.25)",
+              color: "#c4b5fd",
+              fontWeight: 800,
+              fontSize: 12,
+              letterSpacing: 1,
+            }}
+          >
+            🚀 AUFTRAGO BUSINESS
+          </div>
+
+          <h1
+            style={{
+              fontSize: "clamp(38px,5vw,68px)",
+              lineHeight: 1,
+              margin: "22px 0 16px",
+              letterSpacing: "-2px",
+            }}
+          >
+            Dein Unternehmen.
+            <br />
+            <span
+              style={{
+                background: "linear-gradient(90deg,#38bdf8,#a78bfa,#e879f9)",
+                WebkitBackgroundClip: "text",
+                color: "transparent",
+              }}
+            >
+              Ein System.
+            </span>
+          </h1>
+
+          <p
+            style={{
+              maxWidth: 760,
+              color: "#aebbd0",
+              fontSize: 18,
+              lineHeight: 1.65,
+            }}
+          >
+            Von der ersten Kundenanfrage über Offerte und Einsatzplanung bis
+            zur Rechnung und Zahlung. Auftrago Business bringt deinen gesamten
+            Betrieb an einen Ort.
+          </p>
+
+          <div
+            style={{
+              display: "flex",
+              gap: 12,
+              flexWrap: "wrap",
+              marginTop: 28,
+            }}
+          >
+            <Link
+              href="/portal/business/offerten"
+              style={{
+                padding: "14px 20px",
+                borderRadius: 12,
+                textDecoration: "none",
+                color: "white",
+                fontWeight: 800,
+                background: "linear-gradient(90deg,#0ea5e9,#7c3aed)",
+              }}
+            >
+              + Neue Offerte
+            </Link>
+
+            <Link
+              href="/portal/business/ai"
+              style={{
+                padding: "14px 20px",
+                borderRadius: 12,
+                textDecoration: "none",
+                color: "#ddd6fe",
+                fontWeight: 800,
+                border: "1px solid rgba(167,139,250,.3)",
+                background: "rgba(124,58,237,.09)",
+              }}
+            >
+              ✨ Mit Auftrago AI erstellen
+            </Link>
+          </div>
+        </div>
+
+        <section
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))",
+            gap: 16,
+            margin: "22px 0",
+          }}
+        >
+          {[
+            ["CHF 0.–", "Umsatz diesen Monat"],
+            ["0", "Offene Offerten"],
+            ["CHF 0.–", "Offene Rechnungen"],
+            ["0", "Aktive Aufträge"],
+          ].map(([value, label]) => (
+            <div
+              key={label}
+              style={{
+                padding: 22,
+                borderRadius: 18,
+                background: "rgba(12,27,49,.88)",
+                border: "1px solid rgba(148,163,184,.14)",
+              }}
+            >
+              <div style={{ fontSize: 26, fontWeight: 900 }}>{value}</div>
+              <div style={{ color: "#8291a9", marginTop: 7 }}>{label}</div>
+            </div>
+          ))}
+        </section>
+
+        <div style={{ margin: "38px 0 18px" }}>
+          <div style={{ color: "#38bdf8", fontWeight: 800, fontSize: 12 }}>
+            BUSINESS CONTROL CENTER
+          </div>
+          <h2 style={{ fontSize: 32, margin: "7px 0" }}>
+            Alles, was dein Unternehmen braucht.
+          </h2>
+        </div>
+
+        <section
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))",
+            gap: 16,
+          }}
+        >
+          {tools.map((tool) => (
+            <Link
+              key={tool.title}
+              href={tool.href}
+              style={{
+                textDecoration: "none",
+                color: "inherit",
+                minHeight: 190,
+                padding: 25,
+                borderRadius: 20,
+                background:
+                  "linear-gradient(145deg,rgba(15,30,53,.95),rgba(10,20,39,.95))",
+                border: "1px solid rgba(148,163,184,.15)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <span style={{ fontSize: 28 }}>{tool.icon}</span>
+                {tool.badge && (
+                  <span
+                    style={{
+                      color: "#c4b5fd",
+                      fontSize: 11,
+                      fontWeight: 900,
+                      border: "1px solid rgba(167,139,250,.3)",
+                      padding: "5px 8px",
+                      borderRadius: 999,
+                    }}
+                  >
+                    {tool.badge}
+                  </span>
+                )}
+              </div>
+
+              <h3 style={{ fontSize: 21, margin: "18px 0 8px" }}>
+                {tool.title}
+              </h3>
+
+              <p style={{ color: "#91a0b7", lineHeight: 1.55, margin: 0 }}>
+                {tool.text}
+              </p>
+
+              <div
+                style={{
+                  marginTop: 17,
+                  color: "#7dd3fc",
+                  fontWeight: 800,
+                  fontSize: 13,
+                }}
+              >
+                Öffnen →
+              </div>
+            </Link>
+          ))}
+        </section>
+
+        <section
+          style={{
+            marginTop: 24,
+            padding: 28,
+            borderRadius: 22,
+            background:
+              "linear-gradient(90deg,rgba(14,165,233,.11),rgba(124,58,237,.14))",
+            border: "1px solid rgba(96,165,250,.18)",
+          }}
+        >
+          <div style={{ color: "#67e8f9", fontWeight: 900 }}>
+            ✨ AUFTRAGO AI INSIGHT
+          </div>
+          <h3 style={{ fontSize: 24, margin: "9px 0" }}>
+            Dein digitaler Business-Assistent
+          </h3>
+          <p style={{ color: "#aebbd0", margin: 0 }}>
+            Auftrago AI wird dir helfen, offene Offerten nachzufassen,
+            Rechnungen zu überwachen, Dokumente zu erstellen und deinen
+            nächsten Arbeitsschritt vorzubereiten.
+          </p>
+        </section>
+      </div>
+    </main>
+  );
+}

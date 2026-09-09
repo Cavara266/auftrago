@@ -1,0 +1,127 @@
+import Link from "next/link";
+
+export default async function BusinessAnalyticsPage() {
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        background:
+          "radial-gradient(circle at 80% 0%,rgba(124,58,237,.09),transparent 32%),#061120",
+        color: "#f8fafc",
+      }}
+    >
+      <div
+        style={{
+          width: "min(100%,1500px)",
+          margin: "0 auto",
+          padding: "34px 28px 80px",
+          boxSizing: "border-box",
+        }}
+      >
+        <div
+          style={{
+            color: "#c4b5fd",
+            fontSize: 10,
+            fontWeight: 950,
+            letterSpacing: ".10em",
+          }}
+        >
+          AUFTRAGO INTELLIGENCE
+        </div>
+
+        <h1
+          style={{
+            margin: "8px 0 7px",
+            fontSize: "clamp(38px,5vw,64px)",
+            lineHeight: 1,
+            letterSpacing: "-.05em",
+          }}
+        >
+          Analytics
+        </h1>
+
+        <p
+          style={{
+            margin: 0,
+            maxWidth: 700,
+            color: "#64748b",
+            fontSize: 13,
+            lineHeight: 1.7,
+          }}
+        >
+          Umsatz, Zahlungseingänge, Offerten,
+          Abschlussquoten und Business Performance.
+        </p>
+
+        <section
+          style={{
+            marginTop: 28,
+            padding: 28,
+            borderRadius: 24,
+            border:
+              "1px solid rgba(125,211,252,.10)",
+            background:
+              "linear-gradient(145deg,rgba(7,18,35,.96),rgba(18,20,51,.90))",
+          }}
+        >
+          <div
+            style={{
+              color: "#7dd3fc",
+              fontSize: 9,
+              fontWeight: 950,
+              letterSpacing: ".08em",
+            }}
+          >
+            ANALYTICS COMMAND CENTER
+          </div>
+
+          <h2
+            style={{
+              margin: "8px 0",
+              fontSize: 29,
+            }}
+          >
+            Deine Zahlen bekommen eine eigene Zentrale.
+          </h2>
+
+          <p
+            style={{
+              maxWidth: 700,
+              margin: 0,
+              color: "#64748b",
+              fontSize: 11,
+              lineHeight: 1.7,
+            }}
+          >
+            Im nächsten Schritt ziehen wir die bereits vorhandenen
+            Umsatz-, Rechnungs-, Kunden- und Offertendaten aus dem
+            Cockpit hierher und bauen daraus eine saubere
+            Performance-Ansicht.
+          </p>
+
+          <Link
+            href="/portal/business"
+            style={{
+              display: "inline-flex",
+              marginTop: 18,
+              minHeight: 40,
+              alignItems: "center",
+              padding: "0 14px",
+              borderRadius: 10,
+              border:
+                "1px solid rgba(125,211,252,.11)",
+              background:
+                "rgba(15,23,42,.44)",
+              color: "#7dd3fc",
+              textDecoration: "none",
+              fontSize: 9,
+              fontWeight: 900,
+            }}
+          >
+            ← Business Cockpit
+          </Link>
+        </section>
+      </div>
+    </main>
+  );
+}

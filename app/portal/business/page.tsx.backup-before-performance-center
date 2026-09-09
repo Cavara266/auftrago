@@ -1,0 +1,1115 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
+import BusinessCommandHero from "@/components/business/BusinessCommandHero";
+
+const money = (cents: number) =>
+  new Intl.NumberFormat("de-CH", {
+    style: "currency",
+    currency: "CHF",
+    minimumFractionDigits: 2,
+  }).format(cents / 100);
+
+const date = (value: Date | null | undefined) => {
+  if (!value) return "–";
+
+  return new Intl.DateTimeFormat("de-CH", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(value);
+};
+
+export default async function BusinessDashboardPage() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const now = new Date();
+
+  const monthStart = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    1
+  );
+
+  // -------------------------------------------------
+  // AUTOMATISCHE ÜBERFÄLLIG-ERKENNUNG
+  // -------------------------------------------------
+
+  await prisma.businessInvoice.updateMany({
+    where: {
+      providerId: user.id,
+      dueAt: {
+        lt: now,
+      },
+      status: {
+        in: ["OPEN", "SENT"],
+      },
+      paidAmountCents: {
+        lt: prisma.businessInvoice.fields.totalCents,
+      },
+    },
+    data: {
+      status: "OVERDUE",
+    },
+  }).catch(() => {
+    // Dashboard darf bei einer alten Prisma-Version
+    // nicht wegen der Komfort-Automatik ausfallen.
+  });
+
+  const [
+    customers,
+    invoices,
+    quotes,
+    monthPayments,
+    activities,
+  ] = await Promise.all([
+    prisma.businessCustomer.count({
+      where: {
+        providerId: user.id,
+      },
+    }),
+
+    prisma.businessInvoice.findMany({
+      where: {
+        providerId: user.id,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 100,
+    }),
+
+    prisma.businessQuote.findMany({
+      where: {
+        providerId: user.id,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 100,
+    }),
+
+    prisma.businessInvoicePayment.findMany({
+      where: {
+        invoice: {
+          providerId: user.id,
+        },
+        paymentDate: {
+          gte: monthStart,
+        },
+      },
+      select: {
+        amountCents: true,
+      },
+    }),
+
+    prisma.businessInvoiceActivity.findMany({
+      where: {
+        invoice: {
+          providerId: user.id,
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 8,
+      include: {
+        invoice: {
+          select: {
+            invoiceNumber: true,
+            title: true,
+          },
+        },
+      },
+    }),
+  ]);
+
+  const activeInvoices = invoices.filter(
+    (invoice) =>
+      invoice.status !== "PAID" &&
+      invoice.status !== "CANCELLED"
+  );
+
+  const overdueInvoices = invoices.filter(
+    (invoice) =>
+      invoice.status !== "PAID" &&
+      invoice.status !== "CANCELLED" &&
+      invoice.dueAt &&
+      invoice.dueAt < now
+  );
+
+  const openAmount = activeInvoices.reduce(
+    (sum, invoice) =>
+      sum +
+      Math.max(
+        0,
+        invoice.totalCents -
+          (invoice.paidAmountCents || 0)
+      ),
+    0
+  );
+
+  const overdueAmount = overdueInvoices.reduce(
+    (sum, invoice) =>
+      sum +
+      Math.max(
+        0,
+        invoice.totalCents -
+          (invoice.paidAmountCents || 0)
+      ),
+    0
+  );
+
+  const monthRevenue = monthPayments.reduce(
+    (sum, payment) => sum + payment.amountCents,
+    0
+  );
+
+  const sentQuotes = quotes.filter(
+    (quote) => quote.sentAt
+  );
+
+  const acceptedQuotes = quotes.filter(
+    (quote) => quote.acceptedAt
+  );
+
+  const openQuotes = quotes.filter(
+    (quote) =>
+      !quote.acceptedAt &&
+      !quote.declinedAt
+  );
+
+  const conversion =
+    sentQuotes.length > 0
+      ? Math.round(
+          (acceptedQuotes.length / sentQuotes.length) *
+            100
+        )
+      : 0;
+
+  const followUpQuotes = openQuotes
+    .filter((quote) => quote.sentAt)
+    .slice(0, 5);
+
+  const attentionInvoices = activeInvoices
+    .sort((a, b) => {
+      const ad = a.dueAt?.getTime() || Infinity;
+      const bd = b.dueAt?.getTime() || Infinity;
+      return ad - bd;
+    })
+    .slice(0, 5);
+
+  const attentionCount =
+    overdueInvoices.length +
+    followUpQuotes.length;
+
+  const commandNow = new Date();
+
+  const commandMonthStart = new Date(
+    commandNow.getFullYear(),
+    commandNow.getMonth(),
+    1
+  );
+
+  const commandNextMonthStart = new Date(
+    commandNow.getFullYear(),
+    commandNow.getMonth() + 1,
+    1
+  );
+
+  const [
+    monthlyPaidInvoices,
+    openInvoices,
+    overdueInvoicesForHero,
+    openQuotesForHero,
+    customersForHero,
+    acceptedQuotesForHero,
+    decidedQuotesForHero,
+  ] = await Promise.all([
+    prisma.businessInvoice.findMany({
+      where: {
+        providerId: user.id,
+        status: "PAID",
+        paidAt: {
+          gte: commandMonthStart,
+          lt: commandNextMonthStart,
+        },
+      },
+      select: {
+        totalCents: true,
+      },
+    }),
+
+    prisma.businessInvoice.findMany({
+      where: {
+        providerId: user.id,
+        status: {
+          in: ["SENT", "OPEN", "OVERDUE"],
+        },
+      },
+      select: {
+        totalCents: true,
+        paidAmountCents: true,
+      },
+    }),
+
+    prisma.businessInvoice.findMany({
+      where: {
+        providerId: user.id,
+        status: "OVERDUE",
+      },
+      select: {
+        totalCents: true,
+        paidAmountCents: true,
+      },
+    }),
+
+    prisma.businessQuote.findMany({
+      where: {
+        providerId: user.id,
+        status: {
+          in: ["DRAFT", "SENT", "OPEN"],
+        },
+      },
+      select: {
+        totalCents: true,
+      },
+    }),
+
+    prisma.businessCustomer.count({
+      where: {
+        providerId: user.id,
+      },
+    }),
+
+    prisma.businessQuote.count({
+      where: {
+        providerId: user.id,
+        status: "ACCEPTED",
+      },
+    }),
+
+    prisma.businessQuote.count({
+      where: {
+        providerId: user.id,
+        status: {
+          in: ["ACCEPTED", "DECLINED"],
+        },
+      },
+    }),
+  ]);
+
+  const monthlyRevenueCents =
+    monthlyPaidInvoices.reduce(
+      (sum, invoice) => sum + invoice.totalCents,
+      0
+    );
+
+  const openInvoiceCents =
+    openInvoices.reduce(
+      (sum, invoice) =>
+        sum +
+        Math.max(
+          0,
+          invoice.totalCents -
+            (invoice.paidAmountCents || 0)
+        ),
+      0
+    );
+
+  const overdueCents =
+    overdueInvoicesForHero.reduce(
+      (sum, invoice) =>
+        sum +
+        Math.max(
+          0,
+          invoice.totalCents -
+            (invoice.paidAmountCents || 0)
+        ),
+      0
+    );
+
+  const openQuoteCents =
+    openQuotesForHero.reduce(
+      (sum, quote) => sum + quote.totalCents,
+      0
+    );
+
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        padding: "38px 32px 80px",
+        color: "#f8fafc",
+        background:
+          "radial-gradient(circle at 82% 4%, rgba(124,58,237,.15), transparent 28%), #06101f",
+      }}
+    >
+      <BusinessCommandHero
+        companyName={
+          user.name ||
+          user.email ||
+          "Business"
+        }
+        monthlyRevenueCents={monthlyRevenueCents}
+        openInvoiceCents={openInvoiceCents}
+        overdueCents={overdueCents}
+        openQuoteCents={openQuoteCents}
+        customerCount={customersForHero}
+        acceptedQuotes={acceptedQuotesForHero}
+        totalDecidedQuotes={decidedQuotesForHero}
+        attentionCount={attentionCount}
+      />
+
+      <div style={{ height: 24 }} />
+
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 1240,
+          margin: "0 auto",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 20,
+            alignItems: "flex-start",
+            flexWrap: "wrap",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                color: "#a78bfa",
+                fontWeight: 900,
+                fontSize: 12,
+                letterSpacing: ".08em",
+              }}
+            >
+              AUFTRAGO BUSINESS
+            </div>
+
+            <h1
+              style={{
+                fontSize: "clamp(34px,5vw,56px)",
+                letterSpacing: "-.045em",
+                lineHeight: 1,
+                margin: "8px 0 10px",
+              }}
+            >
+              Business Cockpit
+            </h1>
+
+            <p
+              style={{
+                color: "#94a3b8",
+                maxWidth: 680,
+                margin: 0,
+                lineHeight: 1.6,
+              }}
+            >
+              Finanzen, Offerten, Kunden und offene
+              Aufgaben auf einen Blick.
+            </p>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              flexWrap: "wrap",
+            }}
+          >
+            <Link
+              href="/portal/business/offerten"
+              style={secondaryButton}
+            >
+              + Neue Offerte
+            </Link>
+
+            <Link
+              href="/portal/business/rechnungen"
+              style={primaryButton}
+            >
+              Rechnungen →
+            </Link>
+          </div>
+        </div>
+
+        {/* KPI GRID */}
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit,minmax(210px,1fr))",
+            gap: 14,
+            marginTop: 30,
+          }}
+        >
+          <Metric
+            label="Umsatz diesen Monat"
+            value={money(monthRevenue)}
+            hint="Zahlungseingänge"
+            icon="↗"
+          />
+
+          <Metric
+            label="Offene Forderungen"
+            value={money(openAmount)}
+            hint={`${activeInvoices.length} Rechnungen offen`}
+            icon="◎"
+          />
+
+          <Metric
+            label="Überfällig"
+            value={money(overdueAmount)}
+            hint={`${overdueInvoices.length} Rechnungen`}
+            icon="!"
+            alert={overdueInvoices.length > 0}
+          />
+
+          <Metric
+            label="Offene Offerten"
+            value={String(openQuotes.length)}
+            hint="Noch nicht abgeschlossen"
+            icon="✦"
+          />
+
+          <Metric
+            label="Abschlussquote"
+            value={`${conversion}%`}
+            hint={`${acceptedQuotes.length} angenommen`}
+            icon="✓"
+          />
+
+          <Metric
+            label="Kunden"
+            value={String(customers)}
+            hint="Im Business CRM"
+            icon="◉"
+          />
+        </div>
+
+        {/* ATTENTION */}
+
+        <section
+          style={{
+            ...panel,
+            marginTop: 18,
+            background:
+              attentionCount > 0
+                ? "linear-gradient(135deg,rgba(124,58,237,.13),rgba(14,165,233,.06))"
+                : panel.background,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 20,
+              flexWrap: "wrap",
+            }}
+          >
+            <div>
+              <div style={eyebrow}>
+                AUFTRAGO INSIGHT
+              </div>
+
+              <h2
+                style={{
+                  margin: "7px 0 7px",
+                  fontSize: 25,
+                }}
+              >
+                Was braucht heute deine Aufmerksamkeit?
+              </h2>
+
+              <p
+                style={{
+                  color: "#94a3b8",
+                  margin: 0,
+                }}
+              >
+                {attentionCount === 0
+                  ? "Aktuell sieht alles sauber aus."
+                  : `${attentionCount} Punkte solltest du prüfen.`}
+              </p>
+            </div>
+
+            <div
+              style={{
+                fontSize: 32,
+                fontWeight: 950,
+                color:
+                  attentionCount > 0
+                    ? "#fbbf24"
+                    : "#86efac",
+              }}
+            >
+              {attentionCount}
+            </div>
+          </div>
+
+          {attentionCount > 0 && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(auto-fit,minmax(280px,1fr))",
+                gap: 12,
+                marginTop: 20,
+              }}
+            >
+              {overdueInvoices.slice(0, 3).map(
+                (invoice) => (
+                  <Link
+                    key={invoice.id}
+                    href={`/portal/business/rechnungen/${invoice.id}`}
+                    style={attentionCard}
+                  >
+                    <span>
+                      🔔 Rechnung überfällig
+                    </span>
+
+                    <strong>
+                      {invoice.customerName ||
+                        invoice.invoiceNumber}
+                    </strong>
+
+                    <small>
+                      {money(
+                        Math.max(
+                          0,
+                          invoice.totalCents -
+                            (invoice.paidAmountCents ||
+                              0)
+                        )
+                      )}{" "}
+                      offen · fällig {date(invoice.dueAt)}
+                    </small>
+                  </Link>
+                )
+              )}
+
+              {followUpQuotes.slice(0, 3).map(
+                (quote) => (
+                  <Link
+                    key={quote.id}
+                    href={`/portal/business/offerten/${quote.id}`}
+                    style={attentionCard}
+                  >
+                    <span>✦ Offerte nachfassen</span>
+
+                    <strong>
+                      {quote.customerName ||
+                        quote.quoteNumber}
+                    </strong>
+
+                    <small>
+                      {money(quote.totalCents)} · gesendet{" "}
+                      {date(quote.sentAt)}
+                    </small>
+                  </Link>
+                )
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* TWO COLUMNS */}
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit,minmax(390px,1fr))",
+            gap: 18,
+            marginTop: 18,
+          }}
+        >
+          <section style={panel}>
+            <div style={sectionHeader}>
+              <div>
+                <div style={eyebrow}>
+                  FORDERUNGEN
+                </div>
+
+                <h2 style={sectionTitle}>
+                  Offene Rechnungen
+                </h2>
+              </div>
+
+              <Link
+                href="/portal/business/rechnungen"
+                style={smallLink}
+              >
+                Alle →
+              </Link>
+            </div>
+
+            {attentionInvoices.length === 0 ? (
+              <Empty text="Keine offenen Rechnungen." />
+            ) : (
+              attentionInvoices.map((invoice) => {
+                const remaining = Math.max(
+                  0,
+                  invoice.totalCents -
+                    (invoice.paidAmountCents || 0)
+                );
+
+                const overdue =
+                  !!invoice.dueAt &&
+                  invoice.dueAt < now;
+
+                return (
+                  <Link
+                    key={invoice.id}
+                    href={`/portal/business/rechnungen/${invoice.id}`}
+                    style={rowLink}
+                  >
+                    <div>
+                      <strong
+                        style={{
+                          display: "block",
+                        }}
+                      >
+                        {invoice.customerName ||
+                          "Ohne Kundenname"}
+                      </strong>
+
+                      <span style={subtext}>
+                        {invoice.invoiceNumber} ·{" "}
+                        {overdue
+                          ? "Überfällig"
+                          : `Fällig ${date(
+                              invoice.dueAt
+                            )}`}
+                      </span>
+                    </div>
+
+                    <strong
+                      style={{
+                        color: overdue
+                          ? "#fca5a5"
+                          : "#f8fafc",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {money(remaining)}
+                    </strong>
+                  </Link>
+                );
+              })
+            )}
+          </section>
+
+          <section style={panel}>
+            <div style={sectionHeader}>
+              <div>
+                <div style={eyebrow}>
+                  SALES PIPELINE
+                </div>
+
+                <h2 style={sectionTitle}>
+                  Offerten nachfassen
+                </h2>
+              </div>
+
+              <Link
+                href="/portal/business/offerten"
+                style={smallLink}
+              >
+                Alle →
+              </Link>
+            </div>
+
+            {followUpQuotes.length === 0 ? (
+              <Empty text="Keine offenen Offerten zum Nachfassen." />
+            ) : (
+              followUpQuotes.map((quote) => (
+                <Link
+                  key={quote.id}
+                  href={`/portal/business/offerten/${quote.id}`}
+                  style={rowLink}
+                >
+                  <div>
+                    <strong
+                      style={{
+                        display: "block",
+                      }}
+                    >
+                      {quote.customerName ||
+                        "Ohne Kundenname"}
+                    </strong>
+
+                    <span style={subtext}>
+                      {quote.quoteNumber} · gesendet{" "}
+                      {date(quote.sentAt)}
+                    </span>
+                  </div>
+
+                  <strong
+                    style={{
+                      color: "#a78bfa",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {money(quote.totalCents)}
+                  </strong>
+                </Link>
+              ))
+            )}
+          </section>
+        </div>
+
+        {/* ACTIVITY */}
+
+        <section
+          style={{
+            ...panel,
+            marginTop: 18,
+          }}
+        >
+          <div style={sectionHeader}>
+            <div>
+              <div style={eyebrow}>
+                LIVE JOURNAL
+              </div>
+
+              <h2 style={sectionTitle}>
+                Letzte Aktivitäten
+              </h2>
+            </div>
+          </div>
+
+          {activities.length === 0 ? (
+            <Empty text="Noch keine Aktivitäten vorhanden." />
+          ) : (
+            activities.map((activity) => (
+              <div
+                key={activity.id}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns:
+                    "42px 1fr auto",
+                  gap: 13,
+                  alignItems: "center",
+                  padding: "14px 0",
+                  borderBottom:
+                    "1px solid rgba(148,163,184,.08)",
+                }}
+              >
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 11,
+                    background:
+                      "rgba(124,58,237,.12)",
+                    display: "grid",
+                    placeItems: "center",
+                    color: "#a78bfa",
+                    fontWeight: 950,
+                  }}
+                >
+                  •
+                </div>
+
+                <div>
+                  <strong
+                    style={{
+                      display: "block",
+                    }}
+                  >
+                    {activity.message}
+                  </strong>
+
+                  <span style={subtext}>
+                    {activity.invoice.invoiceNumber}
+                    {" · "}
+                    {activity.invoice.title}
+                  </span>
+                </div>
+
+                <span
+                  style={{
+                    ...subtext,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {new Intl.DateTimeFormat("de-CH", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }).format(activity.createdAt)}
+                </span>
+              </div>
+            ))
+          )}
+        </section>
+
+        {/* QUICK ACTIONS */}
+
+        <section
+          style={{
+            marginTop: 18,
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit,minmax(220px,1fr))",
+            gap: 12,
+          }}
+        >
+          <Quick
+            href="/portal/business/offerten"
+            icon="✦"
+            title="Offerten"
+            text="Erstellen, senden und nachfassen."
+          />
+
+          <Quick
+            href="/portal/business/rechnungen"
+            icon="◎"
+            title="Rechnungen"
+            text="Forderungen und Zahlungen verwalten."
+          />
+
+          <Quick
+            href="/portal/business/kunden"
+            icon="◉"
+            title="Kunden CRM"
+            text="Kontakte und Kunden zentral verwalten."
+          />
+
+          <Quick
+            href="/portal/business/analytics"
+            icon="↗"
+            title="Analytics"
+            text="Entwicklung und Performance auswerten."
+          />
+        </section>
+      </div>
+    </main>
+  );
+}
+
+function Metric({
+  label,
+  value,
+  hint,
+  icon,
+  alert = false,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  icon: string;
+  alert?: boolean;
+}) {
+  return (
+    <div style={metricCard}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 12,
+        }}
+      >
+        <span style={eyebrow}>{label}</span>
+
+        <span
+          style={{
+            color: alert ? "#fca5a5" : "#7dd3fc",
+            fontWeight: 950,
+          }}
+        >
+          {icon}
+        </span>
+      </div>
+
+      <div
+        style={{
+          fontSize: 27,
+          marginTop: 13,
+          fontWeight: 950,
+          letterSpacing: "-.03em",
+          color: alert ? "#fca5a5" : "#f8fafc",
+        }}
+      >
+        {value}
+      </div>
+
+      <div
+        style={{
+          ...subtext,
+          marginTop: 7,
+        }}
+      >
+        {hint}
+      </div>
+    </div>
+  );
+}
+
+function Empty({ text }: { text: string }) {
+  return (
+    <div
+      style={{
+        padding: "25px 0 8px",
+        color: "#64748b",
+      }}
+    >
+      {text}
+    </div>
+  );
+}
+
+function Quick({
+  href,
+  icon,
+  title,
+  text,
+}: {
+  href: string;
+  icon: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <Link
+      href={href}
+      style={{
+        ...panel,
+        textDecoration: "none",
+        color: "#f8fafc",
+        display: "block",
+      }}
+    >
+      <div
+        style={{
+          fontSize: 25,
+          marginBottom: 15,
+        }}
+      >
+        {icon}
+      </div>
+
+      <strong
+        style={{
+          display: "block",
+          fontSize: 18,
+        }}
+      >
+        {title}
+      </strong>
+
+      <p
+        style={{
+          color: "#94a3b8",
+          lineHeight: 1.5,
+          margin: "8px 0 0",
+        }}
+      >
+        {text}
+      </p>
+    </Link>
+  );
+}
+
+const panel = {
+  padding: 24,
+  borderRadius: 20,
+  border: "1px solid rgba(148,163,184,.13)",
+  background: "rgba(9,22,41,.78)",
+} as const;
+
+const metricCard = {
+  ...panel,
+  minHeight: 125,
+} as const;
+
+const eyebrow = {
+  color: "#7dd3fc",
+  fontSize: 11,
+  fontWeight: 950,
+  letterSpacing: ".055em",
+  textTransform: "uppercase" as const,
+};
+
+const sectionHeader = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 16,
+};
+
+const sectionTitle = {
+  fontSize: 22,
+  margin: "6px 0 0",
+};
+
+const subtext = {
+  color: "#94a3b8",
+  fontSize: 12,
+};
+
+const rowLink = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 18,
+  padding: "16px 0",
+  color: "#f8fafc",
+  textDecoration: "none",
+  borderBottom: "1px solid rgba(148,163,184,.08)",
+};
+
+const smallLink = {
+  color: "#7dd3fc",
+  textDecoration: "none",
+  fontWeight: 900,
+  fontSize: 13,
+};
+
+const primaryButton = {
+  display: "inline-flex",
+  alignItems: "center",
+  textDecoration: "none",
+  padding: "12px 17px",
+  borderRadius: 11,
+  background:
+    "linear-gradient(90deg,#0ea5e9,#7c3aed)",
+  color: "#ffffff",
+  fontWeight: 900,
+};
+
+const secondaryButton = {
+  display: "inline-flex",
+  alignItems: "center",
+  textDecoration: "none",
+  padding: "12px 17px",
+  borderRadius: 11,
+  border: "1px solid rgba(167,139,250,.28)",
+  background: "rgba(124,58,237,.08)",
+  color: "#ddd6fe",
+  fontWeight: 900,
+};
+
+const attentionCard = {
+  display: "grid",
+  gap: 6,
+  padding: 16,
+  borderRadius: 14,
+  textDecoration: "none",
+  color: "#f8fafc",
+  background: "rgba(2,6,23,.35)",
+  border: "1px solid rgba(148,163,184,.10)",
+};

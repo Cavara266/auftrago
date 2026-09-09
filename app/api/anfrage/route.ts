@@ -190,46 +190,48 @@ Facebook Click ID: ${fallback(fbclid)}
 User Agent: ${fallback(userAgent)}
 `.trim();
 
-    const description = `
-${service} in ${safeCity}
-
-AUFTRAG
-Dienstleistung: ${fallback(service)}
-Region: ${fallback(region)}
-Ort: ${fallback(city)}
-PLZ: ${fallback(postalCode)}
-Adresse: ${fallback(street)}
-Gewünschter Start / Datum: ${fallback(start)}
-Flexibles Datum: ${fallback(flexibleDate)}
-Besichtigung erwünscht: ${fallback(viewingWanted)}
-Gewünschte Angebote / Häufigkeit: ${fallback(offersWanted)}
-Wichtig für Kunde: ${fallback(important)}
-Budget / Preisvorstellung: ${fallback(budget)}
-
-OBJEKT
-Objekt: ${fallback(objectType)}
-Objektart: ${fallback(propertyType)}
-Fläche: ${fallback(area)}
-Zimmer: ${fallback(rooms)}
-Etage: ${fallback(floor)}
-Lift: ${fallback(elevator)}
-Parkplatz: ${fallback(parking)}
-Abgabegarantie: ${fallback(handoverGuarantee)}
-Keller: ${fallback(cellar)}
-Balkon: ${fallback(balcony)}
-
-FENSTER / SPEZIALDETAILS
-Anzahl Fenster: ${fallback(windows)}
-Fenstergrösse: ${fallback(windowSize)}
-Lamellenstoren: ${fallback(blinds)}
-Fensterläden: ${fallback(shutters)}
-Teppichreinigung: ${fallback(carpetCleaning)}
-
-BESCHREIBUNG
-${fallback(message)}
-
-${trackingText}
-`.trim();
+    const description = [
+    `${service} in ${safeCity}`,
+    "",
+    "AUFTRAG",
+    service && `Dienstleistung: ${service}`,
+    region && `Region: ${region}`,
+    city && `Ort: ${city}`,
+    postalCode && `PLZ: ${postalCode}`,
+    street && `Adresse: ${street}`,
+    start && `Gewünschter Start / Datum: ${start}`,
+    flexibleDate && `Flexibles Datum: ${flexibleDate}`,
+    viewingWanted && `Besichtigung erwünscht: ${viewingWanted}`,
+    offersWanted && `Gewünschte Angebote / Häufigkeit: ${offersWanted}`,
+    important && `Wichtig für Kunde: ${important}`,
+    budget && `Budget / Preisvorstellung: ${budget}`,
+    "",
+    "OBJEKT",
+    objectType && `Objekt: ${objectType}`,
+    propertyType && `Objektart: ${propertyType}`,
+    area && `Fläche: ${area}`,
+    rooms && `Zimmer: ${rooms}`,
+    floor && `Etage: ${floor}`,
+    elevator && `Lift: ${elevator}`,
+    parking && `Parkplatz: ${parking}`,
+    handoverGuarantee && `Abgabegarantie: ${handoverGuarantee}`,
+    cellar && `Keller: ${cellar}`,
+    balcony && `Balkon: ${balcony}`,
+    "",
+    "FENSTER / SPEZIALDETAILS",
+    windows && `Anzahl Fenster: ${windows}`,
+    windowSize && `Fenstergrösse: ${windowSize}`,
+    blinds && `Lamellenstoren: ${blinds}`,
+    shutters && `Fensterläden: ${shutters}`,
+    carpetCleaning && `Teppichreinigung: ${carpetCleaning}`,
+    "",
+    "BESCHREIBUNG",
+    message,
+  ]
+    .filter(Boolean)
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 
     const lead = await prisma.lead.create({
       data: {

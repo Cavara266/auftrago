@@ -1,0 +1,155 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
+import { sendMail } from "@/lib/mail/mail";
+
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const user = await getCurrentUser();
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "Nicht angemeldet." },
+        { status: 401 }
+      );
+    }
+
+    const { id } = await params;
+
+    const invoice = await prisma.businessInvoice.findFirst({
+      where: {
+        id,
+        providerId: user.id,
+      },
+    });
+
+    if (!invoice) {
+      return NextResponse.json(
+        { error: "Rechnung nicht gefunden." },
+        { status: 404 }
+      );
+    }
+
+    if (!invoice.customerEmail) {
+      return NextResponse.json(
+        { error: "Beim Kunden ist keine E-Mail-Adresse hinterlegt." },
+        { status: 400 }
+      );
+    }
+
+    if (invoice.status === "PAID") {
+      return NextResponse.json(
+        { error: "Eine bezahlte Rechnung kann nicht gemahnt werden." },
+        { status: 400 }
+      );
+    }
+
+    const nextLevel = Math.min((invoice.reminderLevel || 0) + 1, 2);
+
+    if (invoice.reminderLevel >= 2) {
+      return NextResponse.json(
+        { error: "Die zweite Mahnung wurde bereits versendet." },
+        { status: 400 }
+      );
+    }
+
+    const now = new Date();
+
+    const updated = await prisma.businessInvoice.update({
+      where: { id: invoice.id },
+      data: {
+        status: "OVERDUE",
+        reminderLevel: nextLevel,
+        firstReminderAt:
+          nextLevel === 1 ? now : invoice.firstReminderAt,
+        secondReminderAt:
+          nextLevel === 2 ? now : invoice.secondReminderAt,
+      },
+    });
+
+    const levelText =
+      nextLevel === 1 ? "1. Zahlungserinnerung" : "2. Mahnung";
+
+    const total = new Intl.NumberFormat("de-CH", {
+      style: "currency",
+      currency: "CHF",
+      minimumFractionDigits: 2,
+    }).format(invoice.totalCents / 100);
+
+    await sendMail({
+      to: invoice.customerEmail,
+      subject: `${levelText} – Rechnung ${invoice.invoiceNumber}`,
+      html: `
+        <div style="font-family:Arial,Helvetica,sans-serif;background:#f4f6fb;padding:32px">
+          <div style="max-width:640px;margin:auto;background:#ffffff;border-radius:18px;overflow:hidden">
+            <div style="background:#071426;padding:28px 32px;color:#ffffff">
+              <div style="color:#38bdf8;font-size:13px;font-weight:800;letter-spacing:.08em">
+                AUFTRAGO BUSINESS
+              </div>
+              <div style="font-size:27px;font-weight:800;margin-top:6px">
+                ${levelText}
+              </div>
+            </div>
+
+            <div style="padding:32px;color:#172033;line-height:1.65">
+              <p>Guten Tag ${invoice.customerName || ""}</p>
+
+              <p>
+                Wir möchten Sie freundlich darauf aufmerksam machen,
+                dass die Rechnung <strong>${invoice.invoiceNumber}</strong>
+                über <strong>${total}</strong> noch offen ist.
+              </p>
+
+              ${
+                nextLevel === 1
+                  ? `<p>Wir bitten Sie, den offenen Betrag baldmöglichst zu begleichen.</p>`
+                  : `<p>Wir bitten Sie, den offenen Betrag nun umgehend zu begleichen.</p>`
+              }
+
+              <div style="margin:28px 0;padding:20px;border-radius:12px;background:#f4f6fb">
+                <strong>Rechnung:</strong> ${invoice.invoiceNumber}<br>
+                <strong>Betrag:</strong> ${total}<br>
+                <strong>Status:</strong> Überfällig
+              </div>
+
+              <p>
+                Falls die Zahlung bereits erfolgt ist, können Sie diese Nachricht selbstverständlich ignorieren.
+              </p>
+
+              <p>
+                Freundliche Grüsse<br>
+                <strong>${user.companyName || user.contactName || "Ihr Dienstleister"}</strong>
+              </p>
+            </div>
+          </div>
+        </div>
+      `,
+      text:
+        `${levelText}\n\n` +
+        `Rechnung ${invoice.invoiceNumber}\n` +
+        `Betrag: ${total}\n\n` +
+        `Wir bitten Sie, den offenen Betrag zu begleichen.`,
+    });
+
+    return NextResponse.json({
+      ok: true,
+      reminderLevel: nextLevel,
+      invoice: updated,
+    });
+  } catch (error) {
+    console.error("INVOICE REMINDER ERROR", error);
+
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Mahnung konnte nicht versendet werden.",
+      },
+      { status: 500 }
+    );
+  }
+}

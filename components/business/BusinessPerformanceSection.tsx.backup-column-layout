@@ -1,0 +1,1086 @@
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
+
+const money = (cents: number) =>
+  new Intl.NumberFormat("de-CH", {
+    style: "currency",
+    currency: "CHF",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(cents / 100);
+
+const shortMoney = (cents: number) => {
+  const value = cents / 100;
+
+  if (value >= 1000000) {
+    return `CHF ${(value / 1000000).toFixed(1)}M`;
+  }
+
+  if (value >= 1000) {
+    return `CHF ${(value / 1000).toFixed(1)}k`;
+  }
+
+  return `CHF ${Math.round(value)}`;
+};
+
+export default async function BusinessPerformanceSection() {
+  const user = await getCurrentUser();
+
+  if (!user) return null;
+
+  const now = new Date();
+
+  const monthStart = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    1
+  );
+
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setHours(0, 0, 0, 0);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+
+  const [
+    payments,
+    invoices,
+    quotes,
+    activities,
+  ] = await Promise.all([
+    prisma.businessInvoicePayment.findMany({
+      where: {
+        invoice: {
+          providerId: user.id,
+        },
+        paymentDate: {
+          gte: sevenDaysAgo,
+        },
+      },
+      select: {
+        amountCents: true,
+        paymentDate: true,
+      },
+      orderBy: {
+        paymentDate: "asc",
+      },
+    }),
+
+    prisma.businessInvoice.findMany({
+      where: {
+        providerId: user.id,
+      },
+      select: {
+        id: true,
+        invoiceNumber: true,
+        customerName: true,
+        status: true,
+        totalCents: true,
+        paidAmountCents: true,
+        dueAt: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
+
+    prisma.businessQuote.findMany({
+      where: {
+        providerId: user.id,
+      },
+      select: {
+        id: true,
+        quoteNumber: true,
+        customerName: true,
+        title: true,
+        status: true,
+        totalCents: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
+
+    prisma.businessInvoiceActivity.findMany({
+      where: {
+        invoice: {
+          providerId: user.id,
+        },
+      },
+      select: {
+        id: true,
+        type: true,
+        message: true,
+        createdAt: true,
+        invoice: {
+          select: {
+            invoiceNumber: true,
+            customerName: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 8,
+    }),
+  ]);
+
+  const openInvoices = invoices.filter(
+    (invoice) =>
+      ["SENT", "OPEN", "OVERDUE"].includes(
+        invoice.status
+      )
+  );
+
+  const moneyToCollect = openInvoices.reduce(
+    (sum, invoice) =>
+      sum +
+      Math.max(
+        0,
+        invoice.totalCents -
+          (invoice.paidAmountCents || 0)
+      ),
+    0
+  );
+
+  const overdueInvoices = invoices.filter(
+    (invoice) =>
+      invoice.status === "OVERDUE" ||
+      (
+        invoice.dueAt &&
+        invoice.dueAt < now &&
+        invoice.status !== "PAID" &&
+        invoice.status !== "CANCELLED"
+      )
+  );
+
+  const overdueAmount = overdueInvoices.reduce(
+    (sum, invoice) =>
+      sum +
+      Math.max(
+        0,
+        invoice.totalCents -
+          (invoice.paidAmountCents || 0)
+      ),
+    0
+  );
+
+  const monthPayments = await prisma.businessInvoicePayment.findMany({
+    where: {
+      invoice: {
+        providerId: user.id,
+      },
+      paymentDate: {
+        gte: monthStart,
+      },
+    },
+    select: {
+      amountCents: true,
+    },
+  });
+
+  const monthRevenue = monthPayments.reduce(
+    (sum, payment) => sum + payment.amountCents,
+    0
+  );
+
+  const openQuotes = quotes.filter(
+    (quote) =>
+      ["DRAFT", "SENT", "OPEN"].includes(
+        quote.status
+      )
+  );
+
+  const acceptedQuotes = quotes.filter(
+    (quote) =>
+      quote.status === "ACCEPTED"
+  );
+
+  const declinedQuotes = quotes.filter(
+    (quote) =>
+      quote.status === "DECLINED"
+  );
+
+  const decidedCount =
+    acceptedQuotes.length +
+    declinedQuotes.length;
+
+  const conversion =
+    decidedCount > 0
+      ? Math.round(
+          (acceptedQuotes.length /
+            decidedCount) *
+            100
+        )
+      : 0;
+
+  const quotePipeline = openQuotes.reduce(
+    (sum, quote) => sum + quote.totalCents,
+    0
+  );
+
+  const daily = Array.from(
+    { length: 7 },
+    (_, index) => {
+      const date = new Date(sevenDaysAgo);
+      date.setDate(
+        sevenDaysAgo.getDate() + index
+      );
+
+      const amount = payments
+        .filter((payment) => {
+          const d = new Date(
+            payment.paymentDate
+          );
+
+          return (
+            d.getFullYear() ===
+              date.getFullYear() &&
+            d.getMonth() ===
+              date.getMonth() &&
+            d.getDate() ===
+              date.getDate()
+          );
+        })
+        .reduce(
+          (sum, payment) =>
+            sum + payment.amountCents,
+          0
+        );
+
+      return {
+        label: new Intl.DateTimeFormat(
+          "de-CH",
+          {
+            weekday: "short",
+          }
+        ).format(date),
+        amount,
+      };
+    }
+  );
+
+  const maxDaily = Math.max(
+    1,
+    ...daily.map((item) => item.amount)
+  );
+
+  const collectionPercent =
+    monthRevenue + moneyToCollect > 0
+      ? Math.round(
+          (monthRevenue /
+            (monthRevenue +
+              moneyToCollect)) *
+            100
+        )
+      : 100;
+
+  const latestQuotes = quotes.slice(0, 4);
+
+  return (
+    <>
+      <style>{`
+        .performance-card {
+          transition:
+            transform .22s ease,
+            border-color .22s ease,
+            box-shadow .22s ease;
+        }
+
+        .performance-card:hover {
+          transform: translateY(-3px);
+          border-color: rgba(125,211,252,.20) !important;
+          box-shadow: 0 25px 70px rgba(2,6,23,.25);
+        }
+
+        .performance-link {
+          transition: opacity .18s ease, transform .18s ease;
+        }
+
+        .performance-link:hover {
+          opacity: 1 !important;
+          transform: translateX(3px);
+        }
+
+        @media(max-width:950px) {
+          .performance-main-grid {
+            grid-template-columns:1fr !important;
+          }
+
+          .performance-bottom-grid {
+            grid-template-columns:1fr !important;
+          }
+        }
+      `}</style>
+
+      <section
+        style={{
+          display: "grid",
+          gap: 16,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent:
+              "space-between",
+            gap: 20,
+            flexWrap: "wrap",
+            alignItems: "end",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                color: "#a78bfa",
+                fontSize: 11,
+                fontWeight: 950,
+                letterSpacing: ".10em",
+              }}
+            >
+              LIVE BUSINESS PERFORMANCE
+            </div>
+
+            <h2
+              style={{
+                margin: "8px 0 0",
+                fontSize:
+                  "clamp(28px,3vw,40px)",
+                letterSpacing: "-.04em",
+              }}
+            >
+              Dein Unternehmen in Echtzeit
+            </h2>
+          </div>
+
+          <Link
+            href="/portal/business/analytics"
+            style={{
+              color: "#7dd3fc",
+              textDecoration: "none",
+              fontSize: 12,
+              fontWeight: 900,
+            }}
+          >
+            Vollständige Analytics →
+          </Link>
+        </div>
+
+        <div
+          className="performance-main-grid"
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "minmax(0,1.5fr) minmax(320px,.7fr)",
+            gap: 16,
+          }}
+        >
+          <section
+            className="performance-card"
+            style={{
+              padding: 24,
+              borderRadius: 24,
+              border:
+                "1px solid rgba(148,163,184,.11)",
+              background:
+                "linear-gradient(145deg,rgba(8,19,37,.92),rgba(10,22,42,.82))",
+              overflow: "hidden",
+              position: "relative",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                width: 260,
+                height: 260,
+                borderRadius: "50%",
+                background:
+                  "rgba(14,165,233,.08)",
+                filter: "blur(70px)",
+                right: -100,
+                top: -120,
+              }}
+            />
+
+            <div
+              style={{
+                position: "relative",
+                zIndex: 1,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent:
+                    "space-between",
+                  gap: 14,
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
+                  <div style={eyebrow}>
+                    ZAHLUNGSEINGÄNGE
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 8,
+                      fontSize: 32,
+                      fontWeight: 950,
+                      letterSpacing: "-.04em",
+                      color: "#86efac",
+                    }}
+                  >
+                    {money(monthRevenue)}
+                  </div>
+
+                  <div
+                    style={{
+                      color: "#64748b",
+                      fontSize: 12,
+                      marginTop: 4,
+                    }}
+                  >
+                    Im aktuellen Monat
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    padding: "9px 12px",
+                    height: "fit-content",
+                    borderRadius: 999,
+                    color: "#86efac",
+                    background:
+                      "rgba(34,197,94,.08)",
+                    border:
+                      "1px solid rgba(34,197,94,.15)",
+                    fontSize: 11,
+                    fontWeight: 900,
+                  }}
+                >
+                  ● LIVE
+                </div>
+              </div>
+
+              <div
+                style={{
+                  height: 190,
+                  marginTop: 26,
+                  display: "flex",
+                  alignItems: "end",
+                  gap: 10,
+                }}
+              >
+                {daily.map((item) => {
+                  const height =
+                    item.amount === 0
+                      ? 8
+                      : Math.max(
+                          16,
+                          (item.amount /
+                            maxDaily) *
+                            150
+                        );
+
+                  return (
+                    <div
+                      key={item.label}
+                      style={{
+                        flex: 1,
+                        height: "100%",
+                        display: "flex",
+                        flexDirection:
+                          "column",
+                        justifyContent:
+                          "flex-end",
+                        alignItems:
+                          "center",
+                        gap: 8,
+                      }}
+                    >
+                      {item.amount > 0 && (
+                        <div
+                          style={{
+                            color:
+                              "#7dd3fc",
+                            fontSize: 9,
+                            fontWeight: 850,
+                            whiteSpace:
+                              "nowrap",
+                          }}
+                        >
+                          {shortMoney(
+                            item.amount
+                          )}
+                        </div>
+                      )}
+
+                      <div
+                        title={money(
+                          item.amount
+                        )}
+                        style={{
+                          width: "100%",
+                          maxWidth: 54,
+                          height,
+                          borderRadius:
+                            "10px 10px 5px 5px",
+                          background:
+                            item.amount > 0
+                              ? "linear-gradient(180deg,#38bdf8,#6366f1 55%,#7c3aed)"
+                              : "rgba(148,163,184,.09)",
+                          boxShadow:
+                            item.amount > 0
+                              ? "0 12px 30px rgba(99,102,241,.15)"
+                              : "none",
+                        }}
+                      />
+
+                      <div
+                        style={{
+                          color:
+                            "#64748b",
+                          fontSize: 10,
+                          fontWeight: 800,
+                        }}
+                      >
+                        {item.label}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+
+          <section
+            className="performance-card"
+            style={{
+              padding: 24,
+              borderRadius: 24,
+              border:
+                "1px solid rgba(148,163,184,.11)",
+              background:
+                "linear-gradient(145deg,rgba(15,23,42,.94),rgba(28,20,62,.84))",
+            }}
+          >
+            <div style={eyebrow}>
+              MONEY TO COLLECT
+            </div>
+
+            <div
+              style={{
+                fontSize: 36,
+                fontWeight: 950,
+                letterSpacing: "-.04em",
+                marginTop: 9,
+                color:
+                  moneyToCollect > 0
+                    ? "#7dd3fc"
+                    : "#86efac",
+              }}
+            >
+              {money(moneyToCollect)}
+            </div>
+
+            <div
+              style={{
+                color: "#64748b",
+                fontSize: 12,
+                marginTop: 5,
+              }}
+            >
+              Noch nicht eingegangene Zahlungen
+            </div>
+
+            <div
+              style={{
+                marginTop: 25,
+                height: 8,
+                borderRadius: 999,
+                background:
+                  "rgba(148,163,184,.10)",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  width: `${Math.min(
+                    100,
+                    collectionPercent
+                  )}%`,
+                  height: "100%",
+                  borderRadius: 999,
+                  background:
+                    "linear-gradient(90deg,#10b981,#38bdf8)",
+                }}
+              />
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent:
+                  "space-between",
+                marginTop: 9,
+                color: "#94a3b8",
+                fontSize: 11,
+              }}
+            >
+              <span>
+                Eingezogen
+              </span>
+              <strong
+                style={{
+                  color: "#86efac",
+                }}
+              >
+                {collectionPercent} %
+              </strong>
+            </div>
+
+            <div
+              style={{
+                marginTop: 25,
+                display: "grid",
+                gap: 10,
+              }}
+            >
+              <div style={miniRow}>
+                <span>
+                  Offene Rechnungen
+                </span>
+                <strong>
+                  {openInvoices.length}
+                </strong>
+              </div>
+
+              <div style={miniRow}>
+                <span>Überfällig</span>
+                <strong
+                  style={{
+                    color:
+                      overdueAmount > 0
+                        ? "#fca5a5"
+                        : "#86efac",
+                  }}
+                >
+                  {money(overdueAmount)}
+                </strong>
+              </div>
+
+              <div style={miniRow}>
+                <span>
+                  Offerten-Pipeline
+                </span>
+                <strong
+                  style={{
+                    color: "#c4b5fd",
+                  }}
+                >
+                  {money(quotePipeline)}
+                </strong>
+              </div>
+            </div>
+
+            <Link
+              href="/portal/business/rechnungen"
+              className="performance-link"
+              style={{
+                display:
+                  "inline-flex",
+                marginTop: 22,
+                color: "#7dd3fc",
+                textDecoration:
+                  "none",
+                fontSize: 12,
+                fontWeight: 900,
+                opacity: .84,
+              }}
+            >
+              Forderungen verwalten →
+            </Link>
+          </section>
+        </div>
+
+        <div
+          className="performance-bottom-grid"
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "minmax(0,1fr) minmax(0,1fr)",
+            gap: 16,
+          }}
+        >
+          <section
+            className="performance-card"
+            style={panel}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent:
+                  "space-between",
+                gap: 15,
+                alignItems: "start",
+              }}
+            >
+              <div>
+                <div style={eyebrow}>
+                  OFFERTEN PIPELINE
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 29,
+                    fontWeight: 950,
+                    marginTop: 7,
+                    color: "#c4b5fd",
+                  }}
+                >
+                  {money(quotePipeline)}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  textAlign: "right",
+                }}
+              >
+                <div
+                  style={{
+                    color: "#64748b",
+                    fontSize: 9,
+                    fontWeight: 900,
+                  }}
+                >
+                  ABSCHLUSSQUOTE
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 22,
+                    fontWeight: 950,
+                    marginTop: 4,
+                    color:
+                      conversion >= 50
+                        ? "#86efac"
+                        : "#fbbf24",
+                  }}
+                >
+                  {conversion} %
+                </div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                marginTop: 20,
+                display: "grid",
+                gap: 4,
+              }}
+            >
+              {latestQuotes.length === 0 && (
+                <div
+                  style={{
+                    padding: "22px 0",
+                    color: "#64748b",
+                    fontSize: 13,
+                  }}
+                >
+                  Noch keine Offerten vorhanden.
+                </div>
+              )}
+
+              {latestQuotes.map(
+                (quote) => (
+                  <Link
+                    key={quote.id}
+                    href={`/portal/business/offerten/${quote.id}`}
+                    style={{
+                      display:
+                        "grid",
+                      gridTemplateColumns:
+                        "1fr auto",
+                      gap: 14,
+                      padding:
+                        "14px 0",
+                      borderBottom:
+                        "1px solid rgba(148,163,184,.08)",
+                      textDecoration:
+                        "none",
+                      color:
+                        "inherit",
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 850,
+                        }}
+                      >
+                        {quote.customerName ||
+                          quote.title}
+                      </div>
+
+                      <div
+                        style={{
+                          color:
+                            "#64748b",
+                          fontSize: 10,
+                          marginTop: 4,
+                        }}
+                      >
+                        {quote.quoteNumber}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        textAlign:
+                          "right",
+                      }}
+                    >
+                      <strong
+                        style={{
+                          fontSize: 12,
+                        }}
+                      >
+                        {money(
+                          quote.totalCents
+                        )}
+                      </strong>
+
+                      <div
+                        style={{
+                          marginTop: 4,
+                          fontSize: 9,
+                          fontWeight: 900,
+                          color:
+                            quote.status ===
+                            "ACCEPTED"
+                              ? "#86efac"
+                              : quote.status ===
+                                "DECLINED"
+                              ? "#fca5a5"
+                              : "#7dd3fc",
+                        }}
+                      >
+                        {quote.status}
+                      </div>
+                    </div>
+                  </Link>
+                )
+              )}
+            </div>
+          </section>
+
+          <section
+            className="performance-card"
+            style={panel}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent:
+                  "space-between",
+                gap: 15,
+                alignItems: "center",
+              }}
+            >
+              <div>
+                <div style={eyebrow}>
+                  LIVE ACTIVITY
+                </div>
+
+                <h3
+                  style={{
+                    margin:
+                      "7px 0 0",
+                    fontSize: 20,
+                  }}
+                >
+                  Was gerade passiert
+                </h3>
+              </div>
+
+              <div
+                style={{
+                  width: 9,
+                  height: 9,
+                  borderRadius:
+                    "50%",
+                  background:
+                    "#22c55e",
+                  boxShadow:
+                    "0 0 18px rgba(34,197,94,.8)",
+                }}
+              />
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                marginTop: 17,
+              }}
+            >
+              {activities.length === 0 && (
+                <div
+                  style={{
+                    padding:
+                      "20px 0",
+                    color: "#64748b",
+                    fontSize: 13,
+                  }}
+                >
+                  Neue Aktivitäten erscheinen hier automatisch.
+                </div>
+              )}
+
+              {activities.map(
+                (activity, index) => (
+                  <div
+                    key={activity.id}
+                    style={{
+                      display:
+                        "grid",
+                      gridTemplateColumns:
+                        "34px 1fr auto",
+                      gap: 11,
+                      padding:
+                        "12px 0",
+                      alignItems:
+                        "center",
+                      borderBottom:
+                        index <
+                        activities.length -
+                          1
+                          ? "1px solid rgba(148,163,184,.07)"
+                          : "none",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius:
+                          10,
+                        display:
+                          "grid",
+                        placeItems:
+                          "center",
+                        background:
+                          "rgba(14,165,233,.08)",
+                        border:
+                          "1px solid rgba(125,211,252,.10)",
+                        color:
+                          "#7dd3fc",
+                        fontSize: 12,
+                      }}
+                    >
+                      {activity.type
+                        .toUpperCase()
+                        .includes(
+                          "PAY"
+                        )
+                        ? "↗"
+                        : activity.type
+                            .toUpperCase()
+                            .includes(
+                              "REM"
+                            )
+                        ? "!"
+                        : "•"}
+                    </div>
+
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 800,
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {activity.message}
+                      </div>
+
+                      <div
+                        style={{
+                          color:
+                            "#64748b",
+                          fontSize: 9,
+                          marginTop: 3,
+                        }}
+                      >
+                        {activity.invoice
+                          .customerName ||
+                          activity.invoice
+                            .invoiceNumber}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        color:
+                          "#64748b",
+                        fontSize: 9,
+                        whiteSpace:
+                          "nowrap",
+                      }}
+                    >
+                      {new Intl.DateTimeFormat(
+                        "de-CH",
+                        {
+                          day: "2-digit",
+                          month:
+                            "2-digit",
+                          hour:
+                            "2-digit",
+                          minute:
+                            "2-digit",
+                        }
+                      ).format(
+                        activity.createdAt
+                      )}
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
+          </section>
+        </div>
+      </section>
+    </>
+  );
+}
+
+const eyebrow = {
+  color: "#7dd3fc",
+  fontSize: 10,
+  fontWeight: 950,
+  letterSpacing: ".09em",
+} as const;
+
+const panel = {
+  padding: 24,
+  borderRadius: 24,
+  border:
+    "1px solid rgba(148,163,184,.11)",
+  background:
+    "rgba(8,19,37,.78)",
+} as const;
+
+const miniRow = {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 15,
+  padding: "9px 0",
+  color: "#94a3b8",
+  fontSize: 12,
+  borderBottom:
+    "1px solid rgba(148,163,184,.07)",
+} as const;

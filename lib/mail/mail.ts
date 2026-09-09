@@ -5,6 +5,11 @@ type SendMailInput = {
   subject: string;
   html: string;
   text: string;
+  attachments?: {
+    filename: string;
+    content: Buffer;
+    contentType?: string;
+  }[];
 };
 
 function env(name: string) {
@@ -67,6 +72,7 @@ export async function sendMail({
   subject,
   html,
   text,
+  attachments,
 }: SendMailInput) {
   console.log("Versende Mail an:", to);
 
@@ -80,6 +86,7 @@ export async function sendMail({
     subject,
     html,
     text,
+    attachments,
   });
 
   const accepted = result.accepted.map(String);

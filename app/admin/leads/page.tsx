@@ -85,6 +85,7 @@ function shortText(text: string | null, maxLength = 120) {
   }
 
   const cleaned = text
+    .split(/TRACKING/i)[0]
     .replace(/\s+/g, " ")
     .replaceAll("Nicht angegeben", "")
     .trim();
@@ -784,7 +785,7 @@ export default async function AdminLeadsPage({
                         </strong>
 
                         <p>
-                          {lead.description}
+                          {shortText(lead.description, 900)}
                         </p>
 
                         <div className="contact-details">
