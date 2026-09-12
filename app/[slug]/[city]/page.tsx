@@ -1,4 +1,4 @@
-export const revalidate = 86400;
+export const revalidate = 604800;
 export const dynamicParams = true;
 import ServiceCityPage, {
   generateMetadata as generateServiceCityMetadata,

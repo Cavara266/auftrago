@@ -15,7 +15,7 @@ type PageProps = {
   }>;
 };
 
-export const revalidate = 3600;
+export const revalidate = 604800;
 
 export function generateStaticParams() {
   return categoryCatalog.map((category) => ({

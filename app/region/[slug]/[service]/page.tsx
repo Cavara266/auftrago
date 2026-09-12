@@ -14,7 +14,7 @@ type PageProps = {
   }>;
 };
 
-export const revalidate = 3600;
+export const revalidate = 604800;
 
 function formatSlug(value: string) {
   return value
