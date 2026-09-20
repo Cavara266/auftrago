@@ -290,6 +290,22 @@ export default function DynamicOrderForm({
             "Die Anfrage konnte nicht gespeichert werden."
         );
       }
+    // GA4: echte Kundenanfrage erfolgreich erstellt
+    if (typeof window !== "undefined") {
+      const gtag = (
+        window as Window & {
+          gtag?: (...args: unknown[]) => void;
+        }
+      ).gtag;
+
+      gtag?.("event", "auftrag_erstellt", {
+        lead_id: result?.leadId ?? "",
+        service: service.slug,
+        category: category.slug,
+      });
+    }
+
+
 
       router.push(
         `/auftrag-erstellen/erfolgreich?lead=${encodeURIComponent(
