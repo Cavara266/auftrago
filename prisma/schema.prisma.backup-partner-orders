@@ -128,11 +128,6 @@ model Provider {
 
   providerServices ProviderService[]
 
-  // Auftrago Auftragsboerse
-  partnerOrdersCreated     PartnerOrder[]            @relation("PartnerOrderOwner")
-  partnerOrdersSelected    PartnerOrder[]            @relation("PartnerOrderSelected")
-  partnerOrderApplications PartnerOrderApplication[] @relation("PartnerOrderApplicant")
-
   // Auftrago Business Zusatzabo CHF 79 / Monat
   businessSubscriptionStatus            String?   @default("INACTIVE")
   businessSubscriptionStartedAt         DateTime?
@@ -1312,110 +1307,6 @@ model Company {
   @@index([municipality])
   @@index([canton])
   @@index([postalCode])
-  @@index([status])
-  @@index([createdAt])
-}
-
-// ============================================================
-// AUFTRAGO AUFTRAGSBOERSE
-// Firmen vergeben Auftraege an andere Firmen
-// ============================================================
-
-enum PartnerOrderStatus {
-  OPEN
-  ASSIGNED
-  PAYMENT_PENDING
-  UNLOCKED
-  COMPLETED
-  CANCELLED
-}
-
-enum PartnerApplicationStatus {
-  PENDING
-  ACCEPTED
-  REJECTED
-  CANCELLED
-}
-
-model PartnerOrder {
-  id String @id @default(uuid())
-
-  // Firma, die den Auftrag einstellt
-  ownerProviderId String
-  ownerProvider   Provider @relation("PartnerOrderOwner", fields: [ownerProviderId], references: [id], onDelete: Cascade)
-
-  title       String
-  category    String
-  description String
-
-  // Einsatz
-  postalCode   String?
-  city         String?
-  region       String?
-  scheduledAt  DateTime?
-  flexibleDate Boolean   @default(false)
-
-  // Betrag in Rappen, den die Partnerfirma fuer den Auftrag erhaelt
-  partnerAmountCents Int
-
-  // Provision Auftrago: 12 %, mindestens CHF 25
-  commissionRateBps      Int @default(1200)
-  minimumCommissionCents Int @default(2500)
-
-  // Kundendaten - erst nach Provision freigeben
-  customerName       String?
-  customerEmail      String?
-  customerPhone      String?
-  customerStreet     String?
-  customerPostalCode String?
-  customerCity       String?
-
-  status PartnerOrderStatus @default(OPEN)
-
-  selectedProviderId String?
-  selectedProvider   Provider? @relation("PartnerOrderSelected", fields: [selectedProviderId], references: [id], onDelete: SetNull)
-
-  // Stripe / Freischaltung
-  commissionCents         Int?
-  stripeCheckoutSessionId String?   @unique
-  stripePaymentIntentId   String?   @unique
-  commissionPaidAt        DateTime?
-  contactsUnlockedAt      DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  applications PartnerOrderApplication[]
-
-  @@index([ownerProviderId])
-  @@index([selectedProviderId])
-  @@index([status])
-  @@index([category])
-  @@index([region])
-  @@index([postalCode])
-  @@index([scheduledAt])
-  @@index([createdAt])
-}
-
-model PartnerOrderApplication {
-  id String @id @default(uuid())
-
-  orderId String
-  order   PartnerOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  providerId String
-  provider   Provider @relation("PartnerOrderApplicant", fields: [providerId], references: [id], onDelete: Cascade)
-
-  message String?
-
-  status PartnerApplicationStatus @default(PENDING)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([orderId, providerId])
-  @@index([orderId])
-  @@index([providerId])
   @@index([status])
   @@index([createdAt])
 }

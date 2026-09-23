@@ -268,90 +268,6 @@ async function processFixedOrderPayment(session: Stripe.Checkout.Session) {
   };
 }
 
-
-async function processPartnerOrderPayment(
-  session: Stripe.Checkout.Session
-) {
-  const providerId =
-    session.metadata?.providerId?.trim() ||
-    session.client_reference_id?.trim() ||
-    "";
-
-  const partnerOrderId =
-    session.metadata?.partnerOrderId?.trim() || "";
-
-  if (!providerId || !partnerOrderId) {
-    throw new Error("PARTNER_ORDER_METADATA_MISSING");
-  }
-
-  const paymentIntentId = getPaymentIntentId(session);
-  const paidAt = new Date();
-
-  return prisma.$transaction(async (tx) => {
-    const order = await tx.partnerOrder.findUnique({
-      where: {
-        id: partnerOrderId,
-      },
-      select: {
-        id: true,
-        status: true,
-        selectedProviderId: true,
-        stripeCheckoutSessionId: true,
-        commissionPaidAt: true,
-      },
-    });
-
-    if (!order) {
-      throw new Error("PARTNER_ORDER_NOT_FOUND");
-    }
-
-    const isDuplicate =
-      order.status === "UNLOCKED" &&
-      order.selectedProviderId === providerId &&
-      order.stripeCheckoutSessionId === session.id &&
-      Boolean(order.commissionPaidAt);
-
-    if (isDuplicate) {
-      return {
-        duplicate: true,
-        orderId: order.id,
-      };
-    }
-
-    if (
-      order.status !== "PAYMENT_PENDING" ||
-      order.selectedProviderId !== providerId ||
-      order.stripeCheckoutSessionId !== session.id
-    ) {
-      throw new Error("PARTNER_ORDER_PAYMENT_MISMATCH");
-    }
-
-    const updated = await tx.partnerOrder.updateMany({
-      where: {
-        id: partnerOrderId,
-        status: "PAYMENT_PENDING",
-        selectedProviderId: providerId,
-        stripeCheckoutSessionId: session.id,
-      },
-      data: {
-        status: "UNLOCKED",
-        commissionPaidAt: paidAt,
-        contactsUnlockedAt: paidAt,
-        stripePaymentIntentId: paymentIntentId,
-      },
-    });
-
-    if (updated.count !== 1) {
-      throw new Error("PARTNER_ORDER_UNLOCK_FAILED");
-    }
-
-    return {
-      duplicate: false,
-      orderId: partnerOrderId,
-    };
-  });
-}
-
 async function releaseExpiredFixedOrderReservation(
   session: Stripe.Checkout.Session,
 ) {
@@ -504,33 +420,6 @@ export async function POST(req: NextRequest) {
       received: true,
       paymentPending: true,
     });
-  }
-
-  if (session.metadata?.type === "partner-order") {
-    try {
-      const result = await processPartnerOrderPayment(session);
-
-      return NextResponse.json({
-        ok: true,
-        received: true,
-        partnerOrder: true,
-        duplicate: result.duplicate,
-        orderId: result.orderId,
-      });
-    } catch (error) {
-      console.error("STRIPE PARTNER ORDER WEBHOOK ERROR:", {
-        stripeSessionId: session.id,
-        error,
-      });
-
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Partnerauftrag konnte nicht freigeschaltet werden.",
-        },
-        { status: 500 }
-      );
-    }
   }
 
   if (session.metadata?.type === "fixed-order") {

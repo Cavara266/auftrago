@@ -1,0 +1,204 @@
+import { NextResponse } from "next/server";
+import { requireUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+export async function POST(req: Request) {
+  try {
+    const session = await requireUser();
+
+    if (!session?.id) {
+      return NextResponse.json(
+        { ok: false, error: "Nicht eingeloggt." },
+        { status: 401 }
+      );
+    }
+
+    const body = await req.json();
+
+    const title = String(body.title ?? "").trim();
+    const category = String(body.category ?? "").trim();
+    const description = String(body.description ?? "").trim();
+
+    const postalCode = String(body.postalCode ?? "").trim() || null;
+    const city = String(body.city ?? "").trim() || null;
+    const region = String(body.region ?? "").trim() || null;
+
+    const scheduledAt = body.scheduledAt
+      ? new Date(body.scheduledAt)
+      : null;
+
+    const flexibleDate = Boolean(body.flexibleDate);
+
+    const rawPartnerAmount =
+      body.partnerAmount ??
+      body.partnerAmountCHF ??
+      "";
+
+    const normalizedPartnerAmount = String(rawPartnerAmount)
+      .trim()
+      .replace(/CHF/gi, "")
+      .replace(/['’\s]/g, "")
+      .replace(",", ".");
+
+    const partnerAmount = Number(normalizedPartnerAmount);
+
+    if (!title || !category || !description) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Titel, Kategorie und Beschreibung sind erforderlich.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!Number.isFinite(partnerAmount) || partnerAmount <= 0) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Bitte einen gültigen Auftragsbetrag eingeben.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Eingabe in CHF -> Speicherung in Rappen
+    const partnerAmountCents = Math.round(partnerAmount * 100);
+
+    // 12 % Provision, mindestens CHF 25
+    const commissionCents = Math.max(
+      Math.round(partnerAmountCents * 0.12),
+      2500
+    );
+
+    const order = await prisma.partnerOrder.create({
+      data: {
+        ownerProviderId: session.id,
+
+        title,
+        category,
+        description,
+
+        postalCode,
+        city,
+        region,
+
+        scheduledAt,
+        flexibleDate,
+
+        partnerAmountCents,
+
+        commissionRateBps: 1200,
+        minimumCommissionCents: 2500,
+        commissionCents,
+
+        status: "OPEN",
+      },
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        partnerAmountCents: true,
+        commissionCents: true,
+        status: true,
+        createdAt: true,
+      },
+    });
+
+    return NextResponse.json({
+      ok: true,
+      order,
+      commission: {
+        rate: 12,
+        amountCHF: commissionCents / 100,
+      },
+    });
+  } catch (error) {
+    console.error("PARTNER ORDER CREATE ERROR:", error);
+
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Auftrag konnte nicht erstellt werden.",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET() {
+  try {
+    const session = await requireUser();
+
+    if (!session?.id) {
+      return NextResponse.json(
+        { ok: false, error: "Nicht eingeloggt." },
+        { status: 401 }
+      );
+    }
+
+    const orders = await prisma.partnerOrder.findMany({
+      where: {
+        status: "OPEN",
+        ownerProviderId: {
+          not: session.id,
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        description: true,
+        postalCode: true,
+        city: true,
+        region: true,
+        scheduledAt: true,
+        flexibleDate: true,
+        partnerAmountCents: true,
+        commissionCents: true,
+        status: true,
+        createdAt: true,
+
+        ownerProvider: {
+          select: {
+            id: true,
+            companyName: true,
+            logoUrl: true,
+            region: true,
+          },
+        },
+
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
+      },
+    });
+
+    return NextResponse.json({
+      ok: true,
+      orders: orders.map((order) => ({
+        ...order,
+        partnerAmountCHF: order.partnerAmountCents / 100,
+        commissionCHF: (order.commissionCents ?? 0) / 100,
+      })),
+    });
+  } catch (error) {
+    console.error("PARTNER ORDER LIST ERROR:", error);
+
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Aufträge konnten nicht geladen werden.",
+      },
+      { status: 500 }
+    );
+  }
+}

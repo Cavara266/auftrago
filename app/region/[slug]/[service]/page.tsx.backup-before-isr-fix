@@ -1,0 +1,622 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+
+import { regions, getRegionBySlug } from "@/lib/region-data";
+import { seoConfig } from "@/lib/seo";
+import { serviceCatalog } from "@/lib/service-catalog";
+import { getInternalLinks } from "@/lib/internal-links";
+
+type PageProps = {
+  params: Promise<{
+    slug: string;
+    service: string;
+  }>;
+};
+
+export const revalidate = 3600;
+
+function formatSlug(value: string) {
+  return value
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function getServiceBySlug(slug: string) {
+  return serviceCatalog.find((service) => service.slug === slug);
+}
+
+export function generateStaticParams() {
+  return regions.flatMap((region) =>
+    serviceCatalog.map((service) => ({
+      slug: region.slug,
+      service: service.slug,
+    })),
+  );
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { slug: regionSlug, service: serviceSlug } = await params;
+
+  const region = getRegionBySlug(regionSlug);
+  const service = getServiceBySlug(serviceSlug);
+
+  if (!region || !service) {
+    return {};
+  }
+
+  const canonical =
+    `${seoConfig.siteUrl}/region/${region.slug}/${service.slug}`;
+
+  const title =
+    `${service.name} ${region.shortName} | Offerten vergleichen | Auftrago`;
+
+  const description =
+    `${service.name} im ${region.name}: regionale Anbieter finden, kostenlos Anfrage stellen und passende Offerten unverbindlich vergleichen.`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical,
+    },
+    openGraph: {
+      title,
+      description,
+      url: canonical,
+      type: "website",
+      siteName: "Auftrago",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
+  };
+}
+
+export default async function RegionServicePage({
+  params,
+}: PageProps) {
+  const { slug: regionSlug, service: serviceSlug } = await params;
+
+  const region = getRegionBySlug(regionSlug);
+  const service = getServiceBySlug(serviceSlug);
+
+  if (!region || !service) {
+    notFound();
+  }
+
+  const canonical =
+    `${seoConfig.siteUrl}/region/${region.slug}/${service.slug}`;
+
+  const internalLinks = getInternalLinks({
+    region: region.slug,
+    service: service.slug,
+    cityLimit: 12,
+    relatedRegionLimit: 6,
+    relatedServiceLimit: 8,
+    popularLimit: 8,
+  });
+
+
+  const relatedServices = serviceCatalog
+    .filter(
+      (item) =>
+        item.slug !== service.slug &&
+        item.category === service.category,
+    )
+    .slice(0, 8);
+
+  const regionCities = region.cities.slice(0, 18);
+
+  const faqItems = [
+    {
+      question:
+        `Was kostet ${service.name} im ${region.name}?`,
+      answer:
+        `Die Kosten für ${service.name} hängen vom Umfang, dem Objekt, dem gewünschten Termin und den konkreten Anforderungen ab. Über Auftrago kannst du mehrere regionale Offerten vergleichen.`,
+    },
+    {
+      question:
+        `Wie finde ich passende Anbieter für ${service.name} in ${region.shortName}?`,
+      answer:
+        `Beschreibe deinen Auftrag kostenlos auf Auftrago. Passende Anbieter aus ${region.shortName} können deine Anfrage prüfen und dir eine Offerte senden.`,
+    },
+    {
+      question:
+        `Ist die Anfrage für ${service.name} unverbindlich?`,
+      answer:
+        `Ja. Die Anfrage ist kostenlos und unverbindlich. Du entscheidest selbst, ob und welche Offerte du annehmen möchtest.`,
+    },
+    {
+      question:
+        `Kann ich mehrere Offerten vergleichen?`,
+      answer:
+        `Ja. Je nach Verfügbarkeit können mehrere Anbieter eine Offerte abgeben. Dadurch kannst du Leistungen, Preise und Verfügbarkeit vergleichen.`,
+    },
+    {
+      question:
+        `Welche Angaben werden für eine genaue Offerte benötigt?`,
+      answer:
+        `Hilfreich sind eine genaue Beschreibung, der Einsatzort, der gewünschte Termin sowie Fotos, Masse oder weitere Angaben zum Auftrag.`,
+    },
+  ];
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Startseite",
+        item: seoConfig.siteUrl,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Regionen",
+        item: `${seoConfig.siteUrl}/region`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: region.shortName,
+        item: `${seoConfig.siteUrl}/region/${region.slug}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 4,
+        name: service.name,
+        item: canonical,
+      },
+    ],
+  };
+
+  const serviceSchema = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: `${service.name} in ${region.shortName}`,
+    serviceType: service.name,
+    description:
+      `${service.name} im ${region.name}: regionale Anbieter und Offerten vergleichen.`,
+    url: canonical,
+    areaServed: {
+      "@type": "AdministrativeArea",
+      name: region.name,
+    },
+    provider: {
+      "@type": "Organization",
+      name: "Auftrago",
+      url: seoConfig.siteUrl,
+    },
+  };
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  };
+
+  return (
+    <main className="min-h-screen bg-[#07101f] text-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema),
+        }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(serviceSchema),
+        }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqSchema),
+        }}
+      />
+
+      <section className="border-b border-white/10">
+        <div className="mx-auto max-w-7xl px-6 py-14 sm:py-20 lg:py-24">
+          <nav
+            aria-label="Breadcrumb"
+            className="mb-8 flex flex-wrap gap-2 text-sm text-slate-400"
+          >
+            <Link href="/" className="hover:text-white">
+              Startseite
+            </Link>
+
+            <span>/</span>
+
+            <Link href="/region" className="hover:text-white">
+              Regionen
+            </Link>
+
+            <span>/</span>
+
+            <Link
+              href={`/region/${region.slug}`}
+              className="hover:text-white"
+            >
+              {region.shortName}
+            </Link>
+
+            <span>/</span>
+
+            <span className="text-slate-200">
+              {service.name}
+            </span>
+          </nav>
+
+          <div className="grid items-start gap-10 lg:grid-cols-[1fr_360px]">
+            <div>
+              <span className="text-sm font-bold uppercase tracking-[0.22em] text-sky-300">
+                {service.name} · {region.shortName}
+              </span>
+
+              <h1 className="mt-4 max-w-4xl text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
+                {service.name} im{" "}
+                <span className="bg-gradient-to-r from-sky-300 to-fuchsia-400 bg-clip-text text-transparent">
+                  {region.name}
+                </span>
+              </h1>
+
+              <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-300">
+                Finde passende regionale Anbieter für {service.name} in{" "}
+                {region.shortName}. Beschreibe deinen Auftrag einmal und
+                vergleiche unverbindliche Offerten.
+              </p>
+
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link
+                  href={`/offerte-anfragen?service=${encodeURIComponent(
+                    service.slug,
+                  )}`}
+                  className="rounded-xl bg-gradient-to-r from-sky-400 to-fuchsia-500 px-6 py-3 font-bold text-slate-950 transition hover:scale-[1.02]"
+                >
+                  Kostenlos Offerten erhalten
+                </Link>
+
+                <Link
+                  href={`/leistungen/${service.slug}`}
+                  className="rounded-xl border border-white/15 bg-white/5 px-6 py-3 font-semibold transition hover:bg-white/10"
+                >
+                  Mehr über {service.name}
+                </Link>
+              </div>
+            </div>
+
+            <aside className="rounded-3xl border border-white/10 bg-white/[0.05] p-6">
+              <span className="text-sm font-bold uppercase tracking-[0.18em] text-sky-300">
+                Ablauf
+              </span>
+
+              <h2 className="mt-3 text-2xl font-black">
+                In vier Schritten zur Offerte
+              </h2>
+
+              <div className="mt-6 space-y-5">
+                {[
+                  "Dienstleistung und Region auswählen",
+                  "Auftrag vollständig beschreiben",
+                  "Angebote regionaler Anbieter erhalten",
+                  "Offerten vergleichen und Anbieter wählen",
+                ].map((step, index) => (
+                  <div
+                    key={step}
+                    className="flex items-start gap-4"
+                  >
+                    <strong className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-400/15 text-sky-300">
+                      {index + 1}
+                    </strong>
+
+                    <p className="pt-1 text-sm leading-6 text-slate-300">
+                      {step}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-6 py-14 sm:py-20">
+        <div className="grid gap-10 lg:grid-cols-[1fr_360px]">
+          <article className="rounded-3xl border border-white/10 bg-white/[0.035] p-6 sm:p-9">
+            <span className="text-sm font-bold uppercase tracking-[0.18em] text-sky-300">
+              Regionale Anbieter
+            </span>
+
+            <h2 className="mt-3 text-3xl font-black">
+              {service.name} in {region.shortName} vergleichen
+            </h2>
+
+            <div className="mt-6 space-y-5 text-base leading-8 text-slate-300">
+              <p>
+                Wer {service.name} im {region.name} benötigt, möchte
+                zuverlässige Anbieter, nachvollziehbare Leistungen und
+                eine schnelle Rückmeldung. Auftrago erleichtert die
+                Suche, indem du deinen Auftrag nur einmal beschreiben
+                musst.
+              </p>
+
+              <p>
+                Anbieter aus der Region können deine Angaben prüfen und
+                eine passende Offerte erstellen. Dadurch erhältst du
+                eine bessere Grundlage, um Preise, Leistungsumfang,
+                Termine und Verfügbarkeit miteinander zu vergleichen.
+              </p>
+
+              <p>
+                Eine möglichst genaue Beschreibung hilft den
+                Fachbetrieben bei der Kalkulation. Ergänze deshalb
+                Angaben zum Einsatzort, zum gewünschten Termin und zum
+                Umfang. Bilder oder Masse können die Einschätzung
+                zusätzlich erleichtern.
+              </p>
+
+              <p>
+                {region.longDescription || region.description}
+              </p>
+            </div>
+          </article>
+
+          <aside className="rounded-3xl border border-white/10 bg-white/[0.035] p-6">
+            <span className="text-sm font-bold uppercase tracking-[0.18em] text-fuchsia-300">
+              Vorteile
+            </span>
+
+            <h2 className="mt-3 text-2xl font-black">
+              Warum Auftrago?
+            </h2>
+
+            <div className="mt-6 space-y-4">
+              {[
+                "Kostenlose Anfrage",
+                "Keine Annahmepflicht",
+                "Regionale Anbieter",
+                "Mehrere Offerten vergleichbar",
+                "Für Privatpersonen und Unternehmen",
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3"
+                >
+                  <span className="text-emerald-300">✓</span>
+                  <span className="text-sm font-semibold text-slate-200">
+                    {item}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section className="border-y border-white/10 bg-white/[0.025]">
+        <div className="mx-auto max-w-7xl px-6 py-14 sm:py-20">
+          <span className="text-sm font-bold uppercase tracking-[0.18em] text-sky-300">
+            Einsatzorte
+          </span>
+
+          <h2 className="mt-3 text-3xl font-black">
+            {service.name} in Städten der Region
+          </h2>
+
+          <p className="mt-4 max-w-3xl leading-7 text-slate-400">
+            Entdecke lokale Anbieter und Landingpages für ausgewählte
+            Orte im {region.name}.
+          </p>
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {regionCities.map((city) => (
+              <Link
+                key={city}
+                href={`/dienstleistung/${service.slug}/${city}`}
+                className="group rounded-2xl border border-white/10 bg-white/[0.04] p-5 transition hover:-translate-y-1 hover:border-sky-400/40 hover:bg-white/[0.07]"
+              >
+                <span className="text-xs font-bold uppercase tracking-[0.16em] text-sky-300">
+                  {region.shortName}
+                </span>
+
+                <h3 className="mt-2 font-bold">
+                  {service.name} in {formatSlug(city)}
+                </h3>
+
+                <strong className="mt-4 block text-sm text-slate-400 transition group-hover:text-white">
+                  Anbieter vergleichen →
+                </strong>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {relatedServices.length > 0 ? (
+        <section className="mx-auto max-w-7xl px-6 py-14 sm:py-20">
+          <span className="text-sm font-bold uppercase tracking-[0.18em] text-fuchsia-300">
+            Weitere Leistungen
+          </span>
+
+          <h2 className="mt-3 text-3xl font-black">
+            Ähnliche Dienstleistungen in {region.shortName}
+          </h2>
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {relatedServices.map((item) => (
+              <Link
+                key={item.slug}
+                href={`/region/${region.slug}/${item.slug}`}
+                className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 transition hover:border-fuchsia-400/40 hover:bg-white/[0.07]"
+              >
+                <h3 className="font-bold">
+                  {item.name}
+                </h3>
+
+                <p className="mt-2 text-sm leading-6 text-slate-400">
+                  Anbieter in {region.shortName} vergleichen.
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="border-t border-white/10 bg-white/[0.025]">
+        <div className="mx-auto max-w-4xl px-6 py-14 sm:py-20">
+          <span className="text-sm font-bold uppercase tracking-[0.18em] text-sky-300">
+            Häufige Fragen
+          </span>
+
+          <h2 className="mt-3 text-3xl font-black">
+            Fragen zu {service.name} in {region.shortName}
+          </h2>
+
+          <div className="mt-8 space-y-4">
+            {faqItems.map((faq) => (
+              <details
+                key={faq.question}
+                className="rounded-2xl border border-white/10 bg-white/[0.04] p-5"
+              >
+                <summary className="cursor-pointer font-bold">
+                  {faq.question}
+                </summary>
+
+                <p className="mt-4 leading-7 text-slate-300">
+                  {faq.answer}
+                </p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+
+      {internalLinks.sameServiceOtherRegions.length > 0 ? (
+        <section className="border-t border-white/10 bg-white/[0.025]">
+          <div className="mx-auto max-w-7xl px-6 py-14 sm:py-20">
+            <span className="text-sm font-bold uppercase tracking-[0.18em] text-sky-300">
+              Weitere Regionen
+            </span>
+
+            <h2 className="mt-3 text-3xl font-black">
+              {service.name} in weiteren Regionen
+            </h2>
+
+            <p className="mt-4 max-w-3xl leading-7 text-slate-400">
+              Vergleiche regionale Anbieter für {service.name} auch in
+              weiteren Kantonen und Regionen der Schweiz.
+            </p>
+
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {internalLinks.sameServiceOtherRegions.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="group rounded-2xl border border-white/10 bg-white/[0.04] p-5 transition hover:-translate-y-1 hover:border-sky-400/40 hover:bg-white/[0.07]"
+                >
+                  <h3 className="font-bold">
+                    {item.label}
+                  </h3>
+
+                  {item.description ? (
+                    <p className="mt-2 text-sm leading-6 text-slate-400">
+                      {item.description}
+                    </p>
+                  ) : null}
+
+                  <strong className="mt-4 block text-sm text-sky-300">
+                    Anbieter vergleichen →
+                  </strong>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {internalLinks.popularLinks.length > 0 ? (
+        <section className="border-t border-white/10">
+          <div className="mx-auto max-w-7xl px-6 py-14 sm:py-20">
+            <span className="text-sm font-bold uppercase tracking-[0.18em] text-fuchsia-300">
+              Häufig gesucht
+            </span>
+
+            <h2 className="mt-3 text-3xl font-black">
+              Beliebte Dienstleistungen in {region.shortName}
+            </h2>
+
+            <p className="mt-4 max-w-3xl leading-7 text-slate-400">
+              Entdecke weitere häufig nachgefragte Dienstleistungen und
+              vergleiche passende Anbieter aus {region.shortName}.
+            </p>
+
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {internalLinks.popularLinks.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 transition hover:border-fuchsia-400/40 hover:bg-white/[0.07]"
+                >
+                  <h3 className="font-bold">
+                    {item.label}
+                  </h3>
+
+                  {item.description ? (
+                    <p className="mt-2 text-sm leading-6 text-slate-400">
+                      {item.description}
+                    </p>
+                  ) : null}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      <section className="border-t border-white/10">
+        <div className="mx-auto max-w-5xl px-6 py-16 text-center sm:py-24">
+          <span className="text-sm font-bold uppercase tracking-[0.18em] text-fuchsia-300">
+            Jetzt starten
+          </span>
+
+          <h2 className="mt-3 text-3xl font-black sm:text-4xl">
+            Offerten für {service.name} in {region.shortName} erhalten
+          </h2>
+
+          <p className="mx-auto mt-5 max-w-2xl leading-7 text-slate-300">
+            Beschreibe deinen Auftrag kostenlos und vergleiche passende
+            regionale Anbieter.
+          </p>
+
+          <Link
+            href={`/offerte-anfragen?service=${encodeURIComponent(
+              service.slug,
+            )}`}
+            className="mt-8 inline-flex rounded-xl bg-gradient-to-r from-sky-400 to-fuchsia-500 px-7 py-3.5 font-bold text-slate-950 transition hover:scale-[1.02]"
+          >
+            Kostenlose Anfrage erstellen
+          </Link>
+        </div>
+      </section>
+    </main>
+  );
+}
