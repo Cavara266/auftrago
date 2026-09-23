@@ -573,16 +573,17 @@ export default function AuftragsboersePage() {
 
           <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
             Vergib eigene Aufträge an geprüfte Firmen oder übernimm
-            passende Aufträge anderer Anbieter. Als Auftraggeber zahlst du keine Vermittlungsgebühr. Die Provision bezahlt die Firma, die deinen Auftrag übernimmt. Kundendaten werden erst nach erfolgreicher Provisionszahlung freigeschaltet.
+            passende Aufträge anderer Anbieter. Kundendaten werden erst
+            nach erfolgreicher Provisionszahlung freigeschaltet.
           </p>
 
           <div className="mt-7 flex flex-wrap gap-3">
             <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold">
-              Auftrag einstellen: kostenlos
+              12 % Vermittlungsprovision
             </div>
 
             <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold">
-              12 % Provision für Auftragnehmer
+              Mindestprovision CHF 25.–
             </div>
 
             <div className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-sm font-bold text-emerald-300">
